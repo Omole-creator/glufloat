@@ -1,26 +1,193 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --ink: #0c2d4d;
+  --ink-soft: #3c5a77;
+  --blue: #1b5faa;
+  --blue-deep: #14497f;
+  --green: #3e9b4f;
+  --green-deep: #2f7c3d;
+  --paper: #ffffff;
+  --mist: #f2f7fb;
+  --mint: #f0f8f1;
+  --line: #dbe7f0;
+  --v-green: #2ecc71;
+  --v-yellow: #f1c40f;
+  --v-red: #e74c3c;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-brand: var(--blue);
+  --color-brand-deep: var(--blue-deep);
+  --color-leaf: var(--green);
+  --color-leaf-deep: var(--green-deep);
+  --color-paper: var(--paper);
+  --color-mist: var(--mist);
+  --color-mint: var(--mint);
+  --color-line: var(--line);
+  --color-verdict-green: var(--v-green);
+  --color-verdict-yellow: var(--v-yellow);
+  --color-verdict-red: var(--v-red);
+  --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-display), Georgia, serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: rgba(62, 155, 79, 0.25);
+}
+
+/* ---------- scroll reveal ---------- */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+  will-change: opacity, transform;
+}
+.reveal.reveal-left {
+  transform: translateX(-36px);
+}
+.reveal.reveal-right {
+  transform: translateX(36px);
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .reveal.reveal-left,
+  .reveal.reveal-right {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* ---------- hero entrance ---------- */
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(26px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.rise {
+  animation: rise-in 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--rise-delay, 0ms);
+}
+
+/* ---------- traffic light glow cycle ---------- */
+@keyframes lamp-green {
+  0%, 55%, 100% { opacity: 0.22; box-shadow: none; }
+  65%, 90% { opacity: 1; box-shadow: 0 0 24px 4px rgba(46, 204, 113, 0.55); }
+}
+@keyframes lamp-yellow {
+  0%, 25%, 60%, 100% { opacity: 0.22; box-shadow: none; }
+  35%, 50% { opacity: 1; box-shadow: 0 0 24px 4px rgba(241, 196, 15, 0.55); }
+}
+@keyframes lamp-red {
+  0%, 30%, 100% { opacity: 0.22; box-shadow: none; }
+  5%, 20% { opacity: 1; box-shadow: 0 0 24px 4px rgba(231, 76, 60, 0.55); }
+}
+.lamp-green { animation: lamp-green 6s ease-in-out infinite; }
+.lamp-yellow { animation: lamp-yellow 6s ease-in-out infinite; }
+.lamp-red { animation: lamp-red 6s ease-in-out infinite; }
+
+/* ---------- floating cards ---------- */
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+.float-slow {
+  animation: float-slow 5.5s ease-in-out infinite;
+}
+.float-slower {
+  animation: float-slow 7s ease-in-out infinite;
+  animation-delay: 1.2s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .float-slow,
+  .float-slower,
+  .lamp-green,
+  .lamp-yellow,
+  .lamp-red {
+    animation: none;
+  }
+}
+
+/* ---------- verdict pop ---------- */
+@keyframes verdict-pop {
+  0% { transform: scale(0.92); opacity: 0; }
+  60% { transform: scale(1.03); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.verdict-pop {
+  animation: verdict-pop 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ---------- marquee for food strip ---------- */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.marquee-track {
+  animation: marquee 36s linear infinite;
+}
+.marquee:hover .marquee-track {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: none;
+  }
+}
+
+/* ---------- soft card hover ---------- */
+.lift {
+  transition:
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.lift:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 18px 40px -18px rgba(12, 45, 77, 0.28);
+}
+
+/* ---------- dotted texture band ---------- */
+.dots {
+  background-image: radial-gradient(rgba(27, 95, 170, 0.14) 1px, transparent 1px);
+  background-size: 18px 18px;
+}
+
+/* ---------- grain ---------- */
+.grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0.05 0 0 0 0 0.18 0 0 0 0 0.3 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
 }
