@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Fraunces, Instrument_Sans } from "next/font/google";
+import { Fraunces, Inter } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 const display = Fraunces({
@@ -8,7 +9,7 @@ const display = Fraunces({
   axes: ["SOFT", "opsz"],
 });
 
-const body = Instrument_Sans({
+const body = Inter({
   variable: "--font-body",
   subsets: ["latin"],
 });
@@ -16,7 +17,7 @@ const body = Instrument_Sans({
 export const metadata: Metadata = {
   title: "Glufloat | Know if a food is right for your diabetes, before you eat it",
   description:
-    "Search any Nigerian food or build your full plate. Glufloat gives you a clear green, yellow, or red answer, plus the exact fix that makes your meal safer. 7-day free trial, then N1,500 a month.",
+    "Check any Nigerian food or your whole meal. Glufloat gives you a clear green, yellow, or red answer, plus the simple fix that makes it safe for your sugar. 7 days free, then N1,500 a month.",
   icons: {
     icon: "/icon.png",
     apple: "/apple-touch-icon.png",
@@ -24,7 +25,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Glufloat | Eat your food again, without the fear",
     description:
-      "Green, yellow, or red answers on 143 Nigerian foods, with the exact fix that turns your plate green. Built for people living with diabetes.",
+      "Green, yellow, or red answers on 140+ Nigerian foods, with the simple fix that turns your meal green. Made for people living with diabetes.",
     type: "website",
   },
 };
@@ -39,7 +40,10 @@ export default function RootLayout({
       lang="en"
       className={`${display.variable} ${body.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        <Analytics />
+      </body>
     </html>
   );
 }

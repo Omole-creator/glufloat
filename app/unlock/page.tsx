@@ -6,6 +6,7 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { hasAccess, tryUnlock, NESTUGE_URL } from "@/lib/access";
+import { events } from "@/lib/analytics";
 
 function UnlockInner() {
   const params = useSearchParams();
@@ -27,6 +28,7 @@ function UnlockInner() {
 
   useEffect(() => {
     if (state === "ok") {
+      events.unlocked();
       const t = setTimeout(() => router.push("/app"), 1800);
       return () => clearTimeout(t);
     }
@@ -49,8 +51,7 @@ function UnlockInner() {
               You are in. Welcome to Glufloat.
             </h1>
             <p className="mt-2 text-sm text-ink-soft">
-              Full access is now active on this device. Taking you to the
-              app...
+              The whole app is open now on your phone. Taking you in...
             </p>
             <Link
               href="/app"

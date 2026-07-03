@@ -5,7 +5,7 @@ import { useEffect, useRef, type ReactNode } from "react";
 type Props = {
   children: ReactNode;
   className?: string;
-  direction?: "up" | "left" | "right";
+  direction?: "up" | "left" | "right" | "scale";
   delay?: number;
 };
 
@@ -40,7 +40,9 @@ export default function Reveal({
       ? "reveal-left"
       : direction === "right"
         ? "reveal-right"
-        : "";
+        : direction === "scale"
+          ? "reveal-scale"
+          : "";
 
   return (
     <div

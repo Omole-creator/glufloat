@@ -46,8 +46,8 @@ export default function Paywall({ context }: { context: "search" | "meal" }) {
             Nigerian foods, growing monthly
           </li>
           <li className="flex gap-2">
-            <span className="text-leaf">✓</span> The full Meal Builder: build
-            your plate, get the fix that turns it green
+            <span className="text-leaf">✓</span> Build a full meal and get the
+            fix that turns it green
           </li>
           <li className="flex gap-2">
             <span className="text-leaf">✓</span> Portion, pairing, and how-often

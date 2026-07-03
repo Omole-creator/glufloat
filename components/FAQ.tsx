@@ -4,36 +4,40 @@ import { useState } from "react";
 
 const FAQS: { q: string; a: string }[] = [
   {
-    q: "Is Glufloat medical advice?",
-    a: "No. Glufloat gives general information about food for people living with diabetes. It does not diagnose, treat, cure, or reverse anything, and it does not replace your doctor, pharmacist, or dietitian. Keep taking your medicine as prescribed, and talk to your doctor before big changes to how you eat.",
+    q: "Is this the same as advice from my doctor?",
+    a: "No. Glufloat gives you general help about food only. It does not test you, treat you, or cure anything, and it is not your doctor. Keep taking your medicine and checking your sugar the way you were told.",
   },
   {
-    q: "How does the 7-day free trial work?",
-    a: "Tap the trial button and everything unlocks on your device for 7 full days. No card, no sign-up, nothing to pay. If Glufloat is not for you, just stop using it. Nothing is ever charged during the trial.",
+    q: "How does the free week work?",
+    a: "Tap the free trial button and the whole app opens for you for 7 days. You do not give a card, and nothing is taken from you. If you do not like it, just stop. Simple as that.",
   },
   {
-    q: "What happens after the 7 days?",
-    a: "Your free access pauses, and you choose. If you want to keep going, membership is N1,500 a month, about N50 a day, paid through our secure Nestuge checkout. The moment you pay, you get an access code that unlocks everything again.",
+    q: "What happens when my free week ends?",
+    a: "The app locks, and you decide. To keep using it, you pay N1,500 a month, about N50 a day, on our secure Nestuge page. The moment you pay, you get a short code that opens the app again.",
   },
   {
-    q: "Can I cancel easily?",
-    a: "Yes. The trial needs no cancelling at all, since no card was collected. A paid membership cancels in a few taps from your Nestuge account, and you keep access until the end of the period you already paid for.",
+    q: "I paid on Nestuge. How do I get back in?",
+    a: "After you pay, Nestuge sends you a short code, like GLU-GREEN-2026. Come back to the site, open the page called Unlock (glufloat.vercel.app/unlock), type your code, and the whole app opens on your phone right away.",
   },
   {
-    q: "Will my food actually be in the app?",
-    a: "The database covers 143 Nigerian foods today: swallows, rice dishes, soups, proteins, snacks, drinks, fruits, and more. Eba, amala, jollof, moi moi, suya, zobo, they are all there. And the list grows from what people search, so missing foods get added.",
+    q: "Can I stop paying whenever I want?",
+    a: "Yes. During the free week there is nothing to stop, because no card was taken. If you are paying, you stop in a few taps on your Nestuge account, and you keep the app until the month you paid for is finished.",
   },
   {
-    q: "I use insulin. Is this still for me?",
-    a: "Yes. If you have Type 1, or Type 2 on insulin, the answers work as carb and speed information, not hard bans. You can cover more carbs by dosing, while portion and pairing still help you avoid sharp spikes.",
+    q: "Will my own food be in the app?",
+    a: "Yes. We have over 140 of our foods: eba, amala, jollof, moi moi, suya, zobo, and many more. If yours is not there yet, we add new ones every month.",
+  },
+  {
+    q: "I take insulin. Is this for me too?",
+    a: "Yes. The colours tell you how much sugar a food has and how fast it rises. You still choose your insulin the way your doctor said, and the food tips help you keep your sugar steady.",
   },
   {
     q: "I cook for someone with diabetes. Will this help me?",
-    a: "Very much. Caregivers are half the reason Glufloat exists. Check foods while you shop or cook, and serve meals you feel sure about instead of guessing.",
+    a: "Very much. Check a food while you shop or cook, and put food on the table that you feel sure about, instead of guessing.",
   },
   {
     q: "Does it work on my phone?",
-    a: "Yes. Glufloat runs in the browser on any smartphone, no big download needed. Search answers come back instantly.",
+    a: "Yes. It opens in your phone browser, like a website. There is no big app to download, and the answers come back fast.",
   },
 ];
 

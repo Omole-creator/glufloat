@@ -5,19 +5,19 @@ const STYLES = {
     ring: "border-verdict-green/40",
     chip: "bg-verdict-green text-white",
     soft: "bg-verdict-green/10",
-    label: "GREEN. Enjoy it.",
+    label: "Green. Good to eat.",
   },
   yellow: {
     ring: "border-verdict-yellow/50",
     chip: "bg-verdict-yellow text-ink",
     soft: "bg-verdict-yellow/10",
-    label: "YELLOW. Yes, with care.",
+    label: "Yellow. Eat with care.",
   },
   red: {
     ring: "border-verdict-red/40",
     chip: "bg-verdict-red text-white",
     soft: "bg-verdict-red/10",
-    label: "RED. Best avoided.",
+    label: "Red. Better to skip.",
   },
 } as const;
 
@@ -46,16 +46,16 @@ export default function VerdictCard({ food }: { food: Food }) {
       <div className="mt-4 grid gap-2 sm:grid-cols-3">
         <div className={`rounded-xl ${s.soft} p-3`}>
           <p className="text-[11px] font-bold uppercase tracking-wider text-ink/60">
-            Portion
+            How much to eat
           </p>
           <p className="mt-1 text-sm text-ink">{food.portionGuidance}</p>
         </div>
         <div className={`rounded-xl ${s.soft} p-3`}>
           <p className="text-[11px] font-bold uppercase tracking-wider text-ink/60">
-            Pair with
+            Eat it with
           </p>
           <p className="mt-1 text-sm text-ink">
-            {food.pairingAdvice || "Nothing fixes this one."}
+            {food.pairingAdvice || "Nothing can make this one safe."}
           </p>
         </div>
         <div className={`rounded-xl ${s.soft} p-3`}>

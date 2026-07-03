@@ -1,33 +1,44 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { Check, AlertTriangle, X, Plus } from "lucide-react";
 import { searchFoods } from "@/lib/search";
 import { scoreMeal } from "@/lib/verdictEngine";
 import type { Food, MealItem, PortionSize } from "@/lib/types";
 import Paywall from "./Paywall";
 import { fullAccess } from "@/lib/access";
+import { events } from "@/lib/analytics";
 
 const PORTIONS: { key: PortionSize; label: string }[] = [
-  { key: "half", label: "Half" },
+  { key: "half", label: "Small" },
   { key: "normal", label: "Normal" },
   { key: "large", label: "Large" },
 ];
 
+const DOT = {
+  green: "bg-verdict-green",
+  yellow: "bg-verdict-yellow",
+  red: "bg-verdict-red",
+} as const;
+
 const VERDICT_UI = {
   green: {
-    bg: "bg-verdict-green",
-    soft: "bg-verdict-green/10 border-verdict-green/40",
-    label: "GREEN",
+    band: "bg-verdict-green",
+    card: "border-verdict-green/50 bg-verdict-green/5",
+    Icon: Check,
+    word: "Good to eat",
   },
   yellow: {
-    bg: "bg-verdict-yellow",
-    soft: "bg-verdict-yellow/10 border-verdict-yellow/50",
-    label: "YELLOW",
+    band: "bg-verdict-yellow",
+    card: "border-verdict-yellow/60 bg-verdict-yellow/5",
+    Icon: AlertTriangle,
+    word: "Eat with care",
   },
   red: {
-    bg: "bg-verdict-red",
-    soft: "bg-verdict-red/10 border-verdict-red/40",
-    label: "RED",
+    band: "bg-verdict-red",
+    card: "border-verdict-red/50 bg-verdict-red/5",
+    Icon: X,
+    word: "Better to skip",
   },
 } as const;
 
@@ -36,7 +47,6 @@ export default function MealBuilder() {
   const [query, setQuery] = useState("");
   const [items, setItems] = useState<MealItem[]>([]);
 
-  // access checks touch localStorage; resolve after mount
   useEffect(() => {
     setUnlocked(fullAccess());
   }, []);
@@ -44,34 +54,37 @@ export default function MealBuilder() {
   const results = useMemo(() => searchFoods(query, 6), [query]);
   const result = useMemo(() => scoreMeal(items), [items]);
 
-  if (!unlocked) {
-    return <Paywall context="meal" />;
-  }
+  useEffect(() => {
+    if (items.length > 0) events.mealBuilt(result.verdict);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [result.verdict, items.length]);
+
+  if (unlocked === null) return null;
+  if (!unlocked) return <Paywall context="meal" />;
 
   const add = (food: Food) => {
     if (items.some((i) => i.food.id === food.id)) return;
     setItems([...items, { food, portion: "normal" }]);
     setQuery("");
   };
-
   const setPortion = (id: string, portion: PortionSize) =>
     setItems(items.map((i) => (i.food.id === id ? { ...i, portion } : i)));
-
   const remove = (id: string) =>
     setItems(items.filter((i) => i.food.id !== id));
 
   const ui = VERDICT_UI[result.verdict];
+  const showVerdict = items.length > 0;
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
-      {/* left: build the plate */}
+      {/* left: build the food */}
       <div>
         <div className="relative">
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Add food to your plate... eba, egusi, fish"
-            className="w-full rounded-full border-2 border-line bg-white py-3.5 px-5 text-base text-ink shadow-sm outline-none transition-colors placeholder:text-ink-soft/50 focus:border-leaf"
+            placeholder="Add a food... eba, egusi, fish"
+            className="w-full rounded-full border-2 border-line bg-white px-5 py-3.5 text-base text-ink shadow-sm outline-none transition-colors placeholder:text-ink-soft/50 focus:border-leaf"
             aria-label="Add a food to your meal"
           />
         </div>
@@ -85,7 +98,9 @@ export default function MealBuilder() {
                   className="flex w-full items-center justify-between px-5 py-3 text-left text-sm transition-colors hover:bg-mint"
                 >
                   <span className="font-medium text-ink">{f.name}</span>
-                  <span className="text-xs font-bold text-leaf">+ Add</span>
+                  <span className="flex items-center gap-1 text-xs font-bold text-leaf">
+                    <Plus className="h-3.5 w-3.5" /> Add
+                  </span>
                 </button>
               </li>
             ))}
@@ -95,8 +110,8 @@ export default function MealBuilder() {
         <div className="mt-4 space-y-3">
           {items.length === 0 && (
             <div className="rounded-2xl border-2 border-dashed border-line p-8 text-center text-sm text-ink-soft">
-              Your plate is empty. Add your swallow, soup, protein, and drink
-              the way you would really eat.
+              Add everything you are eating: your swallow or rice, the soup, the
+              meat or fish, and the drink.
             </div>
           )}
           {items.map((i) => (
@@ -104,9 +119,7 @@ export default function MealBuilder() {
               key={i.food.id}
               className="flex flex-wrap items-center gap-3 rounded-2xl border border-line bg-white p-4 shadow-sm"
             >
-              <span
-                className={`h-3 w-3 shrink-0 rounded-full ${VERDICT_UI[i.food.baseVerdict].bg}`}
-              />
+              <span className={`h-3 w-3 shrink-0 rounded-full ${DOT[i.food.baseVerdict]}`} />
               <span className="min-w-0 flex-1 text-sm font-semibold text-ink">
                 {i.food.name}
               </span>
@@ -134,60 +147,91 @@ export default function MealBuilder() {
                 aria-label={`Remove ${i.food.name}`}
                 className="text-ink-soft/60 transition-colors hover:text-verdict-red"
               >
-                ✕
+                <X className="h-4 w-4" />
               </button>
             </div>
           ))}
+          {items.some((i) => i.food.role === "starch") && (
+            <p className="px-1 text-xs text-ink-soft">
+              Tap Small, Normal, or Large to change how much swallow or rice you
+              are eating.
+            </p>
+          )}
         </div>
       </div>
 
-      {/* right: the verdict */}
+      {/* right: the answer, made obvious */}
       <div>
         <div
-          className={`verdict-pop rounded-2xl border-2 ${ui.soft} bg-white p-6 shadow-[0_16px_40px_-18px_rgba(12,45,77,0.35)]`}
           key={`${result.verdict}-${items.length}-${items.map((i) => i.portion).join()}`}
+          className={`overflow-hidden rounded-2xl border-2 shadow-[0_16px_40px_-18px_rgba(12,42,71,0.35)] ${
+            showVerdict ? ui.card : "border-line bg-white"
+          }`}
         >
-          <div className="flex items-center gap-3">
-            <span
-              className={`inline-flex h-12 w-12 items-center justify-center rounded-full ${ui.bg} text-lg font-black text-white shadow-lg`}
-            >
-              {items.length}
+          {/* big colour band with the plain word */}
+          <div
+            className={`verdict-pop flex items-center gap-4 px-6 py-5 text-white ${
+              showVerdict ? ui.band : "bg-ink/80"
+            }`}
+          >
+            <span className="green-burst flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-white/25">
+              {showVerdict ? (
+                <ui.Icon className="h-8 w-8" strokeWidth={3} />
+              ) : (
+                <span className="text-2xl">?</span>
+              )}
             </span>
             <div>
-              <p className="text-xs font-bold uppercase tracking-widest text-ink-soft">
-                Meal verdict
+              <p className="text-xs font-semibold uppercase tracking-widest text-white/80">
+                Your answer
               </p>
-              <p className="font-display text-2xl font-bold text-ink">
-                {items.length === 0 ? "—" : ui.label}
+              <p className="font-display text-2xl font-bold leading-tight">
+                {showVerdict ? ui.word : "Add your food"}
               </p>
             </div>
           </div>
 
-          <p className="mt-4 text-sm font-medium text-ink">{result.headline}</p>
+          <div className="p-6">
+            <p className="text-base font-semibold text-ink">
+              {result.headline}
+            </p>
 
-          {result.breakdown.length > 0 && (
-            <ul className="mt-4 space-y-1.5 border-t border-line pt-4 text-xs leading-relaxed text-ink-soft">
-              {result.breakdown.map((b, idx) => (
-                <li key={idx}>• {b}</li>
-              ))}
-            </ul>
-          )}
-
-          {result.fixes.length > 0 && (
-            <div className="mt-4 rounded-xl bg-mint p-4">
-              <p className="text-xs font-bold uppercase tracking-widest text-leaf-deep">
-                The fix
-              </p>
-              <ul className="mt-2 space-y-2 text-sm text-ink">
-                {result.fixes.map((f, idx) => (
+            {result.breakdown.length > 0 && (
+              <ul className="mt-4 space-y-1.5 border-t border-line pt-4 text-sm leading-relaxed text-ink-soft">
+                {result.breakdown.map((b, idx) => (
                   <li key={idx} className="flex gap-2">
-                    <span className="font-bold text-leaf">{idx + 1}.</span>
-                    <span>{f}</span>
+                    <span className="text-ink-soft/50">•</span>
+                    {b}
                   </li>
                 ))}
               </ul>
-            </div>
-          )}
+            )}
+
+            {result.fixes.length > 0 ? (
+              <div className="mt-4 rounded-xl bg-mint p-4">
+                <p className="text-sm font-bold text-leaf-deep">
+                  Do this to make it green:
+                </p>
+                <ul className="mt-2 space-y-2 text-sm text-ink">
+                  {result.fixes.map((f, idx) => (
+                    <li key={idx} className="flex gap-2">
+                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-leaf text-xs font-bold text-white">
+                        {idx + 1}
+                      </span>
+                      <span>{f}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : showVerdict && result.verdict === "green" ? (
+              <div className="green-burst mt-4 flex items-center gap-3 rounded-xl bg-verdict-green/10 p-4">
+                <Check className="h-6 w-6 shrink-0 text-leaf-deep" strokeWidth={3} />
+                <p className="text-sm font-semibold text-ink">
+                  Nothing to change. This is a good meal for your sugar.
+                </p>
+              </div>
+            ) : null}
+          </div>
         </div>
       </div>
     </div>

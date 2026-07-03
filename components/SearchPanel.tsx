@@ -6,6 +6,7 @@ import type { Food } from "@/lib/types";
 import VerdictCard from "./VerdictCard";
 import Paywall from "./Paywall";
 import { freeChecksLeft, fullAccess, isGated, recordCheck } from "@/lib/access";
+import { events } from "@/lib/analytics";
 
 export default function SearchPanel() {
   const [query, setQuery] = useState("");
@@ -19,12 +20,14 @@ export default function SearchPanel() {
     if (isGated()) {
       setGated(true);
       setPicked(null);
+      events.paywallHit("search");
       return;
     }
     if (!fullAccess()) {
       recordCheck();
       setLeft(freeChecksLeft());
     }
+    events.foodChecked(food.name);
     setPicked(food);
     setQuery("");
   };
@@ -52,7 +55,7 @@ export default function SearchPanel() {
             setPicked(null);
             setGated(false);
           }}
-          placeholder="Try eba, jollof, dodo, moi moi, coke..."
+          placeholder="Try eba, jollof, plantain, moi moi, coke..."
           className="w-full rounded-full border-2 border-line bg-white py-3.5 pl-12 pr-5 text-base text-ink shadow-sm outline-none transition-colors placeholder:text-ink-soft/50 focus:border-brand"
           aria-label="Search a food"
         />
@@ -84,8 +87,8 @@ export default function SearchPanel() {
 
       {query.length >= 2 && results.length === 0 && !picked && (
         <p className="mt-3 rounded-xl bg-mist px-4 py-3 text-sm text-ink-soft">
-          Not in the list yet. The database grows from what people search, so
-          this one is on its way.
+          We do not have this food yet. We add new ones every month, so check
+          again soon.
         </p>
       )}
 
@@ -97,7 +100,7 @@ export default function SearchPanel() {
             {left !== null && left >= 0 && !fullAccess() && (
               <p className="mt-3 text-center text-xs font-medium text-ink-soft">
                 {left === 0
-                  ? "That was your last free check."
+                  ? "That was your last free check. Start your free week to keep going."
                   : `${left} free ${left === 1 ? "check" : "checks"} left.`}
               </p>
             )}

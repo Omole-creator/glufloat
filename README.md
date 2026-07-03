@@ -31,13 +31,45 @@ unlock link) in your Nestuge product's post-purchase delivery message.
 > accounts. Real auth + server-side subscription checks are the Phase 2
 > upgrade (see the technical SPEC).
 
+## How the 7-day trial is tracked (no sign-up)
+
+When someone taps "Start my free week", the browser saves the start date in
+`localStorage` (`gf_trial_start`). Every visit, the app checks that date and
+computes days left. After 7 days the app locks to the paywall on that device.
+
+**Honest limit:** because there is no sign-up, this lives on the device. If a
+user clears their browser data, opens a private window, or switches phones,
+they can start a fresh week. Most ordinary users never do this, so it is a
+fine MVP tradeoff. To make the trial impossible to bypass you need identity
+(the lightest version is one email field at trial start) plus a small backend
+that records the trial per person. That is the Phase 2 upgrade.
+
+## How you see people using it (no sign-up)
+
+The site sends anonymous **usage events** to Vercel Analytics (see
+`lib/analytics.ts`): `trial_started`, `food_checked`, `meal_built`,
+`paywall_hit`, `access_unlocked`. Open your Vercel project's Analytics tab to
+see how many trials started, how many foods were checked, and how many people
+hit the paywall during the free week. It counts actions, not names.
+
 ## Nestuge checklist (one-time setup)
 
 1. Create the Glufloat product on Nestuge as a N1,500 / month subscription
    (the free week is handled by the site itself, before checkout).
-2. In the post-purchase delivery, paste the unlock link above.
+2. In the product's post-purchase delivery message, tell the buyer exactly
+   how to get in. Use wording like:
+
+   > Thank you for joining Glufloat. To open the app, go to
+   > https://glufloat.vercel.app/unlock and enter this code: GLU-GREEN-2026
+   > (or just tap this link, which opens it for you:
+   > https://glufloat.vercel.app/unlock?code=GLU-GREEN-2026 )
+
 3. That is it. Trial CTAs point to /trial; subscribe CTAs point to
    nestuge.com/glufloat.
+
+The code is the same for everyone in this MVP (it is a shared unlock, not a
+per-person key). When you want to retire or rotate it, edit `ACCESS_CODES`
+in `lib/access.ts`, redeploy, and update the Nestuge message.
 
 ## Development
 

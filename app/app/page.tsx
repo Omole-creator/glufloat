@@ -35,8 +35,8 @@ export default function AppPage() {
             Check your food before you eat it.
           </h1>
           <p className="mx-auto mt-3 max-w-md text-center text-sm leading-relaxed text-ink-soft">
-            Search one food, or build your full plate and get one combined
-            answer with the fix.
+            Check one food, or add your whole meal and get one answer with the
+            fix.
           </p>
 
           <div className="mt-8 flex justify-center">

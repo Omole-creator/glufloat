@@ -8,12 +8,7 @@ import type { Food, MealItem, MealResult, Verdict } from "./types";
  *   YELLOW : 0.75 <= score < 1.75
  *   GREEN  : score >= 1.75
  *
- * Seed from the worst starch in the meal, then apply "The Fix" downgraders:
- *   + vegetable or green soup present  -> +1 toward green
- *   + protein present                  -> +0.5 toward green
- *   + starch portion set to Half       -> +1 toward green
- *   - starch portion set to Large      -> -0.5 toward red
- * Hard override: any high-GI drink or straight sugar locks the meal RED.
+ * All words shown to the user are kept plain, so anyone can follow them.
  */
 
 const GREEN_AT = 1.75;
@@ -45,7 +40,7 @@ export function scoreMeal(items: MealItem[]): MealResult {
       verdict: "green",
       score: 2,
       locked: false,
-      headline: "Add foods to build your plate.",
+      headline: "Add your food to see the answer.",
       fixes: [],
       breakdown: [],
     };
@@ -54,19 +49,21 @@ export function scoreMeal(items: MealItem[]): MealResult {
   const breakdown: string[] = [];
   const fixes: string[] = [];
 
-  // Hard red: liquid sugar cannot be fixed by pairing.
+  // Sweet drinks cannot be fixed by anything else on the plate.
   const sugarDrinks = items.filter((i) => isLiquidSugar(i.food));
   if (sugarDrinks.length > 0) {
     const names = sugarDrinks.map((i) => i.food.name).join(", ");
-    breakdown.push(`${names}: liquid or straight sugar locks this meal red.`);
+    breakdown.push(
+      `${names} is sweet, and sweet drinks make sugar rise very fast.`,
+    );
     fixes.push(
-      `Swap ${sugarDrinks.length > 1 ? "them" : sugarDrinks[0].food.name} for water or unsweetened zobo. No soup or vegetable can fix liquid sugar.`
+      `Take away the ${sugarDrinks[0].food.name}. Drink water, or zobo with no sugar. Nothing else can fix a sweet drink.`,
     );
     return {
       verdict: "red",
       score: 0,
       locked: true,
-      headline: "This meal is red because of the sugary drink.",
+      headline: "The sweet drink makes this red.",
       fixes,
       breakdown,
     };
@@ -80,22 +77,21 @@ export function scoreMeal(items: MealItem[]): MealResult {
       : worst;
   }, null);
 
-  // Seed: worst starch if present, else worst item overall.
   let score: number;
   if (worstStarch) {
     const s = worstStarch.food;
     score = s.gi === "high" && s.baseVerdict !== "green" ? 0 : seedScore(s.baseVerdict);
     breakdown.push(
       s.gi === "high"
-        ? `${s.name} is a fast starch, so the meal starts red.`
-        : `${s.name} sets the starting point at ${toVerdict(score)}.`
+        ? `${s.name} turns to sugar fast, so we start careful.`
+        : `${s.name} is the main thing to watch here.`,
     );
   } else {
     score = items.reduce(
       (min, i) => Math.min(min, seedScore(i.food.baseVerdict)),
-      2
+      2,
     );
-    breakdown.push("No heavy starch here, so the worst item sets the tone.");
+    breakdown.push("No heavy swallow or rice here, which is good.");
   }
 
   const hasVeg = items.some((i) => isVeg(i.food));
@@ -103,23 +99,23 @@ export function scoreMeal(items: MealItem[]): MealResult {
 
   if (hasVeg) {
     score += 1;
-    breakdown.push("Vegetables or a green soup slow the sugar. +1 toward green.");
+    breakdown.push("You added vegetables. Good, they slow the sugar down.");
   }
   if (hasProtein) {
     score += 0.5;
-    breakdown.push("Protein slows the meal further. +0.5 toward green.");
+    breakdown.push("You added meat, fish, or egg. That helps too.");
   }
 
   if (worstStarch) {
     if (worstStarch.portion === "half") {
       score += 1;
       breakdown.push(
-        `Half portion of ${worstStarch.food.name}. +1 toward green.`
+        `You chose a small size of ${worstStarch.food.name}. That helps a lot.`,
       );
     } else if (worstStarch.portion === "large") {
       score -= 0.5;
       breakdown.push(
-        `Large portion of ${worstStarch.food.name} pushes it back toward red.`
+        `A large size of ${worstStarch.food.name} makes the sugar rise more.`,
       );
     }
   }
@@ -127,44 +123,40 @@ export function scoreMeal(items: MealItem[]): MealResult {
   score = Math.max(0, Math.min(2, score));
   const verdict = toVerdict(score);
 
-  // Dynamic fix tips: the exact moves that turn this meal green.
+  // Plain, do-this-now fixes.
   if (verdict !== "green") {
     if (worstStarch && worstStarch.portion !== "half") {
       fixes.push(
-        `Cut ${worstStarch.food.name} to a half portion. ${worstStarch.food.portionGuidance}`
+        `Eat a smaller size of ${worstStarch.food.name}. Take about half of what you normally would.`,
       );
     }
     if (!hasVeg) {
-      fixes.push(
-        worstStarch && worstStarch.food.pairingAdvice
-          ? `Add vegetables. ${worstStarch.food.pairingAdvice}`
-          : "Add a vegetable or a green soup like efo riro or okra."
-      );
+      fixes.push("Add vegetable soup, like efo, okra, or egusi.");
     }
     if (!hasProtein) {
-      fixes.push("Add a protein like fish, chicken, or boiled eggs.");
+      fixes.push("Add some meat, fish, or egg.");
     }
     if (fixes.length === 0) {
       fixes.push(
-        "This one stays cautious. Keep the portion small and do not eat it on an empty stomach."
+        "Keep the size small, and do not eat it when your stomach is empty.",
       );
     }
   }
 
   const headline =
     verdict === "green"
-      ? "This plate works. Enjoy it."
+      ? "This food is good. Enjoy it."
       : verdict === "yellow"
-        ? "Close. A small fix turns this green."
-        : "This plate spikes fast as it stands. Here is the fix.";
+        ? "Almost there. One small change makes it green."
+        : "This one raises sugar fast. Here is how to fix it.";
 
   return { verdict, score, locked: false, headline, fixes, breakdown };
 }
 
-/** Preview: would the meal turn green if the fixes were applied? */
+/** Preview: would the meal turn green if the starch were made small? */
 export function greenPath(items: MealItem[]): MealResult {
   const fixed: MealItem[] = items.map((i) =>
-    isStarch(i.food) ? { ...i, portion: "half" as const } : i
+    isStarch(i.food) ? { ...i, portion: "half" as const } : i,
   );
   return scoreMeal(fixed);
 }

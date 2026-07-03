@@ -12,6 +12,7 @@ import {
   startTrial,
   type TrialState,
 } from "@/lib/access";
+import { events } from "@/lib/analytics";
 
 export default function TrialPage() {
   const router = useRouter();
@@ -23,6 +24,7 @@ export default function TrialPage() {
 
   const begin = () => {
     startTrial();
+    events.trialStarted();
     router.push("/app");
   };
 
@@ -89,35 +91,34 @@ export default function TrialPage() {
             </>
           ) : (
             <>
-              <p className="text-xs font-bold uppercase tracking-widest text-leaf-deep">
-                No card. No sign-up. Nothing to pay today.
+              <p className="text-sm font-semibold text-leaf-deep">
+                Free for 7 days. You do not need a card.
               </p>
               <h1 className="mt-2 font-display text-2xl font-bold text-ink">
-                Start your 7 days of full access.
+                Open the whole app for one week, free.
               </h1>
               <ul className="mx-auto mt-5 max-w-xs space-y-2 text-left text-sm text-ink-soft">
                 <li className="flex gap-2">
-                  <span className="text-leaf">✓</span> Unlimited checks on all
-                  143 Nigerian foods
+                  <span className="text-leaf">✓</span> Check as many foods as you
+                  want, all 140+ of them
                 </li>
                 <li className="flex gap-2">
-                  <span className="text-leaf">✓</span> The full Meal Builder
-                  with the fix on every plate
+                  <span className="text-leaf">✓</span> Build a full meal and get
+                  the fix that makes it green
                 </li>
                 <li className="flex gap-2">
-                  <span className="text-leaf">✓</span> When your week ends,
-                  membership is N1,500 a month. Only if you want to stay
+                  <span className="text-leaf">✓</span> After the week it is
+                  N1,500 a month, only if you want to keep it
                 </li>
               </ul>
               <button
                 onClick={begin}
-                className="mt-6 w-full rounded-full bg-brand px-6 py-3.5 text-sm font-bold text-white shadow-[0_10px_24px_-10px_rgba(27,95,170,0.8)] transition-all hover:-translate-y-0.5 hover:bg-brand-deep"
+                className="mt-6 w-full rounded-full bg-gradient-to-r from-brand to-leaf px-6 py-3.5 text-sm font-bold text-white shadow-[0_10px_24px_-10px_rgba(27,95,170,0.8)] transition-all hover:-translate-y-0.5"
               >
-                Start my free trial now
+                Start my free week now
               </button>
               <p className="mt-3 text-xs text-ink-soft">
-                Your trial runs on this device. Nothing is charged, ever,
-                unless you choose to subscribe.
+                Nothing is taken from you during the free week.
               </p>
             </>
           )}
