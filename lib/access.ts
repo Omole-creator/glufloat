@@ -34,6 +34,20 @@ const K_DISCLAIMER = "gf_disclaimer_ok";
 const canStore = () => typeof window !== "undefined";
 const DAY_MS = 24 * 60 * 60 * 1000;
 
+/**
+ * Whole calendar days between two moments, in the user's local time.
+ * The same start day is 0; the next calendar day is 1, and so on. This makes
+ * "days left" drop each new day (at local midnight), which is how people read
+ * a countdown, rather than only after a full 24 hours from the start moment.
+ */
+function calendarDaysBetween(startMs: number, nowMs: number): number {
+  const s = new Date(startMs);
+  s.setHours(0, 0, 0, 0);
+  const n = new Date(nowMs);
+  n.setHours(0, 0, 0, 0);
+  return Math.max(0, Math.round((n.getTime() - s.getTime()) / DAY_MS));
+}
+
 /* ---------- free checks ---------- */
 
 export function getChecksUsed(): number {
@@ -82,8 +96,7 @@ export function getRenewalState(): RenewalState {
   if (!raw) return { status: "none" };
   const start = parseInt(raw, 10);
   if (!start) return { status: "none" };
-  const daysUsed = Math.floor((Date.now() - start) / DAY_MS);
-  const daysLeft = MONTH_DAYS - daysUsed;
+  const daysLeft = MONTH_DAYS - calendarDaysBetween(start, Date.now());
   if (daysLeft <= 0) return { status: "over" };
   if (daysLeft <= RENEW_WARN_DAYS) return { status: "due", daysLeft };
   return { status: "ok", daysLeft };
@@ -102,13 +115,10 @@ export function getTrialState(): TrialState {
   if (!raw) return { status: "none" };
   const start = parseInt(raw, 10);
   if (!start) return { status: "none" };
-  const elapsed = Date.now() - start;
-  if (elapsed < TRIAL_DAYS * DAY_MS) {
-    return {
-      status: "active",
-      daysLeft: Math.max(1, Math.ceil((TRIAL_DAYS * DAY_MS - elapsed) / DAY_MS)),
-    };
-  }
+  // Count by calendar day: the start day shows 7 left, the next day 6, and so
+  // on. The trial covers 7 calendar days and ends at the start of the 8th.
+  const daysLeft = TRIAL_DAYS - calendarDaysBetween(start, Date.now());
+  if (daysLeft > 0) return { status: "active", daysLeft };
   return { status: "expired" };
 }
 
