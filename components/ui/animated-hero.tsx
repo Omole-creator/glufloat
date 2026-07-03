@@ -2,10 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { motion, type Variants } from "framer-motion";
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import TrafficLight from "@/components/TrafficLight";
+import HeroDemo from "@/components/ui/hero-demo";
 
 const container: Variants = {
   hidden: {},
@@ -118,31 +118,15 @@ function Hero() {
           </p>
         </motion.div>
 
-        <motion.div variants={item} className="relative mt-12 w-full max-w-2xl">
-          <div className="relative overflow-hidden rounded-[1.75rem] shadow-[0_30px_70px_-24px_rgba(12,42,71,0.55)] ring-1 ring-white/60">
-            <Image
-              src="/img/swallow.jpg"
-              alt="A plate of eba with vegetable soup"
-              width={900}
-              height={560}
-              priority
-              className="h-72 w-full object-cover sm:h-[24rem]"
-            />
-          </div>
+        <motion.div variants={item} className="relative mt-12 w-full max-w-md">
+          <div
+            className="pointer-events-none absolute -inset-6 -z-10 rounded-full bg-gradient-to-tr from-brand-bright/10 to-leaf-bright/15 blur-2xl"
+            aria-hidden
+          />
+          <HeroDemo />
 
-          <div className="float-slow absolute -left-3 top-6 rounded-2xl bg-white/95 p-3 shadow-xl backdrop-blur sm:-left-6">
+          <div className="float-slow absolute -left-4 top-10 hidden rounded-2xl bg-white/95 p-2.5 shadow-xl backdrop-blur sm:block">
             <TrafficLight size="sm" active="cycle" />
-          </div>
-
-          <div className="float-slower absolute -bottom-5 right-0 w-60 rounded-2xl bg-white p-4 text-left shadow-xl sm:-right-5">
-            <div className="flex items-center gap-2">
-              <span className="h-3.5 w-3.5 rounded-full bg-verdict-yellow" />
-              <p className="text-sm font-bold text-ink">Eba and soup</p>
-            </div>
-            <p className="mt-1.5 text-xs leading-snug text-ink-soft">
-              Eat a smaller size of eba, add meat or fish, and this food becomes{" "}
-              <span className="font-bold text-leaf-deep">green</span>.
-            </p>
           </div>
         </motion.div>
       </motion.div>

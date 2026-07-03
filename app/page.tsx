@@ -305,6 +305,44 @@ export default function Home() {
       {/* ============ TESTIMONIALS ============ */}
       <Testimonials />
 
+      {/* ============ JOY BAND ============ */}
+      <section className="bg-white pb-20 sm:pb-24">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <div className="grid items-center gap-10 overflow-hidden rounded-3xl bg-gradient-to-br from-mint via-mist to-white p-8 shadow-[0_20px_50px_-28px_rgba(12,42,71,0.35)] sm:p-10 lg:grid-cols-2">
+            <Reveal direction="left" className="mx-auto">
+              <div className="overflow-hidden rounded-3xl shadow-[0_24px_50px_-20px_rgba(12,42,71,0.4)]">
+                <Image
+                  src="/img/joy-woman.jpg"
+                  alt="A woman smiling, happy and at ease"
+                  width={520}
+                  height={620}
+                  className="h-[22rem] w-full max-w-sm object-cover"
+                />
+              </div>
+            </Reveal>
+
+            <Reveal direction="right" delay={120}>
+              <Label>Your food, your joy</Label>
+              <h2 className="mt-4 font-display text-3xl font-bold leading-tight text-ink sm:text-4xl">
+                This joy can be yours too.
+              </h2>
+              <p className="mt-5 font-display text-lg leading-relaxed text-ink-soft">
+                You do not have to fear your food. Eat what you love, the right
+                way, and feel good after every meal. No more guessing, no more
+                worry, just your food and your peace of mind.
+              </p>
+              <Link
+                href="/trial"
+                className="group mt-7 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-brand to-leaf px-7 py-4 text-base font-bold text-white shadow-[0_14px_30px_-10px_rgba(27,95,170,0.7)] transition-all hover:-translate-y-1"
+              >
+                Start my 7-day free trial
+                <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+              </Link>
+            </Reveal>
+          </div>
+        </div>
+      </section>
+
       {/* ============ PRICING ============ */}
       <section id="pricing" className="bg-white py-20 sm:py-24">
         <div className="mx-auto max-w-4xl px-4 sm:px-6">
