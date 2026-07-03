@@ -18,12 +18,16 @@
 export const NESTUGE_URL = "https://nestuge.com/glufloat";
 export const FREE_LIMIT = 3;
 export const TRIAL_DAYS = 7;
+export const MONTH_DAYS = 30;
+/** Start reminding this many days before the paid month ends. */
+export const RENEW_WARN_DAYS = 5;
 
 /** Codes accepted by /unlock. Keep in sync with the Nestuge delivery message. */
 const ACCESS_CODES = ["GLU-GREEN-2026", "GLUFLOAT-MEMBER"];
 
 const K_CHECKS = "gf_checks";
 const K_ACCESS = "gf_access";
+const K_ACCESS_DATE = "gf_access_date";
 const K_TRIAL = "gf_trial_start";
 const K_DISCLAIMER = "gf_disclaimer_ok";
 
@@ -57,8 +61,32 @@ export function hasAccess(): boolean {
 
 export function tryUnlock(code: string): boolean {
   const ok = ACCESS_CODES.includes(code.trim().toUpperCase());
-  if (ok && canStore()) localStorage.setItem(K_ACCESS, "yes");
+  if (ok && canStore()) {
+    localStorage.setItem(K_ACCESS, "yes");
+    // Each unlock (including a renewal) restarts the 30-day clock.
+    localStorage.setItem(K_ACCESS_DATE, String(Date.now()));
+  }
   return ok;
+}
+
+export type RenewalState =
+  | { status: "none" }
+  | { status: "ok"; daysLeft: number }
+  | { status: "due"; daysLeft: number }
+  | { status: "over" };
+
+/** Where a paid member is in their 30-day month. */
+export function getRenewalState(): RenewalState {
+  if (!canStore() || !hasAccess()) return { status: "none" };
+  const raw = localStorage.getItem(K_ACCESS_DATE);
+  if (!raw) return { status: "none" };
+  const start = parseInt(raw, 10);
+  if (!start) return { status: "none" };
+  const daysUsed = Math.floor((Date.now() - start) / DAY_MS);
+  const daysLeft = MONTH_DAYS - daysUsed;
+  if (daysLeft <= 0) return { status: "over" };
+  if (daysLeft <= RENEW_WARN_DAYS) return { status: "due", daysLeft };
+  return { status: "ok", daysLeft };
 }
 
 /* ---------- 7-day trial (device-based, no card) ---------- */

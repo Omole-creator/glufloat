@@ -37,9 +37,9 @@ const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 
 // 1. app page: disclaimer gate appears
 await page.goto(`${BASE}/app`, { waitUntil: "networkidle" });
-ok("disclaimer gate visible on first open", await page.getByText("I understand. Show me my food answers.").isVisible());
+ok("disclaimer gate visible on first open", await page.getByText("It does not cure diabetes.", { exact: false }).isVisible());
 await page.screenshot({ path: `${OUT}/app-disclaimer.png` });
-await page.getByText("I understand. Show me my food answers.").click();
+await page.getByRole("button", { name: "I understand" }).click();
 
 // 2. search eba -> yellow verdict
 await page.getByLabel("Search a food").fill("eba");

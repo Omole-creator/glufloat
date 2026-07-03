@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
-import { Fraunces, Inter } from "next/font/google";
+import { Geist, Inter } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
-const display = Fraunces({
+const display = Geist({
   variable: "--font-display",
   subsets: ["latin"],
-  axes: ["SOFT", "opsz"],
 });
 
 const body = Inter({

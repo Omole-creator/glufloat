@@ -6,20 +6,40 @@ import Footer from "@/components/Footer";
 import DisclaimerGate from "@/components/DisclaimerGate";
 import SearchPanel from "@/components/SearchPanel";
 import MealBuilder from "@/components/MealBuilder";
-import { getTrialState, hasAccess, type TrialState } from "@/lib/access";
+import {
+  getRenewalState,
+  getTrialState,
+  hasAccess,
+  NESTUGE_URL,
+  type RenewalState,
+  type TrialState,
+} from "@/lib/access";
 
 export default function AppPage() {
   const [tab, setTab] = useState<"search" | "meal">("search");
   const [trial, setTrial] = useState<TrialState | "member" | null>(null);
+  const [renewal, setRenewal] = useState<RenewalState>({ status: "none" });
 
   useEffect(() => {
     setTrial(hasAccess() ? "member" : getTrialState());
+    setRenewal(getRenewalState());
   }, []);
 
   return (
     <>
       <Navbar />
       <DisclaimerGate />
+
+      {(renewal.status === "due" || renewal.status === "over") && (
+        <div className="fixed inset-x-0 top-16 z-40 bg-verdict-yellow/95 px-4 py-2.5 text-center text-sm font-semibold text-ink shadow-md">
+          {renewal.status === "over"
+            ? "Your month has ended. "
+            : `Your month ends in ${renewal.daysLeft} ${renewal.daysLeft === 1 ? "day" : "days"}. `}
+          <a href={NESTUGE_URL} className="underline hover:text-brand-deep">
+            Renew for N1,500 to keep GluFloat.
+          </a>
+        </div>
+      )}
 
       <main className="flex-1 bg-mist pb-24 pt-28">
         <div className="mx-auto max-w-3xl px-4 sm:px-6">
@@ -34,7 +54,7 @@ export default function AppPage() {
           <h1 className="mt-2 text-center font-display text-3xl font-bold text-ink sm:text-4xl">
             Check your food before you eat it.
           </h1>
-          <p className="mx-auto mt-3 max-w-md text-center text-sm leading-relaxed text-ink-soft">
+          <p className="mx-auto mt-3 max-w-md text-center font-display text-sm leading-relaxed text-ink-soft">
             Check one food, or add your whole meal and get one answer with the
             fix.
           </p>

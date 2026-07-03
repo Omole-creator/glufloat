@@ -31,6 +31,18 @@ unlock link) in your Nestuge product's post-purchase delivery message.
 > accounts. Real auth + server-side subscription checks are the Phase 2
 > upgrade (see the technical SPEC).
 
+## After payment: nav + renewal reminder
+
+Once a buyer unlocks with their code, `hasAccess` becomes true on their
+device. From then on:
+
+- The navbar hides "Start free trial" and shows "Open app" instead.
+- The unlock date is saved (`gf_access_date`). As the 30-day month runs out
+  (5 days before, and after it ends), a yellow banner appears in the app
+  asking them to renew, linking to Nestuge. Entering a code again resets the
+  month. The app does not hard-lock at day 30, because Nestuge's recurring
+  billing may auto-charge and keep them active; the banner is a nudge.
+
 ## How the 7-day trial is tracked (no sign-up)
 
 When someone taps "Start my free week", the browser saves the start date in

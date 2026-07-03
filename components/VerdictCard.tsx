@@ -1,4 +1,5 @@
 import type { Food } from "@/lib/types";
+import { plainFrequency } from "@/lib/frequency";
 
 const STYLES = {
   green: {
@@ -62,7 +63,7 @@ export default function VerdictCard({ food }: { food: Food }) {
           <p className="text-[11px] font-bold uppercase tracking-wider text-ink/60">
             How often
           </p>
-          <p className="mt-1 text-sm text-ink">{food.frequency}</p>
+          <p className="mt-1 text-sm text-ink">{plainFrequency(food)}</p>
         </div>
       </div>
     </div>

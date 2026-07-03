@@ -8,6 +8,8 @@ import TrafficLight from "@/components/TrafficLight";
 import SearchPanel from "@/components/SearchPanel";
 import FAQ from "@/components/FAQ";
 import { Hero } from "@/components/ui/animated-hero";
+import { Testimonials } from "@/components/ui/testimonial-v2";
+import CountUp from "@/components/CountUp";
 
 const MARQUEE_FOODS: { name: string; v: "green" | "yellow" | "red" }[] = [
   { name: "Egusi soup", v: "green" },
@@ -74,7 +76,7 @@ export default function Home() {
               You do not have to give up your food. You just have to eat it the
               right way.
             </h2>
-            <p className="mx-auto mt-4 max-w-xl text-lg leading-relaxed text-ink-soft">
+            <p className="mx-auto mt-4 max-w-xl font-display text-lg leading-relaxed text-ink-soft">
               For most food, three simple things make it safe. We give you all
               three, in plain words.
             </p>
@@ -189,7 +191,7 @@ export default function Home() {
             <h2 className="mt-4 font-display text-3xl font-bold text-ink sm:text-4xl">
               Type a food you eat. Get the answer now.
             </h2>
-            <p className="mx-auto mt-4 max-w-md text-lg text-ink-soft">
+            <p className="mx-auto mt-4 max-w-md font-display text-lg text-ink-soft">
               Try a few for free, right here. The answer comes back before you
               finish typing.
             </p>
@@ -210,7 +212,7 @@ export default function Home() {
               <h2 className="mt-4 font-display text-3xl font-bold leading-tight text-ink sm:text-4xl">
                 Other apps do not know our food. <br /> Glufloat was made for it.
               </h2>
-              <p className="mt-5 text-lg leading-relaxed text-ink-soft">
+              <p className="mt-5 font-display text-lg leading-relaxed text-ink-soft">
                 The popular food apps were built abroad. They do not know
                 jollof, eba, or amala, and they do not know we eat with soup.
                 Glufloat knows over 140 of our own foods, and it always shows
@@ -277,15 +279,20 @@ export default function Home() {
           </Reveal>
           <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {[
-              { stat: "140+", label: "of our own foods, and more added every month" },
-              { stat: "3 colours", label: "one clear answer: green, yellow, or red" },
-              { stat: "10 sec", label: "from typing a food to knowing the answer" },
-              { stat: "Any phone", label: "works right in your browser, no big download" },
+              { end: 140, suffix: "+", unit: "Nigerian foods", label: "and we add more every month" },
+              { end: 200, suffix: "+", unit: "checks a minute", label: "by people just like you" },
+              { end: 3, suffix: "", unit: "clear colours", label: "green, yellow, or red. That is all" },
+              { end: 10, suffix: " sec", unit: "to an answer", label: "faster than dishing the food" },
             ].map((t, i) => (
-              <Reveal key={t.stat} delay={i * 100}>
+              <Reveal key={t.unit} delay={i * 100}>
                 <div className="lift h-full rounded-2xl bg-white/12 p-6 text-center backdrop-blur-sm ring-1 ring-white/20">
-                  <p className="font-display text-4xl font-bold">{t.stat}</p>
-                  <p className="mt-3 text-sm leading-relaxed text-white/85">
+                  <p className="font-display text-4xl font-bold">
+                    <CountUp end={t.end} suffix={t.suffix} />
+                  </p>
+                  <p className="mt-1 font-display text-sm font-semibold text-white">
+                    {t.unit}
+                  </p>
+                  <p className="mt-2 text-sm leading-relaxed text-white/80">
                     {t.label}
                   </p>
                 </div>
@@ -295,6 +302,9 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ============ TESTIMONIALS ============ */}
+      <Testimonials />
+
       {/* ============ PRICING ============ */}
       <section id="pricing" className="bg-white py-20 sm:py-24">
         <div className="mx-auto max-w-4xl px-4 sm:px-6">
@@ -303,7 +313,7 @@ export default function Home() {
             <h2 className="mt-4 font-display text-3xl font-bold text-ink sm:text-4xl">
               Less than N50 a day.
             </h2>
-            <p className="mx-auto mt-4 max-w-xl text-lg leading-relaxed text-ink-soft">
+            <p className="mx-auto mt-4 max-w-xl font-display text-lg leading-relaxed text-ink-soft">
               One visit to the clinic costs more than a whole year of Glufloat.
               Start free for a week and see for yourself.
             </p>
@@ -386,10 +396,10 @@ export default function Home() {
               Tonight there will be food on your table. <br />
               You can guess, or you can know.
             </h2>
-            <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-white/75">
+            <p className="mx-auto mt-6 max-w-xl font-display text-lg leading-relaxed text-white/75">
               Guessing means the same worry, and the same high sugar after you
-              eat. Knowing takes ten seconds and a plate you feel good about.
-              The first week is free, so you risk nothing.
+              eat. Knowing takes ten seconds and a meal you feel good about. The
+              first week is free, so you risk nothing.
             </p>
             <Link
               href="/trial"
