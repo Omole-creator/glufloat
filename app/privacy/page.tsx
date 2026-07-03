@@ -10,13 +10,12 @@ export default function PrivacyPage() {
     <LegalShell
       eyebrow="The serious part"
       title="Privacy Policy"
-      updated="Last updated: [DATE]. Written to follow the Nigeria Data Protection Act 2023 (NDPA). [COMPANY NAME] is the data controller."
+      updated="Last updated: 2 July 2026. Written to follow the Nigeria Data Protection Act 2023 (NDPA). GluFloat is the data controller."
     >
       <h2>1. Who we are</h2>
       <p>
-        Glufloat is run by [COMPANY NAME], registered in Nigeria with [RC
-        NUMBER], at [ADDRESS]. For any privacy question, contact our privacy
-        contact at [PRIVACY EMAIL].
+        Glufloat is run by GluFloat, based in Lagos State, Nigeria. For any
+        privacy question, contact us at glufloat@gmail.com.
       </p>
 
       <h2>2. What we collect</h2>
@@ -98,7 +97,7 @@ export default function PrivacyPage() {
         </li>
       </ul>
       <p>
-        To use any of these rights, contact us at [PRIVACY EMAIL]. We will
+        To use any of these rights, contact us at glufloat@gmail.com. We will
         respond within the time the NDPA requires.
       </p>
 
@@ -118,8 +117,9 @@ export default function PrivacyPage() {
 
       <h2>11. Contact</h2>
       <p>
-        Privacy questions or requests: [PRIVACY EMAIL] / [COMPANY ADDRESS].
-        You may also contact the Nigeria Data Protection Commission (NDPC).
+        Privacy questions or requests: glufloat@gmail.com / Lagos State,
+        Nigeria. You may also contact the Nigeria Data Protection Commission
+        (NDPC).
       </p>
     </LegalShell>
   );

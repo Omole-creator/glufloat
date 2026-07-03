@@ -60,6 +60,8 @@ npx tsx scripts/engine-test.ts   # verdict engine sanity tests
 
 ## Before public launch
 
-- Fill every `[BRACKETED]` placeholder in /terms, /privacy, /disclaimer and
-  have a Nigerian tech/health-law solicitor review them.
-- Register the company with CAC before taking money.
+- Have a Nigerian tech/health-law solicitor review /terms, /privacy, and
+  /disclaimer (contact details are filled: GluFloat, Lagos State, Nigeria,
+  glufloat@gmail.com, 0904 874 4395).
+- Register the company with CAC before taking money, then add the RC number
+  to the privacy page.

@@ -10,7 +10,7 @@ export default function TermsPage() {
     <LegalShell
       eyebrow="The serious part"
       title="Terms of Use"
-      updated="Last updated: [DATE]. These terms are between you and [COMPANY NAME] (&quot;we&quot;, &quot;us&quot;, &quot;Glufloat&quot;)."
+      updated="Last updated: 2 July 2026. These terms are between you and GluFloat (&quot;we&quot;, &quot;us&quot;)."
     >
       <p>
         By subscribing or using the app, you agree to these terms. If you do
@@ -94,8 +94,8 @@ export default function TermsPage() {
 
       <h2>6. Our content</h2>
       <p>
-        The Glufloat name, logo, design, and food database belong to [COMPANY
-        NAME]. You may use them only inside the app for your own personal use.
+        The Glufloat name, logo, design, and food database belong to
+        GluFloat. You may use them only inside the app for your own personal use.
         Everything else is reserved.
       </p>
 
@@ -117,7 +117,7 @@ export default function TermsPage() {
       <p>
         We provide Glufloat with care, but we cannot promise it will always be
         perfect, available, or error-free. To the extent the law allows,
-        [COMPANY NAME] is not liable for any loss that comes from using the
+        GluFloat is not liable for any loss that comes from using the
         app, including any health outcome, since the app is general
         information and not medical care. Nothing in these terms removes any
         right you have that cannot be removed under Nigerian law.
@@ -131,8 +131,8 @@ export default function TermsPage() {
 
       <h2>11. Contact</h2>
       <p>
-        Questions about these terms: [SUPPORT EMAIL] / [PHONE] / [COMPANY
-        ADDRESS].
+        Questions about these terms: glufloat@gmail.com / 0904 874 4395 /
+        Lagos State, Nigeria.
       </p>
     </LegalShell>
   );

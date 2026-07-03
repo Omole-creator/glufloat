@@ -72,7 +72,7 @@ export default function DisclaimerPage() {
         so, food affects every
         person differently, and we cannot promise the guidance will be right
         for your own body. You use Glufloat at your own choice. To the extent
-        the law allows, [COMPANY NAME] is not responsible for any loss or harm
+        the law allows, GluFloat is not responsible for any loss or harm
         that comes from relying on the app instead of professional medical
         care.
       </p>
