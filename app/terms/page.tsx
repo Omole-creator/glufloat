@@ -41,15 +41,18 @@ export default function TermsPage() {
       <h2>3. Trial, subscription, and payment</h2>
       <ul>
         <li>
-          New members get a 7-day free trial with full access. When the trial
-          ends, your paid subscription starts at N1,500 per month, unless we
-          clearly show a different price before you pay.
+          New users get a 7-day free trial with full access on their device.
+          No payment details are collected for the trial, and nothing is
+          charged during it.
         </li>
         <li>
-          If you cancel before the trial ends, you will not be charged.
+          When the trial ends, continued access requires a paid subscription
+          of N1,500 per month, unless we clearly show a different price
+          before you pay.
         </li>
         <li>
-          Your subscription renews automatically each month until you cancel.
+          A paid subscription renews automatically each month until you
+          cancel.
         </li>
         <li>
           Payment is collected through our checkout partner (Nestuge). We do

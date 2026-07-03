@@ -68,8 +68,8 @@ export default function DisclaimerPage() {
 
       <h2>Our promise and our limit</h2>
       <p>
-        We work hard to keep the food information correct and useful, and a
-        qualified dietitian helps us review it. Even so, food affects every
+        We work hard to keep the food information correct and useful. Even
+        so, food affects every
         person differently, and we cannot promise the guidance will be right
         for your own body. You use Glufloat at your own choice. To the extent
         the law allows, [COMPANY NAME] is not responsible for any loss or harm

@@ -65,6 +65,17 @@ await page.getByRole("button", { name: "Build a meal" }).click();
 await page.waitForTimeout(300);
 ok("meal builder gated", await page.getByText("The Meal Builder is a member feature.").isVisible());
 
+// 4b. trial flow: start trial -> meal builder unlocked, badge shows
+await page.goto(`${BASE}/trial`, { waitUntil: "networkidle" });
+await page.getByRole("button", { name: "Start my free trial now" }).click();
+await page.waitForURL("**/app");
+await page.waitForTimeout(500);
+ok("trial badge shows days left", await page.getByText("Free trial: 7 days left").isVisible());
+await page.getByRole("button", { name: "Build a meal" }).click();
+await page.waitForTimeout(300);
+ok("meal builder open during trial", await page.getByText("Your plate is empty.", { exact: false }).isVisible());
+await page.screenshot({ path: `${OUT}/trial-active.png` });
+
 // 5. unlock flow
 await page.goto(`${BASE}/unlock?code=GLU-GREEN-2026`, { waitUntil: "networkidle" });
 await page.waitForTimeout(500);

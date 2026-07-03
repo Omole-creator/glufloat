@@ -40,8 +40,8 @@ export default function DisclaimerGate() {
             wait to check the app.
           </p>
           <p>
-            Food guidance here is general and still being reviewed by a
-            registered dietitian. Food affects every person differently.
+            Food guidance here is general. Food affects every person
+            differently.
           </p>
         </div>
 

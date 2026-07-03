@@ -9,15 +9,15 @@ const FAQS: { q: string; a: string }[] = [
   },
   {
     q: "How does the 7-day free trial work?",
-    a: "You sign up through our secure checkout on Nestuge and get full access for 7 days without paying. If Glufloat is not for you, cancel before the trial ends and you pay nothing. If you stay, your subscription starts at N1,500 a month.",
+    a: "Tap the trial button and everything unlocks on your device for 7 full days. No card, no sign-up, nothing to pay. If Glufloat is not for you, just stop using it. Nothing is ever charged during the trial.",
   },
   {
     q: "What happens after the 7 days?",
-    a: "Your membership continues at N1,500 a month, about N50 a day. It renews monthly until you cancel, and you can cancel any time from your Nestuge account.",
+    a: "Your free access pauses, and you choose. If you want to keep going, membership is N1,500 a month, about N50 a day, paid through our secure Nestuge checkout. The moment you pay, you get an access code that unlocks everything again.",
   },
   {
     q: "Can I cancel easily?",
-    a: "Yes. You cancel in a few taps from your Nestuge account, no calls and no explanations needed. You keep access until the end of the period you already paid for.",
+    a: "Yes. The trial needs no cancelling at all, since no card was collected. A paid membership cancels in a few taps from your Nestuge account, and you keep access until the end of the period you already paid for.",
   },
   {
     q: "Will my food actually be in the app?",

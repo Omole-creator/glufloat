@@ -5,7 +5,7 @@ import { searchFoods } from "@/lib/search";
 import { scoreMeal } from "@/lib/verdictEngine";
 import type { Food, MealItem, PortionSize } from "@/lib/types";
 import Paywall from "./Paywall";
-import { hasAccess } from "@/lib/access";
+import { fullAccess } from "@/lib/access";
 
 const PORTIONS: { key: PortionSize; label: string }[] = [
   { key: "half", label: "Half" },
@@ -36,9 +36,9 @@ export default function MealBuilder() {
   const [query, setQuery] = useState("");
   const [items, setItems] = useState<MealItem[]>([]);
 
-  // hasAccess touches localStorage; resolve after mount
+  // access checks touch localStorage; resolve after mount
   useEffect(() => {
-    setUnlocked(hasAccess());
+    setUnlocked(fullAccess());
   }, []);
 
   const results = useMemo(() => searchFoods(query, 6), [query]);

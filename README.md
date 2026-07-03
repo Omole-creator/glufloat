@@ -10,10 +10,12 @@ the fix that turns a plate green.
 
 ## How access works (MVP)
 
-Payments and the 7-day trial run on **Nestuge**: https://nestuge.com/glufloat
-
 - Visitors get **3 free checks** (tracked in their browser), then the paywall.
-- The **Meal Builder** is members-only.
+- The **7-day free trial** runs on the visitor's device: tapping "Start my
+  free trial" (the `/trial` page) unlocks everything for 7 days. No card is
+  collected, because Nestuge does not support pre-subscription trials.
+- When the trial ends, the paywall points to **Nestuge** for the
+  N1,500/month subscription: https://nestuge.com/glufloat
 - After payment, Nestuge should send buyers to the unlock link so access
   opens on their device immediately:
 
@@ -31,10 +33,11 @@ unlock link) in your Nestuge product's post-purchase delivery message.
 
 ## Nestuge checklist (one-time setup)
 
-1. Create the Glufloat product on Nestuge as a subscription:
-   7-day free trial, then N1,500 / month.
+1. Create the Glufloat product on Nestuge as a N1,500 / month subscription
+   (the free week is handled by the site itself, before checkout).
 2. In the post-purchase delivery, paste the unlock link above.
-3. That is it. The site's every CTA already points to nestuge.com/glufloat.
+3. That is it. Trial CTAs point to /trial; subscribe CTAs point to
+   nestuge.com/glufloat.
 
 ## Development
 
@@ -57,7 +60,6 @@ npx tsx scripts/engine-test.ts   # verdict engine sanity tests
 
 ## Before public launch
 
-- Have a registered dietitian review and sign off `data/foods.json`.
 - Fill every `[BRACKETED]` placeholder in /terms, /privacy, /disclaimer and
   have a Nigerian tech/health-law solicitor review them.
 - Register the company with CAC before taking money.

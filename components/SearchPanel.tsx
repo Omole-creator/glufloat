@@ -5,7 +5,7 @@ import { searchFoods } from "@/lib/search";
 import type { Food } from "@/lib/types";
 import VerdictCard from "./VerdictCard";
 import Paywall from "./Paywall";
-import { freeChecksLeft, hasAccess, isGated, recordCheck } from "@/lib/access";
+import { freeChecksLeft, fullAccess, isGated, recordCheck } from "@/lib/access";
 
 export default function SearchPanel() {
   const [query, setQuery] = useState("");
@@ -21,7 +21,7 @@ export default function SearchPanel() {
       setPicked(null);
       return;
     }
-    if (!hasAccess()) {
+    if (!fullAccess()) {
       recordCheck();
       setLeft(freeChecksLeft());
     }
@@ -94,7 +94,7 @@ export default function SearchPanel() {
         {picked && !gated && (
           <>
             <VerdictCard food={picked} />
-            {left !== null && left >= 0 && !hasAccess() && (
+            {left !== null && left >= 0 && !fullAccess() && (
               <p className="mt-3 text-center text-xs font-medium text-ink-soft">
                 {left === 0
                   ? "That was your last free check."

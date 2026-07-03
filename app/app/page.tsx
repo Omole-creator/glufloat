@@ -1,14 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import DisclaimerGate from "@/components/DisclaimerGate";
 import SearchPanel from "@/components/SearchPanel";
 import MealBuilder from "@/components/MealBuilder";
+import { getTrialState, hasAccess, type TrialState } from "@/lib/access";
 
 export default function AppPage() {
   const [tab, setTab] = useState<"search" | "meal">("search");
+  const [trial, setTrial] = useState<TrialState | "member" | null>(null);
+
+  useEffect(() => {
+    setTrial(hasAccess() ? "member" : getTrialState());
+  }, []);
 
   return (
     <>
@@ -20,6 +26,11 @@ export default function AppPage() {
           <p className="text-center text-xs font-bold uppercase tracking-widest text-brand">
             The Glufloat app
           </p>
+          {trial !== null && trial !== "member" && trial.status === "active" && (
+            <p className="mx-auto mt-3 w-fit rounded-full bg-verdict-green/15 px-4 py-1.5 text-xs font-bold text-leaf-deep">
+              Free trial: {trial.daysLeft} {trial.daysLeft === 1 ? "day" : "days"} left
+            </p>
+          )}
           <h1 className="mt-2 text-center font-display text-3xl font-bold text-ink sm:text-4xl">
             Check your food before you eat it.
           </h1>

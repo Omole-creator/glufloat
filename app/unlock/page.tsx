@@ -97,8 +97,15 @@ function UnlockInner() {
                 href={NESTUGE_URL}
                 className="font-semibold text-brand hover:underline"
               >
-                Start your 7-day free trial
-              </a>
+                Subscribe for N1,500 / month
+              </a>{" "}
+              or{" "}
+              <Link
+                href="/trial"
+                className="font-semibold text-brand hover:underline"
+              >
+                start a free trial
+              </Link>
             </p>
           </>
         )}

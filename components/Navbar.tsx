@@ -3,7 +3,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { NESTUGE_URL } from "@/lib/access";
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -56,12 +55,12 @@ export default function Navbar() {
           </Link>
         </div>
 
-        <a
-          href={NESTUGE_URL}
+        <Link
+          href="/trial"
           className="rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white shadow-[0_8px_20px_-8px_rgba(27,95,170,0.7)] transition-all hover:-translate-y-0.5 hover:bg-brand-deep hover:shadow-[0_12px_24px_-8px_rgba(27,95,170,0.8)] sm:px-5"
         >
           Start free trial
-        </a>
+        </Link>
       </nav>
     </header>
   );

@@ -69,12 +69,12 @@ export default function Home() {
                 className="rise mt-8 flex flex-wrap items-center gap-4"
                 style={{ ["--rise-delay" as string]: "360ms" }}
               >
-                <a
-                  href={NESTUGE_URL}
+                <Link
+                  href="/trial"
                   className="rounded-full bg-brand px-7 py-4 text-base font-bold text-white shadow-[0_14px_30px_-10px_rgba(27,95,170,0.7)] transition-all hover:-translate-y-1 hover:bg-brand-deep hover:shadow-[0_18px_36px_-10px_rgba(27,95,170,0.8)]"
                 >
                   Start my 7-day free trial
-                </a>
+                </Link>
                 <Link
                   href="#demo"
                   className="rounded-full border-2 border-line bg-white px-7 py-[14px] text-base font-semibold text-ink transition-all hover:-translate-y-1 hover:border-leaf hover:text-leaf-deep"
@@ -86,8 +86,8 @@ export default function Home() {
                 className="rise mt-4 text-sm text-ink-soft"
                 style={{ ["--rise-delay" as string]: "440ms" }}
               >
-                7 days free. Then N1,500 a month, about N50 a day. Cancel any
-                time.
+                7 days free, no card needed. Then N1,500 a month, about N50 a
+                day. Cancel any time.
               </p>
             </div>
 
@@ -492,9 +492,9 @@ export default function Home() {
                   "Founded by a pharmacist who has lived this question at home for 8 years",
               },
               {
-                stat: "RD",
+                stat: "10s",
                 label:
-                  "Every food entry goes through registered dietitian review before it is marked verified",
+                  "from typing a food to a clear answer. Faster than dishing the plate",
               },
               {
                 stat: "13k+",
@@ -549,7 +549,7 @@ export default function Home() {
               </div>
               <div className="p-8 text-center">
                 <p className="text-sm font-semibold text-leaf-deep">
-                  First 7 days: N0
+                  First 7 days: N0. No card needed.
                 </p>
                 <p className="mt-2 font-display text-5xl font-bold text-ink">
                   N1,500
@@ -577,15 +577,23 @@ export default function Home() {
                   ))}
                 </ul>
 
-                <a
-                  href={NESTUGE_URL}
+                <Link
+                  href="/trial"
                   className="mt-8 block rounded-full bg-brand px-8 py-4 text-base font-bold text-white shadow-[0_14px_30px_-10px_rgba(27,95,170,0.7)] transition-all hover:-translate-y-1 hover:bg-brand-deep"
                 >
                   Start my 7-day free trial
-                </a>
+                </Link>
                 <p className="mt-3 text-xs text-ink-soft">
-                  Secure checkout via Nestuge. Your access opens the moment
-                  payment is set up. Cancel before day 7 and pay nothing.
+                  Nothing is charged during the trial. When your week ends,
+                  subscribe in minutes through our secure Nestuge checkout.
+                  Already tried it?{" "}
+                  <a
+                    href={NESTUGE_URL}
+                    className="font-semibold text-brand hover:underline"
+                  >
+                    Subscribe now
+                  </a>
+                  .
                 </p>
               </div>
             </div>
@@ -625,14 +633,15 @@ export default function Home() {
               you feel sure about. The trial is free for 7 days. The only thing
               you risk by trying is one less worry.
             </p>
-            <a
-              href={NESTUGE_URL}
+            <Link
+              href="/trial"
               className="mt-8 inline-block rounded-full bg-leaf px-8 py-4 text-base font-bold text-white shadow-[0_14px_30px_-10px_rgba(62,155,79,0.6)] transition-all hover:-translate-y-1 hover:bg-leaf-deep"
             >
               Start my 7-day free trial
-            </a>
+            </Link>
             <p className="mt-4 text-sm text-white/60">
-              7 days free, then N1,500 a month. Cancel any time.
+              7 days free, no card needed. Then N1,500 a month. Cancel any
+              time.
             </p>
           </Reveal>
         </div>
