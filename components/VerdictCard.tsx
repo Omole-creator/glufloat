@@ -1,5 +1,6 @@
 import type { Food } from "@/lib/types";
 import { plainFrequency } from "@/lib/frequency";
+import PortionVisual from "./PortionVisual";
 
 const STYLES = {
   green: {
@@ -44,26 +45,23 @@ export default function VerdictCard({ food }: { food: Food }) {
         {food.logicNote}
       </p>
 
-      <div className="mt-4 grid gap-2 sm:grid-cols-3">
-        <div className={`rounded-xl ${s.soft} p-3`}>
-          <p className="text-[11px] font-bold uppercase tracking-wider text-ink/60">
-            How much to eat
-          </p>
-          <p className="mt-1 text-sm text-ink">{food.portionGuidance}</p>
-        </div>
-        <div className={`rounded-xl ${s.soft} p-3`}>
-          <p className="text-[11px] font-bold uppercase tracking-wider text-ink/60">
-            Eat it with
-          </p>
-          <p className="mt-1 text-sm text-ink">
-            {food.pairingAdvice || "Nothing can make this one safe."}
-          </p>
-        </div>
-        <div className={`rounded-xl ${s.soft} p-3`}>
-          <p className="text-[11px] font-bold uppercase tracking-wider text-ink/60">
-            How often
-          </p>
-          <p className="mt-1 text-sm text-ink">{plainFrequency(food)}</p>
+      <div className="mt-4 space-y-2">
+        <PortionVisual food={food} />
+        <div className="grid gap-2 sm:grid-cols-2">
+          <div className={`rounded-xl ${s.soft} p-3`}>
+            <p className="text-[11px] font-bold uppercase tracking-wider text-ink/60">
+              Eat it with
+            </p>
+            <p className="mt-1 text-sm text-ink">
+              {food.pairingAdvice || "Nothing can make this one safe."}
+            </p>
+          </div>
+          <div className={`rounded-xl ${s.soft} p-3`}>
+            <p className="text-[11px] font-bold uppercase tracking-wider text-ink/60">
+              How often
+            </p>
+            <p className="mt-1 text-sm text-ink">{plainFrequency(food)}</p>
+          </div>
         </div>
       </div>
     </div>

@@ -6,6 +6,7 @@ import { searchFoods } from "@/lib/search";
 import { scoreMeal } from "@/lib/verdictEngine";
 import type { Food, MealItem, PortionSize } from "@/lib/types";
 import Paywall from "./Paywall";
+import { PortionMini } from "./PortionVisual";
 import { fullAccess } from "@/lib/access";
 import { events } from "@/lib/analytics";
 
@@ -231,6 +232,19 @@ export default function MealBuilder() {
                 </p>
               </div>
             ) : null}
+
+            {showVerdict && (
+              <div className="mt-4 border-t border-line pt-4">
+                <p className="text-xs font-bold uppercase tracking-wider text-ink/60">
+                  How much of each to eat
+                </p>
+                <div className="mt-3 space-y-3">
+                  {items.map((i) => (
+                    <PortionMini key={i.food.id} food={i.food} />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

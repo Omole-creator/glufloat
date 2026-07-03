@@ -14,6 +14,11 @@ import type { Food, MealItem, MealResult, Verdict } from "./types";
 const GREEN_AT = 1.75;
 const YELLOW_AT = 0.75;
 
+/** Lowercase the first letter so a portion phrase reads well mid-sentence. */
+function lower(s: string): string {
+  return s.charAt(0).toLowerCase() + s.slice(1);
+}
+
 function toVerdict(score: number): Verdict {
   if (score >= GREEN_AT) return "green";
   if (score >= YELLOW_AT) return "yellow";
@@ -57,7 +62,7 @@ export function scoreMeal(items: MealItem[]): MealResult {
       `${names} is sweet, and sweet drinks make sugar rise very fast.`,
     );
     fixes.push(
-      `Take away the ${sugarDrinks[0].food.name}. Drink water, or zobo with no sugar. Nothing else can fix a sweet drink.`,
+      `Take away the ${sugarDrinks[0].food.name}. Instead drink water, or unsweetened zobo, one cup (250ml). Nothing else can fix a sweet drink.`,
     );
     return {
       verdict: "red",
@@ -127,18 +132,22 @@ export function scoreMeal(items: MealItem[]): MealResult {
   if (verdict !== "green") {
     if (worstStarch && worstStarch.portion !== "half") {
       fixes.push(
-        `Eat a smaller size of ${worstStarch.food.name}. Take about half of what you normally would.`,
+        `Eat less ${worstStarch.food.name}. A safe size is ${lower(worstStarch.food.portionGuidance)}`,
       );
     }
     if (!hasVeg) {
-      fixes.push("Add vegetable soup, like efo, okra, or egusi.");
+      fixes.push(
+        "Add a green vegetable soup, like efo riro, okra, or egusi. Two serving spoons, about one cup.",
+      );
     }
     if (!hasProtein) {
-      fixes.push("Add some meat, fish, or egg.");
+      fixes.push(
+        "Add a palm-size piece of fish, chicken, or meat, about the size of a deck of cards (90g).",
+      );
     }
     if (fixes.length === 0) {
       fixes.push(
-        "Keep the size small, and do not eat it when your stomach is empty.",
+        "Keep each food to the safe size shown below, and do not eat on an empty stomach.",
       );
     }
   }

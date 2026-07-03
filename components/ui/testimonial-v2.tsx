@@ -19,13 +19,13 @@ const testimonials: Testimonial[] = [
   {
     text: "I did not want to give up rice. Glufloat showed me to eat it small, with vegetables and fish. My last test came back better than before.",
     image: "/img/pic2.jpg",
-    name: "Musa Ibrahim",
+    name: "Hauwa Bello",
     role: "Kaduna State",
   },
   {
     text: "I cook for my father who has diabetes. Before I serve, I check the meal. No more guessing, and we all eat the same food together.",
     image: "/img/pic3.jpg",
-    name: "Chinelo Okafor",
+    name: "Emeka Okafor",
     role: "Anambra State",
   },
   {

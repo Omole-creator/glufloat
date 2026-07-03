@@ -122,7 +122,7 @@ function Hero() {
           />
           <HeroDemo />
 
-          <div className="float-slow absolute -left-4 top-10 hidden rounded-2xl bg-white/95 p-2.5 shadow-xl backdrop-blur sm:block">
+          <div className="float-slow absolute -left-1 top-8 rounded-2xl bg-white/95 p-2.5 shadow-xl backdrop-blur sm:-left-4 sm:top-10">
             <TrafficLight size="sm" active="cycle" />
           </div>
         </motion.div>
