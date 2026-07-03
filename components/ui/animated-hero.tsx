@@ -22,10 +22,7 @@ const item: Variants = {
 };
 
 function RotatingWord() {
-  const words = useMemo(
-    () => ["a food", "rice", "eba", "jollof", "amala", "bread"],
-    [],
-  );
+  const words = useMemo(() => ["a food", "a meal", "a snack"], []);
   const [i, setI] = useState(0);
 
   useEffect(() => {

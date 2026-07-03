@@ -312,11 +312,11 @@ export default function Home() {
             <Reveal direction="left" className="mx-auto">
               <div className="overflow-hidden rounded-3xl shadow-[0_24px_50px_-20px_rgba(12,42,71,0.4)]">
                 <Image
-                  src="/img/joy-woman.jpg"
+                  src="/img/joy-mature.jpg"
                   alt="A woman smiling, happy and at ease"
-                  width={520}
-                  height={620}
-                  className="h-[22rem] w-full max-w-sm object-cover"
+                  width={600}
+                  height={720}
+                  className="h-[24rem] w-full max-w-sm object-cover object-[center_top]"
                 />
               </div>
             </Reveal>

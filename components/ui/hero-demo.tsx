@@ -18,23 +18,23 @@ export default function HeroDemo() {
   }, [step]);
 
   return (
-    <div className="mx-auto w-full max-w-sm rounded-[1.75rem] border border-line bg-white p-4 text-left shadow-[0_30px_70px_-24px_rgba(12,42,71,0.5)] ring-1 ring-white/60">
+    <div className="mx-auto w-full max-w-sm rounded-[1.75rem] bg-gradient-to-b from-brand-deep to-ink p-4 text-left shadow-[0_36px_80px_-24px_rgba(15,61,117,0.75)] ring-1 ring-white/10">
       {/* app header */}
       <div className="mb-3 flex items-center justify-between px-1">
         <div className="flex items-center gap-2">
-          <span className="font-display text-sm font-bold">
-            <span className="text-brand">Glu</span>
-            <span className="text-leaf">float</span>
+          <span className="font-display text-sm font-bold text-white">
+            <span className="text-white">Glu</span>
+            <span className="text-leaf-bright">float</span>
           </span>
         </div>
-        <span className="flex items-center gap-1 text-[11px] font-medium text-ink-soft">
+        <span className="flex items-center gap-1 text-[11px] font-medium text-white/70">
           <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-verdict-green" />
           live
         </span>
       </div>
 
       {/* search bar */}
-      <div className="flex items-center gap-2 rounded-full border-2 border-line bg-mist px-4 py-2.5">
+      <div className="flex items-center gap-2 rounded-full bg-white px-4 py-2.5 shadow-sm">
         <svg
           className="h-4 w-4 text-ink-soft/60"
           fill="none"
@@ -69,7 +69,7 @@ export default function HeroDemo() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="flex h-[188px] items-center justify-center text-sm text-ink-soft/70"
+              className="flex h-[188px] items-center justify-center text-sm text-white/60"
             >
               Checking your food...
             </motion.div>
@@ -81,7 +81,7 @@ export default function HeroDemo() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}
-              className="rounded-2xl border-2 border-verdict-yellow/50 bg-verdict-yellow/5 p-4"
+              className="rounded-2xl border-2 border-verdict-yellow/40 bg-white p-4"
             >
               <div className="flex items-center justify-between">
                 <p className="font-display font-semibold text-ink">Jollof rice</p>
@@ -93,15 +93,15 @@ export default function HeroDemo() {
                 Turns to sugar fast. Eat a smaller size, and add soup and fish.
               </p>
               <div className="mt-3 grid grid-cols-3 gap-2 text-[11px]">
-                <div className="rounded-lg bg-white p-2">
+                <div className="rounded-lg bg-mist p-2">
                   <p className="font-bold text-ink/60">How much</p>
                   <p className="mt-0.5 text-ink">Half a plate</p>
                 </div>
-                <div className="rounded-lg bg-white p-2">
+                <div className="rounded-lg bg-mist p-2">
                   <p className="font-bold text-ink/60">Eat with</p>
                   <p className="mt-0.5 text-ink">Veg and fish</p>
                 </div>
-                <div className="rounded-lg bg-white p-2">
+                <div className="rounded-lg bg-mist p-2">
                   <p className="font-bold text-ink/60">How often</p>
                   <p className="mt-0.5 text-ink">2 to 3 a week</p>
                 </div>
@@ -115,6 +115,7 @@ export default function HeroDemo() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}
+              className="rounded-2xl bg-white p-3"
             >
               <p className="mb-2 text-xs font-semibold text-ink-soft">
                 Your whole meal
@@ -154,7 +155,7 @@ export default function HeroDemo() {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
-              className="flex h-[188px] flex-col items-center justify-center rounded-2xl bg-verdict-green/10"
+              className="flex h-[188px] flex-col items-center justify-center rounded-2xl bg-white"
             >
               <motion.span
                 initial={{ scale: 0.5 }}
