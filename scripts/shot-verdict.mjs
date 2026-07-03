@@ -1,0 +1,11 @@
+import { chromium } from "playwright";
+const browser = await chromium.launch();
+const page = await browser.newPage({ viewport: { width: 900, height: 900 } });
+await page.goto("http://localhost:3000/app", { waitUntil: "networkidle" });
+await page.getByRole("button", { name: "I understand" }).click();
+await page.getByLabel("Search a food").fill("eba");
+await page.getByText("Garri / Eba (cassava swallow)").click();
+await page.waitForTimeout(500);
+await page.screenshot({ path: "qa-shots/verdict-eba.png", clip: { x: 250, y: 260, width: 620, height: 340 } });
+await browser.close();
+console.log("done");

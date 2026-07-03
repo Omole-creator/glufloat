@@ -215,7 +215,7 @@ export default function Home() {
               <p className="mt-5 font-display text-lg leading-relaxed text-ink-soft">
                 The popular food apps were built abroad. They do not know
                 jollof, eba, or amala, and they do not know we eat with soup.
-                Glufloat knows over 140 of our own foods, and it always shows
+                Glufloat knows over 180 of our own foods, and it always shows
                 you how to make a food safe.
               </p>
 
@@ -279,7 +279,7 @@ export default function Home() {
           </Reveal>
           <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {[
-              { end: 140, suffix: "+", unit: "Nigerian foods", label: "and we add more every month" },
+              { end: 180, suffix: "+", unit: "Nigerian foods", label: "and we add more every month" },
               { end: 200, suffix: "+", unit: "checks a minute", label: "by people just like you" },
               { end: 3, suffix: "", unit: "clear colours", label: "green, yellow, or red. That is all" },
               { end: 10, suffix: " sec", unit: "to an answer", label: "faster than dishing the food" },
@@ -312,11 +312,11 @@ export default function Home() {
             <Reveal direction="left" className="mx-auto">
               <div className="overflow-hidden rounded-3xl shadow-[0_24px_50px_-20px_rgba(12,42,71,0.4)]">
                 <Image
-                  src="/img/joy-mature.jpg"
-                  alt="A woman smiling, happy and at ease"
-                  width={600}
+                  src="/img/joy-kitchen.jpg"
+                  alt="A woman laughing happily in her kitchen, surrounded by food"
+                  width={760}
                   height={720}
-                  className="h-[24rem] w-full max-w-sm object-cover object-[center_top]"
+                  className="h-[24rem] w-full max-w-sm object-cover object-center"
                 />
               </div>
             </Reveal>
@@ -379,7 +379,7 @@ export default function Home() {
 
                 <ul className="mx-auto mt-6 max-w-sm space-y-3 text-left text-ink">
                   {[
-                    "Check as many foods as you want, all 140+ of them",
+                    "Check as many foods as you want, all 180+ of them",
                     "Build a full meal and get the fix that makes it green",
                     "See the safe size, what to eat it with, and how often",
                     "Works on any phone, right away",

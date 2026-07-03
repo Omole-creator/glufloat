@@ -30,14 +30,17 @@ export function plainFrequency(food: Food): string {
     return "About 3 times a week, in a small size";
   }
   if (f.includes("occasional")) {
-    return "About once or twice a week";
+    return "About 2 times a week";
   }
-  if (f.includes("moderate") || f.includes("good") || f.includes("decent")) {
-    return "Most days is fine, in a small size";
+  if (f.includes("moderate")) {
+    return "About 3 times a week";
+  }
+  if (f.includes("good") || f.includes("decent")) {
+    return "You can eat this every day";
   }
 
   // Fall back on the colour.
   if (food.baseVerdict === "green") return "You can eat this every day";
-  if (food.baseVerdict === "yellow") return "About 2 to 3 times a week";
-  return "Only once in a while";
+  if (food.baseVerdict === "yellow") return "About 2 times a week";
+  return "Only once in a while, about once a month";
 }

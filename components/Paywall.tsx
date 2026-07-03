@@ -42,7 +42,7 @@ export default function Paywall({ context }: { context: "search" | "meal" }) {
         </h3>
         <ul className="mt-4 space-y-2 text-sm text-ink-soft">
           <li className="flex gap-2">
-            <span className="text-leaf">✓</span> Unlimited checks on all 143
+            <span className="text-leaf">✓</span> Unlimited checks on all 180+
             Nigerian foods, growing monthly
           </li>
           <li className="flex gap-2">
