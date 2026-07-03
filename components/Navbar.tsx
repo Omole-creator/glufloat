@@ -53,6 +53,9 @@ export default function Navbar() {
           <Link href="/#faq" className="transition-colors hover:text-brand">
             FAQ
           </Link>
+          <Link href="/about" className="transition-colors hover:text-brand">
+            About
+          </Link>
           <Link href="/app" className="transition-colors hover:text-brand">
             The app
           </Link>

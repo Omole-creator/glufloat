@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import { motion, type Variants } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
@@ -8,9 +9,7 @@ import TrafficLight from "@/components/TrafficLight";
 
 const container: Variants = {
   hidden: {},
-  show: {
-    transition: { staggerChildren: 0.16, delayChildren: 0.05 },
-  },
+  show: { transition: { staggerChildren: 0.16, delayChildren: 0.05 } },
 };
 
 const item: Variants = {
@@ -21,6 +20,42 @@ const item: Variants = {
     transition: { duration: 0.65, ease: [0.22, 1, 0.36, 1] },
   },
 };
+
+function RotatingWord() {
+  const words = useMemo(
+    () => ["a food", "rice", "eba", "jollof", "amala", "bread"],
+    [],
+  );
+  const [i, setI] = useState(0);
+
+  useEffect(() => {
+    const t = setTimeout(
+      () => setI((n) => (n === words.length - 1 ? 0 : n + 1)),
+      1900,
+    );
+    return () => clearTimeout(t);
+  }, [i, words]);
+
+  return (
+    <span className="relative inline-grid overflow-hidden pb-[0.08em] align-bottom text-leaf-deep">
+      {words.map((w, idx) => (
+        <motion.span
+          key={w}
+          className="col-start-1 row-start-1 whitespace-nowrap"
+          initial={false}
+          animate={
+            i === idx
+              ? { y: "0%", opacity: 1 }
+              : { y: i > idx ? "-115%" : "115%", opacity: 0 }
+          }
+          transition={{ type: "spring", stiffness: 60, damping: 13 }}
+        >
+          {w}
+        </motion.span>
+      ))}
+    </span>
+  );
+}
 
 function Hero() {
   return (
@@ -56,7 +91,7 @@ function Hero() {
           variants={item}
           className="mt-6 font-display text-[1.9rem] font-bold leading-[1.12] tracking-tight text-ink sm:text-4xl lg:text-[2.9rem]"
         >
-          Know if a food is right for your diabetes,
+          Know if <RotatingWord /> is right for your diabetes,
           <br className="hidden sm:block" />{" "}
           <span className="text-brand">before you eat it.</span>
         </motion.h1>
@@ -83,11 +118,7 @@ function Hero() {
           </p>
         </motion.div>
 
-        {/* image, right below the CTA */}
-        <motion.div
-          variants={item}
-          className="relative mt-12 w-full max-w-2xl"
-        >
+        <motion.div variants={item} className="relative mt-12 w-full max-w-2xl">
           <div className="relative overflow-hidden rounded-[1.75rem] shadow-[0_30px_70px_-24px_rgba(12,42,71,0.55)] ring-1 ring-white/60">
             <Image
               src="/img/swallow.jpg"
