@@ -14,6 +14,38 @@ import type { Food, MealItem, MealResult, Verdict } from "./types";
 const GREEN_AT = 1.75;
 const YELLOW_AT = 0.75;
 
+const DECK =
+  "Add a palm-size piece of fish, chicken, or meat, about the size of a deck of cards (90g).";
+
+/**
+ * What vegetables to add, worded so they actually go with the main food.
+ * Keyed by the main starch's category. If a category is not here, we say
+ * nothing rather than give an odd pairing (e.g. never tell a smoothie or
+ * beans to add efo riro soup).
+ */
+const VEG_FIX: Record<string, string> = {
+  swallow:
+    "Add a green vegetable soup, like efo riro, okra, or egusi. Two serving spoons, about one cup.",
+  rice: "Add vegetables to it, like a spoon of ugu or a garden-egg and tomato stew. About one cup.",
+  tuber: "Add a garden-egg sauce or green vegetables on the side. About one cup.",
+  plantain:
+    "Add green vegetables or a vegetable sauce on the side. About one cup.",
+  bread: "Add an egg and vegetables, never bread on its own.",
+};
+
+/**
+ * What protein or slow-down food to add, again worded to match the main food.
+ * Bread is left out on purpose; its VEG_FIX line already mentions the egg.
+ */
+const PROTEIN_FIX: Record<string, string> = {
+  swallow: DECK,
+  rice: DECK,
+  tuber: DECK,
+  plantain: DECK,
+  cereal: "Add moi moi or akara to slow it down.",
+  corn: "Add groundnut or a boiled egg to slow it down.",
+};
+
 /** Lowercase the first letter so a portion phrase reads well mid-sentence. */
 function lower(s: string): string {
   return s.charAt(0).toLowerCase() + s.slice(1);
@@ -108,7 +140,7 @@ export function scoreMeal(items: MealItem[]): MealResult {
   }
   if (hasProtein) {
     score += 0.5;
-    breakdown.push("You added meat, fish, or egg. That helps too.");
+    breakdown.push("You added a protein food. That helps too.");
   }
 
   if (worstStarch) {
@@ -128,26 +160,29 @@ export function scoreMeal(items: MealItem[]): MealResult {
   score = Math.max(0, Math.min(2, score));
   const verdict = toVerdict(score);
 
-  // Plain, do-this-now fixes.
+  // Plain, do-this-now fixes. We only ever suggest adding something that
+  // truly goes with the main food. When there is no sensible pairing, we say
+  // nothing rather than give an odd suggestion.
   if (verdict !== "green") {
+    const mainCategory = worstStarch?.food.category ?? null;
+
     if (worstStarch && worstStarch.portion !== "half") {
       fixes.push(
         `Eat less ${worstStarch.food.name}. A safe size is ${lower(worstStarch.food.portionGuidance)}`,
       );
     }
-    if (!hasVeg) {
-      fixes.push(
-        "Add a green vegetable soup, like efo riro, okra, or egusi. Two serving spoons, about one cup.",
-      );
+    if (!hasVeg && mainCategory && VEG_FIX[mainCategory]) {
+      fixes.push(VEG_FIX[mainCategory]);
     }
-    if (!hasProtein) {
-      fixes.push(
-        "Add a palm-size piece of fish, chicken, or meat, about the size of a deck of cards (90g).",
-      );
+    if (!hasProtein && mainCategory && PROTEIN_FIX[mainCategory]) {
+      fixes.push(PROTEIN_FIX[mainCategory]);
     }
     if (fixes.length === 0) {
+      const hasDrink = items.some((i) => i.food.role === "drink");
       fixes.push(
-        "Keep each food to the safe size shown below, and do not eat on an empty stomach.",
+        hasDrink
+          ? "This is a drink, so keep it small and take it with food, not on its own."
+          : "Keep each food to the safe size shown below, and do not eat on an empty stomach.",
       );
     }
   }

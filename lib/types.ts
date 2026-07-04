@@ -27,6 +27,12 @@ export interface Food {
   frequency: string;
   logicNote: string;
   tags: string[];
+  /**
+   * For fruit only: the amount that gives about 15g of carbohydrate, i.e. one
+   * diabetes "fruit exchange". Omitted for fruits where a 15g-carb serving does
+   * not make sense (avocado is a fat; lime/lemon is only a squeeze).
+   */
+  carbExchange?: string;
 }
 
 export type PortionSize = "half" | "normal" | "large";

@@ -19,6 +19,12 @@ export default function DisclaimerGate() {
           Glufloat helps you choose food. It does not cure diabetes.
         </h2>
 
+        <p className="mt-4 text-sm leading-relaxed text-ink-soft">
+          Everyone&apos;s body is different. The best check is your own. Test
+          your sugar about two hours after eating to see what a food does for
+          you.
+        </p>
+
         <button
           onClick={() => {
             acceptDisclaimer();

@@ -12,6 +12,8 @@ export type PortionKey =
   | "slice"
   | "half-fruit"
   | "whole-fruit"
+  | "berries"
+  | "pieces"
   | "glass"
   | "spoon"
   | "eggs"
@@ -32,6 +34,8 @@ const CAPTIONS: Record<PortionKey, string> = {
   slice: "One slice",
   "half-fruit": "Half of one",
   "whole-fruit": "One whole fruit",
+  berries: "A small handful of berries",
+  pieces: "One to two pieces",
   glass: "About one glass",
   spoon: "One to two spoons",
   eggs: "One to two eggs",
@@ -63,9 +67,15 @@ function pick(p: string, food: Food): PortionKey {
     p.includes("one small") ||
     p.includes("small fruits") ||
     p.includes("one to two small") ||
-    p.includes("one to two fruits")
+    p.includes("one to two fruits") ||
+    p.includes("medium fruit") ||
+    p.includes("squeeze")
   )
     return "whole-fruit";
+  if (p.includes("grape") || p.includes("berr")) return "berries";
+  if (p.includes("pod")) return "handful";
+  if ((p.includes("pieces") || p.includes("piece")) && food.role === "fruit")
+    return "pieces";
   if (p.includes("cup")) return "cup";
   return "generic";
 }

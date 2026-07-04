@@ -43,6 +43,25 @@ const cases: [string, ReturnType<typeof scoreMeal>][] = [
       { food: f("egusi-soup"), portion: "normal" },
     ]),
   ],
+  [
+    "beans + plantain (should suggest vegetables/sauce, never soup or fish)",
+    scoreMeal([
+      { food: f("cooked-beans"), portion: "normal" },
+      { food: f("boiled-plantain-ripe"), portion: "normal" },
+    ]),
+  ],
+  [
+    "beans and plantain combo alone (no odd add)",
+    scoreMeal([{ food: f("beans-and-plantain"), portion: "normal" }]),
+  ],
+  [
+    "smoothie alone (drink line only, never soup or fish)",
+    scoreMeal([{ food: f("smoothie"), portion: "normal" }]),
+  ],
+  [
+    "boiled plantain alone",
+    scoreMeal([{ food: f("boiled-plantain-ripe"), portion: "normal" }]),
+  ],
 ];
 
 for (const [label, r] of cases) {

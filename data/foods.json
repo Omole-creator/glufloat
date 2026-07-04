@@ -2043,7 +2043,8 @@
     "pairingAdvice": "A few nuts.",
     "frequency": "Moderate.",
     "logicNote": "Friendlier fruit, but still natural sugar; keep portion small.",
-    "tags": []
+    "tags": [],
+    "carbExchange": "one slice (half a cup diced)"
   },
   {
     "id": "watermelon",
@@ -2060,7 +2061,8 @@
     "pairingAdvice": "A few nuts to slow it.",
     "frequency": "Moderate.",
     "logicNote": "Mostly water but high GI; small portions only.",
-    "tags": []
+    "tags": [],
+    "carbExchange": "one cup diced"
   },
   {
     "id": "orange",
@@ -2077,7 +2079,8 @@
     "pairingAdvice": "Eat whole for the fibre.",
     "frequency": "Moderate.",
     "logicNote": "Whole orange OK; orange juice is red.",
-    "tags": []
+    "tags": [],
+    "carbExchange": "one medium orange"
   },
   {
     "id": "apple",
@@ -2094,7 +2097,8 @@
     "pairingAdvice": "A few nuts.",
     "frequency": "Good.",
     "logicNote": "Lower GI fruit; the skin adds fibre.",
-    "tags": []
+    "tags": [],
+    "carbExchange": "one small apple"
   },
   {
     "id": "banana",
@@ -2111,7 +2115,8 @@
     "pairingAdvice": "A few groundnuts.",
     "frequency": "Moderate.",
     "logicNote": "The riper, the sweeter; keep it small.",
-    "tags": []
+    "tags": [],
+    "carbExchange": "half of a medium banana"
   },
   {
     "id": "mango",
@@ -2130,7 +2135,8 @@
     "logicNote": "Sweet; small portions.",
     "tags": [
       "seasonal"
-    ]
+    ],
+    "carbExchange": "half of a small mango"
   },
   {
     "id": "pineapple",
@@ -2147,7 +2153,8 @@
     "pairingAdvice": "A few nuts.",
     "frequency": "Occasional.",
     "logicNote": "High GI; keep portions tiny.",
-    "tags": []
+    "tags": [],
+    "carbExchange": "one thin slice"
   },
   {
     "id": "guava",
@@ -2166,7 +2173,8 @@
     "logicNote": "High fibre, lower GI; a friendly fruit.",
     "tags": [
       "friendly"
-    ]
+    ],
+    "carbExchange": "one small guava"
   },
   {
     "id": "agbalumo",
@@ -2189,7 +2197,8 @@
     "tags": [
       "local",
       "seasonal"
-    ]
+    ],
+    "carbExchange": "one to two small fruits"
   },
   {
     "id": "soursop",
@@ -2206,7 +2215,8 @@
     "pairingAdvice": "Alone.",
     "frequency": "Good.",
     "logicNote": "Lower sugar fruit.",
-    "tags": []
+    "tags": [],
+    "carbExchange": "half a cup (three small pieces)"
   },
   {
     "id": "dates",
@@ -2226,7 +2236,8 @@
     "logicNote": "Natural but very concentrated sugar.",
     "tags": [
       "northern"
-    ]
+    ],
+    "carbExchange": "one to two pieces"
   },
   {
     "id": "cashew-fruit",
@@ -2246,7 +2257,8 @@
     "logicNote": "Juicy and sweet; small portions.",
     "tags": [
       "seasonal"
-    ]
+    ],
+    "carbExchange": "one to two fruits"
   },
   {
     "id": "groundnut",
@@ -3551,7 +3563,8 @@
     "pairingAdvice": "Eat whole for the fibre.",
     "frequency": "Moderate.",
     "logicNote": "Whole tangerine is fine; the juice is not.",
-    "tags": []
+    "tags": [],
+    "carbExchange": "one medium fruit"
   },
   {
     "id": "grapefruit",
@@ -3568,7 +3581,8 @@
     "pairingAdvice": "Alone.",
     "frequency": "Good.",
     "logicNote": "Lower sugar citrus; a friendly fruit.",
-    "tags": []
+    "tags": [],
+    "carbExchange": "half of a medium fruit"
   },
   {
     "id": "lime-lemon",
@@ -3629,7 +3643,8 @@
     "tags": [
       "local",
       "seasonal"
-    ]
+    ],
+    "carbExchange": "a small handful of pods"
   },
   {
     "id": "tamarind",
@@ -3650,7 +3665,8 @@
     "tags": [
       "local",
       "northern"
-    ]
+    ],
+    "carbExchange": "one to two pods (a spoon of pulp)"
   },
   {
     "id": "bitter-kola",
@@ -3727,7 +3743,8 @@
     "pairingAdvice": "A few nuts.",
     "frequency": "Occasional.",
     "logicNote": "Sweet tropical fruit; keep the portion small.",
-    "tags": []
+    "tags": [],
+    "carbExchange": "three to four pieces (half a cup)"
   },
   {
     "id": "pomegranate",
@@ -3744,7 +3761,8 @@
     "pairingAdvice": "Alone or on plain yogurt.",
     "frequency": "Moderate.",
     "logicNote": "Has fibre but also natural sugar; a small portion is fine.",
-    "tags": []
+    "tags": [],
+    "carbExchange": "half a cup of seeds"
   },
   {
     "id": "grapes",
@@ -3761,7 +3779,8 @@
     "pairingAdvice": "A few nuts to slow it.",
     "frequency": "Occasional.",
     "logicNote": "Small but sweet; easy to overeat, so count them.",
-    "tags": []
+    "tags": [],
+    "carbExchange": "ten to fifteen grapes"
   },
   {
     "id": "beef-regular",
@@ -4381,7 +4400,8 @@
     "logicNote": "Lower sugar and high in fibre; a friendly fruit.",
     "tags": [
       "seasonal"
-    ]
+    ],
+    "carbExchange": "seven to eight berries"
   },
   {
     "id": "golden-melon",
@@ -4399,7 +4419,8 @@
     "pairingAdvice": "A few nuts to slow it.",
     "frequency": "Occasional.",
     "logicNote": "Mostly water but still sweet; keep the portion to a cup.",
-    "tags": []
+    "tags": [],
+    "carbExchange": "one cup diced"
   },
   {
     "id": "monkey-kola",
@@ -4421,7 +4442,8 @@
     "tags": [
       "local",
       "seasonal"
-    ]
+    ],
+    "carbExchange": "two to three small fruits"
   },
   {
     "id": "passion-fruit",
@@ -4438,7 +4460,8 @@
     "pairingAdvice": "Alone or on plain yogurt.",
     "frequency": "Occasional.",
     "logicNote": "Tangy with some natural sugar; small amounts only.",
-    "tags": []
+    "tags": [],
+    "carbExchange": "one to two fruits"
   },
   {
     "id": "almond",
@@ -4593,7 +4616,7 @@
     "gi": "medium",
     "baseVerdict": "yellow",
     "portionGuidance": "A small cup, made from whole fruit and no added sugar.",
-    "pairingAdvice": "Add vegetables and no sweeteners.",
+    "pairingAdvice": "A small glass with a meal, not on its own. Better to eat the whole fruit.",
     "frequency": "Occasional.",
     "logicNote": "Even fruit smoothies are quick sugar. Make it small, use whole fruit, and never add sugar.",
     "tags": []

@@ -47,6 +47,17 @@ export default function VerdictCard({ food }: { food: Food }) {
 
       <div className="mt-4 space-y-2">
         <PortionVisual food={food} />
+        {food.carbExchange && (
+          <div className="rounded-xl border border-line bg-mist p-3">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-ink/60">
+              One fruit serving (15g carbs)
+            </p>
+            <p className="mt-1 text-sm text-ink">
+              About {food.carbExchange}. Two servings at once raises your sugar
+              more.
+            </p>
+          </div>
+        )}
         <div className="grid gap-2 sm:grid-cols-2">
           <div className={`rounded-xl ${s.soft} p-3`}>
             <p className="text-[11px] font-bold uppercase tracking-wider text-ink/60">

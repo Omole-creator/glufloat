@@ -82,6 +82,22 @@ function Icon({ k }: { k: PortionKey }) {
           <path d="M48 34c-3-4-9-4-12-2 2 5 8 6 12 2z" fill={GREEN} stroke="none" />
         </svg>
       );
+    case "berries":
+      return (
+        <svg viewBox="0 0 96 96" aria-hidden>
+          <path d="M48 30c2-5 7-6 10-4" stroke={GREEN} strokeWidth={3} fill="none" strokeLinecap="round" />
+          <circle cx="40" cy="46" r="9" fill={MINT} {...s} />
+          <circle cx="57" cy="46" r="9" fill={MINT} {...s} />
+          <circle cx="48" cy="60" r="9" fill={MINT} {...s} />
+        </svg>
+      );
+    case "pieces":
+      return (
+        <svg viewBox="0 0 96 96" aria-hidden>
+          <ellipse cx="40" cy="52" rx="9" ry="16" fill={MINT} {...s} transform="rotate(-18 40 52)" />
+          <ellipse cx="58" cy="50" rx="9" ry="16" fill={MINT} {...s} transform="rotate(12 58 50)" />
+        </svg>
+      );
     case "glass":
       return (
         <svg viewBox="0 0 96 96" aria-hidden>
