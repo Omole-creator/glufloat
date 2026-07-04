@@ -100,7 +100,7 @@ export default function TrialPage() {
               <ul className="mx-auto mt-5 max-w-xs space-y-2 text-left text-sm text-ink-soft">
                 <li className="flex gap-2">
                   <span className="text-leaf">✓</span> Check as many foods as you
-                  want, all 180+ of them
+                  want, all 250+ of them
                 </li>
                 <li className="flex gap-2">
                   <span className="text-leaf">✓</span> Build a full meal and get
