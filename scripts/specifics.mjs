@@ -42,6 +42,11 @@ const pairingAdvice = {
   weetabix: "Unsweetened milk and about 10 nuts.",
   shawarma: "If you eat it, ask for more meat and vegetables and less bread and sauce.",
   ketchup: "One tablespoon on the side.",
+  // bread is not eaten with a plate of vegetables; pair with a protein or fat
+  // spread that also slows the sugar.
+  "whole-wheat-bread": "Egg, avocado, beans, or moi moi. Never on its own.",
+  "agege-bread": "If eaten, add egg, beans, or moi moi, never on its own.",
+  "coconut-bread": "Egg, beans, or moi moi. Never on its own.",
   // soups that said "small swallow": give the concrete ball size, expand
   // "protein" to "fish, meat, or egg", and replace bare-comma joins.
   "ogbono-soup": "A fist-size ball of swallow (100g) and plenty of vegetables.",

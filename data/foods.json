@@ -1056,7 +1056,7 @@
     "gi": "high",
     "baseVerdict": "red",
     "portionGuidance": "One thin slice at most (30g), never on its own.",
-    "pairingAdvice": "If eaten, egg and vegetables, never alone.",
+    "pairingAdvice": "If eaten, add egg, beans, or moi moi, never on its own.",
     "frequency": "Rare.",
     "logicNote": "Soft refined flour; one of the fastest spikes.",
     "tags": [
@@ -1076,7 +1076,7 @@
     "gi": "medium",
     "baseVerdict": "yellow",
     "portionGuidance": "One to two slices (about 30g each).",
-    "pairingAdvice": "Egg, avocado, or vegetables.",
+    "pairingAdvice": "Egg, avocado, beans, or moi moi. Never on its own.",
     "frequency": "A better bread choice.",
     "logicNote": "Check the label; many wheat breads are mostly white flour.",
     "tags": [
@@ -4692,7 +4692,7 @@
     "gi": "high",
     "baseVerdict": "yellow",
     "portionGuidance": "One thin slice at most (30g).",
-    "pairingAdvice": "Egg and vegetables, never alone.",
+    "pairingAdvice": "Egg, beans, or moi moi. Never on its own.",
     "frequency": "Occasional.",
     "logicNote": "Softer, sweeter bread; refined flour spikes fast. One thin slice, with protein.",
     "tags": [
