@@ -99,9 +99,26 @@ const portionGuidance = {
   smoothie: "One small cup (200ml), made from whole fruit with no added sugar.",
   "fried-egg": "One to two eggs, fried in one teaspoon of oil.",
   gizdodo: "A small plate, about one cup (150g). Plantain with the gizzard.",
-  shawarma: "Avoid. A rare treat only. Half of one at most.",
-  "small-chops": "Avoid. A rare treat only. About four pieces at most.",
-  "cassava-chips": "Avoid. A rare treat only. A small handful, about 15 chips (30g).",
+  // "A rare treat only, one" reads as a broken sentence and sometimes leaves
+  // "one" with no noun. Reword to "Avoid. If you do have it, only <amount>."
+  "chin-chin": "Avoid. If you do have it, only a small handful (about 30g).",
+  "meat-pie": "Avoid. If you do have it, only half of one pie.",
+  "sausage-roll": "Avoid. If you do have it, only one roll.",
+  doughnut: "Avoid. If you do have it, only half of one.",
+  biscuits: "Avoid. If you do have it, only two small biscuits.",
+  cake: "Avoid. If you do have it, only one thin slice, about a finger wide.",
+  "ice-cream": "Avoid. If you do have it, only one small scoop.",
+  "egg-roll": "Avoid. If you do have it, only one egg roll.",
+  samosa: "Avoid. If you do have it, only one or two small ones.",
+  "spring-roll": "Avoid. If you do have it, only one or two rolls.",
+  "fish-roll": "Avoid. If you do have it, only one fish roll.",
+  kokoro: "Avoid. If you do have it, only a small handful (about 30g).",
+  "coconut-candy": "Avoid. If you do have it, only one small piece.",
+  "puff-puff": "Avoid. If you do have it, only one ball the size of a golf ball (about 40g).",
+  buns: "Avoid. If you do have it, only one piece the size of a golf ball (about 50g).",
+  shawarma: "Avoid. If you do have it, only half of one.",
+  "small-chops": "Avoid. If you do have it, only about four pieces.",
+  "cassava-chips": "Avoid. If you do have it, only a small handful, about 15 chips (30g).",
 };
 
 // Card description line: pin the last vague sizes so it matches the concrete
