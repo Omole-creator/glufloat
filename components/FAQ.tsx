@@ -17,7 +17,7 @@ const FAQS: { q: string; a: string }[] = [
   },
   {
     q: "I paid on Nestuge. How do I get back in?",
-    a: "After you pay, Nestuge sends you a short code, like GLU-GREEN-2026. Come back to the site, open the page called Unlock (glufloat.vercel.app/unlock), type your code, and the whole app opens on your phone right away.",
+    a: "As soon as you pay, we send you an email with your unlock link and a short code. Open the link, enter the code, and the whole app opens on your phone right away. Everything you need is in that email, so just follow it.",
   },
   {
     q: "Can I stop paying whenever I want?",
