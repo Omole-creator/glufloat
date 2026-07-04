@@ -2,7 +2,7 @@
 
 Know if a food is right for your diabetes, before you buy or eat it.
 
-Marketing site + MVP web app: 187 curated Nigerian foods, traffic-light
+Marketing site + MVP web app: 251 curated Nigerian foods, traffic-light
 verdicts (green / yellow / red), and a Meal Builder that always hands you
 the fix that turns a plate green.
 
@@ -95,7 +95,7 @@ npx tsx scripts/engine-test.ts   # verdict engine sanity tests
 
 ## Key files
 
-- `data/foods.json` — the 187-food seed database (91 green / 68 yellow / 28 red)
+- `data/foods.json` — the 251-food seed database (120 green / 91 yellow / 40 red)
 - `lib/verdictEngine.ts` — meal scoring per the SPEC (hard-red for liquid sugar)
 - `lib/access.ts` — free-check gating, unlock codes, Nestuge URL
 - `app/page.tsx` — landing page

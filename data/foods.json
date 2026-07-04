@@ -3786,5 +3786,1271 @@
     "tags": [
       "local"
     ]
+  },
+  {
+    "id": "fried-egg",
+    "name": "Fried Egg",
+    "aliases": [
+      "fried egg",
+      "egg fry"
+    ],
+    "category": "protein",
+    "role": "protein",
+    "carbLoad": "low",
+    "gi": "low",
+    "baseVerdict": "green",
+    "portionGuidance": "One to two eggs, fried in a little oil.",
+    "pairingAdvice": "Bread, yam, or plantain in a small size; go easy on the oil.",
+    "frequency": "Good regular protein.",
+    "logicNote": "Egg has no carbs and does not raise your sugar. Fry in a little oil, not a lot.",
+    "tags": [
+      "breakfast"
+    ]
+  },
+  {
+    "id": "scrambled-egg",
+    "name": "Scrambled Egg",
+    "aliases": [
+      "scrambled egg",
+      "egg scramble"
+    ],
+    "category": "protein",
+    "role": "protein",
+    "carbLoad": "low",
+    "gi": "low",
+    "baseVerdict": "green",
+    "portionGuidance": "Two eggs, scrambled with pepper and onion.",
+    "pairingAdvice": "Vegetables, with a small side of bread or yam.",
+    "frequency": "Good regular protein.",
+    "logicNote": "No carbs from the egg. Add vegetables and keep the oil light.",
+    "tags": [
+      "breakfast"
+    ]
+  },
+  {
+    "id": "egg-sauce",
+    "name": "Egg Sauce",
+    "aliases": [
+      "egg sauce",
+      "egg stew"
+    ],
+    "category": "protein",
+    "role": "protein",
+    "carbLoad": "low",
+    "gi": "low",
+    "baseVerdict": "green",
+    "portionGuidance": "Two eggs cooked with tomato, pepper, and onion.",
+    "pairingAdvice": "A small portion of boiled yam, plantain, or potato.",
+    "frequency": "Good regular meal.",
+    "logicNote": "The egg and vegetables are friendly. Watch the size of any yam or plantain beside it.",
+    "tags": [
+      "local"
+    ]
+  },
+  {
+    "id": "omelette",
+    "name": "Omelette",
+    "aliases": [
+      "omelette",
+      "omelet"
+    ],
+    "category": "protein",
+    "role": "protein",
+    "carbLoad": "low",
+    "gi": "low",
+    "baseVerdict": "green",
+    "portionGuidance": "Two eggs, with vegetables mixed in.",
+    "pairingAdvice": "A small slice of bread or a little yam.",
+    "frequency": "Good regular breakfast.",
+    "logicNote": "Egg plus vegetables is a friendly, filling meal. Keep the oil light.",
+    "tags": [
+      "breakfast"
+    ]
+  },
+  {
+    "id": "egg-roll",
+    "name": "Egg Roll",
+    "aliases": [
+      "egg roll"
+    ],
+    "category": "snack",
+    "role": "starch",
+    "carbLoad": "high",
+    "gi": "high",
+    "baseVerdict": "red",
+    "portionGuidance": "Avoid. A rare treat only, one.",
+    "pairingAdvice": "",
+    "frequency": "Rare.",
+    "logicNote": "A boiled egg wrapped in sweet fried dough. The dough is the problem, not the egg.",
+    "tags": [
+      "street",
+      "fried"
+    ]
+  },
+  {
+    "id": "scotch-egg",
+    "name": "Scotch Egg",
+    "aliases": [
+      "scotch egg"
+    ],
+    "category": "snack",
+    "role": "protein",
+    "carbLoad": "medium",
+    "gi": "medium",
+    "baseVerdict": "yellow",
+    "portionGuidance": "One, as an occasional snack.",
+    "pairingAdvice": "Alone, with a vegetable on the side.",
+    "frequency": "Occasional; mind the frying.",
+    "logicNote": "A boiled egg in minced meat, then fried. Better than egg roll, but the frying makes it a sometimes food.",
+    "tags": [
+      "street",
+      "fried"
+    ]
+  },
+  {
+    "id": "lafun",
+    "name": "Lafun (white cassava swallow)",
+    "aliases": [
+      "lafun",
+      "white amala",
+      "cassava flour swallow"
+    ],
+    "category": "swallow",
+    "role": "starch",
+    "carbLoad": "high",
+    "gi": "high",
+    "baseVerdict": "yellow",
+    "portionGuidance": "One ball the size of your fist. That is about half a cup (100g).",
+    "pairingAdvice": "Vegetable soup like ewedu or efo, plus a protein.",
+    "frequency": "A few times a week, small.",
+    "logicNote": "Cassava swallow; turns to sugar fast, so portion and soup pairing matter most.",
+    "tags": [
+      "local",
+      "yoruba"
+    ]
+  },
+  {
+    "id": "coconut-rice",
+    "name": "Coconut Rice",
+    "aliases": [
+      "coconut rice"
+    ],
+    "category": "rice",
+    "role": "starch",
+    "carbLoad": "high",
+    "gi": "high",
+    "baseVerdict": "yellow",
+    "portionGuidance": "Half a cup of cooked rice. That is about the size of a tennis ball (90g).",
+    "pairingAdvice": "Protein and plenty vegetables.",
+    "frequency": "Occasional, small.",
+    "logicNote": "Still white rice; the coconut does not lower the sugar. Cut the portion and add fibre.",
+    "tags": [
+      "local"
+    ]
+  },
+  {
+    "id": "native-rice",
+    "name": "Native Rice (palm oil rice)",
+    "aliases": [
+      "native rice",
+      "palm oil rice",
+      "concoction rice"
+    ],
+    "category": "rice",
+    "role": "starch",
+    "carbLoad": "high",
+    "gi": "high",
+    "baseVerdict": "yellow",
+    "portionGuidance": "Half a cup of cooked rice. That is about the size of a tennis ball (90g).",
+    "pairingAdvice": "It has vegetables and fish in it; keep the rice small.",
+    "frequency": "Occasional, small.",
+    "logicNote": "A one-pot rice with vegetables and fish, which helps, but a big rice portion still spikes.",
+    "tags": [
+      "local"
+    ]
+  },
+  {
+    "id": "boiled-water-yam",
+    "name": "Water Yam (boiled)",
+    "aliases": [
+      "water yam",
+      "boiled water yam"
+    ],
+    "category": "tuber",
+    "role": "starch",
+    "carbLoad": "high",
+    "gi": "medium",
+    "baseVerdict": "yellow",
+    "portionGuidance": "Two small pieces. That is about the size of two matchboxes (100g).",
+    "pairingAdvice": "Vegetable sauce, egg, or fish stew.",
+    "frequency": "Occasional, small.",
+    "logicNote": "Dense starch like white yam; keep the pieces few and pair with protein.",
+    "tags": [
+      "local"
+    ]
+  },
+  {
+    "id": "gizdodo",
+    "name": "Gizdodo (gizzard and plantain)",
+    "aliases": [
+      "gizdodo",
+      "gizzard and plantain"
+    ],
+    "category": "plantain",
+    "role": "starch",
+    "carbLoad": "medium",
+    "gi": "medium",
+    "baseVerdict": "yellow",
+    "portionGuidance": "A small plate: a few pieces of plantain with the gizzard.",
+    "pairingAdvice": "The gizzard is the friendly part; keep the fried plantain small.",
+    "frequency": "Occasional.",
+    "logicNote": "Gizzard is low-carb protein; the fried ripe plantain is the sugar to watch.",
+    "tags": [
+      "local"
+    ]
+  },
+  {
+    "id": "adalu",
+    "name": "Adalu (beans and corn)",
+    "aliases": [
+      "adalu",
+      "beans and corn"
+    ],
+    "category": "legume",
+    "role": "legume",
+    "carbLoad": "medium",
+    "gi": "medium",
+    "baseVerdict": "yellow",
+    "portionGuidance": "One small bowl. That is about three-quarters of a cup (150g).",
+    "pairingAdvice": "Fish or a little plantain; go easy on the corn.",
+    "frequency": "A few times a week, small.",
+    "logicNote": "Beans are friendly; the corn adds some sugar, so keep the corn share small.",
+    "tags": [
+      "local",
+      "yoruba"
+    ]
+  },
+  {
+    "id": "beans-and-plantain",
+    "name": "Beans and Plantain",
+    "aliases": [
+      "beans and plantain",
+      "ewa ati dodo"
+    ],
+    "category": "legume",
+    "role": "legume",
+    "carbLoad": "medium",
+    "gi": "medium",
+    "baseVerdict": "yellow",
+    "portionGuidance": "One cupped handful of beans with a few slices of plantain.",
+    "pairingAdvice": "Use boiled or roasted plantain, not fried; add fish.",
+    "frequency": "A few times a week.",
+    "logicNote": "The beans are great; the plantain is the sugar. Boiled beats fried, and keep the plantain small.",
+    "tags": [
+      "local"
+    ]
+  },
+  {
+    "id": "ofe-owerri",
+    "name": "Ofe Owerri",
+    "aliases": [
+      "ofe owerri",
+      "owerri soup"
+    ],
+    "category": "soup",
+    "role": "soup",
+    "carbLoad": "low",
+    "gi": "low",
+    "baseVerdict": "green",
+    "portionGuidance": "One to two serving spoons. That is about one cup.",
+    "pairingAdvice": "Small swallow and plenty protein.",
+    "frequency": "Good regular soup.",
+    "logicNote": "A rich Igbo vegetable and meat soup; low carb, watch only the swallow beside it.",
+    "tags": [
+      "local",
+      "eastern"
+    ]
+  },
+  {
+    "id": "okazi-soup",
+    "name": "Okazi Soup",
+    "aliases": [
+      "okazi soup",
+      "ukazi soup"
+    ],
+    "category": "soup",
+    "role": "soup",
+    "carbLoad": "low",
+    "gi": "low",
+    "baseVerdict": "green",
+    "portionGuidance": "Eat freely, two or more serving spoons.",
+    "pairingAdvice": "Protein; small swallow if any.",
+    "frequency": "Excellent regular soup.",
+    "logicNote": "Leafy Igbo soup, close to afang; friendly and low carb.",
+    "tags": [
+      "local",
+      "eastern"
+    ]
+  },
+  {
+    "id": "editan-soup",
+    "name": "Editan Soup",
+    "aliases": [
+      "editan soup"
+    ],
+    "category": "soup",
+    "role": "soup",
+    "carbLoad": "low",
+    "gi": "low",
+    "baseVerdict": "green",
+    "portionGuidance": "One to two serving spoons. That is about one cup.",
+    "pairingAdvice": "Protein and small swallow.",
+    "frequency": "Good regular soup.",
+    "logicNote": "Efik bitter-leaf style soup, rich in vegetables; friendly.",
+    "tags": [
+      "local",
+      "efik"
+    ]
+  },
+  {
+    "id": "atama-soup",
+    "name": "Atama Soup (Abak)",
+    "aliases": [
+      "atama soup",
+      "abak atama"
+    ],
+    "category": "soup",
+    "role": "soup",
+    "carbLoad": "low",
+    "gi": "low",
+    "baseVerdict": "green",
+    "portionGuidance": "One serving spoon, easy on the oil. That is about half a cup.",
+    "pairingAdvice": "Fish and seafood; small swallow.",
+    "frequency": "Good regular soup.",
+    "logicNote": "Palm-fruit and atama-leaf soup; low carb but rich in oil, so go easy on the oil.",
+    "tags": [
+      "local",
+      "south-south"
+    ]
+  },
+  {
+    "id": "ofe-akwu",
+    "name": "Ofe Akwu (palm fruit sauce)",
+    "aliases": [
+      "ofe akwu",
+      "palm fruit sauce"
+    ],
+    "category": "soup",
+    "role": "soup",
+    "carbLoad": "low",
+    "gi": "low",
+    "baseVerdict": "green",
+    "portionGuidance": "One serving spoon, easy on the oil. That is about half a cup.",
+    "pairingAdvice": "Fish or meat; eat with a small portion of white rice.",
+    "frequency": "A few times a week.",
+    "logicNote": "Palm-fruit sauce, low in carbs but rich in oil; the rice beside it is what to keep small.",
+    "tags": [
+      "local",
+      "eastern"
+    ]
+  },
+  {
+    "id": "miyan-kubewa",
+    "name": "Miyan Kubewa (okra soup, northern)",
+    "aliases": [
+      "miyan kubewa"
+    ],
+    "category": "soup",
+    "role": "soup",
+    "carbLoad": "low",
+    "gi": "low",
+    "baseVerdict": "green",
+    "portionGuidance": "Eat freely, two or more serving spoons.",
+    "pairingAdvice": "Small tuwo and protein.",
+    "frequency": "Excellent regular soup.",
+    "logicNote": "Northern okra soup; okra is one of the friendliest foods for blood sugar.",
+    "tags": [
+      "local",
+      "northern"
+    ]
+  },
+  {
+    "id": "asun",
+    "name": "Asun (spicy goat meat)",
+    "aliases": [
+      "asun",
+      "peppered goat meat"
+    ],
+    "category": "protein",
+    "role": "protein",
+    "carbLoad": "low",
+    "gi": "low",
+    "baseVerdict": "green",
+    "portionGuidance": "One palm-size piece. That is the size of a deck of cards (90g).",
+    "pairingAdvice": "Onions and pepper, with a vegetable side.",
+    "frequency": "Good protein.",
+    "logicNote": "Grilled, peppered goat meat; low carb and friendly. Trim heavy fat.",
+    "tags": [
+      "local",
+      "street"
+    ]
+  },
+  {
+    "id": "isi-ewu",
+    "name": "Isi Ewu (goat head)",
+    "aliases": [
+      "isi ewu",
+      "goat head"
+    ],
+    "category": "protein",
+    "role": "protein",
+    "carbLoad": "low",
+    "gi": "low",
+    "baseVerdict": "green",
+    "portionGuidance": "One small bowl.",
+    "pairingAdvice": "Utazi and onions; eat on its own.",
+    "frequency": "A few times a week.",
+    "logicNote": "Spiced goat head; low carb. It is rich, so keep the portion modest.",
+    "tags": [
+      "local",
+      "eastern"
+    ]
+  },
+  {
+    "id": "ram-meat",
+    "name": "Ram Meat (mutton)",
+    "aliases": [
+      "ram meat",
+      "mutton"
+    ],
+    "category": "protein",
+    "role": "protein",
+    "carbLoad": "low",
+    "gi": "low",
+    "baseVerdict": "green",
+    "portionGuidance": "One palm-size piece. That is the size of a deck of cards (90g).",
+    "pairingAdvice": "Vegetables; trim the fat.",
+    "frequency": "Good regular protein.",
+    "logicNote": "Red meat with no carbs; trim visible fat, as fatty cuts are heavy for the heart.",
+    "tags": [
+      "local"
+    ]
+  },
+  {
+    "id": "kidney",
+    "name": "Kidney (offal)",
+    "aliases": [
+      "kidney"
+    ],
+    "category": "protein",
+    "role": "protein",
+    "carbLoad": "low",
+    "gi": "low",
+    "baseVerdict": "green",
+    "portionGuidance": "One palm-size serving (90g).",
+    "pairingAdvice": "In pepper soup or stew.",
+    "frequency": "A few times a week.",
+    "logicNote": "Organ meat; low carb and protein-rich. Fine in moderation.",
+    "tags": []
+  },
+  {
+    "id": "sardine",
+    "name": "Sardine (canned)",
+    "aliases": [
+      "sardine",
+      "canned fish"
+    ],
+    "category": "protein",
+    "role": "protein",
+    "carbLoad": "low",
+    "gi": "low",
+    "baseVerdict": "green",
+    "portionGuidance": "Half a small tin.",
+    "pairingAdvice": "With vegetables; skip the bread if you can.",
+    "frequency": "A few times a week.",
+    "logicNote": "Oily fish, low carb and rich in good fat. Choose the ones in water or a little oil.",
+    "tags": []
+  },
+  {
+    "id": "corned-beef",
+    "name": "Corned Beef (canned)",
+    "aliases": [
+      "corned beef"
+    ],
+    "category": "protein",
+    "role": "protein",
+    "carbLoad": "low",
+    "gi": "low",
+    "baseVerdict": "yellow",
+    "portionGuidance": "A few tablespoons, about a quarter of a tin.",
+    "pairingAdvice": "With vegetables; watch the salt.",
+    "frequency": "Occasional.",
+    "logicNote": "Low carb, but processed and salty; keep it small and drink water.",
+    "tags": []
+  },
+  {
+    "id": "soko",
+    "name": "Soko (Celosia greens)",
+    "aliases": [
+      "soko",
+      "celosia",
+      "lagos spinach"
+    ],
+    "category": "vegetable",
+    "role": "vegetable",
+    "carbLoad": "low",
+    "gi": "low",
+    "baseVerdict": "green",
+    "portionGuidance": "Eat freely, one to two cupped handfuls.",
+    "pairingAdvice": "In soups and stews.",
+    "frequency": "Excellent daily.",
+    "logicNote": "Leafy green; very low sugar and friendly.",
+    "tags": [
+      "local",
+      "yoruba"
+    ]
+  },
+  {
+    "id": "broccoli",
+    "name": "Broccoli",
+    "aliases": [
+      "broccoli"
+    ],
+    "category": "vegetable",
+    "role": "vegetable",
+    "carbLoad": "low",
+    "gi": "low",
+    "baseVerdict": "green",
+    "portionGuidance": "Eat freely, about one cup.",
+    "pairingAdvice": "Steamed or stir-fried with protein.",
+    "frequency": "Excellent daily.",
+    "logicNote": "Low carb, high fibre; a very friendly vegetable.",
+    "tags": []
+  },
+  {
+    "id": "cauliflower",
+    "name": "Cauliflower",
+    "aliases": [
+      "cauliflower"
+    ],
+    "category": "vegetable",
+    "role": "vegetable",
+    "carbLoad": "low",
+    "gi": "low",
+    "baseVerdict": "green",
+    "portionGuidance": "Eat freely, about one cup.",
+    "pairingAdvice": "Stir-fry, or use in place of rice.",
+    "frequency": "Excellent daily.",
+    "logicNote": "Low carb and filling; some people use it in place of rice.",
+    "tags": []
+  },
+  {
+    "id": "pumpkin",
+    "name": "Pumpkin (flesh)",
+    "aliases": [
+      "pumpkin"
+    ],
+    "category": "vegetable",
+    "role": "vegetable",
+    "carbLoad": "medium",
+    "gi": "low",
+    "baseVerdict": "green",
+    "portionGuidance": "About one cup, cooked.",
+    "pairingAdvice": "In soups and porridge with protein.",
+    "frequency": "Good, most days.",
+    "logicNote": "More fibre than yam; a friendlier soft food when cooked plain.",
+    "tags": [
+      "local"
+    ]
+  },
+  {
+    "id": "strawberry",
+    "name": "Strawberry",
+    "aliases": [
+      "strawberry",
+      "strawberries"
+    ],
+    "category": "fruit",
+    "role": "fruit",
+    "carbLoad": "low",
+    "gi": "low",
+    "baseVerdict": "green",
+    "portionGuidance": "About seven to eight berries (100g).",
+    "pairingAdvice": "A few nuts or plain yogurt.",
+    "frequency": "Good.",
+    "logicNote": "Lower sugar and high in fibre; a friendly fruit.",
+    "tags": [
+      "seasonal"
+    ]
+  },
+  {
+    "id": "golden-melon",
+    "name": "Golden Melon",
+    "aliases": [
+      "golden melon",
+      "sweet melon"
+    ],
+    "category": "fruit",
+    "role": "fruit",
+    "carbLoad": "medium",
+    "gi": "medium",
+    "baseVerdict": "yellow",
+    "portionGuidance": "One cup diced (about 150g).",
+    "pairingAdvice": "A few nuts to slow it.",
+    "frequency": "Occasional.",
+    "logicNote": "Mostly water but still sweet; keep the portion to a cup.",
+    "tags": []
+  },
+  {
+    "id": "monkey-kola",
+    "name": "Monkey Kola (achicha)",
+    "aliases": [
+      "monkey kola",
+      "achicha fruit",
+      "ndiyah"
+    ],
+    "category": "fruit",
+    "role": "fruit",
+    "carbLoad": "low",
+    "gi": "low",
+    "baseVerdict": "green",
+    "portionGuidance": "Two to three small fruits.",
+    "pairingAdvice": "Alone.",
+    "frequency": "Good.",
+    "logicNote": "A local low-sugar fruit; friendly in small amounts.",
+    "tags": [
+      "local",
+      "seasonal"
+    ]
+  },
+  {
+    "id": "passion-fruit",
+    "name": "Passion Fruit",
+    "aliases": [
+      "passion fruit"
+    ],
+    "category": "fruit",
+    "role": "fruit",
+    "carbLoad": "medium",
+    "gi": "medium",
+    "baseVerdict": "yellow",
+    "portionGuidance": "One to two fruits.",
+    "pairingAdvice": "Alone or on plain yogurt.",
+    "frequency": "Occasional.",
+    "logicNote": "Tangy with some natural sugar; small amounts only.",
+    "tags": []
+  },
+  {
+    "id": "almond",
+    "name": "Almond Nuts",
+    "aliases": [
+      "almond",
+      "almonds"
+    ],
+    "category": "nut",
+    "role": "fat",
+    "carbLoad": "low",
+    "gi": "low",
+    "baseVerdict": "green",
+    "portionGuidance": "One small handful. That is a cupped palm (30g).",
+    "pairingAdvice": "Alone.",
+    "frequency": "Good snack.",
+    "logicNote": "Healthy fat and fibre; slow to raise sugar. A smart snack.",
+    "tags": []
+  },
+  {
+    "id": "egusi-seed",
+    "name": "Egusi (melon seed)",
+    "aliases": [
+      "egusi seed",
+      "melon seed"
+    ],
+    "category": "nut",
+    "role": "fat",
+    "carbLoad": "low",
+    "gi": "low",
+    "baseVerdict": "green",
+    "portionGuidance": "In soup, or a small handful roasted (30g).",
+    "pairingAdvice": "In soups; roasted as a snack.",
+    "frequency": "Good; mostly in soup.",
+    "logicNote": "Melon seed is protein and fat; low sugar. Mostly eaten in soup.",
+    "tags": [
+      "local"
+    ]
+  },
+  {
+    "id": "chapman",
+    "name": "Chapman",
+    "aliases": [
+      "chapman"
+    ],
+    "category": "drink",
+    "role": "drink",
+    "carbLoad": "high",
+    "gi": "high",
+    "baseVerdict": "red",
+    "portionGuidance": "Avoid. It is a sweet cocktail.",
+    "pairingAdvice": "",
+    "frequency": "Rare.",
+    "logicNote": "A mix of soft drinks and syrup; liquid sugar. Ask for a sugar-free version or skip it.",
+    "tags": [
+      "popular"
+    ]
+  },
+  {
+    "id": "lacasera",
+    "name": "La Casera (apple drink)",
+    "aliases": [
+      "lacasera",
+      "la casera"
+    ],
+    "category": "drink",
+    "role": "drink",
+    "carbLoad": "high",
+    "gi": "high",
+    "baseVerdict": "red",
+    "portionGuidance": "None. Avoid.",
+    "pairingAdvice": "",
+    "frequency": "Rare.",
+    "logicNote": "A sweet bottled soft drink; liquid sugar like any soda.",
+    "tags": [
+      "popular"
+    ]
+  },
+  {
+    "id": "beer",
+    "name": "Beer / Stout",
+    "aliases": [
+      "beer",
+      "stout",
+      "guinness",
+      "star",
+      "gulder"
+    ],
+    "category": "drink",
+    "role": "drink",
+    "carbLoad": "medium",
+    "gi": "medium",
+    "baseVerdict": "yellow",
+    "portionGuidance": "One small bottle at most, rarely.",
+    "pairingAdvice": "Never on an empty stomach; eat first.",
+    "frequency": "Rare.",
+    "logicNote": "Alcohol can drop or raise your sugar, and beer carries carbs. If you drink, keep it small and eat first.",
+    "tags": []
+  },
+  {
+    "id": "pito",
+    "name": "Pito / Burukutu (local brew)",
+    "aliases": [
+      "pito",
+      "burukutu"
+    ],
+    "category": "drink",
+    "role": "drink",
+    "carbLoad": "medium",
+    "gi": "medium",
+    "baseVerdict": "yellow",
+    "portionGuidance": "One small cup, rarely.",
+    "pairingAdvice": "Eat food first.",
+    "frequency": "Rare.",
+    "logicNote": "Fermented grain brew with alcohol and some sugar; both affect blood sugar.",
+    "tags": [
+      "local",
+      "northern"
+    ]
+  },
+  {
+    "id": "local-gin",
+    "name": "Ogogoro (local gin)",
+    "aliases": [
+      "ogogoro",
+      "local gin",
+      "kai kai"
+    ],
+    "category": "drink",
+    "role": "drink",
+    "carbLoad": "low",
+    "gi": "low",
+    "baseVerdict": "red",
+    "portionGuidance": "Best avoided.",
+    "pairingAdvice": "",
+    "frequency": "Rare.",
+    "logicNote": "Strong local spirit; alcohol can make your sugar swing and is hard on the body. Best to skip.",
+    "tags": [
+      "local"
+    ]
+  },
+  {
+    "id": "smoothie",
+    "name": "Fruit Smoothie",
+    "aliases": [
+      "smoothie",
+      "fruit smoothie"
+    ],
+    "category": "drink",
+    "role": "drink",
+    "carbLoad": "high",
+    "gi": "medium",
+    "baseVerdict": "yellow",
+    "portionGuidance": "A small cup, made from whole fruit and no added sugar.",
+    "pairingAdvice": "Add vegetables and no sweeteners.",
+    "frequency": "Occasional.",
+    "logicNote": "Even fruit smoothies are quick sugar. Make it small, use whole fruit, and never add sugar.",
+    "tags": []
+  },
+  {
+    "id": "nono",
+    "name": "Nono (fermented milk)",
+    "aliases": [
+      "nono",
+      "fermented milk",
+      "nunu"
+    ],
+    "category": "dairy",
+    "role": "dairy",
+    "carbLoad": "low",
+    "gi": "low",
+    "baseVerdict": "green",
+    "portionGuidance": "One small cup (200ml), no sugar.",
+    "pairingAdvice": "Alone, unsweetened.",
+    "frequency": "Good; unsweetened only.",
+    "logicNote": "Plain fermented milk is friendly; the sweetened kind is not.",
+    "tags": [
+      "local",
+      "northern"
+    ]
+  },
+  {
+    "id": "evaporated-milk",
+    "name": "Evaporated Milk (unsweetened)",
+    "aliases": [
+      "evaporated milk",
+      "peak milk tin",
+      "unsweetened milk"
+    ],
+    "category": "dairy",
+    "role": "dairy",
+    "carbLoad": "low",
+    "gi": "low",
+    "baseVerdict": "yellow",
+    "portionGuidance": "A little in tea or pap, no sugar.",
+    "pairingAdvice": "In tea, oats, or pap; no sugar.",
+    "frequency": "Moderate.",
+    "logicNote": "Unsweetened evaporated milk has natural milk sugar; use a little. Avoid the sweetened condensed kind.",
+    "tags": []
+  },
+  {
+    "id": "weetabix",
+    "name": "Weetabix / Wheat Cereal",
+    "aliases": [
+      "weetabix",
+      "wheat cereal"
+    ],
+    "category": "cereal",
+    "role": "starch",
+    "carbLoad": "medium",
+    "gi": "medium",
+    "baseVerdict": "yellow",
+    "portionGuidance": "Two biscuits, with unsweetened milk.",
+    "pairingAdvice": "Unsweetened milk and a few nuts.",
+    "frequency": "A few times a week.",
+    "logicNote": "Wholewheat cereal is better than sugary ones, but still a starch; no added sugar.",
+    "tags": []
+  },
+  {
+    "id": "coconut-bread",
+    "name": "Coconut Bread",
+    "aliases": [
+      "coconut bread"
+    ],
+    "category": "bread",
+    "role": "starch",
+    "carbLoad": "high",
+    "gi": "high",
+    "baseVerdict": "yellow",
+    "portionGuidance": "One thin slice at most (30g).",
+    "pairingAdvice": "Egg and vegetables, never alone.",
+    "frequency": "Occasional.",
+    "logicNote": "Softer, sweeter bread; refined flour spikes fast. One thin slice, with protein.",
+    "tags": [
+      "local"
+    ]
+  },
+  {
+    "id": "shawarma",
+    "name": "Shawarma",
+    "aliases": [
+      "shawarma"
+    ],
+    "category": "snack",
+    "role": "starch",
+    "carbLoad": "high",
+    "gi": "high",
+    "baseVerdict": "red",
+    "portionGuidance": "Avoid. A rare treat only, a small one.",
+    "pairingAdvice": "If eaten, choose more meat and vegetables, less bread and sauce.",
+    "frequency": "Rare.",
+    "logicNote": "The wrap is refined flour and the sauces add sugar and fat. A once-in-a-while treat.",
+    "tags": [
+      "street",
+      "popular"
+    ]
+  },
+  {
+    "id": "samosa",
+    "name": "Samosa",
+    "aliases": [
+      "samosa"
+    ],
+    "category": "snack",
+    "role": "starch",
+    "carbLoad": "high",
+    "gi": "high",
+    "baseVerdict": "red",
+    "portionGuidance": "Avoid. A rare treat only, one or two small ones.",
+    "pairingAdvice": "",
+    "frequency": "Rare.",
+    "logicNote": "Fried pastry; spikes fast. Keep to a rare treat.",
+    "tags": [
+      "street",
+      "fried"
+    ]
+  },
+  {
+    "id": "spring-roll",
+    "name": "Spring Roll",
+    "aliases": [
+      "spring roll"
+    ],
+    "category": "snack",
+    "role": "starch",
+    "carbLoad": "high",
+    "gi": "high",
+    "baseVerdict": "red",
+    "portionGuidance": "Avoid. A rare treat only, one or two.",
+    "pairingAdvice": "",
+    "frequency": "Rare.",
+    "logicNote": "Fried wrap around vegetables; the wrapper and the frying are the problem.",
+    "tags": [
+      "street",
+      "fried"
+    ]
+  },
+  {
+    "id": "fish-roll",
+    "name": "Fish Roll",
+    "aliases": [
+      "fish roll"
+    ],
+    "category": "snack",
+    "role": "starch",
+    "carbLoad": "high",
+    "gi": "high",
+    "baseVerdict": "red",
+    "portionGuidance": "Avoid. A rare treat only, one.",
+    "pairingAdvice": "",
+    "frequency": "Rare.",
+    "logicNote": "Fish in fried dough; the dough is refined flour that spikes fast.",
+    "tags": [
+      "street",
+      "fried"
+    ]
+  },
+  {
+    "id": "small-chops",
+    "name": "Small Chops",
+    "aliases": [
+      "small chops"
+    ],
+    "category": "snack",
+    "role": "starch",
+    "carbLoad": "high",
+    "gi": "high",
+    "baseVerdict": "red",
+    "portionGuidance": "Avoid. A rare treat only, a small few.",
+    "pairingAdvice": "",
+    "frequency": "Rare.",
+    "logicNote": "A mix of fried snacks like puff puff, samosa, and spring roll; all quick sugar and oil.",
+    "tags": [
+      "popular",
+      "fried"
+    ]
+  },
+  {
+    "id": "donkwa",
+    "name": "Donkwa / Dankwa (groundnut snack)",
+    "aliases": [
+      "donkwa",
+      "dankwa"
+    ],
+    "category": "snack",
+    "role": "fat",
+    "carbLoad": "medium",
+    "gi": "medium",
+    "baseVerdict": "yellow",
+    "portionGuidance": "A few small pieces (about 30g).",
+    "pairingAdvice": "Alone.",
+    "frequency": "Occasional.",
+    "logicNote": "Groundnut and grain snack; the nut is fine, but it has some sugar and grain, so keep it small.",
+    "tags": [
+      "local",
+      "northern"
+    ]
+  },
+  {
+    "id": "kokoro",
+    "name": "Kokoro (maize snack)",
+    "aliases": [
+      "kokoro"
+    ],
+    "category": "snack",
+    "role": "starch",
+    "carbLoad": "high",
+    "gi": "high",
+    "baseVerdict": "red",
+    "portionGuidance": "Avoid. A rare treat only, a few.",
+    "pairingAdvice": "",
+    "frequency": "Rare.",
+    "logicNote": "Fried maize sticks; refined and oily, spikes fast.",
+    "tags": [
+      "local",
+      "street"
+    ]
+  },
+  {
+    "id": "aadun",
+    "name": "Aadun (corn snack)",
+    "aliases": [
+      "aadun"
+    ],
+    "category": "snack",
+    "role": "starch",
+    "carbLoad": "high",
+    "gi": "medium",
+    "baseVerdict": "yellow",
+    "portionGuidance": "One small piece.",
+    "pairingAdvice": "Alone.",
+    "frequency": "Occasional.",
+    "logicNote": "Cornmeal snack with oil and pepper; still corn starch, so keep it small.",
+    "tags": [
+      "local",
+      "yoruba"
+    ]
+  },
+  {
+    "id": "robo",
+    "name": "Robo (melon seed cake)",
+    "aliases": [
+      "robo"
+    ],
+    "category": "snack",
+    "role": "fat",
+    "carbLoad": "low",
+    "gi": "low",
+    "baseVerdict": "yellow",
+    "portionGuidance": "A few pieces (about 40g).",
+    "pairingAdvice": "Alone.",
+    "frequency": "Occasional.",
+    "logicNote": "Fried melon-seed cake; the seed is friendly, the frying is the only caution.",
+    "tags": [
+      "local",
+      "yoruba"
+    ]
+  },
+  {
+    "id": "coconut-candy",
+    "name": "Coconut Candy",
+    "aliases": [
+      "coconut candy"
+    ],
+    "category": "snack",
+    "role": "starch",
+    "carbLoad": "high",
+    "gi": "high",
+    "baseVerdict": "red",
+    "portionGuidance": "Avoid. A rare treat only, one small piece.",
+    "pairingAdvice": "",
+    "frequency": "Rare.",
+    "logicNote": "Coconut cooked in sugar; the sugar makes it a red.",
+    "tags": [
+      "local"
+    ]
+  },
+  {
+    "id": "cassava-chips",
+    "name": "Cassava Chips",
+    "aliases": [
+      "cassava chips"
+    ],
+    "category": "snack",
+    "role": "starch",
+    "carbLoad": "high",
+    "gi": "high",
+    "baseVerdict": "red",
+    "portionGuidance": "Avoid. A rare treat only, a small handful.",
+    "pairingAdvice": "",
+    "frequency": "Rare.",
+    "logicNote": "Fried cassava; starchy and oily, spikes fast.",
+    "tags": [
+      "street",
+      "fried"
+    ]
+  },
+  {
+    "id": "ginger",
+    "name": "Ginger",
+    "aliases": [
+      "ginger"
+    ],
+    "category": "condiment",
+    "role": "condiment",
+    "carbLoad": "low",
+    "gi": "low",
+    "baseVerdict": "green",
+    "portionGuidance": "Use freely in cooking and tea.",
+    "pairingAdvice": "In food, tea, and drinks.",
+    "frequency": "Excellent daily.",
+    "logicNote": "Adds flavour with almost no sugar, and may be gentle on blood sugar.",
+    "tags": [
+      "local"
+    ]
+  },
+  {
+    "id": "garlic",
+    "name": "Garlic",
+    "aliases": [
+      "garlic"
+    ],
+    "category": "condiment",
+    "role": "condiment",
+    "carbLoad": "low",
+    "gi": "low",
+    "baseVerdict": "green",
+    "portionGuidance": "Use freely in cooking.",
+    "pairingAdvice": "In nearly everything.",
+    "frequency": "Excellent daily.",
+    "logicNote": "Low sugar and good for the heart; use as much as you like in cooking.",
+    "tags": []
+  },
+  {
+    "id": "locust-bean",
+    "name": "Locust Bean (iru / dawadawa)",
+    "aliases": [
+      "locust bean",
+      "iru",
+      "dawadawa",
+      "ogiri"
+    ],
+    "category": "condiment",
+    "role": "condiment",
+    "carbLoad": "low",
+    "gi": "low",
+    "baseVerdict": "green",
+    "portionGuidance": "A spoon or two in soups.",
+    "pairingAdvice": "In soups and stews.",
+    "frequency": "Excellent daily.",
+    "logicNote": "Fermented seasoning; low sugar and protein-rich. Good for flavour.",
+    "tags": [
+      "local"
+    ]
+  },
+  {
+    "id": "seasoning-cube",
+    "name": "Seasoning Cube (Maggi / Knorr)",
+    "aliases": [
+      "maggi",
+      "knorr",
+      "seasoning cube",
+      "stock cube"
+    ],
+    "category": "condiment",
+    "role": "condiment",
+    "carbLoad": "low",
+    "gi": "low",
+    "baseVerdict": "yellow",
+    "portionGuidance": "One cube per pot, not more.",
+    "pairingAdvice": "In cooking; balance with less added salt.",
+    "frequency": "Moderate.",
+    "logicNote": "No sugar impact, but very salty. Too much salt raises blood pressure, which diabetics must watch.",
+    "tags": []
+  },
+  {
+    "id": "ketchup",
+    "name": "Ketchup",
+    "aliases": [
+      "ketchup",
+      "tomato ketchup"
+    ],
+    "category": "condiment",
+    "role": "condiment",
+    "carbLoad": "medium",
+    "gi": "medium",
+    "baseVerdict": "yellow",
+    "portionGuidance": "One tablespoon at most.",
+    "pairingAdvice": "A little on the side.",
+    "frequency": "Occasional.",
+    "logicNote": "Has hidden sugar; use a small amount, not a pool.",
+    "tags": []
+  },
+  {
+    "id": "pepper-chili",
+    "name": "Pepper (fresh chili)",
+    "aliases": [
+      "pepper",
+      "ata rodo",
+      "scotch bonnet",
+      "shombo",
+      "rodo"
+    ],
+    "category": "condiment",
+    "role": "vegetable",
+    "carbLoad": "low",
+    "gi": "low",
+    "baseVerdict": "green",
+    "portionGuidance": "Use freely for taste.",
+    "pairingAdvice": "In stews, sauces, and pepper soup.",
+    "frequency": "Excellent daily.",
+    "logicNote": "Fresh pepper adds flavour with almost no sugar.",
+    "tags": [
+      "local"
+    ]
+  },
+  {
+    "id": "coconut-oil",
+    "name": "Coconut Oil",
+    "aliases": [
+      "coconut oil"
+    ],
+    "category": "fat",
+    "role": "fat",
+    "carbLoad": "low",
+    "gi": "low",
+    "baseVerdict": "yellow",
+    "portionGuidance": "One to two teaspoons, use sparingly.",
+    "pairingAdvice": "In cooking.",
+    "frequency": "Moderate.",
+    "logicNote": "No sugar impact, but still a heavy fat; use a little.",
+    "tags": []
+  },
+  {
+    "id": "sweetener",
+    "name": "Sugar-free Sweetener",
+    "aliases": [
+      "sweetener",
+      "artificial sweetener",
+      "sugar substitute",
+      "canderel",
+      "equal"
+    ],
+    "category": "condiment",
+    "role": "condiment",
+    "carbLoad": "low",
+    "gi": "low",
+    "baseVerdict": "green",
+    "portionGuidance": "A little in tea or coffee in place of sugar.",
+    "pairingAdvice": "In tea, coffee, or drinks.",
+    "frequency": "Good.",
+    "logicNote": "A stand-in for sugar with little or no effect on blood sugar. A better choice than sugar.",
+    "tags": []
   }
 ]
