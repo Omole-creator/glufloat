@@ -227,7 +227,7 @@
     "portionGuidance": "One ball the size of your fist. That is about half a cup (100g).",
     "pairingAdvice": "Banga soup plus fish.",
     "frequency": "Occasional, small.",
-    "logicNote": "Very dense starch; keep it small.",
+    "logicNote": "Very dense starch, so keep to the size shown below.",
     "tags": [
       "local"
     ]
@@ -286,7 +286,7 @@
     "gi": "high",
     "baseVerdict": "yellow",
     "portionGuidance": "Half a cup of cooked rice. That is about the size of a tennis ball (90g).",
-    "pairingAdvice": "Protein; the mixed vegetables help a little.",
+    "pairingAdvice": "A palm-size piece of chicken or fish (90g), plus the mixed vegetables in it.",
     "frequency": "Occasional, small.",
     "logicNote": "Vegetables in it help slightly, but it is still white rice.",
     "tags": [
@@ -772,7 +772,7 @@
     "carbLoad": "high",
     "gi": "high",
     "baseVerdict": "red",
-    "portionGuidance": "Avoid. A rare treat only, one small ball.",
+    "portionGuidance": "Avoid. A rare treat only. One ball the size of a golf ball (about 40g).",
     "pairingAdvice": "",
     "frequency": "Rare.",
     "logicNote": "Fried sweet dough; one of the worst snacks.",
@@ -830,7 +830,7 @@
     "carbLoad": "high",
     "gi": "high",
     "baseVerdict": "red",
-    "portionGuidance": "Avoid. A rare treat only, one small piece.",
+    "portionGuidance": "Avoid. A rare treat only. One piece the size of a golf ball (about 50g).",
     "pairingAdvice": "",
     "frequency": "Rare.",
     "logicNote": "Fried sweet dough.",
@@ -925,7 +925,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One cupped handful. That is about half a cup cooked (130g).",
-    "pairingAdvice": "Fish, egg, or a little plantain.",
+    "pairingAdvice": "Fish, an egg, or two slices of plantain (80g).",
     "frequency": "Excellent regular meal.",
     "logicNote": "High fibre and protein, slow rise. One of the best diabetic-friendly staples.",
     "tags": [
@@ -947,7 +947,7 @@
     "gi": "low",
     "baseVerdict": "yellow",
     "portionGuidance": "One cupped handful. That is about half a cup, easy on the oil (130g).",
-    "pairingAdvice": "Protein; skip the bread.",
+    "pairingAdvice": "Add fish, meat, or egg. Skip the bread.",
     "frequency": "Good, but watch the oily sauce.",
     "logicNote": "Beans are great; the heavy palm-oil sauce is the only caution.",
     "tags": [
@@ -991,7 +991,7 @@
     "gi": "low",
     "baseVerdict": "yellow",
     "portionGuidance": "Three small balls (about 90g).",
-    "pairingAdvice": "Pap is the problem, not the akara; pair with vegetables instead.",
+    "pairingAdvice": "Pap is the problem, not the akara. Pair it with vegetables instead.",
     "frequency": "OK in moderation; mind the frying oil.",
     "logicNote": "Beans are friendly; deep frying is the only downside.",
     "tags": [
@@ -1013,7 +1013,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One small bowl. That is about three-quarters of a cup (150g).",
-    "pairingAdvice": "Fish or a little unripe plantain.",
+    "pairingAdvice": "Fish, or two slices of unripe plantain (80g).",
     "frequency": "Excellent regular meal.",
     "logicNote": "Filling, high fibre, slow rise.",
     "tags": [
@@ -1139,7 +1139,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "Half a cup dry (40g), made with water.",
-    "pairingAdvice": "A few nuts; skip sugar and sweet milk.",
+    "pairingAdvice": "About 10 nuts. Skip sugar and sweet milk.",
     "frequency": "Good regular breakfast.",
     "logicNote": "Plain oats are friendly. Flavoured or instant ones often have added sugar.",
     "tags": [
@@ -1243,7 +1243,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One to two serving spoons. That is about one cup.",
-    "pairingAdvice": "Eat with a small swallow and plenty vegetables.",
+    "pairingAdvice": "A fist-size ball of swallow (100g) and plenty of vegetables.",
     "frequency": "Good regular soup.",
     "logicNote": "Melon seed and vegetables; friendly. The swallow beside it is what to watch.",
     "tags": [
@@ -1264,7 +1264,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One to two serving spoons. That is about one cup.",
-    "pairingAdvice": "Small swallow and vegetables.",
+    "pairingAdvice": "A fist-size ball of swallow (100g) and plenty of vegetables.",
     "frequency": "Good regular soup.",
     "logicNote": "Low carb on its own; the swallow is the variable.",
     "tags": [
@@ -1286,7 +1286,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "Eat freely, two or more serving spoons.",
-    "pairingAdvice": "Protein; small swallow if any.",
+    "pairingAdvice": "Fish, meat, or egg, with a fist-size ball of swallow (100g) if any.",
     "frequency": "Excellent regular soup.",
     "logicNote": "Vegetable-heavy and friendly.",
     "tags": [
@@ -1308,7 +1308,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "Eat freely, two or more serving spoons.",
-    "pairingAdvice": "Protein; small swallow if any.",
+    "pairingAdvice": "Fish, meat, or egg, with a fist-size ball of swallow (100g) if any.",
     "frequency": "Excellent regular soup.",
     "logicNote": "Rich in vegetables and protein. One of the best.",
     "tags": [
@@ -1329,7 +1329,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "Eat freely, two or more serving spoons.",
-    "pairingAdvice": "Protein; small swallow if any.",
+    "pairingAdvice": "Fish, meat, or egg, with a fist-size ball of swallow (100g) if any.",
     "frequency": "Excellent regular soup.",
     "logicNote": "Leafy and protein-rich; friendly.",
     "tags": [
@@ -1350,7 +1350,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One to two serving spoons. That is about one cup.",
-    "pairingAdvice": "Small swallow and protein.",
+    "pairingAdvice": "A fist-size ball of swallow (100g) with fish, meat, or egg.",
     "frequency": "Good regular soup.",
     "logicNote": "Vegetable soup; watch only the thickener and swallow.",
     "tags": [
@@ -1373,7 +1373,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One to two serving spoons. That is about one cup.",
-    "pairingAdvice": "Small swallow and protein.",
+    "pairingAdvice": "A fist-size ball of swallow (100g) with fish, meat, or egg.",
     "frequency": "Good regular soup.",
     "logicNote": "Friendly vegetable soup.",
     "tags": [
@@ -1396,7 +1396,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "Eat freely, two or more serving spoons.",
-    "pairingAdvice": "Protein; small swallow if any.",
+    "pairingAdvice": "Fish, meat, or egg, with a fist-size ball of swallow (100g) if any.",
     "frequency": "Excellent; okra itself helps blood sugar.",
     "logicNote": "Okra is one of the friendliest vegetables for diabetics.",
     "tags": [
@@ -1417,7 +1417,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "Eat freely, two or more serving spoons.",
-    "pairingAdvice": "Protein; small swallow if any.",
+    "pairingAdvice": "Fish, meat, or egg, with a fist-size ball of swallow (100g) if any.",
     "frequency": "Excellent.",
     "logicNote": "More vegetables, better.",
     "tags": [
@@ -1437,7 +1437,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One serving spoon, easy on the oil. That is about half a cup.",
-    "pairingAdvice": "Fish; small swallow if any.",
+    "pairingAdvice": "Fish, with a fist-size ball of swallow (100g) if any.",
     "frequency": "Good regular soup.",
     "logicNote": "Low carb; just rich in oil, so moderate the quantity.",
     "tags": [
@@ -1457,7 +1457,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "Eat freely, two or more serving spoons.",
-    "pairingAdvice": "Gbegiri and a small swallow with protein.",
+    "pairingAdvice": "Gbegiri and a fist-size ball of swallow (100g), with fish or meat.",
     "frequency": "Excellent.",
     "logicNote": "Pure leafy soup; very friendly.",
     "tags": [
@@ -1478,7 +1478,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One to two serving spoons. That is about one cup.",
-    "pairingAdvice": "Ewedu, small swallow, protein.",
+    "pairingAdvice": "Ewedu and a fist-size ball of swallow (100g), with fish or meat.",
     "frequency": "Good regular soup.",
     "logicNote": "Bean-based, high fibre, slow rise.",
     "tags": [
@@ -1501,7 +1501,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One serving spoon. That is about half a cup.",
-    "pairingAdvice": "Vegetables and protein; small swallow.",
+    "pairingAdvice": "Vegetables and fish or meat, with a fist-size ball of swallow (100g).",
     "frequency": "Good regular soup.",
     "logicNote": "Groundnut adds protein and slows the meal.",
     "tags": [
@@ -1523,7 +1523,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One to two serving spoons. That is about one cup.",
-    "pairingAdvice": "Fish or meat; small swallow.",
+    "pairingAdvice": "Fish or meat, with a fist-size ball of swallow (100g).",
     "frequency": "Good regular soup.",
     "logicNote": "Light, low carb; watch only the yam thickener if used.",
     "tags": [
@@ -1565,7 +1565,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One to two serving spoons. That is about one cup.",
-    "pairingAdvice": "Protein; small swallow.",
+    "pairingAdvice": "Fish, meat, or egg, with a fist-size ball of swallow (100g).",
     "frequency": "Good regular soup.",
     "logicNote": "Leaf-based, friendly.",
     "tags": [
@@ -1587,7 +1587,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One palm-size piece. That is the size of a deck of cards (90g).",
-    "pairingAdvice": "Anything; remove skin for less fat.",
+    "pairingAdvice": "It goes with anything. Remove the skin for less fat.",
     "frequency": "Excellent regular protein.",
     "logicNote": "Grilled or boiled beats fried.",
     "tags": [
@@ -1670,7 +1670,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One to two eggs.",
-    "pairingAdvice": "Vegetables; great with unripe plantain.",
+    "pairingAdvice": "Vegetables. It is great with two slices of unripe plantain (80g).",
     "frequency": "Excellent.",
     "logicNote": "No carbs, filling. Boiled beats fried.",
     "tags": [
@@ -2040,7 +2040,7 @@
     "gi": "medium",
     "baseVerdict": "yellow",
     "portionGuidance": "One slice. That is about half a cup diced (120g).",
-    "pairingAdvice": "A few nuts.",
+    "pairingAdvice": "About 10 nuts to slow the sugar.",
     "frequency": "Moderate.",
     "logicNote": "Friendlier fruit, but still natural sugar; keep portion small.",
     "tags": [],
@@ -2058,7 +2058,7 @@
     "gi": "high",
     "baseVerdict": "yellow",
     "portionGuidance": "One cup diced. That is about one thin slice (150g).",
-    "pairingAdvice": "A few nuts to slow it.",
+    "pairingAdvice": "About 10 nuts to slow the sugar.",
     "frequency": "Moderate.",
     "logicNote": "Mostly water but high GI; small portions only.",
     "tags": [],
@@ -2094,7 +2094,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One small apple. That is the size of a tennis ball (120g).",
-    "pairingAdvice": "A few nuts.",
+    "pairingAdvice": "About 10 nuts.",
     "frequency": "Good.",
     "logicNote": "Lower GI fruit; the skin adds fibre.",
     "tags": [],
@@ -2112,9 +2112,9 @@
     "gi": "medium",
     "baseVerdict": "yellow",
     "portionGuidance": "Half of one medium banana.",
-    "pairingAdvice": "A few groundnuts.",
+    "pairingAdvice": "About 10 groundnuts.",
     "frequency": "Moderate.",
-    "logicNote": "The riper, the sweeter; keep it small.",
+    "logicNote": "The riper the banana, the sweeter it is. Keep to the size shown below.",
     "tags": [],
     "carbExchange": "half of a medium banana"
   },
@@ -2130,7 +2130,7 @@
     "gi": "medium",
     "baseVerdict": "yellow",
     "portionGuidance": "Half of one small mango. That is about half a cup (80g).",
-    "pairingAdvice": "A few nuts.",
+    "pairingAdvice": "About 10 nuts.",
     "frequency": "Moderate, in season.",
     "logicNote": "Sweet; small portions.",
     "tags": [
@@ -2150,7 +2150,7 @@
     "gi": "high",
     "baseVerdict": "yellow",
     "portionGuidance": "One thin slice. That is about half a cup (80g).",
-    "pairingAdvice": "A few nuts.",
+    "pairingAdvice": "About 10 nuts.",
     "frequency": "Occasional.",
     "logicNote": "High GI; keep portions tiny.",
     "tags": [],
@@ -2570,7 +2570,7 @@
     "carbLoad": "high",
     "gi": "high",
     "baseVerdict": "red",
-    "portionGuidance": "Avoid. If at all, a small cup with no sugar.",
+    "portionGuidance": "Avoid. If at all, one small cup (200ml) with no sugar.",
     "pairingAdvice": "If at all, with groundnut and no sugar.",
     "frequency": "Rare.",
     "logicNote": "Cold soaked garri with sugar is a common hidden spike.",
@@ -2696,7 +2696,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One small cup (150g), unsweetened.",
-    "pairingAdvice": "A few nuts or berries.",
+    "pairingAdvice": "About 10 nuts, or 8 to 10 berries.",
     "frequency": "Good.",
     "logicNote": "Unsweetened only; flavoured yogurts are full of sugar.",
     "tags": [
@@ -2891,7 +2891,7 @@
     "carbLoad": "high",
     "gi": "high",
     "baseVerdict": "red",
-    "portionGuidance": "None, unless treating a low sugar. Then a small glass.",
+    "portionGuidance": "None, unless you are treating a low sugar. Then half a glass (100ml).",
     "pairingAdvice": "",
     "frequency": "Never, except hypo rescue.",
     "logicNote": "Pure fast sugar. Only useful if blood sugar drops too low.",
@@ -2951,7 +2951,7 @@
     "portionGuidance": "Two small cakes (about 60g).",
     "pairingAdvice": "Miyan taushe or vegetable soup and protein.",
     "frequency": "Occasional, small.",
-    "logicNote": "Fermented rice cakes; soft and starchy, so keep it small.",
+    "logicNote": "Fermented rice cakes, soft and starchy. Keep to the size shown below.",
     "tags": [
       "local",
       "northern"
@@ -2970,7 +2970,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One small plate. That is about one cup (150g).",
-    "pairingAdvice": "A little oil and pepper; add vegetables.",
+    "pairingAdvice": "One teaspoon of oil and some pepper. Add plenty of vegetables.",
     "frequency": "Good regular meal.",
     "logicNote": "Bean-flour dumplings; high fibre and slow to raise sugar.",
     "tags": [
@@ -2991,7 +2991,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One to two serving spoons. That is about one cup.",
-    "pairingAdvice": "Small swallow and protein.",
+    "pairingAdvice": "A fist-size ball of swallow (100g) with fish, meat, or egg.",
     "frequency": "Excellent regular soup.",
     "logicNote": "Pumpkin and groundnut soup; filling and friendly.",
     "tags": [
@@ -3011,7 +3011,7 @@
     "gi": "low",
     "baseVerdict": "yellow",
     "portionGuidance": "A small handful (about 30g).",
-    "pairingAdvice": "Alone; go easy if eating with garri.",
+    "pairingAdvice": "Eat it alone. If you add garri, keep the garri to a fist-size ball (100g).",
     "frequency": "Occasional.",
     "logicNote": "Fried groundnut cake; the nut is fine, the frying oil is the caution.",
     "tags": [
@@ -3074,7 +3074,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One to two wraps, palm size (150g).",
-    "pairingAdvice": "Ata sauce and fish; skip the eko.",
+    "pairingAdvice": "Ata sauce and fish. Skip the eko.",
     "frequency": "Good regular choice.",
     "logicNote": "Steamed beans with no oil inside; protein-rich and slow.",
     "tags": [
@@ -3094,7 +3094,7 @@
     "gi": "high",
     "baseVerdict": "yellow",
     "portionGuidance": "Three to four small fritters (about 80g).",
-    "pairingAdvice": "Pepper sauce; pair with vegetables.",
+    "pairingAdvice": "Pepper sauce. Pair it with vegetables.",
     "frequency": "Occasional; mind the frying oil.",
     "logicNote": "Fried water yam balls; keep them few because of the frying.",
     "tags": [
@@ -3118,7 +3118,7 @@
     "portionGuidance": "One small wrap (about 120g).",
     "pairingAdvice": "Beans, moi moi, or pepper soup.",
     "frequency": "Occasional, small.",
-    "logicNote": "Set corn starch; smooth and quick to raise sugar, so keep it small.",
+    "logicNote": "Set corn starch, smooth and quick to raise sugar. Keep to the size shown below.",
     "tags": [
       "local",
       "yoruba"
@@ -3137,7 +3137,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One small bowl. That is about three-quarters of a cup (150g).",
-    "pairingAdvice": "A little palm oil and fish.",
+    "pairingAdvice": "One teaspoon of palm oil, plus fish.",
     "frequency": "Good regular meal.",
     "logicNote": "African breadfruit; high fibre and protein, a filling meal.",
     "tags": [
@@ -3200,7 +3200,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One to two serving spoons. That is about one cup.",
-    "pairingAdvice": "Small swallow and protein.",
+    "pairingAdvice": "A fist-size ball of swallow (100g) with fish, meat, or egg.",
     "frequency": "Good regular soup.",
     "logicNote": "Leafy vegetable soup; friendly, watch only the thickener and swallow.",
     "tags": [
@@ -3221,7 +3221,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One to two serving spoons. That is about one cup.",
-    "pairingAdvice": "Fish or bush meat; small starch.",
+    "pairingAdvice": "Fish or bush meat, with a fist-size ball of swallow (100g) if any.",
     "frequency": "Good regular soup.",
     "logicNote": "Light palm-based Delta soup; low carb and friendly.",
     "tags": [
@@ -3661,7 +3661,7 @@
     "portionGuidance": "One to two pods, or a spoon of pulp.",
     "pairingAdvice": "In drinks and sauces, no added sugar.",
     "frequency": "Occasional.",
-    "logicNote": "Sweet-sour pulp; the sugar adds up, so keep it small.",
+    "logicNote": "Sweet-sour pulp, and the sugar adds up. Keep to the size shown below.",
     "tags": [
       "local",
       "northern"
@@ -3740,7 +3740,7 @@
     "gi": "medium",
     "baseVerdict": "yellow",
     "portionGuidance": "Three to four pieces. That is about half a cup (80g).",
-    "pairingAdvice": "A few nuts.",
+    "pairingAdvice": "About 10 nuts.",
     "frequency": "Occasional.",
     "logicNote": "Sweet tropical fruit; keep the portion small.",
     "tags": [],
@@ -3760,7 +3760,7 @@
     "portionGuidance": "Half a cup of seeds (about 80g).",
     "pairingAdvice": "Alone or on plain yogurt.",
     "frequency": "Moderate.",
-    "logicNote": "Has fibre but also natural sugar; a small portion is fine.",
+    "logicNote": "Has fibre but also natural sugar, so half a cup of seeds is fine.",
     "tags": [],
     "carbExchange": "half a cup of seeds"
   },
@@ -3776,7 +3776,7 @@
     "gi": "high",
     "baseVerdict": "yellow",
     "portionGuidance": "About ten to fifteen grapes (80g).",
-    "pairingAdvice": "A few nuts to slow it.",
+    "pairingAdvice": "About 10 nuts to slow the sugar.",
     "frequency": "Occasional.",
     "logicNote": "Small but sweet; easy to overeat, so count them.",
     "tags": [],
@@ -3799,7 +3799,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One palm-size piece. That is the size of a deck of cards (90g).",
-    "pairingAdvice": "Vegetables; trim the visible fat.",
+    "pairingAdvice": "Vegetables. Trim the visible fat.",
     "frequency": "Good regular protein.",
     "logicNote": "Meat has no carbs, so it does not raise blood sugar. Trim the fat, as fatty cuts are heavy for the heart.",
     "tags": [
@@ -3818,10 +3818,10 @@
     "carbLoad": "low",
     "gi": "low",
     "baseVerdict": "green",
-    "portionGuidance": "One to two eggs, fried in a little oil.",
-    "pairingAdvice": "Bread, yam, or plantain in a small size; go easy on the oil.",
+    "portionGuidance": "One to two eggs, fried in one teaspoon of oil.",
+    "pairingAdvice": "One thin slice of bread (30g), a fist-size piece of yam (100g), or two slices of plantain (80g). Fry the egg in one teaspoon of oil.",
     "frequency": "Good regular protein.",
-    "logicNote": "Egg has no carbs and does not raise your sugar. Fry in a little oil, not a lot.",
+    "logicNote": "Egg has no carbs and does not raise your sugar. Fry it in one teaspoon of oil.",
     "tags": [
       "breakfast"
     ]
@@ -3839,7 +3839,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "Two eggs, scrambled with pepper and onion.",
-    "pairingAdvice": "Vegetables, with a small side of bread or yam.",
+    "pairingAdvice": "Plenty of vegetables, with one thin slice of bread (30g) or a fist-size piece of yam (100g).",
     "frequency": "Good regular protein.",
     "logicNote": "No carbs from the egg. Add vegetables and keep the oil light.",
     "tags": [
@@ -3859,7 +3859,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "Two eggs cooked with tomato, pepper, and onion.",
-    "pairingAdvice": "A small portion of boiled yam, plantain, or potato.",
+    "pairingAdvice": "A fist-size piece of boiled yam (100g), two slices of plantain (80g), or one small boiled potato.",
     "frequency": "Good regular meal.",
     "logicNote": "The egg and vegetables are friendly. Watch the size of any yam or plantain beside it.",
     "tags": [
@@ -3879,7 +3879,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "Two eggs, with vegetables mixed in.",
-    "pairingAdvice": "A small slice of bread or a little yam.",
+    "pairingAdvice": "One thin slice of bread (30g), or a fist-size piece of yam (100g).",
     "frequency": "Good regular breakfast.",
     "logicNote": "Egg plus vegetables is a friendly, filling meal. Keep the oil light.",
     "tags": [
@@ -3981,7 +3981,7 @@
     "gi": "high",
     "baseVerdict": "yellow",
     "portionGuidance": "Half a cup of cooked rice. That is about the size of a tennis ball (90g).",
-    "pairingAdvice": "It has vegetables and fish in it; keep the rice small.",
+    "pairingAdvice": "It has vegetables and fish in it. Keep the rice to half a cup (about 130g).",
     "frequency": "Occasional, small.",
     "logicNote": "A one-pot rice with vegetables and fish, which helps, but a big rice portion still spikes.",
     "tags": [
@@ -4020,8 +4020,8 @@
     "carbLoad": "medium",
     "gi": "medium",
     "baseVerdict": "yellow",
-    "portionGuidance": "A small plate: a few pieces of plantain with the gizzard.",
-    "pairingAdvice": "The gizzard is the friendly part; keep the fried plantain small.",
+    "portionGuidance": "A small plate, about one cup (150g). Plantain with the gizzard.",
+    "pairingAdvice": "The gizzard is the friendly part. Keep the fried plantain to about four slices.",
     "frequency": "Occasional.",
     "logicNote": "Gizzard is low-carb protein; the fried ripe plantain is the sugar to watch.",
     "tags": [
@@ -4041,7 +4041,7 @@
     "gi": "medium",
     "baseVerdict": "yellow",
     "portionGuidance": "One small bowl. That is about three-quarters of a cup (150g).",
-    "pairingAdvice": "Fish or a little plantain; go easy on the corn.",
+    "pairingAdvice": "Fish, or two slices of plantain (80g). Keep the corn to about two tablespoons.",
     "frequency": "A few times a week, small.",
     "logicNote": "Beans are friendly; the corn adds some sugar, so keep the corn share small.",
     "tags": [
@@ -4062,7 +4062,7 @@
     "gi": "medium",
     "baseVerdict": "yellow",
     "portionGuidance": "One cupped handful of beans with a few slices of plantain.",
-    "pairingAdvice": "Use boiled or roasted plantain, not fried; add fish.",
+    "pairingAdvice": "Use boiled or roasted plantain, not fried. Add fish.",
     "frequency": "A few times a week.",
     "logicNote": "The beans are great; the plantain is the sugar. Boiled beats fried, and keep the plantain small.",
     "tags": [
@@ -4082,7 +4082,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One to two serving spoons. That is about one cup.",
-    "pairingAdvice": "Small swallow and plenty protein.",
+    "pairingAdvice": "A fist-size ball of swallow (100g) with plenty of fish or meat.",
     "frequency": "Good regular soup.",
     "logicNote": "A rich Igbo vegetable and meat soup; low carb, watch only the swallow beside it.",
     "tags": [
@@ -4103,7 +4103,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "Eat freely, two or more serving spoons.",
-    "pairingAdvice": "Protein; small swallow if any.",
+    "pairingAdvice": "Fish, meat, or egg, with a fist-size ball of swallow (100g) if any.",
     "frequency": "Excellent regular soup.",
     "logicNote": "Leafy Igbo soup, close to afang; friendly and low carb.",
     "tags": [
@@ -4123,7 +4123,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One to two serving spoons. That is about one cup.",
-    "pairingAdvice": "Protein and small swallow.",
+    "pairingAdvice": "Fish, meat, or egg, with a fist-size ball of swallow (100g).",
     "frequency": "Good regular soup.",
     "logicNote": "Efik bitter-leaf style soup, rich in vegetables; friendly.",
     "tags": [
@@ -4144,7 +4144,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One serving spoon, easy on the oil. That is about half a cup.",
-    "pairingAdvice": "Fish and seafood; small swallow.",
+    "pairingAdvice": "Fish and seafood, with a fist-size ball of swallow (100g).",
     "frequency": "Good regular soup.",
     "logicNote": "Palm-fruit and atama-leaf soup; low carb but rich in oil, so go easy on the oil.",
     "tags": [
@@ -4165,7 +4165,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One serving spoon, easy on the oil. That is about half a cup.",
-    "pairingAdvice": "Fish or meat; eat with a small portion of white rice.",
+    "pairingAdvice": "Fish or meat. Eat it with half a cup of white rice (about 130g).",
     "frequency": "A few times a week.",
     "logicNote": "Palm-fruit sauce, low in carbs but rich in oil; the rice beside it is what to keep small.",
     "tags": [
@@ -4226,8 +4226,8 @@
     "carbLoad": "low",
     "gi": "low",
     "baseVerdict": "green",
-    "portionGuidance": "One small bowl.",
-    "pairingAdvice": "Utazi and onions; eat on its own.",
+    "portionGuidance": "One small bowl. That is about three-quarters of a cup (150g).",
+    "pairingAdvice": "Utazi and onions. Eat it on its own.",
     "frequency": "A few times a week.",
     "logicNote": "Spiced goat head; low carb. It is rich, so keep the portion modest.",
     "tags": [
@@ -4248,7 +4248,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One palm-size piece. That is the size of a deck of cards (90g).",
-    "pairingAdvice": "Vegetables; trim the fat.",
+    "pairingAdvice": "Vegetables. Trim the fat.",
     "frequency": "Good regular protein.",
     "logicNote": "Red meat with no carbs; trim visible fat, as fatty cuts are heavy for the heart.",
     "tags": [
@@ -4285,9 +4285,9 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "Half a small tin.",
-    "pairingAdvice": "With vegetables; skip the bread if you can.",
+    "pairingAdvice": "With vegetables. Skip the bread if you can.",
     "frequency": "A few times a week.",
-    "logicNote": "Oily fish, low carb and rich in good fat. Choose the ones in water or a little oil.",
+    "logicNote": "Oily fish, low in carbs and rich in good fat. Choose the ones packed in water rather than oil.",
     "tags": []
   },
   {
@@ -4302,9 +4302,9 @@
     "gi": "low",
     "baseVerdict": "yellow",
     "portionGuidance": "A few tablespoons, about a quarter of a tin.",
-    "pairingAdvice": "With vegetables; watch the salt.",
+    "pairingAdvice": "With vegetables. Watch the salt.",
     "frequency": "Occasional.",
-    "logicNote": "Low carb, but processed and salty; keep it small and drink water.",
+    "logicNote": "Low in carbs, but processed and salty. Keep to the size shown below and drink water.",
     "tags": []
   },
   {
@@ -4395,7 +4395,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "About seven to eight berries (100g).",
-    "pairingAdvice": "A few nuts or plain yogurt.",
+    "pairingAdvice": "About 10 nuts, or one small cup of plain yogurt (150g).",
     "frequency": "Good.",
     "logicNote": "Lower sugar and high in fibre; a friendly fruit.",
     "tags": [
@@ -4416,7 +4416,7 @@
     "gi": "medium",
     "baseVerdict": "yellow",
     "portionGuidance": "One cup diced (about 150g).",
-    "pairingAdvice": "A few nuts to slow it.",
+    "pairingAdvice": "About 10 nuts to slow the sugar.",
     "frequency": "Occasional.",
     "logicNote": "Mostly water but still sweet; keep the portion to a cup.",
     "tags": [],
@@ -4494,7 +4494,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "In soup, or a small handful roasted (30g).",
-    "pairingAdvice": "In soups; roasted as a snack.",
+    "pairingAdvice": "In soups, or roasted as a snack.",
     "frequency": "Good; mostly in soup.",
     "logicNote": "Melon seed is protein and fat; low sugar. Mostly eaten in soup.",
     "tags": [
@@ -4556,9 +4556,9 @@
     "gi": "medium",
     "baseVerdict": "yellow",
     "portionGuidance": "One small bottle at most, rarely.",
-    "pairingAdvice": "Never on an empty stomach; eat first.",
+    "pairingAdvice": "Never on an empty stomach. Eat first.",
     "frequency": "Rare.",
-    "logicNote": "Alcohol can drop or raise your sugar, and beer carries carbs. If you drink, keep it small and eat first.",
+    "logicNote": "Alcohol can drop or raise your sugar, and beer carries carbs. If you drink, keep to the size shown below and eat first.",
     "tags": []
   },
   {
@@ -4573,7 +4573,7 @@
     "carbLoad": "medium",
     "gi": "medium",
     "baseVerdict": "yellow",
-    "portionGuidance": "One small cup, rarely.",
+    "portionGuidance": "One small cup (200ml), rarely.",
     "pairingAdvice": "Eat food first.",
     "frequency": "Rare.",
     "logicNote": "Fermented grain brew with alcohol and some sugar; both affect blood sugar.",
@@ -4615,8 +4615,8 @@
     "carbLoad": "high",
     "gi": "medium",
     "baseVerdict": "yellow",
-    "portionGuidance": "A small cup, made from whole fruit and no added sugar.",
-    "pairingAdvice": "A small glass with a meal, not on its own. Better to eat the whole fruit.",
+    "portionGuidance": "One small cup (200ml), made from whole fruit with no added sugar.",
+    "pairingAdvice": "One small glass (200ml) with a meal, not on its own. Better to eat the whole fruit.",
     "frequency": "Occasional.",
     "logicNote": "Even fruit smoothies are quick sugar. Make it small, use whole fruit, and never add sugar.",
     "tags": []
@@ -4656,10 +4656,10 @@
     "carbLoad": "low",
     "gi": "low",
     "baseVerdict": "yellow",
-    "portionGuidance": "A little in tea or pap, no sugar.",
-    "pairingAdvice": "In tea, oats, or pap; no sugar.",
+    "portionGuidance": "One tablespoon in tea or pap, with no sugar.",
+    "pairingAdvice": "In tea, oats, or pap, with no sugar.",
     "frequency": "Moderate.",
-    "logicNote": "Unsweetened evaporated milk has natural milk sugar; use a little. Avoid the sweetened condensed kind.",
+    "logicNote": "Unsweetened evaporated milk has natural milk sugar, so use one tablespoon. Avoid the sweetened condensed kind.",
     "tags": []
   },
   {
@@ -4675,7 +4675,7 @@
     "gi": "medium",
     "baseVerdict": "yellow",
     "portionGuidance": "Two biscuits, with unsweetened milk.",
-    "pairingAdvice": "Unsweetened milk and a few nuts.",
+    "pairingAdvice": "Unsweetened milk and about 10 nuts.",
     "frequency": "A few times a week.",
     "logicNote": "Wholewheat cereal is better than sugary ones, but still a starch; no added sugar.",
     "tags": []
@@ -4710,8 +4710,8 @@
     "carbLoad": "high",
     "gi": "high",
     "baseVerdict": "red",
-    "portionGuidance": "Avoid. A rare treat only, a small one.",
-    "pairingAdvice": "If eaten, choose more meat and vegetables, less bread and sauce.",
+    "portionGuidance": "Avoid. A rare treat only. Half of one at most.",
+    "pairingAdvice": "If you eat it, ask for more meat and vegetables and less bread and sauce.",
     "frequency": "Rare.",
     "logicNote": "The wrap is refined flour and the sauces add sugar and fat. A once-in-a-while treat.",
     "tags": [
@@ -4790,7 +4790,7 @@
     "carbLoad": "high",
     "gi": "high",
     "baseVerdict": "red",
-    "portionGuidance": "Avoid. A rare treat only, a small few.",
+    "portionGuidance": "Avoid. A rare treat only. About four pieces at most.",
     "pairingAdvice": "",
     "frequency": "Rare.",
     "logicNote": "A mix of fried snacks like puff puff, samosa, and spring roll; all quick sugar and oil.",
@@ -4814,7 +4814,7 @@
     "portionGuidance": "A few small pieces (about 30g).",
     "pairingAdvice": "Alone.",
     "frequency": "Occasional.",
-    "logicNote": "Groundnut and grain snack; the nut is fine, but it has some sugar and grain, so keep it small.",
+    "logicNote": "Groundnut and grain snack. The nut is fine, but it has some sugar and grain, so keep to the size shown below.",
     "tags": [
       "local",
       "northern"
@@ -4851,10 +4851,10 @@
     "carbLoad": "high",
     "gi": "medium",
     "baseVerdict": "yellow",
-    "portionGuidance": "One small piece.",
+    "portionGuidance": "One small piece (about 40g).",
     "pairingAdvice": "Alone.",
     "frequency": "Occasional.",
-    "logicNote": "Cornmeal snack with oil and pepper; still corn starch, so keep it small.",
+    "logicNote": "Cornmeal snack with oil and pepper. Still corn starch, so keep to the size shown below.",
     "tags": [
       "local",
       "yoruba"
@@ -4910,7 +4910,7 @@
     "carbLoad": "high",
     "gi": "high",
     "baseVerdict": "red",
-    "portionGuidance": "Avoid. A rare treat only, a small handful.",
+    "portionGuidance": "Avoid. A rare treat only. A small handful, about 15 chips (30g).",
     "pairingAdvice": "",
     "frequency": "Rare.",
     "logicNote": "Fried cassava; starchy and oily, spikes fast.",
@@ -4992,7 +4992,7 @@
     "gi": "low",
     "baseVerdict": "yellow",
     "portionGuidance": "One cube per pot, not more.",
-    "pairingAdvice": "In cooking; balance with less added salt.",
+    "pairingAdvice": "In cooking. Balance it with less added salt.",
     "frequency": "Moderate.",
     "logicNote": "No sugar impact, but very salty. Too much salt raises blood pressure, which diabetics must watch.",
     "tags": []
@@ -5010,9 +5010,9 @@
     "gi": "medium",
     "baseVerdict": "yellow",
     "portionGuidance": "One tablespoon at most.",
-    "pairingAdvice": "A little on the side.",
+    "pairingAdvice": "One tablespoon on the side.",
     "frequency": "Occasional.",
-    "logicNote": "Has hidden sugar; use a small amount, not a pool.",
+    "logicNote": "It has hidden sugar, so use one tablespoon, not a pool.",
     "tags": []
   },
   {
@@ -5052,7 +5052,7 @@
     "portionGuidance": "One to two teaspoons, use sparingly.",
     "pairingAdvice": "In cooking.",
     "frequency": "Moderate.",
-    "logicNote": "No sugar impact, but still a heavy fat; use a little.",
+    "logicNote": "No sugar impact, but still a heavy fat, so use one teaspoon.",
     "tags": []
   },
   {
@@ -5070,7 +5070,7 @@
     "carbLoad": "low",
     "gi": "low",
     "baseVerdict": "green",
-    "portionGuidance": "A little in tea or coffee in place of sugar.",
+    "portionGuidance": "A pinch, or one tablet, in place of sugar in tea or coffee.",
     "pairingAdvice": "In tea, coffee, or drinks.",
     "frequency": "Good.",
     "logicNote": "A stand-in for sugar with little or no effect on blood sugar. A better choice than sugar.",
