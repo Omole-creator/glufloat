@@ -27,6 +27,7 @@ const VEG_FIX: Record<string, string> = {
   swallow:
     "Add a green vegetable soup, like efo riro, okra, or egusi. Two serving spoons, about one cup.",
   rice: "Add vegetables to it, like a spoon of ugu or a garden-egg and tomato stew. About one cup.",
+  pasta: "Add vegetables to it, like a sauce with carrot, green beans, and pepper. About one cup.",
   tuber: "Add a garden-egg sauce or green vegetables on the side. About one cup.",
   plantain:
     "Add green vegetables or a vegetable sauce on the side. About one cup.",
@@ -40,6 +41,7 @@ const VEG_FIX: Record<string, string> = {
 const PROTEIN_FIX: Record<string, string> = {
   swallow: DECK,
   rice: DECK,
+  pasta: DECK,
   tuber: DECK,
   plantain: DECK,
   cereal: "Add moi moi or akara to slow it down.",
@@ -167,9 +169,20 @@ export function scoreMeal(items: MealItem[]): MealResult {
     const mainCategory = worstStarch?.food.category ?? null;
 
     if (worstStarch && worstStarch.portion !== "half") {
-      fixes.push(
-        `Eat less ${worstStarch.food.name}. A safe size is ${lower(worstStarch.food.portionGuidance)}`,
-      );
+      const pg = worstStarch.food.portionGuidance;
+      if (/^avoid[.\s]*/i.test(pg)) {
+        // Portions that start with "Avoid." read badly after "A safe size is".
+        const rest = pg.replace(/^avoid[.\s]*/i, "");
+        fixes.push(
+          rest
+            ? `Best to skip the ${worstStarch.food.name}. ${rest}`
+            : `Best to skip the ${worstStarch.food.name}.`,
+        );
+      } else {
+        fixes.push(
+          `Eat less ${worstStarch.food.name}. A safe size is ${lower(pg)}`,
+        );
+      }
     }
     if (!hasVeg && mainCategory && VEG_FIX[mainCategory]) {
       fixes.push(VEG_FIX[mainCategory]);

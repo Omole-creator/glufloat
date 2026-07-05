@@ -16,6 +16,10 @@ export function plainFrequency(food: Food): string {
   if (f.includes("rare") || f.includes("treat")) {
     return "Only once in a while, like once a month";
   }
+  // An explicit count always wins, so the answer stays specific.
+  const perWeek = f.match(/(\d+)\s*times?\s*a\s*week/);
+  if (perWeek) return `About ${perWeek[1]} times a week`;
+  if (f.includes("once a week")) return "About 1 time a week";
   if (
     f.includes("every day") ||
     f.includes("daily") ||
