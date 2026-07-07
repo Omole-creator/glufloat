@@ -5,7 +5,6 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Reveal from "@/components/Reveal";
 import TrafficLight from "@/components/TrafficLight";
-import SearchPanel from "@/components/SearchPanel";
 import FAQ from "@/components/FAQ";
 import { Hero } from "@/components/ui/animated-hero";
 import { Testimonials } from "@/components/ui/testimonial-v2";
@@ -182,23 +181,50 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ============ LIVE DEMO ============ */}
+      {/* ============ TRY IT (sign-up CTA) ============ */}
       <section id="demo" className="relative overflow-hidden bg-mist py-20 sm:py-24">
         <div className="dots absolute inset-0 opacity-40" aria-hidden />
-        <div className="relative mx-auto max-w-3xl px-4 sm:px-6">
+        <div className="relative mx-auto max-w-2xl px-4 sm:px-6">
           <Reveal className="text-center">
-            <Label>See it work</Label>
+            <Label>Try it free</Label>
             <h2 className="mt-4 font-display text-3xl font-bold text-ink sm:text-4xl">
-              Type a food you eat. Get the answer now.
+              Ready to check your first food?
             </h2>
-            <p className="mx-auto mt-4 max-w-md font-display text-lg text-ink-soft">
-              Try a few for free, right here. The answer comes back before you
-              finish typing.
+            <p className="mx-auto mt-4 max-w-md font-display text-lg leading-relaxed text-ink-soft">
+              Make a free account, then check any food you eat for the next 3
+              days. No card needed.
             </p>
           </Reveal>
 
           <Reveal delay={150} className="mt-8">
-            <SearchPanel />
+            <div className="mx-auto flex max-w-md flex-col items-center rounded-3xl border border-line bg-white p-8 shadow-[0_20px_50px_-28px_rgba(12,42,71,0.35)]">
+              <ul className="mb-7 grid w-full gap-3 text-left text-ink sm:grid-cols-2">
+                {[
+                  "No card needed",
+                  "Free for 3 days",
+                  "Stop any time",
+                  "Checked by 6 dietitians",
+                ].map((b) => (
+                  <li key={b} className="flex items-center gap-2.5 text-sm font-medium">
+                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-verdict-green/15">
+                      <Check className="h-3 w-3 text-leaf-deep" />
+                    </span>
+                    {b}
+                  </li>
+                ))}
+              </ul>
+
+              <Link
+                href="/trial"
+                className="group flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-brand to-leaf px-8 py-4 text-base font-bold text-white shadow-[0_14px_30px_-10px_rgba(27,95,170,0.7)] transition-all hover:-translate-y-1"
+              >
+                Start my 3-day free trial
+                <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+              </Link>
+              <p className="mt-3 text-center text-sm text-ink-soft">
+                You sign up first, then check any food you eat.
+              </p>
+            </div>
           </Reveal>
         </div>
       </section>

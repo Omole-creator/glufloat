@@ -25,7 +25,7 @@ export default function Footer() {
             <p className="font-display font-semibold text-ink">Explore</p>
             <ul className="mt-3 space-y-2 text-ink-soft">
               <li><Link className="hover:text-brand" href="/#how">How it works</Link></li>
-              <li><Link className="hover:text-brand" href="/#demo">Try a food</Link></li>
+              <li><Link className="hover:text-brand" href="/#demo">Try it free</Link></li>
               <li><Link className="hover:text-brand" href="/#pricing">Price</Link></li>
               <li><Link className="hover:text-brand" href="/about">About us</Link></li>
               <li><Link className="hover:text-brand" href="/app">Open the app</Link></li>
