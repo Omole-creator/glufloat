@@ -72,7 +72,13 @@ export default function AppPage() {
   const badge =
     access.status === "trial"
       ? { label: `Free trial: ${access.daysLeft} ${access.daysLeft === 1 ? "day" : "days"} left`, tone: "bg-verdict-green/15 text-leaf-deep" }
-      : { label: `Membership: ${access.daysLeft} ${access.daysLeft === 1 ? "day" : "days"} left`, tone: "bg-brand/10 text-brand-deep" };
+      : {
+          label:
+            access.daysLeft > 366
+              ? "Membership: active"
+              : `Membership: ${access.daysLeft} ${access.daysLeft === 1 ? "day" : "days"} left`,
+          tone: "bg-brand/10 text-brand-deep",
+        };
   const renewSoon = access.status === "subscribed" && access.daysLeft <= 5;
 
   return (
