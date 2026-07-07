@@ -76,8 +76,9 @@ export default function Home() {
               right way.
             </h2>
             <p className="mx-auto mt-4 max-w-xl font-display text-lg leading-relaxed text-ink-soft">
-              For most food, three simple things make it safe. We give you all
-              three, in plain words.
+              For almost any food there is a simple way to make it work for you.
+              Glufloat finds it and shows it to you in plain words, so you never
+              have to guess at your plate again.
             </p>
           </Reveal>
 
@@ -94,8 +95,9 @@ export default function Home() {
                     How much to eat
                   </h3>
                   <p className="mt-2 leading-relaxed text-ink-soft">
-                    Eat a smaller size. We show the size in things you can see,
-                    like the size of your fist, half a cup, or one handful.
+                    You see the right amount for you, shown as something you can
+                    picture, like the size of your fist or a cup. There is no
+                    weighing and no guessing.
                   </p>
                 </div>
               </Reveal>
@@ -106,8 +108,9 @@ export default function Home() {
                     What to eat it with
                   </h3>
                   <p className="mt-2 leading-relaxed text-ink-soft">
-                    Add vegetable soup and some meat, fish, or egg. This slows
-                    the sugar down so it does not rise fast.
+                    You see what to put on the plate with it so the whole meal
+                    works for your sugar. Glufloat tells you, so you do not have
+                    to know it yourself.
                   </p>
                 </div>
               </Reveal>
@@ -118,8 +121,9 @@ export default function Home() {
                     How often to eat it
                   </h3>
                   <p className="mt-2 leading-relaxed text-ink-soft">
-                    Some food is fine every day. Some is only for now and then.
-                    We tell you which is which.
+                    Some food is fine every day, and some is best now and then.
+                    Glufloat tells you which is which for each food, so you can
+                    plan your week with a clear mind.
                   </p>
                 </div>
               </Reveal>
@@ -135,17 +139,11 @@ export default function Home() {
                     When your food is not green, we do not just say no.
                   </h3>
                   <p className="mt-4 text-lg leading-relaxed text-ink-soft">
-                    We show you what to change to make it good. Eat a smaller
-                    size. Add soup. Add fish. Then watch the colour change to
-                    green, right in front of you.
+                    We show you the one small change that makes it good, and you
+                    watch the colour turn to green right in front of you. There
+                    is nothing for you to work out on your own, because Glufloat
+                    has already done it for you.
                   </p>
-                  <Link
-                    href="/trial"
-                    className="group mt-6 inline-flex items-center gap-2 rounded-full bg-leaf px-6 py-3 text-sm font-bold text-white shadow-[0_10px_24px_-10px_rgba(62,155,79,0.8)] transition-all hover:-translate-y-0.5 hover:bg-leaf-deep"
-                  >
-                    Build a meal and see it work
-                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                  </Link>
                 </div>
 
                 <div className="rounded-2xl bg-white p-5 shadow-lg">
@@ -169,9 +167,10 @@ export default function Home() {
                   <div className="mt-4 flex items-start gap-3 rounded-xl bg-mint p-4">
                     <Check className="mt-0.5 h-5 w-5 shrink-0 text-leaf-deep" />
                     <p className="text-sm text-ink">
-                      Eat a smaller size of the pounded yam, like the size of
-                      your fist. Now the whole food is{" "}
+                      Make the small change Glufloat shows you and the whole
+                      meal turns{" "}
                       <span className="font-bold text-leaf-deep">green</span>.
+                      That is your dinner sorted, with no worry after you eat.
                     </p>
                   </div>
                 </div>
