@@ -100,7 +100,7 @@ export default function SearchPanel() {
             {left !== null && left >= 0 && !fullAccess() && (
               <p className="mt-3 text-center text-xs font-medium text-ink-soft">
                 {left === 0
-                  ? "That was your last free check. Start your free week to keep going."
+                  ? "That was your last free check. Start your free trial to keep going."
                   : `${left} free ${left === 1 ? "check" : "checks"} left.`}
               </p>
             )}

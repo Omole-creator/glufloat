@@ -7,7 +7,8 @@
       "garri",
       "white garri",
       "yellow garri",
-      "cassava swallow"
+      "cassava swallow",
+      "cassava flakes"
     ],
     "category": "swallow",
     "role": "starch",
@@ -28,7 +29,8 @@
     "name": "Pounded Yam",
     "aliases": [
       "iyan",
-      "poundo"
+      "poundo",
+      "nni ji"
     ],
     "category": "swallow",
     "role": "starch",
@@ -49,7 +51,8 @@
     "name": "Amala (yam flour)",
     "aliases": [
       "amala",
-      "elubo"
+      "elubo",
+      "amala dudu"
     ],
     "category": "swallow",
     "role": "starch",
@@ -70,7 +73,8 @@
     "name": "Amala (plantain flour)",
     "aliases": [
       "plantain amala",
-      "elubo ogede"
+      "elubo ogede",
+      "plantain swallow"
     ],
     "category": "swallow",
     "role": "starch",
@@ -92,7 +96,8 @@
     "aliases": [
       "fufu",
       "akpu",
-      "cassava fufu"
+      "cassava fufu",
+      "nni akpu"
     ],
     "category": "swallow",
     "role": "starch",
@@ -175,7 +180,9 @@
     "name": "Tuwo Shinkafa (rice swallow)",
     "aliases": [
       "tuwo",
-      "rice tuwo"
+      "rice tuwo",
+      "rice swallow",
+      "tuwo rice"
     ],
     "category": "swallow",
     "role": "starch",
@@ -196,7 +203,8 @@
     "name": "Tuwo Masara (corn swallow)",
     "aliases": [
       "corn tuwo",
-      "masara"
+      "masara",
+      "corn swallow"
     ],
     "category": "swallow",
     "role": "starch",
@@ -238,7 +246,8 @@
     "aliases": [
       "rice",
       "boiled rice",
-      "white rice"
+      "white rice",
+      "cold rice salad"
     ],
     "category": "rice",
     "role": "starch",
@@ -258,7 +267,14 @@
     "name": "Jollof Rice",
     "aliases": [
       "jollof",
-      "party rice"
+      "party rice",
+      "hausa jollof",
+      "party jollof",
+      "native jollof",
+      "firewood jollof",
+      "smoky jollof",
+      "palm oil jollof",
+      "ready jollof pouch"
     ],
     "category": "rice",
     "role": "starch",
@@ -268,7 +284,7 @@
     "portionGuidance": "Half a cup of cooked rice. That is about the size of a tennis ball (90g).",
     "pairingAdvice": "Protein and a side salad or vegetables.",
     "frequency": "Occasional, small.",
-    "logicNote": "Oil and tomato do not lower the sugar load; portion still rules.",
+    "logicNote": "Choose jollof that is not fried too much and go light on the oil. The rice is still a fast starch, so the portion is what matters most.",
     "tags": [
       "local",
       "popular"
@@ -278,7 +294,13 @@
     "id": "fried-rice",
     "name": "Fried Rice",
     "aliases": [
-      "nigerian fried rice"
+      "nigerian fried rice",
+      "fried brown rice",
+      "chicken fried rice",
+      "seafood fried rice",
+      "beef fried rice",
+      "egg fried rice",
+      "curry rice"
     ],
     "category": "rice",
     "role": "starch",
@@ -299,7 +321,8 @@
     "aliases": [
       "ofada",
       "local rice",
-      "unpolished rice"
+      "unpolished rice",
+      "ofada mixed rice"
     ],
     "category": "rice",
     "role": "starch",
@@ -379,7 +402,8 @@
     "name": "Boiled Yam",
     "aliases": [
       "yam",
-      "white yam"
+      "white yam",
+      "yam mash"
     ],
     "category": "tuber",
     "role": "starch",
@@ -400,7 +424,11 @@
     "name": "Fried Yam (dundu)",
     "aliases": [
       "dundu",
-      "fried yam"
+      "fried yam",
+      "yam balls",
+      "yam fingers",
+      "yam crisps",
+      "yam cutlets"
     ],
     "category": "tuber",
     "role": "starch",
@@ -420,7 +448,13 @@
     "name": "Yam Porridge (asaro)",
     "aliases": [
       "asaro",
-      "yam pottage"
+      "yam pottage",
+      "asaro elepo",
+      "ofe ji",
+      "ji mmiri oku mixed",
+      "ji porridge spicy",
+      "ji porridge mild",
+      "ji mmiri porridge"
     ],
     "category": "tuber",
     "role": "starch",
@@ -479,7 +513,8 @@
     "name": "Irish Potato (boiled)",
     "aliases": [
       "potato",
-      "irish potato"
+      "irish potato",
+      "potato mash"
     ],
     "category": "tuber",
     "role": "starch",
@@ -497,7 +532,9 @@
     "name": "Cocoyam (boiled)",
     "aliases": [
       "cocoyam",
-      "ede"
+      "ede",
+      "cocoyam mash",
+      "nni ede"
     ],
     "category": "tuber",
     "role": "starch",
@@ -600,7 +637,12 @@
     "name": "Plantain Chips (fried)",
     "aliases": [
       "plantain chips",
-      "chips"
+      "chips",
+      "plantain crisps",
+      "spiced plantain chips",
+      "salted plantain chips",
+      "sweet plantain chips",
+      "unripe plantain chips"
     ],
     "category": "snack",
     "role": "starch",
@@ -659,7 +701,11 @@
     "name": "Suya",
     "aliases": [
       "suya",
-      "tsire"
+      "tsire",
+      "beef suya stick",
+      "skewered meat",
+      "beef suya",
+      "chicken suya"
     ],
     "category": "snack",
     "role": "protein",
@@ -724,7 +770,11 @@
     "aliases": [
       "boli",
       "bole",
-      "roasted plantain"
+      "roasted plantain",
+      "ripe plantain roast",
+      "grilled plantain slices",
+      "boli fish",
+      "skewered plantain"
     ],
     "category": "snack",
     "role": "starch",
@@ -745,7 +795,10 @@
     "name": "Chin Chin",
     "aliases": [
       "chinchin",
-      "chin chin"
+      "chin chin",
+      "coconut chin chin",
+      "spicy chin chin",
+      "milk chin chin"
     ],
     "category": "snack",
     "role": "sugar",
@@ -765,7 +818,9 @@
     "name": "Puff Puff",
     "aliases": [
       "puff puff",
-      "puff"
+      "puff",
+      "skewered puff-puff",
+      "mandazi"
     ],
     "category": "snack",
     "role": "sugar",
@@ -786,7 +841,14 @@
     "name": "Meat Pie",
     "aliases": [
       "meat pie",
-      "meatpie"
+      "meatpie",
+      "meat turnover",
+      "fish turnover",
+      "mini meat pie",
+      "mini fish pie",
+      "mini chicken pie",
+      "fish pie",
+      "chicken pie"
     ],
     "category": "snack",
     "role": "starch",
@@ -823,7 +885,12 @@
     "id": "buns",
     "name": "Buns",
     "aliases": [
-      "buns"
+      "buns",
+      "raisin bun",
+      "fruit bun",
+      "coconut bun",
+      "honey bun",
+      "sweet bun"
     ],
     "category": "snack",
     "role": "sugar",
@@ -863,7 +930,19 @@
     "name": "Biscuits (sweet)",
     "aliases": [
       "biscuit",
-      "cookies"
+      "cookies",
+      "coconut biscuit",
+      "milk biscuit",
+      "ginger biscuit",
+      "sugar biscuit",
+      "butter biscuit",
+      "spicy biscuit",
+      "sesame biscuit",
+      "cashew biscuit",
+      "groundnut biscuit",
+      "fruit biscuit",
+      "cream crackers",
+      "digestive biscuits"
     ],
     "category": "snack",
     "role": "sugar",
@@ -880,7 +959,15 @@
     "id": "cake",
     "name": "Cake",
     "aliases": [
-      "cake"
+      "cake",
+      "spiced cake",
+      "fruit cake",
+      "marble cake",
+      "coconut cake",
+      "carrot cake",
+      "pound cake",
+      "sponge cake",
+      "cupcake"
     ],
     "category": "snack",
     "role": "sugar",
@@ -897,7 +984,11 @@
     "id": "ice-cream",
     "name": "Ice Cream",
     "aliases": [
-      "ice cream"
+      "ice cream",
+      "ice cream sundae",
+      "ice cream sandwich",
+      "ice cream bar",
+      "frozen yogurt"
     ],
     "category": "snack",
     "role": "sugar",
@@ -917,7 +1008,10 @@
       "beans",
       "brown beans",
       "honey beans",
-      "ewa"
+      "ewa",
+      "black-eyed beans",
+      "white beans",
+      "boiled beans"
     ],
     "category": "legume",
     "role": "legume",
@@ -961,7 +1055,8 @@
     "aliases": [
       "moi moi",
       "moin moin",
-      "moimoi"
+      "moimoi",
+      "bean pudding"
     ],
     "category": "legume",
     "role": "legume",
@@ -983,7 +1078,10 @@
     "aliases": [
       "akara",
       "bean cake",
-      "kosai"
+      "kosai",
+      "bean balls",
+      "bean fritters",
+      "bean croquettes"
     ],
     "category": "legume",
     "role": "legume",
@@ -1025,7 +1123,9 @@
     "id": "okpa",
     "name": "Okpa (Bambara nut pudding)",
     "aliases": [
-      "okpa"
+      "okpa",
+      "boiled bambara nut",
+      "bambara nut"
     ],
     "category": "legume",
     "role": "legume",
@@ -1048,7 +1148,13 @@
     "aliases": [
       "bread",
       "agege bread",
-      "white bread"
+      "white bread",
+      "milk bread",
+      "sugar bread",
+      "honey bread",
+      "raisin bread",
+      "fruit bread",
+      "sliced bread"
     ],
     "category": "bread",
     "role": "starch",
@@ -1090,7 +1196,10 @@
       "pap",
       "akamu",
       "ogi",
-      "koko"
+      "koko",
+      "instant pap",
+      "akamu mix",
+      "koko drink"
     ],
     "category": "cereal",
     "role": "starch",
@@ -1110,7 +1219,8 @@
     "id": "custard",
     "name": "Custard",
     "aliases": [
-      "custard"
+      "custard",
+      "instant custard"
     ],
     "category": "cereal",
     "role": "starch",
@@ -1131,7 +1241,8 @@
     "aliases": [
       "oats",
       "oatmeal",
-      "quaker oats"
+      "quaker oats",
+      "instant oats"
     ],
     "category": "cereal",
     "role": "starch",
@@ -1235,7 +1346,11 @@
     "name": "Egusi Soup",
     "aliases": [
       "egusi",
-      "melon soup"
+      "melon soup",
+      "efo elegusi",
+      "egusi mix",
+      "ofe egusi leaf",
+      "ofe egusi akwu"
     ],
     "category": "soup",
     "role": "soup",
@@ -1256,7 +1371,11 @@
     "name": "Ogbono Soup",
     "aliases": [
       "ogbono",
-      "draw soup"
+      "draw soup",
+      "efere ibaba",
+      "ogbono mix",
+      "ofe ogbono leaf",
+      "ofe ogbono akwu"
     ],
     "category": "soup",
     "role": "soup",
@@ -1278,7 +1397,8 @@
     "aliases": [
       "efo",
       "efo riro",
-      "vegetable stew"
+      "vegetable stew",
+      "obe efo"
     ],
     "category": "soup",
     "role": "soup",
@@ -1300,7 +1420,13 @@
     "name": "Edikang Ikong",
     "aliases": [
       "edikang ikong",
-      "edikaikong"
+      "edikaikong",
+      "efere edikan",
+      "efere ikong",
+      "edikaikong fish",
+      "edikaikong meat",
+      "pepper edikaikong",
+      "edikang ikong mix"
     ],
     "category": "soup",
     "role": "soup",
@@ -1321,7 +1447,12 @@
     "id": "afang-soup",
     "name": "Afang Soup",
     "aliases": [
-      "afang"
+      "afang",
+      "efere afang",
+      "afang fish",
+      "afang meat",
+      "pepper afang",
+      "afang leaf mix"
     ],
     "category": "soup",
     "role": "soup",
@@ -1388,7 +1519,11 @@
     "aliases": [
       "okro",
       "okra soup",
-      "okro soup"
+      "okro soup",
+      "ofe okro",
+      "ila alasepo",
+      "ila asepo",
+      "okra pepper soup"
     ],
     "category": "soup",
     "role": "soup",
@@ -1409,7 +1544,8 @@
     "name": "Vegetable Soup (mixed)",
     "aliases": [
       "vegetable soup",
-      "veggie soup"
+      "veggie soup",
+      "spicy vegetable stew"
     ],
     "category": "soup",
     "role": "soup",
@@ -1429,7 +1565,8 @@
     "name": "Banga Soup (palm fruit)",
     "aliases": [
       "banga",
-      "palm fruit soup"
+      "palm fruit soup",
+      "pepper banga"
     ],
     "category": "soup",
     "role": "soup",
@@ -1449,7 +1586,8 @@
     "id": "ewedu",
     "name": "Ewedu",
     "aliases": [
-      "ewedu"
+      "ewedu",
+      "jute leaf"
     ],
     "category": "soup",
     "role": "soup",
@@ -1515,7 +1653,13 @@
     "aliases": [
       "nsala",
       "white soup",
-      "ofe nsala"
+      "ofe nsala",
+      "afia efere",
+      "afia efere fish",
+      "afia efere goat",
+      "ofe nsala fish",
+      "ofe nsala chicken",
+      "ofe nsala goat"
     ],
     "category": "soup",
     "role": "soup",
@@ -1536,7 +1680,8 @@
     "name": "Pepper Soup",
     "aliases": [
       "pepper soup",
-      "peppersoup"
+      "peppersoup",
+      "ofe azu"
     ],
     "category": "soup",
     "role": "soup",
@@ -1579,7 +1724,16 @@
     "aliases": [
       "chicken",
       "grilled chicken",
-      "boiled chicken"
+      "boiled chicken",
+      "chicken wings",
+      "chicken drumstick",
+      "chicken thigh",
+      "minced chicken",
+      "bbq chicken",
+      "spicy grilled chicken",
+      "mild grilled chicken",
+      "herb grilled chicken",
+      "bbq sauce chicken"
     ],
     "category": "protein",
     "role": "protein",
@@ -1600,7 +1754,17 @@
     "aliases": [
       "beef",
       "meat",
-      "lean beef"
+      "lean beef",
+      "smoked beef",
+      "minced beef",
+      "beef ribs",
+      "grilled beef ribs",
+      "bbq beef",
+      "grilled beef",
+      "boiled beef",
+      "cow tongue",
+      "boiled cow tongue",
+      "smoked cow tongue"
     ],
     "category": "protein",
     "role": "protein",
@@ -1618,7 +1782,11 @@
     "name": "Goat Meat",
     "aliases": [
       "goat meat",
-      "goat"
+      "goat",
+      "goat ribs",
+      "grilled goat ribs",
+      "roasted goat meat",
+      "goat suya"
     ],
     "category": "protein",
     "role": "protein",
@@ -1641,7 +1809,17 @@
       "titus",
       "mackerel",
       "tilapia",
-      "catfish"
+      "catfish",
+      "bbq fish",
+      "spicy grilled fish",
+      "mild grilled fish",
+      "herb grilled fish",
+      "bbq sauce fish",
+      "fish head",
+      "fish tail",
+      "fish cheeks",
+      "fish roe",
+      "boneless fish fillet"
     ],
     "category": "protein",
     "role": "protein",
@@ -1681,7 +1859,16 @@
     "id": "turkey",
     "name": "Turkey",
     "aliases": [
-      "turkey"
+      "turkey",
+      "turkey wings",
+      "turkey drumstick",
+      "minced turkey",
+      "turkey suya",
+      "bbq turkey",
+      "spicy grilled turkey",
+      "mild grilled turkey",
+      "herb grilled turkey",
+      "bbq sauce turkey"
     ],
     "category": "protein",
     "role": "protein",
@@ -1699,7 +1886,8 @@
     "name": "Snail",
     "aliases": [
       "snail",
-      "congo meat"
+      "congo meat",
+      "grilled snail"
     ],
     "category": "protein",
     "role": "protein",
@@ -1720,7 +1908,19 @@
     "aliases": [
       "prawns",
       "crayfish",
-      "shrimp"
+      "shrimp",
+      "dry crayfish",
+      "dry shrimp",
+      "prawn kebab",
+      "fried prawns",
+      "fried shrimps",
+      "shellfish mix",
+      "crayfish powder",
+      "smoked crayfish",
+      "smoked prawns",
+      "dried prawns",
+      "dried shrimps",
+      "ground crayfish mix"
     ],
     "category": "protein",
     "role": "protein",
@@ -1739,7 +1939,10 @@
     "aliases": [
       "pomo",
       "ponmo",
-      "kanda"
+      "kanda",
+      "roasted ponmo",
+      "boiled cow skin",
+      "smoked cow skin"
     ],
     "category": "protein",
     "role": "protein",
@@ -1758,7 +1961,9 @@
     "id": "liver",
     "name": "Liver",
     "aliases": [
-      "liver"
+      "liver",
+      "grilled liver",
+      "goat liver"
     ],
     "category": "protein",
     "role": "protein",
@@ -1776,7 +1981,11 @@
     "name": "Fried Chicken / Fried Fish",
     "aliases": [
       "fried chicken",
-      "fried fish"
+      "fried fish",
+      "chicken popcorn",
+      "fish popcorn",
+      "chicken strips",
+      "fish strips"
     ],
     "category": "protein",
     "role": "protein",
@@ -1818,7 +2027,9 @@
     "name": "Waterleaf",
     "aliases": [
       "waterleaf",
-      "water leaf"
+      "water leaf",
+      "efo gbure",
+      "efo amunututu"
     ],
     "category": "vegetable",
     "role": "vegetable",
@@ -1840,7 +2051,10 @@
     "aliases": [
       "spinach",
       "efo tete",
-      "green"
+      "green",
+      "amaranth leaf",
+      "green amaranth",
+      "wild spinach"
     ],
     "category": "vegetable",
     "role": "vegetable",
@@ -1881,7 +2095,8 @@
     "name": "Okra (vegetable)",
     "aliases": [
       "okra",
-      "okro vegetable"
+      "okro vegetable",
+      "okro pod"
     ],
     "category": "vegetable",
     "role": "vegetable",
@@ -1900,7 +2115,9 @@
     "id": "cucumber",
     "name": "Cucumber",
     "aliases": [
-      "cucumber"
+      "cucumber",
+      "cucumber salad",
+      "pickled cucumber"
     ],
     "category": "vegetable",
     "role": "vegetable",
@@ -1936,7 +2153,9 @@
     "id": "carrot",
     "name": "Carrot",
     "aliases": [
-      "carrot"
+      "carrot",
+      "carrot salad",
+      "pickled carrot"
     ],
     "category": "vegetable",
     "role": "vegetable",
@@ -2068,7 +2287,9 @@
     "id": "orange",
     "name": "Orange",
     "aliases": [
-      "orange"
+      "orange",
+      "sweet orange",
+      "bitter orange"
     ],
     "category": "fruit",
     "role": "fruit",
@@ -2086,7 +2307,9 @@
     "id": "apple",
     "name": "Apple",
     "aliases": [
-      "apple"
+      "apple",
+      "red apple",
+      "green apple"
     ],
     "category": "fruit",
     "role": "fruit",
@@ -2104,7 +2327,8 @@
     "id": "banana",
     "name": "Banana (ripe)",
     "aliases": [
-      "banana"
+      "banana",
+      "banana finger"
     ],
     "category": "fruit",
     "role": "fruit",
@@ -2122,7 +2346,9 @@
     "id": "mango",
     "name": "Mango",
     "aliases": [
-      "mango"
+      "mango",
+      "local mango",
+      "foreign mango"
     ],
     "category": "fruit",
     "role": "fruit",
@@ -2160,7 +2386,8 @@
     "id": "guava",
     "name": "Guava",
     "aliases": [
-      "guava"
+      "guava",
+      "guava pear"
     ],
     "category": "fruit",
     "role": "fruit",
@@ -2266,7 +2493,8 @@
     "aliases": [
       "groundnut",
       "peanut",
-      "epa"
+      "epa",
+      "spiced peanuts"
     ],
     "category": "nut",
     "role": "fat",
@@ -2325,7 +2553,12 @@
     "id": "coconut",
     "name": "Coconut",
     "aliases": [
-      "coconut"
+      "coconut",
+      "coconut paste",
+      "coconut spread",
+      "coconut flakes",
+      "shredded coconut",
+      "coconut chips"
     ],
     "category": "nut",
     "role": "fat",
@@ -2395,7 +2628,15 @@
       "fruit juice",
       "chivita",
       "hollandia juice",
-      "5 alive"
+      "5 alive",
+      "fruit punch",
+      "tropical punch",
+      "citrus punch",
+      "hibiscus punch",
+      "orange juice",
+      "pineapple juice",
+      "watermelon juice",
+      "mixed fruit juice"
     ],
     "category": "drink",
     "role": "drink",
@@ -2415,7 +2656,10 @@
       "malt",
       "maltina",
       "amstel malta",
-      "malta guinness"
+      "malta guinness",
+      "spiced malt",
+      "malt mix",
+      "energy malt"
     ],
     "category": "drink",
     "role": "drink",
@@ -2438,7 +2682,8 @@
       "red bull",
       "monster",
       "fearless",
-      "predator"
+      "predator",
+      "energy juice"
     ],
     "category": "drink",
     "role": "drink",
@@ -2610,7 +2855,11 @@
       "tea",
       "coffee",
       "green tea",
-      "lipton"
+      "lipton",
+      "lemongrass tea",
+      "spiced tea",
+      "spiced coffee",
+      "black tea"
     ],
     "category": "drink",
     "role": "drink",
@@ -2669,7 +2918,8 @@
     "name": "Condensed Milk (sweetened)",
     "aliases": [
       "condensed milk",
-      "peak condensed"
+      "peak condensed",
+      "condensed milk spread"
     ],
     "category": "dairy",
     "role": "dairy",
@@ -2710,7 +2960,10 @@
       "sweet yogurt",
       "flavoured yogurt",
       "yoghurt drink",
-      "hollandia yoghurt"
+      "hollandia yoghurt",
+      "flavored yogurt",
+      "fruit yogurt",
+      "spiced yogurt"
     ],
     "category": "dairy",
     "role": "dairy",
@@ -2749,7 +3002,8 @@
     "name": "Palm Oil",
     "aliases": [
       "palm oil",
-      "red oil"
+      "red oil",
+      "seasoned palm oil"
     ],
     "category": "fat",
     "role": "fat",
@@ -2770,7 +3024,12 @@
     "aliases": [
       "vegetable oil",
       "groundnut oil",
-      "cooking oil"
+      "cooking oil",
+      "seasoned oil",
+      "chili oil",
+      "garlic oil",
+      "ginger oil",
+      "pepper oil"
     ],
     "category": "fat",
     "role": "fat",
@@ -2808,7 +3067,10 @@
     "aliases": [
       "butter",
       "margarine",
-      "blue band"
+      "blue band",
+      "herb butter",
+      "garlic butter",
+      "chili butter"
     ],
     "category": "fat",
     "role": "fat",
@@ -2828,7 +3090,8 @@
       "mayonnaise",
       "mayo",
       "salad cream",
-      "bama"
+      "bama",
+      "bottled mayonnaise"
     ],
     "category": "fat",
     "role": "fat",
@@ -2920,7 +3183,9 @@
     "aliases": [
       "fura",
       "nono",
-      "fura da nono"
+      "fura da nono",
+      "fura powder",
+      "fura balls"
     ],
     "category": "drink",
     "role": "drink",
@@ -2941,7 +3206,8 @@
     "name": "Masa (rice cakes)",
     "aliases": [
       "masa",
-      "waina"
+      "waina",
+      "masa mix"
     ],
     "category": "snack",
     "role": "starch",
@@ -2962,7 +3228,8 @@
     "name": "Dan Wake (bean dumplings)",
     "aliases": [
       "dan wake",
-      "dankwa"
+      "dankwa",
+      "bean dumpling"
     ],
     "category": "legume",
     "role": "legume",
@@ -3003,7 +3270,8 @@
     "id": "kuli-kuli",
     "name": "Kuli Kuli (groundnut cake)",
     "aliases": [
-      "kuli kuli"
+      "kuli kuli",
+      "kuli kuli hausa style"
     ],
     "category": "snack",
     "role": "fat",
@@ -3024,7 +3292,8 @@
     "name": "Dambu Nama (shredded meat)",
     "aliases": [
       "dambu nama",
-      "shredded beef"
+      "shredded beef",
+      "danbu nama"
     ],
     "category": "protein",
     "role": "protein",
@@ -3129,7 +3398,9 @@
     "name": "Ukwa (African breadfruit)",
     "aliases": [
       "ukwa",
-      "breadfruit"
+      "breadfruit",
+      "ukwa dry",
+      "ukwa roasted"
     ],
     "category": "legume",
     "role": "legume",
@@ -3171,7 +3442,9 @@
     "name": "Achicha (dried cocoyam and beans)",
     "aliases": [
       "achicha",
-      "achicha ede"
+      "achicha ede",
+      "ji achicha",
+      "achicha porridge"
     ],
     "category": "tuber",
     "role": "starch",
@@ -3255,7 +3528,10 @@
     "name": "Ekpang Nkukwo (grated cocoyam)",
     "aliases": [
       "ekpang nkukwo",
-      "ekpang"
+      "ekpang",
+      "efere ekpan",
+      "ekpang leaf",
+      "ekpang cocoyam rolls"
     ],
     "category": "tuber",
     "role": "starch",
@@ -3299,7 +3575,8 @@
     "aliases": [
       "stockfish",
       "okporoko",
-      "panla"
+      "panla",
+      "ofe okporoko"
     ],
     "category": "protein",
     "role": "protein",
@@ -3339,7 +3616,15 @@
     "id": "gizzard",
     "name": "Gizzard",
     "aliases": [
-      "gizzard"
+      "gizzard",
+      "gizzard stew",
+      "chicken gizzard",
+      "fried chicken gizzard",
+      "smoked chicken gizzard",
+      "turkey gizzard",
+      "fried turkey gizzard",
+      "grilled gizzard",
+      "obe gizzard"
     ],
     "category": "protein",
     "role": "protein",
@@ -3475,7 +3760,8 @@
     "name": "Onion (alubosa)",
     "aliases": [
       "onion",
-      "alubosa"
+      "alubosa",
+      "onion blend"
     ],
     "category": "vegetable",
     "role": "vegetable",
@@ -3492,7 +3778,8 @@
     "id": "lettuce",
     "name": "Lettuce",
     "aliases": [
-      "lettuce"
+      "lettuce",
+      "mixed greens"
     ],
     "category": "vegetable",
     "role": "vegetable",
@@ -3932,7 +4219,8 @@
     "aliases": [
       "lafun",
       "white amala",
-      "cassava flour swallow"
+      "cassava flour swallow",
+      "amala lafun"
     ],
     "category": "swallow",
     "role": "starch",
@@ -3952,7 +4240,8 @@
     "id": "coconut-rice",
     "name": "Coconut Rice",
     "aliases": [
-      "coconut rice"
+      "coconut rice",
+      "coconut jollof"
     ],
     "category": "rice",
     "role": "starch",
@@ -4095,7 +4384,9 @@
     "name": "Okazi Soup",
     "aliases": [
       "okazi soup",
-      "ukazi soup"
+      "ukazi soup",
+      "okazi soup mix",
+      "pepper okazi"
     ],
     "category": "soup",
     "role": "soup",
@@ -4136,7 +4427,11 @@
     "name": "Atama Soup (Abak)",
     "aliases": [
       "atama soup",
-      "abak atama"
+      "abak atama",
+      "abak soup",
+      "efere atama",
+      "atama fish",
+      "atama meat"
     ],
     "category": "soup",
     "role": "soup",
@@ -4157,7 +4452,9 @@
     "name": "Ofe Akwu (palm fruit sauce)",
     "aliases": [
       "ofe akwu",
-      "palm fruit sauce"
+      "palm fruit sauce",
+      "ofe akwu fish",
+      "ofe akwu meat"
     ],
     "category": "soup",
     "role": "soup",
@@ -4240,7 +4537,10 @@
     "name": "Ram Meat (mutton)",
     "aliases": [
       "ram meat",
-      "mutton"
+      "mutton",
+      "roasted ram meat",
+      "grilled ram meat",
+      "ram suya"
     ],
     "category": "protein",
     "role": "protein",
@@ -4259,7 +4559,9 @@
     "id": "kidney",
     "name": "Kidney (offal)",
     "aliases": [
-      "kidney"
+      "kidney",
+      "grilled kidney",
+      "goat kidney"
     ],
     "category": "protein",
     "role": "protein",
@@ -4294,7 +4596,8 @@
     "id": "corned-beef",
     "name": "Corned Beef (canned)",
     "aliases": [
-      "corned beef"
+      "corned beef",
+      "corned beef slices"
     ],
     "category": "protein",
     "role": "protein",
@@ -4313,7 +4616,8 @@
     "aliases": [
       "soko",
       "celosia",
-      "lagos spinach"
+      "lagos spinach",
+      "efo shoko"
     ],
     "category": "vegetable",
     "role": "vegetable",
@@ -4505,7 +4809,8 @@
     "id": "chapman",
     "name": "Chapman",
     "aliases": [
-      "chapman"
+      "chapman",
+      "non-alcoholic cocktail"
     ],
     "category": "drink",
     "role": "drink",
@@ -4608,7 +4913,11 @@
     "name": "Fruit Smoothie",
     "aliases": [
       "smoothie",
-      "fruit smoothie"
+      "fruit smoothie",
+      "banana smoothie",
+      "mango smoothie",
+      "pawpaw smoothie",
+      "tropical smoothie"
     ],
     "category": "drink",
     "role": "drink",
@@ -4627,7 +4936,10 @@
     "aliases": [
       "nono",
       "fermented milk",
-      "nunu"
+      "nunu",
+      "nono fresh",
+      "nono thick",
+      "nono light"
     ],
     "category": "dairy",
     "role": "dairy",
@@ -4723,7 +5035,8 @@
     "id": "samosa",
     "name": "Samosa",
     "aliases": [
-      "samosa"
+      "samosa",
+      "mini samosa"
     ],
     "category": "snack",
     "role": "starch",
@@ -4743,7 +5056,8 @@
     "id": "spring-roll",
     "name": "Spring Roll",
     "aliases": [
-      "spring roll"
+      "spring roll",
+      "mini spring roll"
     ],
     "category": "snack",
     "role": "starch",
@@ -4804,7 +5118,9 @@
     "name": "Donkwa / Dankwa (groundnut snack)",
     "aliases": [
       "donkwa",
-      "dankwa"
+      "dankwa",
+      "dakuwa",
+      "dakuwa sweet"
     ],
     "category": "snack",
     "role": "fat",
@@ -4844,7 +5160,8 @@
     "id": "aadun",
     "name": "Aadun (corn snack)",
     "aliases": [
-      "aadun"
+      "aadun",
+      "adun"
     ],
     "category": "snack",
     "role": "starch",
@@ -4923,7 +5240,8 @@
     "id": "ginger",
     "name": "Ginger",
     "aliases": [
-      "ginger"
+      "ginger",
+      "ginger blend"
     ],
     "category": "condiment",
     "role": "condiment",
@@ -4942,7 +5260,8 @@
     "id": "garlic",
     "name": "Garlic",
     "aliases": [
-      "garlic"
+      "garlic",
+      "garlic blend"
     ],
     "category": "condiment",
     "role": "condiment",
@@ -4962,7 +5281,8 @@
       "locust bean",
       "iru",
       "dawadawa",
-      "ogiri"
+      "ogiri",
+      "iru mix"
     ],
     "category": "condiment",
     "role": "condiment",
@@ -5002,7 +5322,8 @@
     "name": "Ketchup",
     "aliases": [
       "ketchup",
-      "tomato ketchup"
+      "tomato ketchup",
+      "bottled ketchup"
     ],
     "category": "condiment",
     "role": "condiment",
@@ -5023,7 +5344,10 @@
       "ata rodo",
       "scotch bonnet",
       "shombo",
-      "rodo"
+      "rodo",
+      "pickled pepper",
+      "pepper mix",
+      "pepper blend"
     ],
     "category": "condiment",
     "role": "vegetable",
@@ -5425,7 +5749,9 @@
       "coleslaw",
       "salad",
       "vegetable salad",
-      "garden salad"
+      "garden salad",
+      "mixed vegetable salad",
+      "cold vegetable salad"
     ],
     "category": "vegetable",
     "role": "vegetable",
@@ -5741,7 +6067,9 @@
     "name": "Baguette (French bread)",
     "aliases": [
       "baguette",
-      "french bread"
+      "french bread",
+      "garlic bread",
+      "herb bread"
     ],
     "category": "bread",
     "role": "starch",
@@ -5800,7 +6128,11 @@
       "fish stew",
       "chicken stew",
       "beef stew",
-      "assorted meat stew"
+      "assorted meat stew",
+      "meat stew base",
+      "obe eja",
+      "obe iru",
+      "ready stew pouch"
     ],
     "category": "soup",
     "role": "soup",
@@ -5855,7 +6187,15 @@
     "aliases": [
       "pepper sauce",
       "ata dindin",
-      "fried pepper sauce"
+      "fried pepper sauce",
+      "pepper stew",
+      "ofada ata",
+      "ata sisun",
+      "chili sauce",
+      "pepper paste",
+      "bottled pepper paste",
+      "bottled chili sauce",
+      "aganyin sauce"
     ],
     "category": "soup",
     "role": "soup",
@@ -5909,7 +6249,11 @@
     "aliases": [
       "smoked fish",
       "dry fish",
-      "dried fish"
+      "dried fish",
+      "smoked catfish",
+      "smoked tilapia",
+      "smoked croaker",
+      "smoked sardine"
     ],
     "category": "protein",
     "role": "protein",
@@ -6053,7 +6397,12 @@
     "id": "fruit-salad",
     "name": "Fruit Salad",
     "aliases": [
-      "fruit salad"
+      "fruit salad",
+      "fruit mix",
+      "tropical fruit mix",
+      "mixed citrus",
+      "citrus salad",
+      "cold fruit plate"
     ],
     "category": "fruit",
     "role": "fruit",
@@ -6073,7 +6422,11 @@
       "sesame",
       "sesame seed",
       "beniseed",
-      "benniseed"
+      "benniseed",
+      "sesame snack",
+      "sesame paste",
+      "sesame spread",
+      "seed butter"
     ],
     "category": "nut",
     "role": "fat",
@@ -6091,7 +6444,12 @@
     "name": "Mixed Nuts",
     "aliases": [
       "mixed nuts",
-      "assorted nuts"
+      "assorted nuts",
+      "nut mix",
+      "spiced nut mix",
+      "roasted nut mix",
+      "cashew snack",
+      "nut topping"
     ],
     "category": "nut",
     "role": "fat",
@@ -6110,7 +6468,8 @@
     "aliases": [
       "peanut butter",
       "groundnut paste",
-      "groundnut butter"
+      "groundnut butter",
+      "nut butter mix"
     ],
     "category": "nut",
     "role": "fat",
@@ -6183,7 +6542,9 @@
     "aliases": [
       "peanut candy",
       "groundnut brittle",
-      "groundnut candy"
+      "groundnut candy",
+      "sesame brittle",
+      "cashew brittle"
     ],
     "category": "snack",
     "role": "starch",
@@ -6220,7 +6581,12 @@
     "name": "Chocolate Spread",
     "aliases": [
       "chocolate spread",
-      "nutella"
+      "nutella",
+      "chocolate sauce",
+      "caramel sauce",
+      "chocolate topping",
+      "caramel topping",
+      "vanilla sauce"
     ],
     "category": "sugar",
     "role": "starch",
@@ -6239,7 +6605,9 @@
     "aliases": [
       "jam",
       "marmalade",
-      "fruit jam"
+      "fruit jam",
+      "strawberry sauce",
+      "fruit topping"
     ],
     "category": "sugar",
     "role": "starch",
@@ -6274,5 +6642,272 @@
     "tags": [
       "processed"
     ]
+  },
+  {
+    "id": "tuwo-dawa",
+    "name": "Tuwo Dawa (sorghum swallow)",
+    "aliases": [
+      "tuwo dawa",
+      "sorghum swallow",
+      "tuwo sorghum",
+      "tuwo millet"
+    ],
+    "category": "swallow",
+    "role": "starch",
+    "carbLoad": "high",
+    "gi": "medium",
+    "baseVerdict": "yellow",
+    "portionGuidance": "One ball the size of your fist. That is about half a cup (100g).",
+    "pairingAdvice": "A green vegetable soup like miyan kuka or okra, plus fish or meat.",
+    "frequency": "About 3 times a week.",
+    "logicNote": "A sorghum swallow. Whole grain, but still a starch, so keep the ball small.",
+    "tags": [
+      "local",
+      "northern"
+    ]
+  },
+  {
+    "id": "chickpeas",
+    "name": "Chickpeas (boiled)",
+    "aliases": [
+      "chickpeas",
+      "chickpea",
+      "boiled chickpeas",
+      "chickpea salad",
+      "chickpea stew",
+      "fried chickpeas",
+      "garbanzo"
+    ],
+    "category": "legume",
+    "role": "legume",
+    "carbLoad": "medium",
+    "gi": "low",
+    "baseVerdict": "green",
+    "portionGuidance": "Half a cup, cooked (about 130g).",
+    "pairingAdvice": "In stews and salads, with vegetables.",
+    "frequency": "About 4 times a week.",
+    "logicNote": "A legume with fibre and protein, so the sugar rises slowly.",
+    "tags": []
+  },
+  {
+    "id": "lentils",
+    "name": "Lentils",
+    "aliases": [
+      "lentils",
+      "lentil",
+      "lentil stew",
+      "lentil porridge"
+    ],
+    "category": "legume",
+    "role": "legume",
+    "carbLoad": "medium",
+    "gi": "low",
+    "baseVerdict": "green",
+    "portionGuidance": "Half a cup, cooked (about 130g).",
+    "pairingAdvice": "In stews and soups, with vegetables.",
+    "frequency": "About 4 times a week.",
+    "logicNote": "A low-GI legume, high in fibre and protein; friendly for sugar.",
+    "tags": []
+  },
+  {
+    "id": "sausage",
+    "name": "Sausage (processed)",
+    "aliases": [
+      "sausage",
+      "meat sausage",
+      "chicken sausage",
+      "fish sausage",
+      "mini sausage"
+    ],
+    "category": "protein",
+    "role": "protein",
+    "carbLoad": "low",
+    "gi": "low",
+    "baseVerdict": "yellow",
+    "portionGuidance": "One to two sausages (about 90g).",
+    "pairingAdvice": "With eggs and vegetables, not bread.",
+    "frequency": "About 2 times a week.",
+    "logicNote": "Low in carbs but processed, salty, and high in fat. Keep it occasional.",
+    "tags": [
+      "processed"
+    ]
+  },
+  {
+    "id": "alkaki",
+    "name": "Alkaki",
+    "aliases": [
+      "alkaki",
+      "alkaki sweet"
+    ],
+    "category": "snack",
+    "role": "starch",
+    "carbLoad": "high",
+    "gi": "high",
+    "baseVerdict": "red",
+    "portionGuidance": "Avoid. If you do have it, only one small piece.",
+    "pairingAdvice": "Better to snack on about 10 nuts.",
+    "frequency": "Rarely; a treat.",
+    "logicNote": "Fried wheat dough soaked in sugar syrup; it raises sugar fast.",
+    "tags": [
+      "local",
+      "northern"
+    ]
+  },
+  {
+    "id": "radish",
+    "name": "Radish",
+    "aliases": [
+      "radish"
+    ],
+    "category": "vegetable",
+    "role": "vegetable",
+    "carbLoad": "low",
+    "gi": "low",
+    "baseVerdict": "green",
+    "portionGuidance": "A small handful, sliced (about 100g).",
+    "pairingAdvice": "In salads and stir-fries.",
+    "frequency": "You can eat this every day.",
+    "logicNote": "A crunchy root with almost no sugar.",
+    "tags": []
+  },
+  {
+    "id": "turnip",
+    "name": "Turnip",
+    "aliases": [
+      "turnip"
+    ],
+    "category": "vegetable",
+    "role": "vegetable",
+    "carbLoad": "low",
+    "gi": "low",
+    "baseVerdict": "green",
+    "portionGuidance": "Half a cup, cooked (about 80g).",
+    "pairingAdvice": "In soups, stews, and stir-fries.",
+    "frequency": "About 4 times a week.",
+    "logicNote": "A low-sugar root vegetable with fibre.",
+    "tags": []
+  },
+  {
+    "id": "bean-sprouts",
+    "name": "Bean Sprouts",
+    "aliases": [
+      "bean sprouts",
+      "sprouts",
+      "beansprouts"
+    ],
+    "category": "vegetable",
+    "role": "vegetable",
+    "carbLoad": "low",
+    "gi": "low",
+    "baseVerdict": "green",
+    "portionGuidance": "One cup (about 100g).",
+    "pairingAdvice": "In stir-fries and salads with protein.",
+    "frequency": "You can eat this every day.",
+    "logicNote": "Crunchy sprouts, very low in sugar.",
+    "tags": []
+  },
+  {
+    "id": "seeds",
+    "name": "Seeds (pumpkin, sunflower, flax, chia)",
+    "aliases": [
+      "pumpkin seed",
+      "sunflower seed",
+      "flax seed",
+      "chia seed",
+      "seed mix",
+      "spiced seed mix",
+      "seeds"
+    ],
+    "category": "nut",
+    "role": "fat",
+    "carbLoad": "low",
+    "gi": "low",
+    "baseVerdict": "green",
+    "portionGuidance": "One tablespoon (about 15g).",
+    "pairingAdvice": "Sprinkle on salads, yogurt, and oats.",
+    "frequency": "You can eat this every day.",
+    "logicNote": "Seeds give healthy fat, fibre, and a little protein, with almost no sugar.",
+    "tags": []
+  },
+  {
+    "id": "dried-fruit",
+    "name": "Dried Fruit (mango, pineapple, banana)",
+    "aliases": [
+      "dried fruit",
+      "dried mango",
+      "dried pineapple",
+      "dried banana",
+      "dried pawpaw",
+      "dried fruit mix",
+      "fruit leather",
+      "fruit cubes"
+    ],
+    "category": "fruit",
+    "role": "fruit",
+    "carbLoad": "high",
+    "gi": "high",
+    "baseVerdict": "red",
+    "portionGuidance": "Avoid. If you do have it, only one tablespoon (about 15g).",
+    "pairingAdvice": "Better to eat the fresh fruit instead.",
+    "frequency": "Rarely; a treat.",
+    "logicNote": "Drying removes the water and packs the sugar tight, so a small handful spikes fast. Fresh fruit is better.",
+    "tags": []
+  },
+  {
+    "id": "canned-fruit",
+    "name": "Canned Fruit (in syrup)",
+    "aliases": [
+      "canned fruit",
+      "canned pineapple",
+      "canned mango",
+      "canned mixed fruit"
+    ],
+    "category": "fruit",
+    "role": "fruit",
+    "carbLoad": "high",
+    "gi": "high",
+    "baseVerdict": "red",
+    "portionGuidance": "Avoid. Choose fresh fruit instead.",
+    "pairingAdvice": "Better to eat fresh fruit, or fruit canned in water, not syrup.",
+    "frequency": "Rarely; a treat.",
+    "logicNote": "Fruit canned in syrup sits in added sugar, which spikes fast. Fresh fruit is better.",
+    "tags": [
+      "processed"
+    ]
+  },
+  {
+    "id": "potato-salad",
+    "name": "Potato Salad",
+    "aliases": [
+      "potato salad"
+    ],
+    "category": "snack",
+    "role": "starch",
+    "carbLoad": "medium",
+    "gi": "medium",
+    "baseVerdict": "yellow",
+    "portionGuidance": "Half a cup (about 130g).",
+    "pairingAdvice": "Add a boiled egg and vegetables. Go easy on the mayonnaise.",
+    "frequency": "About 2 times a week.",
+    "logicNote": "Boiled potato with mayonnaise; the potato is a starch, so keep the portion small.",
+    "tags": []
+  },
+  {
+    "id": "mustard",
+    "name": "Mustard",
+    "aliases": [
+      "mustard",
+      "bottled mustard"
+    ],
+    "category": "condiment",
+    "role": "condiment",
+    "carbLoad": "low",
+    "gi": "low",
+    "baseVerdict": "green",
+    "portionGuidance": "One to two teaspoons.",
+    "pairingAdvice": "With meat, eggs, and in dressings.",
+    "frequency": "You can eat this every day.",
+    "logicNote": "A tangy, low-sugar condiment. Check the label and skip honey mustard.",
+    "tags": []
   }
 ]

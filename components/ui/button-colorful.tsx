@@ -11,7 +11,7 @@ interface ButtonColorfulProps
 // instead of the original indigo/purple/pink.
 export function ButtonColorful({
   className,
-  label = "Start my 7-day free trial",
+  label = "Start my 3-day free trial",
   ...props
 }: ButtonColorfulProps) {
   return (

@@ -106,11 +106,11 @@ function Hero() {
             href="/trial"
             className="group inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-brand to-leaf px-7 py-4 text-base font-bold text-white shadow-[0_14px_30px_-10px_rgba(27,95,170,0.7)] transition-all hover:-translate-y-1 hover:shadow-[0_20px_40px_-10px_rgba(27,95,170,0.85)]"
           >
-            Start my 7-day free trial
+            Start my 3-day free trial
             <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
           </Link>
           <p className="mt-4 text-sm text-ink-soft">
-            7 days free. You do not need a card. After that it is N1,500 a
+            3 days free. You do not need a card. After that it is N1,500 a
             month, and you can stop any time.
           </p>
         </motion.div>

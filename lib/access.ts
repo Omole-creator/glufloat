@@ -1,8 +1,8 @@
 /**
  * MVP access gating (client-side, localStorage).
  *
- * The 7-day free trial runs on the visitor's device: tapping "Start my
- * free trial" stamps a start date and unlocks everything for 7 days, no
+ * The 3-day free trial runs on the visitor's device: tapping "Start my
+ * free trial" stamps a start date and unlocks everything for 3 days, no
  * card needed (Nestuge does not support pre-subscription trials).
  *
  * When the trial ends, the paywall points to Nestuge
@@ -17,7 +17,7 @@
 
 export const NESTUGE_URL = "https://nestuge.com/glufloat";
 export const FREE_LIMIT = 3;
-export const TRIAL_DAYS = 7;
+export const TRIAL_DAYS = 3;
 export const MONTH_DAYS = 30;
 /** Start reminding this many days before the paid month ends. */
 export const RENEW_WARN_DAYS = 5;
@@ -102,7 +102,7 @@ export function getRenewalState(): RenewalState {
   return { status: "ok", daysLeft };
 }
 
-/* ---------- 7-day trial (device-based, no card) ---------- */
+/* ---------- 3-day trial (device-based, no card) ---------- */
 
 export type TrialState =
   | { status: "none" }
@@ -115,8 +115,8 @@ export function getTrialState(): TrialState {
   if (!raw) return { status: "none" };
   const start = parseInt(raw, 10);
   if (!start) return { status: "none" };
-  // Count by calendar day: the start day shows 7 left, the next day 6, and so
-  // on. The trial covers 7 calendar days and ends at the start of the 8th.
+  // Count by calendar day: the start day shows 3 left, the next day 6, and so
+  // on. The trial covers 3 calendar days and ends at the start of the 4th.
   const daysLeft = TRIAL_DAYS - calendarDaysBetween(start, Date.now());
   if (daysLeft > 0) return { status: "active", daysLeft };
   return { status: "expired" };

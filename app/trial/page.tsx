@@ -67,7 +67,7 @@ export default function TrialPage() {
           ) : state.status === "expired" ? (
             <>
               <h1 className="font-display text-2xl font-bold text-ink">
-                Your free week is done.
+                Your free trial is done.
               </h1>
               <p className="mt-2 text-sm leading-relaxed text-ink-soft">
                 Keep every answer and the full Meal Builder for N1,500 a
@@ -92,22 +92,22 @@ export default function TrialPage() {
           ) : (
             <>
               <p className="text-sm font-semibold text-leaf-deep">
-                Free for 7 days. You do not need a card.
+                Free for 3 days. You do not need a card.
               </p>
               <h1 className="mt-2 font-display text-2xl font-bold text-ink">
-                Open the whole app for one week, free.
+                Open the whole app for 3 days, free.
               </h1>
               <ul className="mx-auto mt-5 max-w-xs space-y-2 text-left text-sm text-ink-soft">
                 <li className="flex gap-2">
                   <span className="text-leaf">✓</span> Check as many foods as you
-                  want, all 300+ of them
+                  want, all 1,400+ of them
                 </li>
                 <li className="flex gap-2">
                   <span className="text-leaf">✓</span> Build a full meal and get
                   the fix that makes it green
                 </li>
                 <li className="flex gap-2">
-                  <span className="text-leaf">✓</span> After the week it is
+                  <span className="text-leaf">✓</span> After the 3 days it is
                   N1,500 a month, only if you want to keep it
                 </li>
               </ul>
@@ -115,10 +115,10 @@ export default function TrialPage() {
                 onClick={begin}
                 className="mt-6 w-full rounded-full bg-gradient-to-r from-brand to-leaf px-6 py-3.5 text-sm font-bold text-white shadow-[0_10px_24px_-10px_rgba(27,95,170,0.8)] transition-all hover:-translate-y-0.5"
               >
-                Start my free week now
+                Start my free trial now
               </button>
               <p className="mt-3 text-xs text-ink-soft">
-                Nothing is taken from you during the free week.
+                Nothing is taken from you during the free trial.
               </p>
             </>
           )}

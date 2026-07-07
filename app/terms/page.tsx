@@ -41,7 +41,7 @@ export default function TermsPage() {
       <h2>3. Trial, subscription, and payment</h2>
       <ul>
         <li>
-          New users get a 7-day free trial with full access on their device.
+          New users get a 3-day free trial with full access on their device.
           No payment details are collected for the trial, and nothing is
           charged during it.
         </li>

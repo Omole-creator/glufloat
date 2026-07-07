@@ -2,7 +2,7 @@ import { track } from "@vercel/analytics";
 
 /**
  * Lightweight usage events, visible in the Vercel Analytics dashboard.
- * This is how you can see people using the site during the free week,
+ * This is how you can see people using the site during the free trial,
  * even though nobody signs up. It counts actions, not identities.
  */
 export const events = {

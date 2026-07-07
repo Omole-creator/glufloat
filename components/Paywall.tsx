@@ -27,7 +27,7 @@ export default function Paywall({ context }: { context: "search" | "meal" }) {
       <div className="bg-gradient-to-r from-brand to-leaf px-6 py-4">
         <p className="text-sm font-bold text-white">
           {expired
-            ? "Your free week is done."
+            ? "Your free trial is done."
             : context === "search"
               ? "You have used your 3 free checks."
               : "The Meal Builder is a member feature."}
@@ -38,11 +38,11 @@ export default function Paywall({ context }: { context: "search" | "meal" }) {
         <h3 className="font-display text-xl font-bold text-ink">
           {expired
             ? "Keep every answer for less than N50 a day."
-            : "Unlock everything free for 7 days. No card needed."}
+            : "Unlock everything free for 3 days. No card needed."}
         </h3>
         <ul className="mt-4 space-y-2 text-sm text-ink-soft">
           <li className="flex gap-2">
-            <span className="text-leaf">✓</span> Unlimited checks on all 300+
+            <span className="text-leaf">✓</span> Unlimited checks on all 1,400+
             Nigerian foods, growing monthly
           </li>
           <li className="flex gap-2">
@@ -57,7 +57,7 @@ export default function Paywall({ context }: { context: "search" | "meal" }) {
             <span className="text-leaf">✓</span>{" "}
             {expired
               ? "N1,500 a month. Cancel any time"
-              : "7 days free on this device, then N1,500 a month if you stay"}
+              : "3 days free on this device, then N1,500 a month if you stay"}
           </li>
         </ul>
 
@@ -73,14 +73,14 @@ export default function Paywall({ context }: { context: "search" | "meal" }) {
             onClick={begin}
             className="mt-6 block w-full rounded-full bg-brand px-6 py-3.5 text-center text-sm font-bold text-white shadow-[0_10px_24px_-10px_rgba(27,95,170,0.8)] transition-all hover:-translate-y-0.5 hover:bg-brand-deep"
           >
-            Start my 7-day free trial
+            Start my 3-day free trial
           </button>
         )}
 
         <p className="mt-3 text-center text-xs text-ink-soft">
           {expired
             ? "Secure checkout via Nestuge. Your access code arrives right after payment."
-            : "Nothing to pay today. When your week ends, membership is N1,500 a month via Nestuge."}
+            : "Nothing to pay today. When your 3 days end, membership is N1,500 a month via Nestuge."}
         </p>
         <p className="mt-4 text-center text-xs text-ink-soft">
           Already a member?{" "}

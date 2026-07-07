@@ -215,7 +215,7 @@ export default function Home() {
               <p className="mt-5 font-display text-lg leading-relaxed text-ink-soft">
                 The popular food apps were built abroad. They do not know
                 jollof, eba, or amala, and they do not know we eat with soup.
-                Glufloat knows over 300 of our own foods, and it always shows
+                Glufloat knows over 1,400 of our own foods, and it always shows
                 you how to make a food safe.
               </p>
 
@@ -279,7 +279,7 @@ export default function Home() {
           </Reveal>
           <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {[
-              { end: 300, suffix: "+", unit: "Nigerian foods", label: "and we add more every month" },
+              { end: 1400, suffix: "+", unit: "Nigerian foods", label: "and we add more every month" },
               { end: 200, suffix: "+", unit: "checks a minute", label: "by people just like you" },
               { end: 3, suffix: "", unit: "clear colours", label: "green, yellow, or red. That is all" },
               { end: 10, suffix: " sec", unit: "to an answer", label: "faster than dishing the food" },
@@ -335,7 +335,7 @@ export default function Home() {
                 href="/trial"
                 className="group mt-7 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-brand to-leaf px-7 py-4 text-base font-bold text-white shadow-[0_14px_30px_-10px_rgba(27,95,170,0.7)] transition-all hover:-translate-y-1"
               >
-                Start my 7-day free trial
+                Start my 3-day free trial
                 <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
               </Link>
             </Reveal>
@@ -353,7 +353,7 @@ export default function Home() {
             </h2>
             <p className="mx-auto mt-4 max-w-xl font-display text-lg leading-relaxed text-ink-soft">
               One visit to the clinic costs more than a whole year of Glufloat.
-              Start free for a week and see for yourself.
+              Start free for 3 days and see for yourself.
             </p>
           </Reveal>
 
@@ -366,7 +366,7 @@ export default function Home() {
               </div>
               <div className="p-8 text-center">
                 <p className="text-base font-semibold text-leaf-deep">
-                  Your first 7 days are free. You do not need a card.
+                  Your first 3 days are free. You do not need a card.
                 </p>
                 <p className="mt-3 font-display text-5xl font-bold text-ink">
                   N1,500
@@ -379,7 +379,7 @@ export default function Home() {
 
                 <ul className="mx-auto mt-6 max-w-sm space-y-3 text-left text-ink">
                   {[
-                    "Check as many foods as you want, all 300+ of them",
+                    "Check as many foods as you want, all 1,400+ of them",
                     "Build a full meal and get the fix that makes it green",
                     "See the safe size, what to eat it with, and how often",
                     "Works on any phone, right away",
@@ -398,11 +398,11 @@ export default function Home() {
                   href="/trial"
                   className="group mt-8 flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-brand to-leaf px-8 py-4 text-base font-bold text-white shadow-[0_14px_30px_-10px_rgba(27,95,170,0.7)] transition-all hover:-translate-y-1"
                 >
-                  Start my 7-day free trial
+                  Start my 3-day free trial
                   <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
                 </Link>
                 <p className="mt-3 text-sm text-ink-soft">
-                  Nothing is taken from you during the free week.
+                  Nothing is taken from you during the free trial.
                 </p>
               </div>
             </div>
@@ -437,17 +437,17 @@ export default function Home() {
             <p className="mx-auto mt-6 max-w-xl font-display text-lg leading-relaxed text-white/75">
               Guessing means the same worry, and the same high sugar after you
               eat. Knowing takes ten seconds and a meal you feel good about. The
-              first week is free, so you risk nothing.
+              first 3 days are free, so you risk nothing.
             </p>
             <Link
               href="/trial"
               className="group mt-8 inline-flex items-center gap-2 rounded-full bg-leaf px-8 py-4 text-base font-bold text-white shadow-[0_14px_30px_-10px_rgba(62,155,79,0.6)] transition-all hover:-translate-y-1 hover:bg-leaf-deep"
             >
-              Start my 7-day free trial
+              Start my 3-day free trial
               <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
             </Link>
             <p className="mt-4 text-sm text-white/60">
-              7 days free, no card. Then N1,500 a month. Stop any time.
+              3 days free, no card. Then N1,500 a month. Stop any time.
             </p>
           </Reveal>
         </div>

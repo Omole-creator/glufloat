@@ -67,10 +67,10 @@ ok("meal builder gated", await page.getByText("The Meal Builder is a member feat
 
 // 4b. trial flow: start trial -> meal builder unlocked, badge shows
 await page.goto(`${BASE}/trial`, { waitUntil: "networkidle" });
-await page.getByRole("button", { name: "Start my free week now" }).click();
+await page.getByRole("button", { name: "Start my free trial now" }).click();
 await page.waitForURL("**/app");
 await page.waitForTimeout(500);
-ok("trial badge shows days left", await page.getByText("Free trial: 7 days left").isVisible());
+ok("trial badge shows days left", await page.getByText("Free trial: 3 days left").isVisible());
 await page.getByRole("button", { name: "Build a meal" }).click();
 await page.waitForTimeout(300);
 ok("meal builder open during trial", await page.getByText("Add everything you are eating", { exact: false }).isVisible());

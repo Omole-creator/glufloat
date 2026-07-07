@@ -5,6 +5,7 @@ import { Clock } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import DisclaimerGate from "@/components/DisclaimerGate";
+import FeedbackPopup from "@/components/FeedbackPopup";
 import SearchPanel from "@/components/SearchPanel";
 import MealBuilder from "@/components/MealBuilder";
 import {
@@ -30,6 +31,7 @@ export default function AppPage() {
     <>
       <Navbar />
       <DisclaimerGate />
+      <FeedbackPopup />
 
       {(renewal.status === "due" || renewal.status === "over") && (
         <div className="fixed inset-x-0 top-16 z-40 bg-verdict-yellow/95 px-4 py-2.5 text-center text-sm font-semibold text-ink shadow-md">

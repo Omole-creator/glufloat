@@ -4,15 +4,15 @@ import { useState } from "react";
 
 const FAQS: { q: string; a: string }[] = [
   {
-    q: "Is this the same as advice from my doctor?",
-    a: "No. Glufloat gives you general help about food only. It does not test you, treat you, or cure anything, and it is not your doctor. Keep taking your medicine and checking your sugar the way you were told.",
+    q: "Is this the same as advice from my doctor or dietitian?",
+    a: "No. Glufloat gives you general help about food only. It does not test you, treat you, or cure anything, and it is not your doctor or dietitian. Keep taking your medicine and checking your sugar the way you were told.",
   },
   {
-    q: "How does the free week work?",
-    a: "Tap the free trial button and the whole app opens for you for 7 days. You do not give a card, and nothing is taken from you. If you do not like it, just stop. Simple as that.",
+    q: "How does the free trial work?",
+    a: "Tap the free trial button and the whole app opens for you for 3 days. You do not give a card, and nothing is taken from you. If you do not like it, just stop. Simple as that.",
   },
   {
-    q: "What happens when my free week ends?",
+    q: "What happens when my free trial ends?",
     a: "The app locks, and you decide. To keep using it, you pay N1,500 a month, about N50 a day, on our secure Nestuge page. The moment you pay, you get a short code that opens the app again.",
   },
   {
@@ -21,11 +21,11 @@ const FAQS: { q: string; a: string }[] = [
   },
   {
     q: "Can I stop paying whenever I want?",
-    a: "Yes. During the free week there is nothing to stop, because no card was taken. If you are paying, you stop in a few taps on your Nestuge account, and you keep the app until the month you paid for is finished.",
+    a: "Yes. During the free trial there is nothing to stop, because no card was taken. If you are paying, you stop in a few taps on your Nestuge account, and you keep the app until the month you paid for is finished.",
   },
   {
     q: "Will my own food be in the app?",
-    a: "Yes. We have over 300 of our foods: eba, amala, jollof, moi moi, suya, zobo, and many more. If yours is not there yet, we add new ones every month.",
+    a: "Yes. We have over 1,400 of our foods: eba, amala, jollof, moi moi, suya, zobo, and many more. If yours is not there yet, we add new ones every month.",
   },
   {
     q: "I take insulin. Is this for me too?",
