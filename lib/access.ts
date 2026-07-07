@@ -3,26 +3,25 @@
  *
  * The 3-day free trial runs on the visitor's device: tapping "Start my
  * free trial" stamps a start date and unlocks everything for 3 days, no
- * card needed (Nestuge does not support pre-subscription trials).
+ * card needed (Paystack does not support pre-subscription trials).
  *
- * When the trial ends, the paywall points to Nestuge
- * (nestuge.com/glufloat) for the N1,500/month subscription. After a buyer
- * pays, Nestuge's post-purchase delivery sends them to
- * /unlock?code=<ACCESS_CODE>, which flips the paid-access flag on their
- * device.
+ * When the trial ends, the paywall points to the Paystack payment page
+ * (paystack.shop/pay/glufloat) for the N1,500/month subscription. Paystack's
+ * post-payment redirect URL is set to /unlock?code=<ACCESS_CODE>, so a buyer
+ * lands back on the app already unlocked, and the 30-day renewal clock starts.
  *
  * This is link-based MVP gating, not per-user auth. Real accounts and
  * server-side subscription checks arrive in Phase 2.
  */
 
-export const NESTUGE_URL = "https://nestuge.com/glufloat";
+export const PAYSTACK_URL = "https://paystack.shop/pay/glufloat";
 export const FREE_LIMIT = 3;
 export const TRIAL_DAYS = 3;
 export const MONTH_DAYS = 30;
 /** Start reminding this many days before the paid month ends. */
 export const RENEW_WARN_DAYS = 5;
 
-/** Codes accepted by /unlock. Keep in sync with the Nestuge delivery message. */
+/** Codes accepted by /unlock. Keep in sync with the Paystack delivery message. */
 const ACCESS_CODES = ["GLU-GREEN-2026", "GLUFLOAT-MEMBER"];
 
 const K_CHECKS = "gf_checks";
@@ -115,7 +114,7 @@ export function getTrialState(): TrialState {
   if (!raw) return { status: "none" };
   const start = parseInt(raw, 10);
   if (!start) return { status: "none" };
-  // Count by calendar day: the start day shows 3 left, the next day 6, and so
+  // Count by calendar day: the start day shows 3 left, the next day 2, and so
   // on. The trial covers 3 calendar days and ends at the start of the 4th.
   const daysLeft = TRIAL_DAYS - calendarDaysBetween(start, Date.now());
   if (daysLeft > 0) return { status: "active", daysLeft };

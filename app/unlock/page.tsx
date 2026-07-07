@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { hasAccess, tryUnlock, NESTUGE_URL } from "@/lib/access";
+import { hasAccess, tryUnlock, PAYSTACK_URL } from "@/lib/access";
 import { events } from "@/lib/analytics";
 
 function UnlockInner() {
@@ -66,7 +66,9 @@ function UnlockInner() {
               Enter your access code
             </h1>
             <p className="mt-2 text-sm leading-relaxed text-ink-soft">
-              Your code is in the message Nestuge sent you right after payment.
+              After you pay on Paystack you are sent back into the app
+              automatically. If you have an access code, enter it here to unlock
+              this device.
             </p>
             <form onSubmit={submit} className="mt-6">
               <input
@@ -81,8 +83,7 @@ function UnlockInner() {
               />
               {state === "bad" && (
                 <p className="mt-2 text-xs font-medium text-verdict-red">
-                  That code did not work. Check the message from Nestuge and
-                  try again.
+                  That code did not work. Check the code and try again.
                 </p>
               )}
               <button
@@ -95,7 +96,7 @@ function UnlockInner() {
             <p className="mt-5 text-xs text-ink-soft">
               No code yet?{" "}
               <a
-                href={NESTUGE_URL}
+                href={PAYSTACK_URL}
                 className="font-semibold text-brand hover:underline"
               >
                 Subscribe for N1,500 / month

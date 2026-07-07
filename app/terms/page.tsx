@@ -55,7 +55,7 @@ export default function TermsPage() {
           cancel.
         </li>
         <li>
-          Payment is collected through our checkout partner (Nestuge). We do
+          Payment is collected through our checkout partner (Paystack). We do
           not store your full card details ourselves.
         </li>
         <li>
@@ -67,7 +67,7 @@ export default function TermsPage() {
       <h2>4. Cancelling and refunds</h2>
       <ul>
         <li>
-          You can cancel any time from your Nestuge account. Your access
+          You can cancel any time from your Paystack account. Your access
           continues until the end of the period you already paid for.
         </li>
         <li>

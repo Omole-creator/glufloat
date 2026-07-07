@@ -6,7 +6,7 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import {
-  NESTUGE_URL,
+  PAYSTACK_URL,
   getTrialState,
   hasAccess,
   startTrial,
@@ -74,7 +74,7 @@ export default function TrialPage() {
                 month, about N50 a day. Cancel any time.
               </p>
               <a
-                href={NESTUGE_URL}
+                href={PAYSTACK_URL}
                 className="mt-6 inline-block w-full rounded-full bg-brand px-6 py-3.5 text-sm font-bold text-white transition-colors hover:bg-brand-deep"
               >
                 Subscribe for N1,500 / month

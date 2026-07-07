@@ -280,7 +280,7 @@ export default function Home() {
           <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {[
               { end: 1400, suffix: "+", unit: "Nigerian foods", label: "and we add more every month" },
-              { end: 200, suffix: "+", unit: "checks a minute", label: "by people just like you" },
+              { end: 6, suffix: "", unit: "registered dietitians", label: "reviewed our food guidance" },
               { end: 3, suffix: "", unit: "clear colours", label: "green, yellow, or red. That is all" },
               { end: 10, suffix: " sec", unit: "to an answer", label: "faster than dishing the food" },
             ].map((t, i) => (

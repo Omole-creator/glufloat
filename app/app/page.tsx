@@ -12,7 +12,7 @@ import {
   getRenewalState,
   getTrialState,
   hasAccess,
-  NESTUGE_URL,
+  PAYSTACK_URL,
   type RenewalState,
   type TrialState,
 } from "@/lib/access";
@@ -38,7 +38,7 @@ export default function AppPage() {
           {renewal.status === "over"
             ? "Your month has ended. "
             : `Your month ends in ${renewal.daysLeft} ${renewal.daysLeft === 1 ? "day" : "days"}. `}
-          <a href={NESTUGE_URL} className="underline hover:text-brand-deep">
+          <a href={PAYSTACK_URL} className="underline hover:text-brand-deep">
             Renew for N1,500 to keep GluFloat.
           </a>
         </div>
@@ -53,6 +53,13 @@ export default function AppPage() {
             <div className="mx-auto mt-3 flex w-fit items-center gap-2 rounded-full bg-verdict-green/15 px-4 py-1.5 text-sm font-bold text-leaf-deep">
               <Clock className="h-4 w-4" />
               Free trial: {trial.daysLeft} {trial.daysLeft === 1 ? "day" : "days"} left
+            </div>
+          )}
+          {trial === "member" && renewal.status === "ok" && (
+            <div className="mx-auto mt-3 flex w-fit items-center gap-2 rounded-full bg-brand/10 px-4 py-1.5 text-sm font-bold text-brand-deep">
+              <Clock className="h-4 w-4" />
+              Membership: {renewal.daysLeft}{" "}
+              {renewal.daysLeft === 1 ? "day" : "days"} left
             </div>
           )}
           <h1 className="mt-2 text-center font-display text-3xl font-bold text-ink sm:text-4xl">

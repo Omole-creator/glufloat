@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import {
-  NESTUGE_URL,
+  PAYSTACK_URL,
   getTrialState,
   startTrial,
   type TrialState,
@@ -63,7 +63,7 @@ export default function Paywall({ context }: { context: "search" | "meal" }) {
 
         {expired ? (
           <a
-            href={NESTUGE_URL}
+            href={PAYSTACK_URL}
             className="mt-6 block rounded-full bg-brand px-6 py-3.5 text-center text-sm font-bold text-white shadow-[0_10px_24px_-10px_rgba(27,95,170,0.8)] transition-all hover:-translate-y-0.5 hover:bg-brand-deep"
           >
             Subscribe for N1,500 / month
@@ -79,8 +79,8 @@ export default function Paywall({ context }: { context: "search" | "meal" }) {
 
         <p className="mt-3 text-center text-xs text-ink-soft">
           {expired
-            ? "Secure checkout via Nestuge. Your access code arrives right after payment."
-            : "Nothing to pay today. When your 3 days end, membership is N1,500 a month via Nestuge."}
+            ? "Secure checkout via Paystack. You are sent straight back into the app as soon as you pay."
+            : "Nothing to pay today. When your 3 days end, membership is N1,500 a month via Paystack."}
         </p>
         <p className="mt-4 text-center text-xs text-ink-soft">
           Already a member?{" "}

@@ -13,15 +13,15 @@ const FAQS: { q: string; a: string }[] = [
   },
   {
     q: "What happens when my free trial ends?",
-    a: "The app locks, and you decide. To keep using it, you pay N1,500 a month, about N50 a day, on our secure Nestuge page. The moment you pay, you get a short code that opens the app again.",
+    a: "The app locks, and you decide. To keep using it, you pay N1,500 a month, about N50 a day, on our secure Paystack page. The moment you pay, you are sent straight back into the app, unlocked.",
   },
   {
-    q: "I paid on Nestuge. How do I get back in?",
-    a: "As soon as you pay, we send you an email with your unlock link and a short code. Open the link, enter the code, and the whole app opens on your phone right away. Everything you need is in that email, so just follow it.",
+    q: "I paid on Paystack. How do I get back in?",
+    a: "As soon as you pay, Paystack sends you straight back into the app on your phone, already unlocked. There is nothing else to do. Your month then starts counting down, and we remind you before it ends.",
   },
   {
     q: "Can I stop paying whenever I want?",
-    a: "Yes. During the free trial there is nothing to stop, because no card was taken. If you are paying, you stop in a few taps on your Nestuge account, and you keep the app until the month you paid for is finished.",
+    a: "Yes. During the free trial there is nothing to stop, because no card was taken. If you are paying, you can cancel any time, and you keep the app until the month you paid for is finished.",
   },
   {
     q: "Will my own food be in the app?",

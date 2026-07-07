@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion, type Variants } from "framer-motion";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ShieldCheck } from "lucide-react";
 import TrafficLight from "@/components/TrafficLight";
 import HeroDemo from "@/components/ui/hero-demo";
 
@@ -112,6 +112,10 @@ function Hero() {
           <p className="mt-4 text-sm text-ink-soft">
             3 days free. You do not need a card. After that it is N1,500 a
             month, and you can stop any time.
+          </p>
+          <p className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-leaf/10 px-3.5 py-1.5 text-sm font-semibold text-leaf-deep">
+            <ShieldCheck className="h-4 w-4" />
+            Reviewed by 6 registered dietitians
           </p>
         </motion.div>
 

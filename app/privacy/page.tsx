@@ -26,7 +26,7 @@ export default function PrivacyPage() {
       <ul>
         <li>
           Checkout details (name, email, payment) are collected and processed
-          by our checkout partner, Nestuge, and their payment providers. We
+          by our checkout partner, Paystack, and their payment providers. We
           receive confirmation of your membership, not your full card number.
         </li>
         <li>
