@@ -1,9 +1,10 @@
-import Link from "next/link";
 import { cookies } from "next/headers";
 import { ADMIN_COOKIE, adminToken } from "@/lib/adminAuth";
 import { createAdminClient } from "@/lib/supabase/server";
 import AdminLogin from "./AdminLogin";
 import ExportButton, { type ExportData } from "./ExportButton";
+import RangeSelect from "./RangeSelect";
+import YearSelect from "./YearSelect";
 
 export const dynamic = "force-dynamic";
 
@@ -32,7 +33,7 @@ function Tile({ label, value, sub }: { label: string; value: string; sub?: strin
 export default async function AdminPage({
   searchParams,
 }: {
-  searchParams: Promise<{ range?: string }>;
+  searchParams: Promise<{ range?: string; year?: string }>;
 }) {
   const c = await cookies();
   const authed =
@@ -42,6 +43,12 @@ export default async function AdminPage({
   const sp = await searchParams;
   const range = sp.range && RANGES[sp.range] ? sp.range : "month";
   const rangeStart = Date.now() - RANGES[range].days * DAY_MS;
+
+  const nowD = new Date();
+  const curYear = nowD.getFullYear();
+  const year = Number(sp.year) || curYear;
+  const years: number[] = [];
+  for (let y = 2026; y <= curYear + 2; y++) years.push(y);
 
   const admin = createAdminClient();
   const [{ data: profiles }, { data: subs }, { data: payments }] = await Promise.all([
@@ -93,12 +100,14 @@ export default async function AdminPage({
     if (cur === undefined || t < cur) firstPaid.set(p.email, t);
   }
 
-  // Month-on-month for the last 12 months (newest first)
+  // Month-on-month for the selected year, from launch (July 2026) forward.
+  const LAUNCH = new Date(2026, 6, 1).getTime();
+  const curMonthStart = new Date(nowD.getFullYear(), nowD.getMonth(), 1).getTime();
   const monthly = [];
-  const base = new Date();
-  for (let i = 0; i < 12; i++) {
-    const mStart = new Date(base.getFullYear(), base.getMonth() - i, 1).getTime();
-    const mEnd = new Date(base.getFullYear(), base.getMonth() - i + 1, 1).getTime();
+  for (let m = 0; m < 12; m++) {
+    const mStart = new Date(year, m, 1).getTime();
+    const mEnd = new Date(year, m + 1, 1).getTime();
+    if (mStart < LAUNCH || mStart > curMonthStart) continue; // pre-launch or future
     const label = new Date(mStart).toLocaleDateString("en", {
       month: "short",
       year: "numeric",
@@ -184,21 +193,9 @@ export default async function AdminPage({
           <ExportButton data={exportData} />
         </div>
 
-        {/* range selector */}
-        <div className="mt-6 inline-flex flex-wrap gap-1 rounded-full border border-line bg-white p-1">
-          {Object.entries(RANGES).map(([key, r]) => (
-            <Link
-              key={key}
-              href={`/admin?range=${key}`}
-              className={`rounded-full px-4 py-1.5 text-sm font-semibold transition-colors ${
-                range === key
-                  ? "bg-brand text-white"
-                  : "text-ink-soft hover:text-ink"
-              }`}
-            >
-              {r.label}
-            </Link>
-          ))}
+        {/* period dropdown */}
+        <div className="mt-6">
+          <RangeSelect range={range} year={year} />
         </div>
 
         <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -213,9 +210,12 @@ export default async function AdminPage({
         </div>
 
         {/* month on month */}
-        <h2 className="mt-10 font-display text-lg font-bold text-ink">
-          Retention & churn, month on month
-        </h2>
+        <div className="mt-10 flex flex-wrap items-center justify-between gap-3">
+          <h2 className="font-display text-lg font-bold text-ink">
+            Retention & churn, month on month
+          </h2>
+          <YearSelect range={range} year={year} years={years} />
+        </div>
         <div className="mt-3 overflow-x-auto rounded-2xl border border-line bg-white">
           <table className="w-full text-left text-sm">
             <thead className="border-b border-line text-xs uppercase tracking-wider text-ink/50">
@@ -239,6 +239,13 @@ export default async function AdminPage({
                   <td className="px-4 py-2.5 text-ink-soft">{m.retention}%</td>
                 </tr>
               ))}
+              {monthly.length === 0 && (
+                <tr>
+                  <td className="px-4 py-6 text-center text-ink-soft" colSpan={6}>
+                    No data for {year} yet.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
