@@ -5,9 +5,7 @@ import { Check, AlertTriangle, X, Plus } from "lucide-react";
 import { searchFoods } from "@/lib/search";
 import { scoreMeal } from "@/lib/verdictEngine";
 import type { Food, MealItem, PortionSize } from "@/lib/types";
-import Paywall from "./Paywall";
 import { PortionMini } from "./PortionVisual";
-import { fullAccess } from "@/lib/access";
 import { events } from "@/lib/analytics";
 
 const PORTIONS: { key: PortionSize; label: string }[] = [
@@ -44,13 +42,8 @@ const VERDICT_UI = {
 } as const;
 
 export default function MealBuilder() {
-  const [unlocked, setUnlocked] = useState<boolean | null>(null);
   const [query, setQuery] = useState("");
   const [items, setItems] = useState<MealItem[]>([]);
-
-  useEffect(() => {
-    setUnlocked(fullAccess());
-  }, []);
 
   const results = useMemo(() => searchFoods(query, 6), [query]);
   const result = useMemo(() => scoreMeal(items), [items]);
@@ -59,9 +52,6 @@ export default function MealBuilder() {
     if (items.length > 0) events.mealBuilt(result.verdict);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [result.verdict, items.length]);
-
-  if (unlocked === null) return null;
-  if (!unlocked) return <Paywall context="meal" />;
 
   const add = (food: Food) => {
     if (items.some((i) => i.food.id === food.id)) return;

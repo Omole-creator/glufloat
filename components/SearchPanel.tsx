@@ -4,29 +4,16 @@ import { useMemo, useState } from "react";
 import { searchFoods } from "@/lib/search";
 import type { Food } from "@/lib/types";
 import VerdictCard from "./VerdictCard";
-import Paywall from "./Paywall";
-import { freeChecksLeft, fullAccess, isGated, recordCheck } from "@/lib/access";
 import { events } from "@/lib/analytics";
 
+// Access is gated upstream at /app, so this panel is always fully open here.
 export default function SearchPanel() {
   const [query, setQuery] = useState("");
   const [picked, setPicked] = useState<Food | null>(null);
-  const [gated, setGated] = useState(false);
-  const [left, setLeft] = useState<number | null>(null);
 
   const results = useMemo(() => searchFoods(query), [query]);
 
   const pick = (food: Food) => {
-    if (isGated()) {
-      setGated(true);
-      setPicked(null);
-      events.paywallHit("search");
-      return;
-    }
-    if (!fullAccess()) {
-      recordCheck();
-      setLeft(freeChecksLeft());
-    }
     events.foodChecked(food.name);
     setPicked(food);
     setQuery("");
@@ -53,7 +40,6 @@ export default function SearchPanel() {
           onChange={(e) => {
             setQuery(e.target.value);
             setPicked(null);
-            setGated(false);
           }}
           placeholder="Try eba, jollof, plantain, moi moi, coke..."
           className="w-full rounded-full border-2 border-line bg-white py-3.5 pl-12 pr-5 text-base text-ink shadow-sm outline-none transition-colors placeholder:text-ink-soft/50 focus:border-brand"
@@ -92,21 +78,7 @@ export default function SearchPanel() {
         </p>
       )}
 
-      <div className="mt-4">
-        {gated && <Paywall context="search" />}
-        {picked && !gated && (
-          <>
-            <VerdictCard food={picked} />
-            {left !== null && left >= 0 && !fullAccess() && (
-              <p className="mt-3 text-center text-xs font-medium text-ink-soft">
-                {left === 0
-                  ? "That was your last free check. Start your free trial to keep going."
-                  : `${left} free ${left === 1 ? "check" : "checks"} left.`}
-              </p>
-            )}
-          </>
-        )}
-      </div>
+      <div className="mt-4">{picked && <VerdictCard food={picked} />}</div>
     </div>
   );
 }
