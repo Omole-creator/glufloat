@@ -79,8 +79,11 @@ const isVeg = (f: Food) =>
 const isProtein = (f: Food) =>
   f.role === "protein" || f.role === "legume" || f.role === "dairy";
 const isStarch = (f: Food) => f.role === "starch";
-const isLiquidSugar = (f: Food) =>
-  (f.role === "drink" && f.gi === "high") || f.role === "sugar";
+// A high-GI drink is liquid sugar; a role:sugar item is pure sweet food (sugar,
+// honey, biscuit, cake). Both lock the meal red, but they are worded apart so a
+// biscuit is never called a "drink".
+const isSweetDrink = (f: Food) => f.role === "drink" && f.gi === "high";
+const isSweetFood = (f: Food) => f.role === "sugar";
 
 export function scoreMeal(items: MealItem[]): MealResult {
   if (items.length === 0) {
@@ -97,21 +100,36 @@ export function scoreMeal(items: MealItem[]): MealResult {
   const breakdown: string[] = [];
   const fixes: string[] = [];
 
-  // Sweet drinks cannot be fixed by anything else on the plate.
-  const sugarDrinks = items.filter((i) => isLiquidSugar(i.food));
-  if (sugarDrinks.length > 0) {
-    const names = sugarDrinks.map((i) => i.food.name).join(", ");
-    breakdown.push(
-      `${names} is sweet, and sweet drinks make sugar rise very fast.`,
-    );
-    fixes.push(
-      `Take away the ${sugarDrinks[0].food.name}. Instead drink water, or unsweetened zobo, one cup (250ml). Nothing else can fix a sweet drink.`,
-    );
+  // Sweet drinks and pure sweet foods cannot be fixed by anything else on the
+  // plate. A drink and a biscuit are both red, but each is worded correctly.
+  const sweetDrinks = items.filter((i) => isSweetDrink(i.food));
+  const sweetFoods = items.filter((i) => isSweetFood(i.food));
+  if (sweetDrinks.length > 0 || sweetFoods.length > 0) {
+    if (sweetDrinks.length > 0) {
+      const names = sweetDrinks.map((i) => i.food.name).join(", ");
+      breakdown.push(
+        `${names} is sweet, and sweet drinks make sugar rise very fast.`,
+      );
+      fixes.push(
+        `Take away the ${sweetDrinks[0].food.name}. Instead drink water, or unsweetened zobo, one cup (250ml). Nothing else can fix a sweet drink.`,
+      );
+    } else {
+      const names = sweetFoods.map((i) => i.food.name).join(", ");
+      breakdown.push(
+        `${names} is very sweet, and sweet foods make sugar rise very fast.`,
+      );
+      fixes.push(
+        `Best to skip the ${sweetFoods[0].food.name}. Nothing else on the plate can make a sweet food like this safe.`,
+      );
+    }
     return {
       verdict: "red",
       score: 0,
       locked: true,
-      headline: "The sweet drink makes this red.",
+      headline:
+        sweetDrinks.length > 0
+          ? "The sweet drink makes this red."
+          : "This sweet food makes it red.",
       fixes,
       breakdown,
     };

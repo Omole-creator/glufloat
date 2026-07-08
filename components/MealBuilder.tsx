@@ -241,6 +241,32 @@ export default function MealBuilder() {
               </div>
             ) : null}
 
+            {showVerdict &&
+              (() => {
+                // Surface the health note of any food on the plate (red/organ
+                // meat, salty, oily), so build-a-meal warns the same as search.
+                const notes = [
+                  ...new Set(
+                    items.map((i) => i.food.healthNote).filter(Boolean),
+                  ),
+                ];
+                return notes.length > 0 ? (
+                  <div className="mt-4 space-y-2">
+                    {notes.map((n, idx) => (
+                      <div
+                        key={idx}
+                        className="rounded-xl border border-verdict-red/40 bg-verdict-red/10 p-3"
+                      >
+                        <p className="text-[11px] font-bold uppercase tracking-wider text-verdict-red">
+                          Please note
+                        </p>
+                        <p className="mt-1 text-sm text-ink">{n}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : null;
+              })()}
+
             {showVerdict && (
               <div className="mt-4 border-t border-line pt-4">
                 <p className="text-xs font-bold uppercase tracking-wider text-ink/60">

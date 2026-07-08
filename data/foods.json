@@ -699,7 +699,8 @@
     "tags": [
       "local",
       "eastern"
-    ]
+    ],
+    "healthNote": "This dish is cooked with a lot of palm oil. If you have high blood pressure, high cholesterol, or kidney problems, use less oil and go easy on the red meat."
   },
   {
     "id": "suya",
@@ -1381,7 +1382,7 @@
       "local",
       "friendly"
     ],
-    "healthNote": "This soup is heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, use less palm oil when you cook it and go easy on the red meat."
+    "healthNote": "This dish is cooked with a lot of palm oil. If you have high blood pressure, high cholesterol, or kidney problems, use less oil and go easy on the red meat."
   },
   {
     "id": "ogbono-soup",
@@ -1407,7 +1408,7 @@
       "local",
       "friendly"
     ],
-    "healthNote": "This soup is heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, use less palm oil when you cook it and go easy on the red meat."
+    "healthNote": "This dish is cooked with a lot of palm oil. If you have high blood pressure, high cholesterol, or kidney problems, use less oil and go easy on the red meat."
   },
   {
     "id": "efo-riro",
@@ -1599,7 +1600,7 @@
       "local",
       "delta"
     ],
-    "healthNote": "This soup is heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, use less palm oil when you cook it and go easy on the red meat."
+    "healthNote": "This dish is cooked with a lot of palm oil. If you have high blood pressure, high cholesterol, or kidney problems, use less oil and go easy on the red meat."
   },
   {
     "id": "ewedu",
@@ -1665,7 +1666,7 @@
       "local",
       "northern"
     ],
-    "healthNote": "This soup is heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, use less palm oil when you cook it and go easy on the red meat."
+    "healthNote": "This dish is cooked with a lot of palm oil. If you have high blood pressure, high cholesterol, or kidney problems, use less oil and go easy on the red meat."
   },
   {
     "id": "white-soup",
@@ -2938,7 +2939,8 @@
     "pairingAdvice": "In tea or oats, no sugar.",
     "frequency": "Moderate.",
     "logicNote": "Has natural milk sugar; avoid sweetened condensed milk, which is red.",
-    "tags": []
+    "tags": [],
+    "healthNote": "This is high in fat that can raise your cholesterol. If you have high cholesterol, high blood pressure, or heart trouble, use only a little at a time."
   },
   {
     "id": "condensed-milk",
@@ -3022,7 +3024,8 @@
     "logicNote": "Soft cheese; low carb, protein-rich.",
     "tags": [
       "local"
-    ]
+    ],
+    "healthNote": "This is high in fat that can raise your cholesterol. If you have high cholesterol, high blood pressure, or heart trouble, use only a little at a time."
   },
   {
     "id": "palm-oil",
@@ -3043,7 +3046,8 @@
     "logicNote": "No effect on blood sugar, but heavy for the heart; go easy.",
     "tags": [
       "local"
-    ]
+    ],
+    "healthNote": "This is high in fat that can raise your cholesterol. If you have high cholesterol, high blood pressure, or heart trouble, use only a little at a time."
   },
   {
     "id": "vegetable-oil",
@@ -3108,7 +3112,8 @@
     "pairingAdvice": "On wheat bread, not white.",
     "frequency": "Moderate.",
     "logicNote": "No sugar impact; the bread under it is the issue.",
-    "tags": []
+    "tags": [],
+    "healthNote": "This is high in fat that can raise your cholesterol. If you have high cholesterol, high blood pressure, or heart trouble, use only a little at a time."
   },
   {
     "id": "mayonnaise",
@@ -3129,7 +3134,8 @@
     "pairingAdvice": "Salads.",
     "frequency": "Moderate.",
     "logicNote": "Some sugar in salad cream; use lightly.",
-    "tags": []
+    "tags": [],
+    "healthNote": "This is high in fat that can raise your cholesterol. If you have high cholesterol, high blood pressure, or heart trouble, use only a little at a time."
   },
   {
     "id": "table-sugar",
@@ -3532,7 +3538,7 @@
       "local",
       "delta"
     ],
-    "healthNote": "This soup is heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, use less palm oil when you cook it and go easy on the red meat."
+    "healthNote": "This dish is cooked with a lot of palm oil. If you have high blood pressure, high cholesterol, or kidney problems, use less oil and go easy on the red meat."
   },
   {
     "id": "native-soup",
@@ -3554,7 +3560,7 @@
       "local",
       "delta"
     ],
-    "healthNote": "This soup is heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, use less palm oil when you cook it and go easy on the red meat."
+    "healthNote": "This dish is cooked with a lot of palm oil. If you have high blood pressure, high cholesterol, or kidney problems, use less oil and go easy on the red meat."
   },
   {
     "id": "ekpang-nkukwo",
@@ -4316,7 +4322,8 @@
     "logicNote": "A one-pot rice with vegetables and fish, which helps, but a big rice portion still spikes.",
     "tags": [
       "local"
-    ]
+    ],
+    "healthNote": "This dish is cooked with a lot of palm oil. If you have high blood pressure, high cholesterol, or kidney problems, use less oil and go easy on the red meat."
   },
   {
     "id": "boiled-water-yam",
@@ -4511,7 +4518,7 @@
       "local",
       "eastern"
     ],
-    "healthNote": "This soup is heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, use less palm oil when you cook it and go easy on the red meat."
+    "healthNote": "This dish is cooked with a lot of palm oil. If you have high blood pressure, high cholesterol, or kidney problems, use less oil and go easy on the red meat."
   },
   {
     "id": "miyan-kubewa",
@@ -5021,7 +5028,8 @@
     "pairingAdvice": "In tea, oats, or pap, with no sugar.",
     "frequency": "Moderate.",
     "logicNote": "Unsweetened evaporated milk has natural milk sugar, so use one tablespoon. Avoid the sweetened condensed kind.",
-    "tags": []
+    "tags": [],
+    "healthNote": "This is high in fat that can raise your cholesterol. If you have high cholesterol, high blood pressure, or heart trouble, use only a little at a time."
   },
   {
     "id": "weetabix",
@@ -5351,7 +5359,8 @@
     "logicNote": "Fermented seasoning; low sugar and protein-rich. Good for flavour.",
     "tags": [
       "local"
-    ]
+    ],
+    "healthNote": "This food is very salty. If you have high blood pressure, high cholesterol, or kidney problems, use only a little. Too much salt harms your heart and kidneys even when your sugar is fine."
   },
   {
     "id": "seasoning-cube",
@@ -5434,7 +5443,8 @@
     "pairingAdvice": "In cooking.",
     "frequency": "Moderate.",
     "logicNote": "No sugar impact, but still a heavy fat, so use one teaspoon.",
-    "tags": []
+    "tags": [],
+    "healthNote": "This is high in fat that can raise your cholesterol. If you have high cholesterol, high blood pressure, or heart trouble, use only a little at a time."
   },
   {
     "id": "sweetener",
@@ -5603,7 +5613,8 @@
     "logicNote": "Refined wheat noodles cook soft and raise sugar fast, and the seasoning is salty. Add protein and vegetables.",
     "tags": [
       "processed"
-    ]
+    ],
+    "healthNote": "This food is very salty. If you have high blood pressure, high cholesterol, or kidney problems, use only a little. Too much salt harms your heart and kidneys even when your sugar is fine."
   },
   {
     "id": "spaghetti",
@@ -5941,7 +5952,8 @@
     "frequency": "About 4 times a week.",
     "logicNote": "Low in sugar and high in water and fibre; a friendly fruit in normal amounts.",
     "tags": [],
-    "carbExchange": "one medium star fruit"
+    "carbExchange": "one medium star fruit",
+    "healthNote": "Do not eat this if you have kidney problems. Star fruit has a natural poison that strong kidneys clear but weak kidneys cannot, and it can make a kidney patient very sick."
   },
   {
     "id": "fig",
@@ -6225,7 +6237,7 @@
     "frequency": "About 3 times a week.",
     "logicNote": "A green pepper sauce with plenty of palm oil and assorted meat. Low in carbs, but heavy on oil, so keep the oil in check.",
     "tags": [],
-    "healthNote": "This soup is heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, use less palm oil when you cook it and go easy on the red meat."
+    "healthNote": "This dish is cooked with a lot of palm oil. If you have high blood pressure, high cholesterol, or kidney problems, use less oil and go easy on the red meat."
   },
   {
     "id": "garden-egg-sauce",
@@ -6270,7 +6282,7 @@
     "frequency": "You can eat this every day.",
     "logicNote": "Fried pepper, onion, and oil. Very low in carbs; the starch it goes with is what to watch.",
     "tags": [],
-    "healthNote": "This soup is heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, use less palm oil when you cook it and go easy on the red meat."
+    "healthNote": "This dish is cooked with a lot of palm oil. If you have high blood pressure, high cholesterol, or kidney problems, use less oil and go easy on the red meat."
   },
   {
     "id": "cow-leg",
@@ -6371,7 +6383,8 @@
     "logicNote": "Beans are friendly, but the tinned tomato sauce has added sugar, so keep the portion small.",
     "tags": [
       "processed"
-    ]
+    ],
+    "healthNote": "This food is very salty. If you have high blood pressure, high cholesterol, or kidney problems, use only a little. Too much salt harms your heart and kidneys even when your sugar is fine."
   },
   {
     "id": "spring-onion",
