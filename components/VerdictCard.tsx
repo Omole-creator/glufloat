@@ -45,6 +45,15 @@ export default function VerdictCard({ food }: { food: Food }) {
         {food.logicNote}
       </p>
 
+      {food.healthNote && (
+        <div className="mt-3 rounded-xl border border-verdict-red/40 bg-verdict-red/10 p-3">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-verdict-red">
+            Please note
+          </p>
+          <p className="mt-1 text-sm text-ink">{food.healthNote}</p>
+        </div>
+      )}
+
       <div className="mt-4 space-y-2">
         <PortionVisual food={food} />
         {food.carbExchange && (

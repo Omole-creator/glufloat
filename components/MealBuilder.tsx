@@ -204,14 +204,32 @@ export default function MealBuilder() {
                   Do this to make it green:
                 </p>
                 <ul className="mt-2 space-y-2 text-sm text-ink">
-                  {result.fixes.map((f, idx) => (
-                    <li key={idx} className="flex gap-2">
-                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-leaf text-xs font-bold text-white">
-                        {idx + 1}
-                      </span>
-                      <span>{f}</span>
-                    </li>
-                  ))}
+                  {(() => {
+                    let step = 0;
+                    return result.fixes.map((f, idx) => {
+                      // A "Note:" line is a health warning, not a step. Show it
+                      // in red and skip the numbering so the steps stay in order.
+                      if (f.startsWith("Note:")) {
+                        return (
+                          <li
+                            key={idx}
+                            className="rounded-lg border border-verdict-red/40 bg-verdict-red/10 px-3 py-2 font-medium text-verdict-red"
+                          >
+                            {f}
+                          </li>
+                        );
+                      }
+                      step += 1;
+                      return (
+                        <li key={idx} className="flex gap-2">
+                          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-leaf text-xs font-bold text-white">
+                            {step}
+                          </span>
+                          <span>{f}</span>
+                        </li>
+                      );
+                    });
+                  })()}
                 </ul>
               </div>
             ) : showVerdict && result.verdict === "green" ? (

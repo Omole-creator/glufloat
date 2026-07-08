@@ -82,6 +82,15 @@ await page.waitForTimeout(500);
 ok("unlock accepts code", await page.getByText("You are in. Welcome to Glufloat.").isVisible());
 await page.screenshot({ path: `${OUT}/unlock-ok.png` });
 
+// 5b. a red or organ meat food card shows the red health note box
+await page.goto(`${BASE}/app`, { waitUntil: "networkidle" });
+await page.getByLabel("Search a food").fill("suya");
+await page.locator("ul button").first().click();
+await page.waitForTimeout(400);
+ok("red-meat food shows health note", await page.getByText("Please note", { exact: false }).isVisible());
+ok("health note names blood pressure", await page.getByText("high blood pressure", { exact: false }).isVisible());
+await page.screenshot({ path: `${OUT}/app-health-note.png` });
+
 // 6. meal builder now works: white rice + efo riro + fish, half rice -> green
 await page.goto(`${BASE}/app`, { waitUntil: "networkidle" });
 await page.getByRole("button", { name: "Build a meal" }).click();

@@ -33,6 +33,12 @@ export interface Food {
    * not make sense (avocado is a fat; lime/lemon is only a squeeze).
    */
   carbExchange?: string;
+  /**
+   * A red-box warning for people who also have high blood pressure, high
+   * cholesterol, or kidney problems. Set only on foods where a salty, fatty,
+   * or red/organ-meat choice could harm them even when the sugar is fine.
+   */
+  healthNote?: string;
 }
 
 export type PortionSize = "half" | "normal" | "large";

@@ -16,7 +16,7 @@
     "gi": "high",
     "baseVerdict": "yellow",
     "portionGuidance": "One ball the size of your fist. That is about half a cup (100g).",
-    "pairingAdvice": "Vegetable soup (efo, edikang ikong) and a protein.",
+    "pairingAdvice": "Vegetable soup (efo, edikang ikong) and fish, chicken, or an egg.",
     "frequency": "A few times a week, small.",
     "logicNote": "Turns to sugar fast. Portion and soup pairing are everything.",
     "tags": [
@@ -60,7 +60,7 @@
     "gi": "high",
     "baseVerdict": "yellow",
     "portionGuidance": "One ball the size of your fist. That is about half a cup (100g).",
-    "pairingAdvice": "Ewedu and gbegiri plus protein.",
+    "pairingAdvice": "Ewedu and gbegiri plus fish, chicken, or an egg.",
     "frequency": "A few times a week, small.",
     "logicNote": "Slightly friendlier than white swallows but still a starch; portion matters.",
     "tags": [
@@ -82,7 +82,7 @@
     "gi": "medium",
     "baseVerdict": "yellow",
     "portionGuidance": "One ball the size of your fist. That is about half a cup (100g).",
-    "pairingAdvice": "Vegetable soup and protein.",
+    "pairingAdvice": "Vegetable soup and fish, chicken, or an egg.",
     "frequency": "Better choice among swallows; still small.",
     "logicNote": "Often a smarter swap than cassava or yam swallow.",
     "tags": [
@@ -105,7 +105,7 @@
     "gi": "high",
     "baseVerdict": "yellow",
     "portionGuidance": "One ball the size of your fist. That is about half a cup (100g).",
-    "pairingAdvice": "Vegetable soup plus protein.",
+    "pairingAdvice": "Vegetable soup plus fish, chicken, or an egg.",
     "frequency": "Occasional, small.",
     "logicNote": "High starch; pair and shrink the portion.",
     "tags": [
@@ -127,7 +127,7 @@
     "gi": "high",
     "baseVerdict": "yellow",
     "portionGuidance": "One ball the size of your fist. That is about half a cup (100g).",
-    "pairingAdvice": "Vegetable soup and protein.",
+    "pairingAdvice": "Vegetable soup and fish, chicken, or an egg.",
     "frequency": "Occasional, small.",
     "logicNote": "Refined wheat; spikes quickly.",
     "tags": [
@@ -147,7 +147,7 @@
     "gi": "medium",
     "baseVerdict": "yellow",
     "portionGuidance": "One ball the size of your fist. That is about half a cup (100g).",
-    "pairingAdvice": "Vegetable soup and protein.",
+    "pairingAdvice": "Vegetable soup and fish, chicken, or an egg.",
     "frequency": "A better swallow choice; keep portion sensible.",
     "logicNote": "More fibre than semo or eba; a common recommended swap.",
     "tags": [
@@ -167,8 +167,8 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One ball the size of your fist. That is about half a cup (100g).",
-    "pairingAdvice": "Any vegetable soup and protein.",
-    "frequency": "Good regular swallow option.",
+    "pairingAdvice": "Any vegetable soup and fish, chicken, or an egg.",
+    "frequency": "About 3 times a week.",
     "logicNote": "One of the friendliest swallows; more fibre, slower rise.",
     "tags": [
       "swap",
@@ -190,7 +190,7 @@
     "gi": "high",
     "baseVerdict": "yellow",
     "portionGuidance": "One ball the size of your fist. That is about half a cup (100g).",
-    "pairingAdvice": "Miyan kuka or vegetable soup plus protein.",
+    "pairingAdvice": "Miyan kuka or vegetable soup plus fish, chicken, or an egg.",
     "frequency": "Occasional, small.",
     "logicNote": "Soft white rice paste; fast sugar.",
     "tags": [
@@ -212,7 +212,7 @@
     "gi": "medium",
     "baseVerdict": "yellow",
     "portionGuidance": "One ball the size of your fist. That is about half a cup (100g).",
-    "pairingAdvice": "Vegetable soup plus protein.",
+    "pairingAdvice": "Vegetable soup plus fish, chicken, or an egg.",
     "frequency": "Occasional, small.",
     "logicNote": "Corn-based; a touch friendlier than rice tuwo.",
     "tags": [
@@ -255,7 +255,7 @@
     "gi": "high",
     "baseVerdict": "yellow",
     "portionGuidance": "Half a cup of cooked rice. That is about the size of a tennis ball (90g).",
-    "pairingAdvice": "Stew, plenty vegetables, and protein.",
+    "pairingAdvice": "Stew, plenty vegetables, and fish, chicken, or an egg.",
     "frequency": "Small, a few times a week.",
     "logicNote": "The classic spike. Cut portion, add fibre and protein to slow it.",
     "tags": [
@@ -282,7 +282,7 @@
     "gi": "high",
     "baseVerdict": "yellow",
     "portionGuidance": "Half a cup of cooked rice. That is about the size of a tennis ball (90g).",
-    "pairingAdvice": "Protein and a side salad or vegetables.",
+    "pairingAdvice": "Fish, chicken, or an egg and a side salad or vegetables.",
     "frequency": "Occasional, small.",
     "logicNote": "Choose jollof that is not fried too much and go light on the oil. The rice is still a fast starch, so the portion is what matters most.",
     "tags": [
@@ -313,7 +313,8 @@
     "logicNote": "Vegetables in it help slightly, but it is still white rice.",
     "tags": [
       "popular"
-    ]
+    ],
+    "healthNote": "This food is fried or heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, keep it small and use less oil. Boiled or grilled is better."
   },
   {
     "id": "ofada-rice",
@@ -330,7 +331,7 @@
     "gi": "medium",
     "baseVerdict": "yellow",
     "portionGuidance": "Three-quarters of a cup of cooked rice (about 120g).",
-    "pairingAdvice": "Ayamase sauce and protein.",
+    "pairingAdvice": "Ayamase sauce and fish, chicken, or an egg.",
     "frequency": "A friendlier rice; still mind portion.",
     "logicNote": "Less polished than white rice, so a slower rise. A good swap.",
     "tags": [
@@ -350,7 +351,7 @@
     "gi": "medium",
     "baseVerdict": "yellow",
     "portionGuidance": "Three-quarters of a cup of cooked rice (about 120g).",
-    "pairingAdvice": "Stew, vegetables, protein.",
+    "pairingAdvice": "Stew, vegetables, fish, chicken, or an egg.",
     "frequency": "A better everyday rice; keep portion sensible.",
     "logicNote": "More fibre than white rice; the smarter default swap.",
     "tags": [
@@ -369,7 +370,7 @@
     "gi": "medium",
     "baseVerdict": "yellow",
     "portionGuidance": "Three-quarters of a cup of cooked rice (about 120g).",
-    "pairingAdvice": "Vegetables and protein.",
+    "pairingAdvice": "Vegetables and fish, chicken, or an egg.",
     "frequency": "A friendlier white rice option.",
     "logicNote": "Lower GI than ordinary white rice.",
     "tags": [
@@ -389,8 +390,8 @@
     "gi": "medium",
     "baseVerdict": "yellow",
     "portionGuidance": "Three-quarters of a cup, with more beans than rice (about 130g).",
-    "pairingAdvice": "Vegetables and protein.",
-    "frequency": "Decent option; beans slow the rice.",
+    "pairingAdvice": "Vegetables and fish, chicken, or an egg.",
+    "frequency": "About 3 times a week.",
     "logicNote": "The beans add fibre and protein, which softens the rice spike.",
     "tags": [
       "staple",
@@ -436,12 +437,13 @@
     "gi": "high",
     "baseVerdict": "red",
     "portionGuidance": "Avoid. If eaten, two small pieces at most (about 80g).",
-    "pairingAdvice": "If eaten, a protein and pepper sauce.",
+    "pairingAdvice": "If eaten, fish, chicken, or an egg and pepper sauce.",
     "frequency": "Rare.",
     "logicNote": "Starch plus deep frying. Worst of both.",
     "tags": [
       "fried"
-    ]
+    ],
+    "healthNote": "This food is fried or heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, keep it small and use less oil. Boiled or grilled is better."
   },
   {
     "id": "yam-porridge",
@@ -487,7 +489,8 @@
     "tags": [
       "local",
       "street"
-    ]
+    ],
+    "healthNote": "This food is fried or heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, keep it small and use less oil. Boiled or grilled is better."
   },
   {
     "id": "sweet-potato",
@@ -501,7 +504,7 @@
     "gi": "medium",
     "baseVerdict": "yellow",
     "portionGuidance": "One medium piece. That is about the size of your fist (120g).",
-    "pairingAdvice": "Egg sauce or vegetables and protein.",
+    "pairingAdvice": "Egg sauce or vegetables and fish, chicken, or an egg.",
     "frequency": "A friendlier tuber; keep it boiled, not fried.",
     "logicNote": "More fibre than white yam; a reasonable swap when boiled.",
     "tags": [
@@ -522,7 +525,7 @@
     "gi": "high",
     "baseVerdict": "yellow",
     "portionGuidance": "Two small potatoes. That is about the size of two eggs (120g).",
-    "pairingAdvice": "Vegetables and protein.",
+    "pairingAdvice": "Vegetables and fish, chicken, or an egg.",
     "frequency": "Occasional, small.",
     "logicNote": "Higher GI than sweet potato; mind portion.",
     "tags": []
@@ -542,7 +545,7 @@
     "gi": "medium",
     "baseVerdict": "yellow",
     "portionGuidance": "Two small pieces. That is about the size of two eggs (120g).",
-    "pairingAdvice": "Vegetables and protein.",
+    "pairingAdvice": "Vegetables and fish, chicken, or an egg.",
     "frequency": "A friendlier tuber.",
     "logicNote": "Lower GI than yam; a decent swap.",
     "tags": [
@@ -563,7 +566,7 @@
     "baseVerdict": "green",
     "portionGuidance": "About four to five slices, roughly one cup (120g).",
     "pairingAdvice": "Vegetable sauce, egg, or fish.",
-    "frequency": "A good regular choice.",
+    "frequency": "About 3 times a week.",
     "logicNote": "Unripe means less sugar and a slower rise. Friendly.",
     "tags": [
       "local",
@@ -583,7 +586,7 @@
     "gi": "medium",
     "baseVerdict": "yellow",
     "portionGuidance": "About two to three slices (80g).",
-    "pairingAdvice": "Protein and vegetables.",
+    "pairingAdvice": "Fish, chicken, or an egg and vegetables.",
     "frequency": "Occasional, small.",
     "logicNote": "The riper and sweeter, the faster the sugar.",
     "tags": [
@@ -603,13 +606,14 @@
     "gi": "high",
     "baseVerdict": "red",
     "portionGuidance": "Avoid. If eaten, three to four small slices at most (60g).",
-    "pairingAdvice": "If eaten, a protein.",
+    "pairingAdvice": "If eaten, fish, chicken, or an egg.",
     "frequency": "Rare.",
     "logicNote": "Ripe sugar plus frying oil. Spikes hard.",
     "tags": [
       "fried",
       "popular"
-    ]
+    ],
+    "healthNote": "This food is fried or heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, keep it small and use less oil. Boiled or grilled is better."
   },
   {
     "id": "unripe-plantain-porridge",
@@ -625,7 +629,7 @@
     "baseVerdict": "green",
     "portionGuidance": "One bowl. That is about one cup (200g), with plenty vegetables.",
     "pairingAdvice": "Plenty vegetables and fish in it.",
-    "frequency": "A good regular meal.",
+    "frequency": "About 3 times a week.",
     "logicNote": "Unripe plantain plus vegetables is a friendly Nigerian meal.",
     "tags": [
       "local",
@@ -656,7 +660,8 @@
     "tags": [
       "fried",
       "street"
-    ]
+    ],
+    "healthNote": "This food is fried or heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, keep it small and use less oil. Boiled or grilled is better."
   },
   {
     "id": "popcorn-plain",
@@ -720,7 +725,8 @@
       "local",
       "street",
       "friendly"
-    ]
+    ],
+    "healthNote": "Beef and goat are red meat. Liver, kidney, shaki, and pomo are organ meat. Both are fine for your sugar but not for everyone. If you have high blood pressure, high cholesterol, or kidney problems, pick fish or skinless chicken instead and use less salt."
   },
   {
     "id": "kilishi",
@@ -741,7 +747,8 @@
     "tags": [
       "local",
       "northern"
-    ]
+    ],
+    "healthNote": "Beef and goat are red meat. Liver, kidney, shaki, and pomo are organ meat. Both are fine for your sugar but not for everyone. If you have high blood pressure, high cholesterol, or kidney problems, pick fish or skinless chicken instead and use less salt."
   },
   {
     "id": "nkwobi",
@@ -762,7 +769,8 @@
     "tags": [
       "local",
       "eastern"
-    ]
+    ],
+    "healthNote": "Beef and goat are red meat. Liver, kidney, shaki, and pomo are organ meat. Both are fine for your sugar but not for everyone. If you have high blood pressure, high cholesterol, or kidney problems, pick fish or skinless chicken instead and use less salt."
   },
   {
     "id": "boli",
@@ -788,7 +796,8 @@
     "tags": [
       "local",
       "street"
-    ]
+    ],
+    "healthNote": "This food is fried or heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, keep it small and use less oil. Boiled or grilled is better."
   },
   {
     "id": "chin-chin",
@@ -811,7 +820,8 @@
     "logicNote": "Fried sweet flour; spikes fast.",
     "tags": [
       "fried"
-    ]
+    ],
+    "healthNote": "This food is fried or heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, keep it small and use less oil. Boiled or grilled is better."
   },
   {
     "id": "puff-puff",
@@ -834,7 +844,8 @@
     "tags": [
       "fried",
       "street"
-    ]
+    ],
+    "healthNote": "This food is fried or heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, keep it small and use less oil. Boiled or grilled is better."
   },
   {
     "id": "meat-pie",
@@ -859,7 +870,8 @@
     "pairingAdvice": "",
     "frequency": "Rare.",
     "logicNote": "Refined flour pastry; fast rise.",
-    "tags": []
+    "tags": [],
+    "healthNote": "This food is fried or heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, keep it small and use less oil. Boiled or grilled is better."
   },
   {
     "id": "sausage-roll",
@@ -879,7 +891,8 @@
     "logicNote": "Refined pastry around processed meat.",
     "tags": [
       "street"
-    ]
+    ],
+    "healthNote": "This food is fried or heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, keep it small and use less oil. Boiled or grilled is better."
   },
   {
     "id": "buns",
@@ -903,7 +916,8 @@
     "logicNote": "Fried sweet dough.",
     "tags": [
       "fried"
-    ]
+    ],
+    "healthNote": "This food is fried or heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, keep it small and use less oil. Boiled or grilled is better."
   },
   {
     "id": "doughnut",
@@ -923,7 +937,8 @@
     "logicNote": "Fried, sugared dough.",
     "tags": [
       "fried"
-    ]
+    ],
+    "healthNote": "This food is fried or heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, keep it small and use less oil. Boiled or grilled is better."
   },
   {
     "id": "biscuits",
@@ -1020,7 +1035,7 @@
     "baseVerdict": "green",
     "portionGuidance": "One cupped handful. That is about half a cup cooked (130g).",
     "pairingAdvice": "Fish, an egg, or two slices of plantain (80g).",
-    "frequency": "Excellent regular meal.",
+    "frequency": "About 4 times a week.",
     "logicNote": "High fibre and protein, slow rise. One of the best diabetic-friendly staples.",
     "tags": [
       "local",
@@ -1042,7 +1057,7 @@
     "baseVerdict": "yellow",
     "portionGuidance": "One cupped handful. That is about half a cup, easy on the oil (130g).",
     "pairingAdvice": "Add fish, meat, or egg. Skip the bread.",
-    "frequency": "Good, but watch the oily sauce.",
+    "frequency": "About 4 times a week.",
     "logicNote": "Beans are great; the heavy palm-oil sauce is the only caution.",
     "tags": [
       "local",
@@ -1065,7 +1080,7 @@
     "baseVerdict": "green",
     "portionGuidance": "One wrap. That is about the size of your palm (150g).",
     "pairingAdvice": "Stands alone or with a salad.",
-    "frequency": "Excellent regular choice.",
+    "frequency": "About 4 times a week.",
     "logicNote": "Steamed beans, protein-rich, slow rise. A top pick.",
     "tags": [
       "local",
@@ -1096,7 +1111,8 @@
       "local",
       "street",
       "fried"
-    ]
+    ],
+    "healthNote": "This food is fried or heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, keep it small and use less oil. Boiled or grilled is better."
   },
   {
     "id": "beans-porridge",
@@ -1112,7 +1128,7 @@
     "baseVerdict": "green",
     "portionGuidance": "One small bowl. That is about three-quarters of a cup (150g).",
     "pairingAdvice": "Fish, or two slices of unripe plantain (80g).",
-    "frequency": "Excellent regular meal.",
+    "frequency": "About 4 times a week.",
     "logicNote": "Filling, high fibre, slow rise.",
     "tags": [
       "local",
@@ -1134,7 +1150,7 @@
     "baseVerdict": "green",
     "portionGuidance": "One wrap. That is about the size of your palm (150g).",
     "pairingAdvice": "Stands alone.",
-    "frequency": "Good choice.",
+    "frequency": "About 4 times a week.",
     "logicNote": "Bambara nut, protein-rich, slow rise.",
     "tags": [
       "local",
@@ -1251,7 +1267,7 @@
     "baseVerdict": "green",
     "portionGuidance": "Half a cup dry (40g), made with water.",
     "pairingAdvice": "About 10 nuts. Skip sugar and sweet milk.",
-    "frequency": "Good regular breakfast.",
+    "frequency": "About 4 times a week.",
     "logicNote": "Plain oats are friendly. Flavoured or instant ones often have added sugar.",
     "tags": [
       "breakfast",
@@ -1358,13 +1374,14 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One to two serving spoons. That is about one cup.",
-    "pairingAdvice": "A fist-size ball of swallow (100g) and plenty of vegetables.",
+    "pairingAdvice": "A fist-size ball of swallow (100g) and plenty of vegetables. Remember, the swallow you pick matters as much as the soup.",
     "frequency": "Good regular soup.",
     "logicNote": "Melon seed and vegetables; friendly. The swallow beside it is what to watch.",
     "tags": [
       "local",
       "friendly"
-    ]
+    ],
+    "healthNote": "This soup is heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, use less palm oil when you cook it and go easy on the red meat."
   },
   {
     "id": "ogbono-soup",
@@ -1383,13 +1400,14 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One to two serving spoons. That is about one cup.",
-    "pairingAdvice": "A fist-size ball of swallow (100g) and plenty of vegetables.",
+    "pairingAdvice": "A fist-size ball of swallow (100g) and plenty of vegetables. Remember, the swallow you pick matters as much as the soup.",
     "frequency": "Good regular soup.",
     "logicNote": "Low carb on its own; the swallow is the variable.",
     "tags": [
       "local",
       "friendly"
-    ]
+    ],
+    "healthNote": "This soup is heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, use less palm oil when you cook it and go easy on the red meat."
   },
   {
     "id": "efo-riro",
@@ -1406,7 +1424,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "Eat freely, two or more serving spoons.",
-    "pairingAdvice": "Fish, meat, or egg, with a fist-size ball of swallow (100g) if any.",
+    "pairingAdvice": "Fish, meat, or egg, with a fist-size ball of swallow (100g) if any. Remember, the swallow you pick matters as much as the soup.",
     "frequency": "Excellent regular soup.",
     "logicNote": "Vegetable-heavy and friendly.",
     "tags": [
@@ -1434,7 +1452,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "Eat freely, two or more serving spoons.",
-    "pairingAdvice": "Fish, meat, or egg, with a fist-size ball of swallow (100g) if any.",
+    "pairingAdvice": "Fish, meat, or egg, with a fist-size ball of swallow (100g) if any. Remember, the swallow you pick matters as much as the soup.",
     "frequency": "Excellent regular soup.",
     "logicNote": "Rich in vegetables and protein. One of the best.",
     "tags": [
@@ -1460,7 +1478,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "Eat freely, two or more serving spoons.",
-    "pairingAdvice": "Fish, meat, or egg, with a fist-size ball of swallow (100g) if any.",
+    "pairingAdvice": "Fish, meat, or egg, with a fist-size ball of swallow (100g) if any. Remember, the swallow you pick matters as much as the soup.",
     "frequency": "Excellent regular soup.",
     "logicNote": "Leafy and protein-rich; friendly.",
     "tags": [
@@ -1481,7 +1499,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One to two serving spoons. That is about one cup.",
-    "pairingAdvice": "A fist-size ball of swallow (100g) with fish, meat, or egg.",
+    "pairingAdvice": "A fist-size ball of swallow (100g) with fish, meat, or egg. Remember, the swallow you pick matters as much as the soup.",
     "frequency": "Good regular soup.",
     "logicNote": "Vegetable soup; watch only the thickener and swallow.",
     "tags": [
@@ -1504,7 +1522,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One to two serving spoons. That is about one cup.",
-    "pairingAdvice": "A fist-size ball of swallow (100g) with fish, meat, or egg.",
+    "pairingAdvice": "A fist-size ball of swallow (100g) with fish, meat, or egg. Remember, the swallow you pick matters as much as the soup.",
     "frequency": "Good regular soup.",
     "logicNote": "Friendly vegetable soup.",
     "tags": [
@@ -1531,7 +1549,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "Eat freely, two or more serving spoons.",
-    "pairingAdvice": "Fish, meat, or egg, with a fist-size ball of swallow (100g) if any.",
+    "pairingAdvice": "Fish, meat, or egg, with a fist-size ball of swallow (100g) if any. Remember, the swallow you pick matters as much as the soup.",
     "frequency": "Excellent; okra itself helps blood sugar.",
     "logicNote": "Okra is one of the friendliest vegetables for diabetics.",
     "tags": [
@@ -1553,7 +1571,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "Eat freely, two or more serving spoons.",
-    "pairingAdvice": "Fish, meat, or egg, with a fist-size ball of swallow (100g) if any.",
+    "pairingAdvice": "Fish, meat, or egg, with a fist-size ball of swallow (100g) if any. Remember, the swallow you pick matters as much as the soup.",
     "frequency": "Excellent.",
     "logicNote": "More vegetables, better.",
     "tags": [
@@ -1574,13 +1592,14 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One serving spoon, easy on the oil. That is about half a cup.",
-    "pairingAdvice": "Fish, with a fist-size ball of swallow (100g) if any.",
+    "pairingAdvice": "Fish, with a fist-size ball of swallow (100g) if any. Remember, the swallow you pick matters as much as the soup.",
     "frequency": "Good regular soup.",
     "logicNote": "Low carb; just rich in oil, so moderate the quantity.",
     "tags": [
       "local",
       "delta"
-    ]
+    ],
+    "healthNote": "This soup is heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, use less palm oil when you cook it and go easy on the red meat."
   },
   {
     "id": "ewedu",
@@ -1595,7 +1614,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "Eat freely, two or more serving spoons.",
-    "pairingAdvice": "Gbegiri and a fist-size ball of swallow (100g), with fish or meat.",
+    "pairingAdvice": "Gbegiri and a fist-size ball of swallow (100g), with fish or meat. Remember, the swallow you pick matters as much as the soup.",
     "frequency": "Excellent.",
     "logicNote": "Pure leafy soup; very friendly.",
     "tags": [
@@ -1616,7 +1635,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One to two serving spoons. That is about one cup.",
-    "pairingAdvice": "Ewedu and a fist-size ball of swallow (100g), with fish or meat.",
+    "pairingAdvice": "Ewedu and a fist-size ball of swallow (100g), with fish or meat. Remember, the swallow you pick matters as much as the soup.",
     "frequency": "Good regular soup.",
     "logicNote": "Bean-based, high fibre, slow rise.",
     "tags": [
@@ -1639,13 +1658,14 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One serving spoon. That is about half a cup.",
-    "pairingAdvice": "Vegetables and fish or meat, with a fist-size ball of swallow (100g).",
+    "pairingAdvice": "Vegetables and fish or meat, with a fist-size ball of swallow (100g). Remember, the swallow you pick matters as much as the soup.",
     "frequency": "Good regular soup.",
     "logicNote": "Groundnut adds protein and slows the meal.",
     "tags": [
       "local",
       "northern"
-    ]
+    ],
+    "healthNote": "This soup is heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, use less palm oil when you cook it and go easy on the red meat."
   },
   {
     "id": "white-soup",
@@ -1667,13 +1687,14 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One to two serving spoons. That is about one cup.",
-    "pairingAdvice": "Fish or meat, with a fist-size ball of swallow (100g).",
+    "pairingAdvice": "Fish or meat, with a fist-size ball of swallow (100g). Remember, the swallow you pick matters as much as the soup.",
     "frequency": "Good regular soup.",
     "logicNote": "Light, low carb; watch only the yam thickener if used.",
     "tags": [
       "local",
       "eastern"
-    ]
+    ],
+    "healthNote": "Beef and goat are red meat. Liver, kidney, shaki, and pomo are organ meat. Both are fine for your sugar but not for everyone. If you have high blood pressure, high cholesterol, or kidney problems, pick fish or skinless chicken instead and use less salt."
   },
   {
     "id": "pepper-soup",
@@ -1710,7 +1731,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One to two serving spoons. That is about one cup.",
-    "pairingAdvice": "Fish, meat, or egg, with a fist-size ball of swallow (100g).",
+    "pairingAdvice": "Fish, meat, or egg, with a fist-size ball of swallow (100g). Remember, the swallow you pick matters as much as the soup.",
     "frequency": "Good regular soup.",
     "logicNote": "Leaf-based, friendly.",
     "tags": [
@@ -1775,7 +1796,8 @@
     "pairingAdvice": "Vegetables.",
     "frequency": "Good regular protein.",
     "logicNote": "Trim visible fat.",
-    "tags": []
+    "tags": [],
+    "healthNote": "Beef and goat are red meat. Liver, kidney, shaki, and pomo are organ meat. Both are fine for your sugar but not for everyone. If you have high blood pressure, high cholesterol, or kidney problems, pick fish or skinless chicken instead and use less salt."
   },
   {
     "id": "goat-meat",
@@ -1799,7 +1821,8 @@
     "logicNote": "Lean red meat; friendly.",
     "tags": [
       "local"
-    ]
+    ],
+    "healthNote": "Beef and goat are red meat. Liver, kidney, shaki, and pomo are organ meat. Both are fine for your sugar but not for everyone. If you have high blood pressure, high cholesterol, or kidney problems, pick fish or skinless chicken instead and use less salt."
   },
   {
     "id": "fish",
@@ -1931,7 +1954,8 @@
     "pairingAdvice": "Vegetables and soups.",
     "frequency": "Good protein.",
     "logicNote": "Low carb seafood.",
-    "tags": []
+    "tags": [],
+    "healthNote": "This food is very salty. If you have high blood pressure, high cholesterol, or kidney problems, use only a little. Too much salt harms your heart and kidneys even when your sugar is fine."
   },
   {
     "id": "pomo",
@@ -1955,7 +1979,8 @@
     "logicNote": "No carbs; fine for blood sugar.",
     "tags": [
       "local"
-    ]
+    ],
+    "healthNote": "Beef and goat are red meat. Liver, kidney, shaki, and pomo are organ meat. Both are fine for your sugar but not for everyone. If you have high blood pressure, high cholesterol, or kidney problems, pick fish or skinless chicken instead and use less salt."
   },
   {
     "id": "liver",
@@ -1974,7 +1999,8 @@
     "pairingAdvice": "Vegetables.",
     "frequency": "Good in moderation.",
     "logicNote": "Protein-rich; fine for blood sugar.",
-    "tags": []
+    "tags": [],
+    "healthNote": "Beef and goat are red meat. Liver, kidney, shaki, and pomo are organ meat. Both are fine for your sugar but not for everyone. If you have high blood pressure, high cholesterol, or kidney problems, pick fish or skinless chicken instead and use less salt."
   },
   {
     "id": "fried-chicken-fish",
@@ -1998,7 +2024,8 @@
     "logicNote": "The protein is fine; deep frying is the only caution.",
     "tags": [
       "fried"
-    ]
+    ],
+    "healthNote": "This food is fried or heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, keep it small and use less oil. Boiled or grilled is better."
   },
   {
     "id": "ugu",
@@ -2163,7 +2190,7 @@
     "gi": "medium",
     "baseVerdict": "yellow",
     "portionGuidance": "Two small or medium carrots (about 100g).",
-    "pairingAdvice": "Raw as a snack, or in salads and stews with protein. Do not drink it as juice.",
+    "pairingAdvice": "Raw as a snack, or in salads and stews with fish, chicken, or an egg. Do not drink it as juice.",
     "frequency": "About 3 times a week.",
     "logicNote": "Carrot has natural sugar. A normal portion is fine, but large amounts, or carrot juice with the fibre removed, can raise your sugar.",
     "tags": []
@@ -2198,7 +2225,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "Eat freely. That is about one cup.",
-    "pairingAdvice": "Stir-fry, protein.",
+    "pairingAdvice": "Stir-fry, fish, chicken, or an egg.",
     "frequency": "Excellent.",
     "logicNote": "Low carb, high fibre.",
     "tags": []
@@ -2240,7 +2267,7 @@
     "baseVerdict": "green",
     "portionGuidance": "Half of a medium avocado (75g).",
     "pairingAdvice": "Alone or with eggs.",
-    "frequency": "Excellent.",
+    "frequency": "About 3 times a week.",
     "logicNote": "Healthy fat, almost no sugar. Great diabetic snack.",
     "tags": [
       "friendly"
@@ -2318,7 +2345,7 @@
     "baseVerdict": "green",
     "portionGuidance": "One small apple. That is the size of a tennis ball (120g).",
     "pairingAdvice": "About 10 nuts.",
-    "frequency": "Good.",
+    "frequency": "About 3 times a week.",
     "logicNote": "Lower GI fruit; the skin adds fibre.",
     "tags": [],
     "carbExchange": "one small apple"
@@ -2396,7 +2423,7 @@
     "baseVerdict": "green",
     "portionGuidance": "One small guava (about 55g).",
     "pairingAdvice": "Alone.",
-    "frequency": "Good.",
+    "frequency": "About 3 times a week.",
     "logicNote": "High fibre, lower GI; a friendly fruit.",
     "tags": [
       "friendly"
@@ -2440,7 +2467,7 @@
     "baseVerdict": "green",
     "portionGuidance": "Half a cup. That is about three small pieces (100g).",
     "pairingAdvice": "Alone.",
-    "frequency": "Good.",
+    "frequency": "About 3 times a week.",
     "logicNote": "Lower sugar fruit.",
     "tags": [],
     "carbExchange": "half a cup (three small pieces)"
@@ -2947,7 +2974,7 @@
     "baseVerdict": "green",
     "portionGuidance": "One small cup (150g), unsweetened.",
     "pairingAdvice": "About 10 nuts, or 8 to 10 berries.",
-    "frequency": "Good.",
+    "frequency": "About 4 times a week.",
     "logicNote": "Unsweetened only; flavoured yogurts are full of sugar.",
     "tags": [
       "friendly"
@@ -2991,7 +3018,7 @@
     "baseVerdict": "green",
     "portionGuidance": "Three to four small pieces (about 90g).",
     "pairingAdvice": "Pepper sauce.",
-    "frequency": "Good.",
+    "frequency": "About 4 times a week.",
     "logicNote": "Soft cheese; low carb, protein-rich.",
     "tags": [
       "local"
@@ -3175,7 +3202,8 @@
     "pairingAdvice": "Cooking.",
     "frequency": "Moderate.",
     "logicNote": "No sugar impact, but too much raises blood pressure, which diabetics must watch.",
-    "tags": []
+    "tags": [],
+    "healthNote": "This food is very salty. If you have high blood pressure, high cholesterol, or kidney problems, use only a little. Too much salt harms your heart and kidneys even when your sugar is fine."
   },
   {
     "id": "fura-da-nono",
@@ -3215,7 +3243,7 @@
     "gi": "high",
     "baseVerdict": "yellow",
     "portionGuidance": "Two small cakes (about 60g).",
-    "pairingAdvice": "Miyan taushe or vegetable soup and protein.",
+    "pairingAdvice": "Miyan taushe or vegetable soup and fish, chicken, or an egg.",
     "frequency": "Occasional, small.",
     "logicNote": "Fermented rice cakes, soft and starchy. Keep to the size shown below.",
     "tags": [
@@ -3238,7 +3266,7 @@
     "baseVerdict": "green",
     "portionGuidance": "One small plate. That is about one cup (150g).",
     "pairingAdvice": "One teaspoon of oil and some pepper. Add plenty of vegetables.",
-    "frequency": "Good regular meal.",
+    "frequency": "About 4 times a week.",
     "logicNote": "Bean-flour dumplings; high fibre and slow to raise sugar.",
     "tags": [
       "local",
@@ -3258,7 +3286,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One to two serving spoons. That is about one cup.",
-    "pairingAdvice": "A fist-size ball of swallow (100g) with fish, meat, or egg.",
+    "pairingAdvice": "A fist-size ball of swallow (100g) with fish, meat, or egg. Remember, the swallow you pick matters as much as the soup.",
     "frequency": "Excellent regular soup.",
     "logicNote": "Pumpkin and groundnut soup; filling and friendly.",
     "tags": [
@@ -3285,7 +3313,8 @@
     "tags": [
       "local",
       "northern"
-    ]
+    ],
+    "healthNote": "This food is fried or heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, keep it small and use less oil. Boiled or grilled is better."
   },
   {
     "id": "dambu-nama",
@@ -3307,7 +3336,8 @@
     "tags": [
       "local",
       "northern"
-    ]
+    ],
+    "healthNote": "Beef and goat are red meat. Liver, kidney, shaki, and pomo are organ meat. Both are fine for your sugar but not for everyone. If you have high blood pressure, high cholesterol, or kidney problems, pick fish or skinless chicken instead and use less salt."
   },
   {
     "id": "ikokore",
@@ -3344,7 +3374,7 @@
     "baseVerdict": "green",
     "portionGuidance": "One to two wraps, palm size (150g).",
     "pairingAdvice": "Ata sauce and fish. Skip the eko.",
-    "frequency": "Good regular choice.",
+    "frequency": "About 4 times a week.",
     "logicNote": "Steamed beans with no oil inside; protein-rich and slow.",
     "tags": [
       "local",
@@ -3369,7 +3399,8 @@
     "tags": [
       "local",
       "yoruba"
-    ]
+    ],
+    "healthNote": "This food is fried or heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, keep it small and use less oil. Boiled or grilled is better."
   },
   {
     "id": "eko-agidi",
@@ -3409,7 +3440,7 @@
     "baseVerdict": "green",
     "portionGuidance": "One small bowl. That is about three-quarters of a cup (150g).",
     "pairingAdvice": "One teaspoon of palm oil, plus fish.",
-    "frequency": "Good regular meal.",
+    "frequency": "About 4 times a week.",
     "logicNote": "African breadfruit; high fibre and protein, a filling meal.",
     "tags": [
       "local",
@@ -3430,7 +3461,7 @@
     "baseVerdict": "green",
     "portionGuidance": "One cupped handful. That is about half a cup (130g).",
     "pairingAdvice": "Vegetables and fish.",
-    "frequency": "Good regular meal.",
+    "frequency": "About 4 times a week.",
     "logicNote": "Pigeon pea pottage; beans-like, high fibre and slow.",
     "tags": [
       "local",
@@ -3473,7 +3504,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One to two serving spoons. That is about one cup.",
-    "pairingAdvice": "A fist-size ball of swallow (100g) with fish, meat, or egg.",
+    "pairingAdvice": "A fist-size ball of swallow (100g) with fish, meat, or egg. Remember, the swallow you pick matters as much as the soup.",
     "frequency": "Good regular soup.",
     "logicNote": "Leafy vegetable soup; friendly, watch only the thickener and swallow.",
     "tags": [
@@ -3494,13 +3525,14 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One to two serving spoons. That is about one cup.",
-    "pairingAdvice": "Fish or bush meat, with a fist-size ball of swallow (100g) if any.",
+    "pairingAdvice": "Fish or bush meat, with a fist-size ball of swallow (100g) if any. Remember, the swallow you pick matters as much as the soup.",
     "frequency": "Good regular soup.",
     "logicNote": "Light palm-based Delta soup; low carb and friendly.",
     "tags": [
       "local",
       "delta"
-    ]
+    ],
+    "healthNote": "This soup is heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, use less palm oil when you cook it and go easy on the red meat."
   },
   {
     "id": "native-soup",
@@ -3521,7 +3553,8 @@
     "tags": [
       "local",
       "delta"
-    ]
+    ],
+    "healthNote": "This soup is heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, use less palm oil when you cook it and go easy on the red meat."
   },
   {
     "id": "ekpang-nkukwo",
@@ -3589,7 +3622,8 @@
     "logicNote": "Dried fish; low carb and protein-rich.",
     "tags": [
       "local"
-    ]
+    ],
+    "healthNote": "This food is very salty. If you have high blood pressure, high cholesterol, or kidney problems, use only a little. Too much salt harms your heart and kidneys even when your sugar is fine."
   },
   {
     "id": "shaki",
@@ -3610,7 +3644,8 @@
     "logicNote": "Cow tripe; low carb, fine for blood sugar.",
     "tags": [
       "local"
-    ]
+    ],
+    "healthNote": "Beef and goat are red meat. Liver, kidney, shaki, and pomo are organ meat. Both are fine for your sugar but not for everyone. If you have high blood pressure, high cholesterol, or kidney problems, pick fish or skinless chicken instead and use less salt."
   },
   {
     "id": "gizzard",
@@ -3635,7 +3670,8 @@
     "pairingAdvice": "Pepper sauce and vegetables.",
     "frequency": "Good; grilled beats fried.",
     "logicNote": "Chicken gizzard; lean protein, low carb.",
-    "tags": []
+    "tags": [],
+    "healthNote": "Beef and goat are red meat. Liver, kidney, shaki, and pomo are organ meat. Both are fine for your sugar but not for everyone. If you have high blood pressure, high cholesterol, or kidney problems, pick fish or skinless chicken instead and use less salt."
   },
   {
     "id": "crab",
@@ -3672,7 +3708,8 @@
     "logicNote": "Lean bush meat; low carb.",
     "tags": [
       "local"
-    ]
+    ],
+    "healthNote": "Beef and goat are red meat. Liver, kidney, shaki, and pomo are organ meat. Both are fine for your sugar but not for everyone. If you have high blood pressure, high cholesterol, or kidney problems, pick fish or skinless chicken instead and use less salt."
   },
   {
     "id": "scent-leaf",
@@ -3866,7 +3903,7 @@
     "baseVerdict": "green",
     "portionGuidance": "Half of one medium fruit.",
     "pairingAdvice": "Alone.",
-    "frequency": "Good.",
+    "frequency": "About 3 times a week.",
     "logicNote": "Lower sugar citrus; a friendly fruit.",
     "tags": [],
     "carbExchange": "half of a medium fruit"
@@ -3885,7 +3922,7 @@
     "baseVerdict": "green",
     "portionGuidance": "A squeeze in water or food.",
     "pairingAdvice": "In water, tea, and cooking.",
-    "frequency": "Excellent daily.",
+    "frequency": "About 5 times a week.",
     "logicNote": "Very low sugar; adds flavour with almost no carbs.",
     "tags": []
   },
@@ -4091,7 +4128,8 @@
     "logicNote": "Meat has no carbs, so it does not raise blood sugar. Trim the fat, as fatty cuts are heavy for the heart.",
     "tags": [
       "local"
-    ]
+    ],
+    "healthNote": "Beef and goat are red meat. Liver, kidney, shaki, and pomo are organ meat. Both are fine for your sugar but not for everyone. If you have high blood pressure, high cholesterol, or kidney problems, pick fish or skinless chicken instead and use less salt."
   },
   {
     "id": "fried-egg",
@@ -4111,7 +4149,8 @@
     "logicNote": "Egg has no carbs and does not raise your sugar. Fry it in one teaspoon of oil.",
     "tags": [
       "breakfast"
-    ]
+    ],
+    "healthNote": "This food is fried or heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, keep it small and use less oil. Boiled or grilled is better."
   },
   {
     "id": "scrambled-egg",
@@ -4191,7 +4230,8 @@
     "tags": [
       "street",
       "fried"
-    ]
+    ],
+    "healthNote": "This food is fried or heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, keep it small and use less oil. Boiled or grilled is better."
   },
   {
     "id": "scotch-egg",
@@ -4211,7 +4251,8 @@
     "tags": [
       "street",
       "fried"
-    ]
+    ],
+    "healthNote": "This food is fried or heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, keep it small and use less oil. Boiled or grilled is better."
   },
   {
     "id": "lafun",
@@ -4228,7 +4269,7 @@
     "gi": "high",
     "baseVerdict": "yellow",
     "portionGuidance": "One ball the size of your fist. That is about half a cup (100g).",
-    "pairingAdvice": "Vegetable soup like ewedu or efo, plus a protein.",
+    "pairingAdvice": "Vegetable soup like ewedu or efo, plus fish, chicken, or an egg.",
     "frequency": "A few times a week, small.",
     "logicNote": "Cassava swallow; turns to sugar fast, so portion and soup pairing matter most.",
     "tags": [
@@ -4249,7 +4290,7 @@
     "gi": "high",
     "baseVerdict": "yellow",
     "portionGuidance": "Half a cup of cooked rice. That is about the size of a tennis ball (90g).",
-    "pairingAdvice": "Protein and plenty vegetables.",
+    "pairingAdvice": "Fish, chicken, or an egg and plenty vegetables.",
     "frequency": "Occasional, small.",
     "logicNote": "Still white rice; the coconut does not lower the sugar. Cut the portion and add fibre.",
     "tags": [
@@ -4315,7 +4356,8 @@
     "logicNote": "Gizzard is low-carb protein; the fried ripe plantain is the sugar to watch.",
     "tags": [
       "local"
-    ]
+    ],
+    "healthNote": "This food is fried or heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, keep it small and use less oil. Boiled or grilled is better."
   },
   {
     "id": "adalu",
@@ -4371,7 +4413,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One to two serving spoons. That is about one cup.",
-    "pairingAdvice": "A fist-size ball of swallow (100g) with plenty of fish or meat.",
+    "pairingAdvice": "A fist-size ball of swallow (100g) with plenty of fish or meat. Remember, the swallow you pick matters as much as the soup.",
     "frequency": "Good regular soup.",
     "logicNote": "A rich Igbo vegetable and meat soup; low carb, watch only the swallow beside it.",
     "tags": [
@@ -4394,7 +4436,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "Eat freely, two or more serving spoons.",
-    "pairingAdvice": "Fish, meat, or egg, with a fist-size ball of swallow (100g) if any.",
+    "pairingAdvice": "Fish, meat, or egg, with a fist-size ball of swallow (100g) if any. Remember, the swallow you pick matters as much as the soup.",
     "frequency": "Excellent regular soup.",
     "logicNote": "Leafy Igbo soup, close to afang; friendly and low carb.",
     "tags": [
@@ -4414,7 +4456,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One to two serving spoons. That is about one cup.",
-    "pairingAdvice": "Fish, meat, or egg, with a fist-size ball of swallow (100g).",
+    "pairingAdvice": "Fish, meat, or egg, with a fist-size ball of swallow (100g). Remember, the swallow you pick matters as much as the soup.",
     "frequency": "Good regular soup.",
     "logicNote": "Efik bitter-leaf style soup, rich in vegetables; friendly.",
     "tags": [
@@ -4439,7 +4481,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One serving spoon, easy on the oil. That is about half a cup.",
-    "pairingAdvice": "Fish and seafood, with a fist-size ball of swallow (100g).",
+    "pairingAdvice": "Fish and seafood, with a fist-size ball of swallow (100g). Remember, the swallow you pick matters as much as the soup.",
     "frequency": "Good regular soup.",
     "logicNote": "Palm-fruit and atama-leaf soup; low carb but rich in oil, so go easy on the oil.",
     "tags": [
@@ -4468,7 +4510,8 @@
     "tags": [
       "local",
       "eastern"
-    ]
+    ],
+    "healthNote": "This soup is heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, use less palm oil when you cook it and go easy on the red meat."
   },
   {
     "id": "miyan-kubewa",
@@ -4482,7 +4525,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "Eat freely, two or more serving spoons.",
-    "pairingAdvice": "Small tuwo and protein.",
+    "pairingAdvice": "Small tuwo and fish, chicken, or an egg.",
     "frequency": "Excellent regular soup.",
     "logicNote": "Northern okra soup; okra is one of the friendliest foods for blood sugar.",
     "tags": [
@@ -4509,7 +4552,8 @@
     "tags": [
       "local",
       "street"
-    ]
+    ],
+    "healthNote": "Beef and goat are red meat. Liver, kidney, shaki, and pomo are organ meat. Both are fine for your sugar but not for everyone. If you have high blood pressure, high cholesterol, or kidney problems, pick fish or skinless chicken instead and use less salt."
   },
   {
     "id": "isi-ewu",
@@ -4530,7 +4574,8 @@
     "tags": [
       "local",
       "eastern"
-    ]
+    ],
+    "healthNote": "Beef and goat are red meat. Liver, kidney, shaki, and pomo are organ meat. Both are fine for your sugar but not for everyone. If you have high blood pressure, high cholesterol, or kidney problems, pick fish or skinless chicken instead and use less salt."
   },
   {
     "id": "ram-meat",
@@ -4553,7 +4598,8 @@
     "logicNote": "Red meat with no carbs; trim visible fat, as fatty cuts are heavy for the heart.",
     "tags": [
       "local"
-    ]
+    ],
+    "healthNote": "Beef and goat are red meat. Liver, kidney, shaki, and pomo are organ meat. Both are fine for your sugar but not for everyone. If you have high blood pressure, high cholesterol, or kidney problems, pick fish or skinless chicken instead and use less salt."
   },
   {
     "id": "kidney",
@@ -4572,7 +4618,8 @@
     "pairingAdvice": "In pepper soup or stew.",
     "frequency": "A few times a week.",
     "logicNote": "Organ meat; low carb and protein-rich. Fine in moderation.",
-    "tags": []
+    "tags": [],
+    "healthNote": "Beef and goat are red meat. Liver, kidney, shaki, and pomo are organ meat. Both are fine for your sugar but not for everyone. If you have high blood pressure, high cholesterol, or kidney problems, pick fish or skinless chicken instead and use less salt."
   },
   {
     "id": "sardine",
@@ -4590,7 +4637,8 @@
     "pairingAdvice": "With vegetables. Skip the bread if you can.",
     "frequency": "A few times a week.",
     "logicNote": "Oily fish, low in carbs and rich in good fat. Choose the ones packed in water rather than oil.",
-    "tags": []
+    "tags": [],
+    "healthNote": "This food is very salty. If you have high blood pressure, high cholesterol, or kidney problems, use only a little. Too much salt harms your heart and kidneys even when your sugar is fine."
   },
   {
     "id": "corned-beef",
@@ -4608,7 +4656,8 @@
     "pairingAdvice": "With vegetables. Watch the salt.",
     "frequency": "Occasional.",
     "logicNote": "Low in carbs, but processed and salty. Keep to the size shown below and drink water.",
-    "tags": []
+    "tags": [],
+    "healthNote": "Beef and goat are red meat. Liver, kidney, shaki, and pomo are organ meat. Both are fine for your sugar but not for everyone. If you have high blood pressure, high cholesterol, or kidney problems, pick fish or skinless chicken instead and use less salt."
   },
   {
     "id": "soko",
@@ -4645,7 +4694,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "Eat freely, about one cup.",
-    "pairingAdvice": "Steamed or stir-fried with protein.",
+    "pairingAdvice": "Steamed or stir-fried with fish, chicken, or an egg.",
     "frequency": "Excellent daily.",
     "logicNote": "Low carb, high fibre; a very friendly vegetable.",
     "tags": []
@@ -4679,7 +4728,7 @@
     "gi": "medium",
     "baseVerdict": "yellow",
     "portionGuidance": "Half a cup, cooked (about 100g).",
-    "pairingAdvice": "Add to soups and porridge with protein and green vegetables.",
+    "pairingAdvice": "Add to soups and porridge with fish, chicken, or an egg and green vegetables.",
     "frequency": "About 3 times a week.",
     "logicNote": "Cooked pumpkin flesh is soft and starchy, so it can raise sugar in large amounts. A small portion is fine.",
     "tags": [
@@ -4700,7 +4749,7 @@
     "baseVerdict": "green",
     "portionGuidance": "About seven to eight berries (100g).",
     "pairingAdvice": "About 10 nuts, or one small cup of plain yogurt (150g).",
-    "frequency": "Good.",
+    "frequency": "About 3 times a week.",
     "logicNote": "Lower sugar and high in fibre; a friendly fruit.",
     "tags": [
       "seasonal"
@@ -4741,7 +4790,7 @@
     "baseVerdict": "green",
     "portionGuidance": "Two to three small fruits.",
     "pairingAdvice": "Alone.",
-    "frequency": "Good.",
+    "frequency": "About 3 times a week.",
     "logicNote": "A local low-sugar fruit; friendly in small amounts.",
     "tags": [
       "local",
@@ -4948,7 +4997,7 @@
     "baseVerdict": "green",
     "portionGuidance": "One small cup (200ml), no sugar.",
     "pairingAdvice": "Alone, unsweetened.",
-    "frequency": "Good; unsweetened only.",
+    "frequency": "About 4 times a week.",
     "logicNote": "Plain fermented milk is friendly; the sweetened kind is not.",
     "tags": [
       "local",
@@ -5050,7 +5099,8 @@
     "tags": [
       "street",
       "fried"
-    ]
+    ],
+    "healthNote": "This food is fried or heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, keep it small and use less oil. Boiled or grilled is better."
   },
   {
     "id": "spring-roll",
@@ -5071,7 +5121,8 @@
     "tags": [
       "street",
       "fried"
-    ]
+    ],
+    "healthNote": "This food is fried or heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, keep it small and use less oil. Boiled or grilled is better."
   },
   {
     "id": "fish-roll",
@@ -5091,7 +5142,8 @@
     "tags": [
       "street",
       "fried"
-    ]
+    ],
+    "healthNote": "This food is fried or heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, keep it small and use less oil. Boiled or grilled is better."
   },
   {
     "id": "small-chops",
@@ -5111,7 +5163,8 @@
     "tags": [
       "popular",
       "fried"
-    ]
+    ],
+    "healthNote": "This food is fried or heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, keep it small and use less oil. Boiled or grilled is better."
   },
   {
     "id": "donkwa",
@@ -5154,7 +5207,8 @@
     "tags": [
       "local",
       "street"
-    ]
+    ],
+    "healthNote": "This food is fried or heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, keep it small and use less oil. Boiled or grilled is better."
   },
   {
     "id": "aadun",
@@ -5195,7 +5249,8 @@
     "tags": [
       "local",
       "yoruba"
-    ]
+    ],
+    "healthNote": "This food is fried or heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, keep it small and use less oil. Boiled or grilled is better."
   },
   {
     "id": "coconut-candy",
@@ -5234,7 +5289,8 @@
     "tags": [
       "street",
       "fried"
-    ]
+    ],
+    "healthNote": "This food is fried or heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, keep it small and use less oil. Boiled or grilled is better."
   },
   {
     "id": "ginger",
@@ -5315,7 +5371,8 @@
     "pairingAdvice": "In cooking. Balance it with less added salt.",
     "frequency": "Moderate.",
     "logicNote": "No sugar impact, but very salty. Too much salt raises blood pressure, which diabetics must watch.",
-    "tags": []
+    "tags": [],
+    "healthNote": "This food is very salty. If you have high blood pressure, high cholesterol, or kidney problems, use only a little. Too much salt harms your heart and kidneys even when your sugar is fine."
   },
   {
     "id": "ketchup",
@@ -5438,7 +5495,8 @@
     "logicNote": "The white bun is a fast starch and the sauces add hidden sugar. The beef and vegetables are the friendly parts.",
     "tags": [
       "fastfood"
-    ]
+    ],
+    "healthNote": "This food is fried or heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, keep it small and use less oil. Boiled or grilled is better."
   },
   {
     "id": "hot-dog",
@@ -5500,7 +5558,8 @@
     "logicNote": "Deep-fried refined potato raises sugar fast and adds a lot of oil. Boiled or roasted potato is better.",
     "tags": [
       "fried"
-    ]
+    ],
+    "healthNote": "This food is fried or heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, keep it small and use less oil. Boiled or grilled is better."
   },
   {
     "id": "potato-crisps",
@@ -5522,7 +5581,8 @@
     "tags": [
       "fried",
       "processed"
-    ]
+    ],
+    "healthNote": "This food is fried or heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, keep it small and use less oil. Boiled or grilled is better."
   },
   {
     "id": "indomie",
@@ -5666,7 +5726,7 @@
     "gi": "medium",
     "baseVerdict": "yellow",
     "portionGuidance": "Two to three slices (about 80g).",
-    "pairingAdvice": "Add to a salad with cucumber and protein. Do not drink it as juice.",
+    "pairingAdvice": "Add to a salad with cucumber and fish, chicken, or an egg. Do not drink it as juice.",
     "frequency": "About 3 times a week.",
     "logicNote": "Beetroot has more natural sugar than green vegetables, so keep the portion small. Juicing it removes the fibre and raises sugar faster.",
     "tags": []
@@ -5684,7 +5744,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "Half a cup (about 80g).",
-    "pairingAdvice": "Mix into rice, stews, or a vegetable sauce with protein.",
+    "pairingAdvice": "Mix into rice, stews, or a vegetable sauce with fish, chicken, or an egg.",
     "frequency": "About 4 times a week.",
     "logicNote": "Peas have fibre and protein that slow the sugar, so a normal portion is friendly.",
     "tags": []
@@ -5702,7 +5762,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One cup, cooked (about 100g).",
-    "pairingAdvice": "Add to stews, sauces, and stir-fries with protein.",
+    "pairingAdvice": "Add to stews, sauces, and stir-fries with fish, chicken, or an egg.",
     "frequency": "Every day.",
     "logicNote": "Very low in carbs and calories; a friendly way to add bulk and taste.",
     "tags": []
@@ -5719,7 +5779,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One to two cups, cooked or raw.",
-    "pairingAdvice": "Use in soups, stir-fries, and salads with protein.",
+    "pairingAdvice": "Use in soups, stir-fries, and salads with fish, chicken, or an egg.",
     "frequency": "Every day.",
     "logicNote": "A leafy green that is high in fibre and very low in sugar.",
     "tags": []
@@ -5737,7 +5797,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One cup, cooked (about 120g).",
-    "pairingAdvice": "Add to stir-fries, sauces, and soups with protein.",
+    "pairingAdvice": "Add to stir-fries, sauces, and soups with fish, chicken, or an egg.",
     "frequency": "Every day.",
     "logicNote": "Mostly water and fibre; a friendly low-sugar vegetable.",
     "tags": []
@@ -5778,7 +5838,7 @@
     "gi": "medium",
     "baseVerdict": "yellow",
     "portionGuidance": "Half a cup (about 80g).",
-    "pairingAdvice": "Mix a little into a vegetable salad or sauce with protein.",
+    "pairingAdvice": "Mix a little into a vegetable salad or sauce with fish, chicken, or an egg.",
     "frequency": "About 2 times a week.",
     "logicNote": "Sweet corn has more sugar than fresh corn on the cob. Keep the portion small.",
     "tags": []
@@ -5980,7 +6040,8 @@
     "logicNote": "Low in carbs but processed, salty, and high in fat. Keep it occasional.",
     "tags": [
       "processed"
-    ]
+    ],
+    "healthNote": "Beef and goat are red meat. Liver, kidney, shaki, and pomo are organ meat. Both are fine for your sugar but not for everyone. If you have high blood pressure, high cholesterol, or kidney problems, pick fish or skinless chicken instead and use less salt."
   },
   {
     "id": "soy-milk",
@@ -5997,7 +6058,7 @@
     "baseVerdict": "green",
     "portionGuidance": "One cup (about 250ml), unsweetened.",
     "pairingAdvice": "Drink it plain, or use in tea, oats, or pap with no sugar.",
-    "frequency": "Every day.",
+    "frequency": "About 4 times a week.",
     "logicNote": "Plant milk with protein and little sugar when unsweetened. Check the label and avoid the sweetened kind.",
     "tags": [
       "plant"
@@ -6140,10 +6201,11 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "Two to three serving spoons (about half a cup).",
-    "pairingAdvice": "It already has fish, chicken, or meat. Eat with a small portion of rice (half a cup, 130g) or a fist-size ball of swallow (100g).",
+    "pairingAdvice": "It already has fish, chicken, or meat. Eat with a small portion of rice (half a cup, 130g) or a fist-size ball of swallow (100g). Remember, the swallow you pick matters as much as the soup.",
     "frequency": "You can eat this every day.",
     "logicNote": "A pepper and tomato sauce with oil and protein. It is low in carbs, so it does not raise sugar much on its own; the rice or swallow is what to watch.",
-    "tags": []
+    "tags": [],
+    "healthNote": "Beef and goat are red meat. Liver, kidney, shaki, and pomo are organ meat. Both are fine for your sugar but not for everyone. If you have high blood pressure, high cholesterol, or kidney problems, pick fish or skinless chicken instead and use less salt."
   },
   {
     "id": "ayamase",
@@ -6162,7 +6224,8 @@
     "pairingAdvice": "It already has assorted meat. Eat with a small portion of ofada rice (half a cup, 130g).",
     "frequency": "About 3 times a week.",
     "logicNote": "A green pepper sauce with plenty of palm oil and assorted meat. Low in carbs, but heavy on oil, so keep the oil in check.",
-    "tags": []
+    "tags": [],
+    "healthNote": "This soup is heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, use less palm oil when you cook it and go easy on the red meat."
   },
   {
     "id": "garden-egg-sauce",
@@ -6206,7 +6269,8 @@
     "pairingAdvice": "Use with a small portion of rice, yam, or plantain, plus fish or meat.",
     "frequency": "You can eat this every day.",
     "logicNote": "Fried pepper, onion, and oil. Very low in carbs; the starch it goes with is what to watch.",
-    "tags": []
+    "tags": [],
+    "healthNote": "This soup is heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, use less palm oil when you cook it and go easy on the red meat."
   },
   {
     "id": "cow-leg",
@@ -6224,7 +6288,8 @@
     "pairingAdvice": "In pepper soup or stew, with vegetables.",
     "frequency": "About 4 times a week.",
     "logicNote": "Mostly skin, bone, and collagen; low in carbs and does not raise sugar.",
-    "tags": []
+    "tags": [],
+    "healthNote": "Beef and goat are red meat. Liver, kidney, shaki, and pomo are organ meat. Both are fine for your sugar but not for everyone. If you have high blood pressure, high cholesterol, or kidney problems, pick fish or skinless chicken instead and use less salt."
   },
   {
     "id": "cow-tail",
@@ -6241,7 +6306,8 @@
     "pairingAdvice": "In pepper soup or stew, with vegetables.",
     "frequency": "About 4 times a week.",
     "logicNote": "A fatty, low-carb meat that does not raise sugar. Trim heavy fat if you can.",
-    "tags": []
+    "tags": [],
+    "healthNote": "Beef and goat are red meat. Liver, kidney, shaki, and pomo are organ meat. Both are fine for your sugar but not for everyone. If you have high blood pressure, high cholesterol, or kidney problems, pick fish or skinless chicken instead and use less salt."
   },
   {
     "id": "smoked-fish",
@@ -6264,7 +6330,8 @@
     "pairingAdvice": "In soups, stews, and pepper sauce, with vegetables.",
     "frequency": "You can eat this every day.",
     "logicNote": "Dried, smoked fish; low in carbs and rich in protein. Rinse off extra salt.",
-    "tags": []
+    "tags": [],
+    "healthNote": "This food is very salty. If you have high blood pressure, high cholesterol, or kidney problems, use only a little. Too much salt harms your heart and kidneys even when your sugar is fine."
   },
   {
     "id": "african-yam-bean",
@@ -6337,7 +6404,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One to two stalks.",
-    "pairingAdvice": "In salads, soups, and stir-fries with protein.",
+    "pairingAdvice": "In salads, soups, and stir-fries with fish, chicken, or an egg.",
     "frequency": "You can eat this every day.",
     "logicNote": "Mostly water and fibre, with almost no sugar.",
     "tags": []
@@ -6730,7 +6797,8 @@
     "logicNote": "Low in carbs but processed, salty, and high in fat. Keep it occasional.",
     "tags": [
       "processed"
-    ]
+    ],
+    "healthNote": "This food is very salty. If you have high blood pressure, high cholesterol, or kidney problems, use only a little. Too much salt harms your heart and kidneys even when your sugar is fine."
   },
   {
     "id": "alkaki",
@@ -6751,7 +6819,8 @@
     "tags": [
       "local",
       "northern"
-    ]
+    ],
+    "healthNote": "This food is fried or heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, keep it small and use less oil. Boiled or grilled is better."
   },
   {
     "id": "radish",
@@ -6801,7 +6870,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One cup (about 100g).",
-    "pairingAdvice": "In stir-fries and salads with protein.",
+    "pairingAdvice": "In stir-fries and salads with fish, chicken, or an egg.",
     "frequency": "You can eat this every day.",
     "logicNote": "Crunchy sprouts, very low in sugar.",
     "tags": []

@@ -18,6 +18,15 @@ const DECK =
   "Add a palm-size piece of fish, chicken, or meat, about the size of a deck of cards (90g).";
 
 /**
+ * Shown right after a fix that suggests meat. Many people with diabetes also
+ * have high blood pressure, high cholesterol, or kidney problems, so red meat
+ * that is fine for sugar can still harm them. The leading "Note:" lets the meal
+ * builder render this line in red instead of as a numbered step.
+ */
+const MEAT_NOTE =
+  "Note: only add beef or red meat if you do not have high blood pressure, high cholesterol, or kidney problems. If you do, use fish or skinless chicken instead.";
+
+/**
  * What vegetables to add, worded so they actually go with the main food.
  * Keyed by the main starch's category. If a category is not here, we say
  * nothing rather than give an odd pairing (e.g. never tell a smoothie or
@@ -188,7 +197,10 @@ export function scoreMeal(items: MealItem[]): MealResult {
       fixes.push(VEG_FIX[mainCategory]);
     }
     if (!hasProtein && mainCategory && PROTEIN_FIX[mainCategory]) {
-      fixes.push(PROTEIN_FIX[mainCategory]);
+      const proteinFix = PROTEIN_FIX[mainCategory];
+      fixes.push(proteinFix);
+      // Only the meat suggestion carries the blood-pressure/cholesterol note.
+      if (proteinFix === DECK) fixes.push(MEAT_NOTE);
     }
     if (fixes.length === 0) {
       const hasDrink = items.some((i) => i.food.role === "drink");
