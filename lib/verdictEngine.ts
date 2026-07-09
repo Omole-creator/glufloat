@@ -14,8 +14,9 @@ import type { Food, MealItem, MealResult, Verdict } from "./types";
 const GREEN_AT = 1.75;
 const YELLOW_AT = 0.75;
 
+// Meat comes in chunks, not palm-shaped slabs, so the palm measures the total.
 const DECK =
-  "Add a piece of fish, chicken, or meat as big as your palm, without the fingers (90g).";
+  "Add fish, chicken, or meat (90g). That is two or three chunks that, put together, fill your palm.";
 
 /**
  * Shown right after a fix that suggests meat. Many people with diabetes also

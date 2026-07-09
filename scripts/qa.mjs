@@ -155,10 +155,11 @@ await check("green answer word is obvious", async () =>
 // The meal builder answers "how often", the way a single food card does. The
 // strictest food on the plate sets it: white rice here, at 2 times a week.
 await check("meal builder shows a countable how-often", async () =>
-  visible(page.getByText("About 2 times a week", { exact: true })),
+  visible(page.getByText("You can eat this meal about 2 times a week.", { exact: true })),
 );
-await check("meal names the food holding it back", async () =>
-  visible(page.getByText("is what holds it back", { exact: false })),
+// The reason must say what the food holds the meal back FROM, as a number.
+await check("meal says why, with a number", async () =>
+  visible(page.getByText("Without it, you could eat the rest every day.", { exact: false })),
 );
 await page.screenshot({ path: `${OUT}/meal-after-fix.png` });
 
@@ -171,7 +172,7 @@ await check("coke locks meal red", async () =>
 );
 // The how-often line must never contradict the hard red lock.
 await check("coke makes how-often say never", async () =>
-  visible(page.getByText("Best not to eat this meal at all", { exact: true })),
+  visible(page.getByText("Best not to eat this meal at all.", { exact: true })),
 );
 await page.screenshot({ path: `${OUT}/meal-hard-red.png` });
 

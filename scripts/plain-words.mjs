@@ -160,6 +160,10 @@ const PAIRING = {
  * short ones, or a short rule eats the phrase a longer rule was waiting for.
  */
 const RULES = [
+  // ---- repair damage an earlier ordering of these rules left behind ----
+  [/\bfor the the rough part of food\b/gi, "for the rough part of the fruit"],
+  [/\bWhite white flour\b/g, "White flour"],
+
   // ---- foods to skip -------------------------------------------------
   [/^Avoid\. If you do have it, only /, "Best to skip this. If you do have it, only "],
   [/^Avoid\. If you do have it, /, "Best to skip this. If you do have it, "],
@@ -198,6 +202,9 @@ const RULES = [
   [/\bthe rice spike\b/gi, "the sugar rise from rice"],
 
   // ---- "fibre" and "protein" ----------------------------------------
+  // "for the fibre" must be caught before the bare word, or the article is
+  // doubled: "for the the rough part of food".
+  [/\bfor the fibre\b/gi, "for the rough part of the fruit"],
   [/\bhigh in fibre and protein\b/gi, "full of the rough part of food, and body-building"],
   [/\bhigh fibre and protein\b/gi, "full of the rough part of food, and body-building"],
   [/\bfibre and protein\b/gi, "the rough part of food and body-building food"],
@@ -260,6 +267,8 @@ const RULES = [
   [/\bhigh GI\b/gi, "raises sugar fast"],
   [/\bcarbs\b/gi, "starch"],
   [/\bslow rise\b/gi, "your sugar rises slowly"],
+  // The longer phrase first, or "White refined flour" becomes "White White flour".
+  [/\bWhite refined flour\b/g, "White flour"],
   [/\bRefined flour\b/g, "White flour"],
   [/\bRefined wheat\b/g, "White wheat flour"],
   [/\brefined flour\b/gi, "white flour"],
@@ -405,12 +414,21 @@ const BANNED = [
   /,\s*,/,
   /palm-size/i,
 ];
+// Real Nigerian foods whose names repeat a word. Everything else that doubles
+// a word is a rule that fired twice ("the the", "White white").
+const REAL_DOUBLES = /\b(moi moi|puff puff|kuli kuli|chin chin|dan dan)\b/i;
+
 const leftovers = [];
 for (const f of foods) {
   for (const field of FIELDS) {
     if (!f[field]) continue;
     for (const re of BANNED) {
       if (re.test(f[field])) leftovers.push(`${f.id}.${field}: ${f[field]}`);
+    }
+    for (const m of f[field].matchAll(/\b(\w+)\s+\1\b/gi)) {
+      if (!REAL_DOUBLES.test(m[0])) {
+        leftovers.push(`${f.id}.${field}: doubled word "${m[0]}" -> ${f[field]}`);
+      }
     }
   }
   // The title is read first of all, so it may not carry a hard word either.

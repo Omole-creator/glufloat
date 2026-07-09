@@ -290,10 +290,8 @@ export default function MealBuilder() {
                 <p className="mt-2 text-base font-semibold text-ink">
                   {often.text}
                 </p>
-                {items.length > 1 && often.limits && (
-                  <p className="mt-1 text-sm text-ink-soft">
-                    The {often.limiting.name} is what holds it back.
-                  </p>
+                {often.reason && (
+                  <p className="mt-1 text-sm text-ink-soft">{often.reason}</p>
                 )}
               </div>
             )}

@@ -102,6 +102,10 @@ function derive(f) {
   };
 
   if (/^never\b/.test(clause)) return { tier: 0 };
+  // Recognise this pass's own output first, or a re-run silently loosens a
+  // monthly food: "About 1 time a month." matches no other rule, falls through
+  // to the colour fallback, and beer/palm wine/pito jump to 2 times a week.
+  if (/a month/.test(clause)) return { tier: 2 };
   if (/\brare\b|\brarely\b|\btreat\b/.test(clause)) return { tier: 2 };
 
   const perWeek = clause.match(/(\d+)\s*times?\s*a\s*week/);
@@ -154,6 +158,15 @@ const vague = foods.filter(
 );
 if (vague.length) {
   console.error(`not countable: ${vague.map((f) => `${f.id} (${f.frequency})`).join(", ")}`);
+  process.exit(1);
+}
+
+// This pass reads the field it also writes, so it must be a fixed point: a
+// second run may change nothing. Check it here rather than discover it when a
+// food quietly drifts from once a month to twice a week.
+const drifted = foods.filter((f) => say(derive(f)) !== f.frequency);
+if (drifted.length) {
+  console.error(`not idempotent, a re-run would change: ${drifted.map((f) => `${f.id} (${f.frequency} -> ${say(derive(f))})`).join(", ")}`);
   process.exit(1);
 }
 

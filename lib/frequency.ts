@@ -84,35 +84,65 @@ export function plainFrequency(food: Food): string {
   return say(food, freqRank(food));
 }
 
+/** Is a stricter than b? */
+function stricter(a: { tier: number; perWeek: number }, b: { tier: number; perWeek: number }) {
+  return a.tier !== b.tier ? a.tier < b.tier : a.perWeek < b.perWeek;
+}
+
+/** "about 2 times a week", "every day", "about 1 time a month", "at all". */
+function howOftenPhrase(rank: { tier: number; perWeek: number }): string {
+  if (rank.tier === 0) return "not at all";
+  if (rank.tier === 1) return "only if your sugar drops too low";
+  if (rank.tier === 2) return "about 1 time a month";
+  if (rank.tier === 4) return "every day";
+  return `about ${rank.perWeek} times a week`;
+}
+
 /**
- * One answer for the whole plate: the strictest food on it decides, and we name
- * that food so the user can see what is holding the meal back.
+ * One answer for the whole plate: the strictest food on it decides.
+ *
+ * `reason` must say what the food is holding the meal back *from*, in a real
+ * number. "The white rice is what holds it back" tells nobody anything; "the
+ * white rice is the reason, without it you could eat the rest about 4 times a
+ * week" does. We get that number by re-scoring the plate with the strictest
+ * food taken off it.
  */
 export function mealFrequency(
   items: MealItem[],
-): { text: string; limiting: Food; limits: boolean } | null {
+): { text: string; reason: string | null } | null {
   if (items.length === 0) return null;
 
-  const strictest = items.reduce((worst, i) => {
-    const a = freqRank(i.food);
-    const b = freqRank(worst.food);
-    if (a.tier !== b.tier) return a.tier < b.tier ? i : worst;
-    return a.perWeek < b.perWeek ? i : worst;
-  }).food;
-
+  const worstItem = items.reduce((worst, i) =>
+    stricter(freqRank(i.food), freqRank(worst.food)) ? i : worst,
+  );
+  const strictest = worstItem.food;
   const rank = freqRank(strictest);
-  const text =
-    rank.tier === 0
-      ? "Best not to eat this meal at all"
-      : rank.tier === 1
-        ? "Only if your sugar drops too low"
-        : rank.tier === 2
-          ? "About 1 time a month"
-          : rank.tier === 4
-            ? "You can eat this meal every day"
-            : `About ${rank.perWeek} times a week`;
 
-  // Only worth naming the food when it actually holds the meal back. On an
-  // all-daily plate nothing is to blame.
-  return { text, limiting: strictest, limits: rank.tier !== 4 };
+  const text =
+    rank.tier === 1
+      ? "Only eat this meal if your sugar drops too low."
+      : rank.tier === 0
+        ? "Best not to eat this meal at all."
+        : `You can eat this meal ${howOftenPhrase(rank)}.`;
+
+  // Nothing to blame when the whole plate is a daily plate, or when the meal is
+  // one food and its own card already says the same thing.
+  if (items.length === 1 || rank.tier === 4) return { text, reason: null };
+
+  const rest = items.filter((i) => i.food.id !== strictest.id);
+  if (rest.length === 0) return { text, reason: null };
+
+  const restRank = rest
+    .map((i) => freqRank(i.food))
+    .reduce((worst, r) => (stricter(r, worst) ? r : worst));
+
+  // If the rest is no better, no single food is to blame.
+  if (!stricter(rank, restRank)) return { text, reason: null };
+
+  const reason =
+    rank.tier === 0
+      ? `The ${strictest.name} is the reason. Nothing else on the plate can make it safe.`
+      : `The ${strictest.name} is the reason. Without it, you could eat the rest ${howOftenPhrase(restRank)}.`;
+
+  return { text, reason };
 }
