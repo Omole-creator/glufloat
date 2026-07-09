@@ -255,6 +255,9 @@ const RULES = [
   [/\bmind the portion\b/gi, "watch the size"],
   [/\bthe portion is what matters most\b/gi, "the size is what matters most"],
   [/\bkeep the portion\b/gi, "keep to the size shown below"],
+  [/\bkeep the ball small\b/gi, "keep to one fist-size ball (100g)"],
+  [/\bMake it small, use whole fruit, and never add sugar\.$/, "Keep to the size shown below, use whole fruit, and never add sugar."],
+  [/\bmake it small\b/gi, "keep to the size shown below"],
 
   // ---- other hard words ----------------------------------------------
   [/\bA low-GI legume\b/g, "A beans food that raises sugar slowly"],
@@ -404,6 +407,9 @@ const BANNED = [
   /small handful/i,
   /\ba few\b/i,
   /keep it small/i,
+  /make it small/i,
+  /\bball small\b/i,
+  /\ba small size\b/i,
   /\bfreely\b/i,
   /\bunsweetened\b/i,
   /\bcarbs?\b/i,

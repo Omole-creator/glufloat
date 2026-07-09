@@ -17,7 +17,7 @@
     "baseVerdict": "yellow",
     "portionGuidance": "One ball the size of your fist. That is about half a cup of the cooked swallow (100g).",
     "pairingAdvice": "Vegetable soup (efo, edikang ikong) and fish, chicken, or an egg.",
-    "frequency": "About 3 times a week.",
+    "frequency": "About 2 times a week.",
     "logicNote": "Turns to sugar fast. The size you eat, and the soup you eat it with, are everything.",
     "tags": [
       "local",
@@ -63,7 +63,7 @@
     "baseVerdict": "yellow",
     "portionGuidance": "One ball the size of your fist. That is about half a cup of the cooked swallow (100g).",
     "pairingAdvice": "Ewedu and gbegiri plus fish, chicken, or an egg.",
-    "frequency": "About 3 times a week.",
+    "frequency": "About 2 times a week.",
     "logicNote": "Slightly friendlier than white swallows but still a starch; the size matters.",
     "tags": [
       "local",
@@ -150,12 +150,12 @@
     "category": "swallow",
     "role": "starch",
     "carbLoad": "medium",
-    "gi": "medium",
+    "gi": "high",
     "baseVerdict": "yellow",
     "portionGuidance": "One ball the size of your fist. That is about half a cup of the cooked swallow (100g).",
     "pairingAdvice": "Vegetable soup and fish, chicken, or an egg.",
     "frequency": "About 2 times a week.",
-    "logicNote": "More of the rough part of food than semo or eba; a common recommended swap.",
+    "logicNote": "Wheat swallow has more of the rough part of food than semo or eba, but it still turns to sugar fast. Keep to one fist-size ball.",
     "tags": [
       "swap"
     ],
@@ -587,12 +587,12 @@
     "category": "plantain",
     "role": "starch",
     "carbLoad": "medium",
-    "gi": "low",
-    "baseVerdict": "green",
+    "gi": "high",
+    "baseVerdict": "yellow",
     "portionGuidance": "About four to five slices of boiled plantain. That is roughly one cup (120g).",
     "pairingAdvice": "Vegetable sauce, egg, or fish.",
-    "frequency": "About 3 times a week.",
-    "logicNote": "Unripe means less sugar and a slower rise. Friendly.",
+    "frequency": "About 2 times a week.",
+    "logicNote": "Unripe plantain is less sweet than ripe, but it still turns to sugar fast. Keep to the size shown below, and eat it with vegetables and fish, meat, or egg.",
     "tags": [
       "local",
       "friendly"
@@ -609,7 +609,7 @@
     "category": "plantain",
     "role": "starch",
     "carbLoad": "medium",
-    "gi": "medium",
+    "gi": "high",
     "baseVerdict": "yellow",
     "portionGuidance": "About two to three slices (80g).",
     "pairingAdvice": "Fish, chicken, or an egg and vegetables.",
@@ -653,12 +653,12 @@
     "category": "plantain",
     "role": "starch",
     "carbLoad": "medium",
-    "gi": "low",
-    "baseVerdict": "green",
+    "gi": "high",
+    "baseVerdict": "yellow",
     "portionGuidance": "One bowl. That is about one cup of the cooked porridge (200g). Serve it with plenty of vegetables.",
     "pairingAdvice": "Plenty vegetables and fish in it.",
-    "frequency": "About 3 times a week.",
-    "logicNote": "Unripe plantain plus vegetables is a friendly Nigerian meal.",
+    "frequency": "About 2 times a week.",
+    "logicNote": "Unripe plantain with plenty of vegetables is a good Nigerian meal, but the plantain is still a starch. Keep to the size shown below.",
     "tags": [
       "local",
       "friendly"
@@ -823,12 +823,12 @@
     "category": "snack",
     "role": "starch",
     "carbLoad": "medium",
-    "gi": "medium",
+    "gi": "high",
     "baseVerdict": "yellow",
     "portionGuidance": "Half of one medium unripe plantain.",
     "pairingAdvice": "Groundnut or pepper sauce and fish.",
     "frequency": "About 2 times a week.",
-    "logicNote": "Unripe boli with groundnut is the friendlier version.",
+    "logicNote": "Roasted plantain turns to sugar fast. Unripe boli with groundnut is the friendlier version, but keep to the size shown below.",
     "tags": [
       "local",
       "street"
@@ -1323,7 +1323,7 @@
     "baseVerdict": "green",
     "portionGuidance": "Half a cup of dry oats (40g). Measure it before cooking. Make it with water.",
     "pairingAdvice": "About 10 nuts. Skip sugar and sweet milk.",
-    "frequency": "About 4 times a week.",
+    "frequency": "About 3 times a week.",
     "logicNote": "Plain oats are friendly. Flavoured or instant ones often have added sugar.",
     "tags": [
       "breakfast",
@@ -2406,7 +2406,7 @@
     "baseVerdict": "yellow",
     "portionGuidance": "One cup diced. That is about one thin slice (150g).",
     "pairingAdvice": "About 10 nuts to slow the sugar.",
-    "frequency": "About 3 times a week.",
+    "frequency": "About 2 times a week.",
     "logicNote": "Mostly water but raises sugar fast; keep to the size shown below.",
     "tags": [],
     "carbExchange": "one cup diced",
@@ -2953,7 +2953,8 @@
     "tags": [
       "local"
     ],
-    "portionIcon": "glass"
+    "portionIcon": "glass",
+    "healthNote": "Alcohol can drop your sugar dangerously low, even a whole day after you drink. This is worse if you take insulin or sugar-lowering tablets. Never drink on an empty stomach. Eat first, and check your sugar before you sleep."
   },
   {
     "id": "soaked-garri",
@@ -3348,7 +3349,7 @@
     "baseVerdict": "yellow",
     "portionGuidance": "Less than one teaspoon a day in total.",
     "pairingAdvice": "Cooking.",
-    "frequency": "About 3 times a week.",
+    "frequency": "You can eat this every day.",
     "logicNote": "No sugar impact, but too much raises blood pressure, which diabetics must watch.",
     "tags": [],
     "healthNote": "This food is very salty. If you have high blood pressure, high cholesterol, or kidney problems, use only a pinch. Too much salt harms your heart and kidneys even when your sugar is fine.",
@@ -4469,7 +4470,7 @@
     "baseVerdict": "yellow",
     "portionGuidance": "One ball the size of your fist. That is about half a cup of the cooked swallow (100g).",
     "pairingAdvice": "Vegetable soup like ewedu or efo, plus fish, chicken, or an egg.",
-    "frequency": "About 3 times a week.",
+    "frequency": "About 2 times a week.",
     "logicNote": "Cassava swallow; turns to sugar fast, so the size you eat, and the soup you eat it with, matter most.",
     "tags": [
       "local",
@@ -5145,7 +5146,8 @@
     "frequency": "About 1 time a month.",
     "logicNote": "Alcohol can drop or raise your sugar, and beer carries starch. If you drink, keep to the size shown below and eat first.",
     "tags": [],
-    "portionIcon": "glass"
+    "portionIcon": "glass",
+    "healthNote": "Alcohol can drop your sugar dangerously low, even a whole day after you drink. This is worse if you take insulin or sugar-lowering tablets. Never drink on an empty stomach. Eat first, and check your sugar before you sleep."
   },
   {
     "id": "pito",
@@ -5167,7 +5169,8 @@
       "local",
       "northern"
     ],
-    "portionIcon": "glass"
+    "portionIcon": "glass",
+    "healthNote": "Alcohol can drop your sugar dangerously low, even a whole day after you drink. This is worse if you take insulin or sugar-lowering tablets. Never drink on an empty stomach. Eat first, and check your sugar before you sleep."
   },
   {
     "id": "local-gin",
@@ -5189,7 +5192,8 @@
     "tags": [
       "local"
     ],
-    "portionIcon": "avoid"
+    "portionIcon": "avoid",
+    "healthNote": "Alcohol can drop your sugar dangerously low, even a whole day after you drink. This is worse if you take insulin or sugar-lowering tablets. Never drink on an empty stomach. Eat first, and check your sugar before you sleep."
   },
   {
     "id": "smoothie",
@@ -5210,7 +5214,7 @@
     "portionGuidance": "One small cup (200ml). Make it from whole fruit. Add no sugar.",
     "pairingAdvice": "One small glass (200ml) with a meal, not on its own. Better to eat the whole fruit.",
     "frequency": "About 2 times a week.",
-    "logicNote": "Even fruit smoothies are quick sugar. Make it small, use whole fruit, and never add sugar.",
+    "logicNote": "Even fruit smoothies are quick sugar. Keep to the size shown below, use whole fruit, and never add sugar.",
     "tags": [],
     "portionIcon": "glass"
   },
@@ -5624,7 +5628,7 @@
     "baseVerdict": "yellow",
     "portionGuidance": "One cube per pot. Do not use more than that.",
     "pairingAdvice": "In cooking. Balance it with less added salt.",
-    "frequency": "About 3 times a week.",
+    "frequency": "You can eat this every day.",
     "logicNote": "No sugar impact, but very salty. Too much salt raises blood pressure, which diabetics must watch.",
     "tags": [],
     "healthNote": "This food is very salty. If you have high blood pressure, high cholesterol, or kidney problems, use only a pinch. Too much salt harms your heart and kidneys even when your sugar is fine.",
@@ -6140,7 +6144,7 @@
     "baseVerdict": "green",
     "portionGuidance": "Three-quarters of a cup of segments (about 120g).",
     "pairingAdvice": "About 10 nuts to slow the sugar.",
-    "frequency": "About 4 times a week.",
+    "frequency": "About 3 times a week.",
     "logicNote": "A large citrus, low in sugar and full of the rough part of food and vitamin C.",
     "tags": [],
     "carbExchange": "three-quarters of a cup of segments",
@@ -6204,7 +6208,7 @@
     "baseVerdict": "green",
     "portionGuidance": "Two tablespoons of the pulp (about 20g).",
     "pairingAdvice": "Stir into water or plain yogurt, with no added sugar.",
-    "frequency": "About 4 times a week.",
+    "frequency": "About 3 times a week.",
     "logicNote": "The dry pulp is very full of the rough part of food and vitamin C, with a low sugar rise. Do not add sugar.",
     "tags": [],
     "carbExchange": "two tablespoons of the pulp",
@@ -6224,7 +6228,7 @@
     "baseVerdict": "green",
     "portionGuidance": "One medium star fruit (about 90g).",
     "pairingAdvice": "About 10 nuts.",
-    "frequency": "About 4 times a week.",
+    "frequency": "About 3 times a week.",
     "logicNote": "Low in sugar and high in water and the rough part of food; a friendly fruit in the size shown below.",
     "tags": [],
     "carbExchange": "one medium star fruit",
@@ -6286,7 +6290,7 @@
     "baseVerdict": "green",
     "portionGuidance": "About fifteen mulberries (80g).",
     "pairingAdvice": "About 10 nuts, or plain yogurt.",
-    "frequency": "About 4 times a week.",
+    "frequency": "About 3 times a week.",
     "logicNote": "Small berries with the rough part of food and a gentle sugar rise.",
     "tags": [],
     "carbExchange": "about fifteen mulberries",
@@ -6456,7 +6460,7 @@
     "portionGuidance": "One ball the size of your fist. That is about half a cup of the cooked swallow (100g).",
     "pairingAdvice": "A green vegetable soup, like efo riro or okra, plus fish or meat.",
     "frequency": "About 3 times a week.",
-    "logicNote": "A soft cocoyam swallow. More of the rough part of food than eba, but still a starch, so keep the ball small.",
+    "logicNote": "A soft cocoyam swallow. More of the rough part of food than eba, but still a starch, so keep to one fist-size ball (100g).",
     "tags": [],
     "portionIcon": "fist"
   },
@@ -7054,7 +7058,7 @@
     "portionGuidance": "One ball the size of your fist. That is about half a cup of the cooked swallow (100g).",
     "pairingAdvice": "A green vegetable soup like miyan kuka or okra, plus fish or meat.",
     "frequency": "About 3 times a week.",
-    "logicNote": "A sorghum swallow. Whole grain, but still a starch, so keep the ball small.",
+    "logicNote": "A sorghum swallow. Whole grain, but still a starch, so keep to one fist-size ball (100g).",
     "tags": [
       "local",
       "northern"

@@ -54,31 +54,53 @@ function canBeEveryday(f) {
 
 /** Hand-picked counts where a food deserves more than its role default. */
 const OVERRIDES = {
-  "moi-moi": 4,
-  ekuru: 4,
-  "cooked-beans": 4,
-  "ewa-agoyin": 4,
-  okpa: 4,
-  "dan-wake": 4,
-  ukwa: 4,
-  "fio-fio": 4,
-  oats: 4,
-  "lime-lemon": 5,
+  "lime-lemon": 5, // barely any sugar, just a squeeze
 };
 
-/** How many times a week a food that cannot be daily may be eaten. */
+/**
+ * Alcohol. Not a frequency the literature sets, but the ADA warns that alcohol
+ * inhibits gluconeogenesis and can cause hypoglycaemia up to 24 hours later,
+ * especially on insulin or secretagogues. Held at once a month. See
+ * docs/EVIDENCE.md section 5.
+ */
+const ALCOHOL = new Set(["beer", "pito", "palm-wine", "local-gin"]);
+
+/**
+ * Salt and the seasoning cube carry no sugar and no starch, so the sugar/starch
+ * gate does not apply to them. People cook with them every day; the limit is the
+ * AMOUNT (WHO: under 5g salt a day), which the portion field carries. Saying
+ * "about 3 times a week" for salt was never true. This is a narrow exception
+ * keyed on a sugar-free, starch-free condiment, not a loosening of the gate.
+ */
+const DAILY_BUT_LIMITED = new Set(["salt", "seasoning-cube"]);
+
+/**
+ * How many times a week a food that cannot be daily may be eaten.
+ *
+ * Derived from the food's own measured facts (`role`, `gi`, `carbLoad`), never
+ * from the old prose. The old text said eba "a few times a week" (3) while
+ * pounded yam said 2, even though eba's measured GI (84) is HIGHER than pounded
+ * yam's (81). Reading the prose reproduced that mistake; deriving from the
+ * facts cannot.
+ */
 function capFor(f) {
   if (OVERRIDES[f.id]) return OVERRIDES[f.id];
   switch (f.role) {
     case "legume":
+      // Measured GI 17-41 across Nigerian cowpea and African yam bean.
       return f.carbLoad === "high" ? 3 : 4;
     case "dairy":
-      return 4;
+      return f.baseVerdict === "green" ? 4 : 3;
+    case "drink":
+      // Liquid carbohydrate is absorbed fast. Any drink that is not plain and
+      // low-GI (those are daily) is held at 2.
+      return 2;
     case "fruit":
       return f.gi === "high" ? 2 : 3;
     case "sugar":
       return 0; // a month, not a week
     default:
+      // starch, grain, tuber, and anything else.
       return f.gi === "high" ? 2 : 3;
   }
 }
@@ -90,24 +112,32 @@ function capFor(f) {
  * a semicolon are advice ("never with sugar"), not the frequency, and reading
  * them is what produced the bugs above.
  */
-function derive(f) {
-  if (HYPO.has(f.id)) return { tier: 1 };
-  if (isNever(f)) return { tier: 0 };
+/** Strictest first: tier 0 never ... tier 4 daily. Lower perWeek is stricter. */
+function stricter(a, b) {
+  if (a.tier !== b.tier) return a.tier < b.tier ? a : b;
+  return (a.perWeek ?? 0) <= (b.perWeek ?? 0) ? a : b;
+}
 
+/** The answer the rule in docs/EVIDENCE.md gives, from the food's own facts. */
+function fromRule(f) {
+  if (f.role === "sugar") return { tier: 2 };
+  if (f.baseVerdict === "red") return { tier: 2 };
+  if (ALCOHOL.has(f.id)) return { tier: 2 };
+  if (canBeEveryday(f)) return { tier: 4 };
+  const n = capFor(f);
+  return n === 0 ? { tier: 2 } : { tier: 3, perWeek: n };
+}
+
+/**
+ * The answer already stored on the food, whether canonical ("About 2 times a
+ * week.") or the original prose ("Rare.", "Occasional, small."). Returns null
+ * when the text carries no usable answer.
+ */
+function fromStored(f) {
   const clause = f.frequency.toLowerCase().split(/[;,]/)[0].trim();
-  const dailyOrCap = () => {
-    if (canBeEveryday(f)) return { tier: 4 };
-    const n = capFor(f);
-    return n === 0 ? { tier: 2 } : { tier: 3, perWeek: n };
-  };
-
+  if (/^never, except|hypo|emergency/.test(clause)) return { tier: 1 };
   if (/^never\b/.test(clause)) return { tier: 0 };
-  // Recognise this pass's own output first, or a re-run silently loosens a
-  // monthly food: "About 1 time a month." matches no other rule, falls through
-  // to the colour fallback, and beer/palm wine/pito jump to 2 times a week.
-  if (/a month/.test(clause)) return { tier: 2 };
-  if (/\brare\b|\brarely\b|\btreat\b/.test(clause)) return { tier: 2 };
-
+  if (/a month|\brare\b|\brarely\b|\btreat\b/.test(clause)) return { tier: 2 };
   const perWeek = clause.match(/(\d+)\s*times?\s*a\s*week/);
   if (perWeek) return { tier: 3, perWeek: Number(perWeek[1]) };
   if (/once a week/.test(clause)) return { tier: 3, perWeek: 1 };
@@ -115,13 +145,33 @@ function derive(f) {
   if (/occasional/.test(clause)) return { tier: 3, perWeek: 2 };
   if (/moderate/.test(clause)) return { tier: 3, perWeek: 3 };
   if (/every day|daily|always|excellent|regular|decent|drink plenty|\bgood\b|\bok\b/.test(clause)) {
-    return dailyOrCap();
+    return { tier: 4 };
   }
+  return null;
+}
 
-  // No usable words. Fall back on the colour.
-  if (f.baseVerdict === "green") return dailyOrCap();
-  if (f.baseVerdict === "yellow") return { tier: 3, perWeek: 2 };
-  return { tier: 2 };
+/**
+ * The asymmetry rule, applied to frequency (docs/EVIDENCE.md section 1).
+ *
+ * The rule may make a food STRICTER, never looser. The stored number carries
+ * dietitian judgement the rule cannot see: cow leg, kidney and canned sardine
+ * are all green, sugar-free proteins, so the rule alone would call them daily
+ * foods, ignoring the organ meat, the saturated fat and the salt. Bacon and
+ * sausage are processed meat. Taking the stricter of the two keeps that
+ * judgement and still fixes the real inconsistency: eba (measured GI 84) said
+ * 3 times a week while pounded yam (GI 81) said 2.
+ */
+function derive(f) {
+  if (HYPO.has(f.id)) return { tier: 1 };
+  if (isNever(f)) return { tier: 0 };
+  // The two sugar-free, starch-free condiments. Used daily; the limit is the
+  // amount, which the portion field carries. This is the one deliberate
+  // loosening, and it is guarded by an assertion below.
+  if (DAILY_BUT_LIMITED.has(f.id)) return { tier: 4 };
+
+  const rule = fromRule(f);
+  const stored = fromStored(f);
+  return stored ? stricter(rule, stored) : rule;
 }
 
 function say({ tier, perWeek }) {
@@ -133,6 +183,7 @@ function say({ tier, perWeek }) {
 }
 
 const foods = JSON.parse(readFileSync(FILE, "utf8"));
+const byId = new Map(foods.map((f) => [f.id, f]));
 
 let changed = 0;
 for (const f of foods) {
@@ -143,9 +194,21 @@ for (const f of foods) {
   }
 }
 
-// A green food that carries sugar or starch may never read "every day".
+// A food that carries sugar or starch may never read "every day". The only
+// exceptions are the sugar-free, starch-free condiments in DAILY_BUT_LIMITED,
+// and each must really be free of both, or the gate has been loosened.
+for (const id of DAILY_BUT_LIMITED) {
+  const f = byId.get(id);
+  if (!f || f.gi !== "low" || f.carbLoad !== "low" || f.role !== "condiment") {
+    console.error(`${id} is not a sugar-free, starch-free condiment. It may not be daily.`);
+    process.exit(1);
+  }
+}
 const loose = foods.filter(
-  (f) => f.frequency.includes("every day") && !canBeEveryday(f),
+  (f) =>
+    f.frequency.includes("every day") &&
+    !canBeEveryday(f) &&
+    !DAILY_BUT_LIMITED.has(f.id),
 );
 if (loose.length) {
   console.error(`these say "every day" but carry sugar or starch: ${loose.map((f) => f.id).join(", ")}`);

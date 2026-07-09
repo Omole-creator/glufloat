@@ -26,10 +26,18 @@ const NOTES = {
     "This is high in fat that can raise your cholesterol. If you have high cholesterol, high blood pressure, or heart trouble, use only a little at a time.",
   kidney:
     "Do not eat this if you have kidney problems. Star fruit has a natural poison that strong kidneys clear but weak kidneys cannot, and it can make a kidney patient very sick.",
+  // Alcohol stops the liver from releasing sugar, so the sugar can crash long
+  // after the drink. The ADA warns this can happen up to 24 hours later, and it
+  // is the danger that actually harms people on insulin or sugar-lowering
+  // tablets. See docs/EVIDENCE.md section 5.
+  alcohol:
+    "Alcohol can drop your sugar dangerously low, even a whole day after you drink. This is worse if you take insulin or sugar-lowering tablets. Never drink on an empty stomach. Eat first, and check your sugar before you sleep.",
 };
 
 // Specific foods that need a note their keywords do not catch.
 const KIDNEY_IDS = new Set(["star-fruit"]);
+// Alcoholic drinks. The danger is delayed low sugar, not the sugar in the drink.
+const ALCOHOL_IDS = new Set(["beer", "pito", "palm-wine", "local-gin"]);
 // Saturated or heavy fats that raise cholesterol (oils, butter, full-fat dairy).
 const FAT_IDS = new Set([
   "butter", "coconut-oil", "palm-oil", "mayonnaise", "milk-full-cream",
@@ -100,6 +108,7 @@ const EXCLUDE_IDS = new Set([
 function noteFor(f) {
   if (EXCLUDE_IDS.has(f.id)) return null;
   if (KIDNEY_IDS.has(f.id)) return NOTES.kidney;
+  if (ALCOHOL_IDS.has(f.id)) return NOTES.alcohol;
   const text = identity(f);
   if (MEAT_ROLES.has(f.role) && hasAny(text, MEAT_WORDS)) return NOTES.meat;
   if (SALT_IDS.has(f.id) || (SALT_ROLES.has(f.role) && hasAny(text, SALT_WORDS)))
