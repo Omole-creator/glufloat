@@ -1,128 +1,108 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { hasAccess, tryUnlock, PAYSTACK_URL } from "@/lib/access";
+import { getAccess } from "@/lib/account";
 import { events } from "@/lib/analytics";
 
-function UnlockInner() {
-  const params = useSearchParams();
-  const router = useRouter();
-  const [code, setCode] = useState("");
-  const [state, setState] = useState<"idle" | "ok" | "bad">("idle");
+/**
+ * Where Paystack sends a buyer after payment. The redirect URL set in the
+ * Paystack dashboard is /unlock?code=..., so this route must keep existing even
+ * though the code is ignored: deleting it would 404 every buyer.
+ *
+ * There used to be an access-code form here backed by localStorage. Access is
+ * an account fact now (see lib/account.ts), so a code could never open the app,
+ * yet the page still said "You are in". It now waits for the Paystack webhook
+ * to write the subscription, then sends the buyer into the app for real.
+ */
+const POLL_MS = 1500;
+const MAX_TRIES = 12; // about 18 seconds
 
-  useEffect(() => {
-    if (hasAccess()) {
-      setState("ok");
-      return;
-    }
-    const fromLink = params.get("code");
-    if (fromLink) {
-      setCode(fromLink);
-      setState(tryUnlock(fromLink) ? "ok" : "bad");
-    }
-  }, [params]);
-
-  useEffect(() => {
-    if (state === "ok") {
-      events.unlocked();
-      const t = setTimeout(() => router.push("/app"), 1800);
-      return () => clearTimeout(t);
-    }
-  }, [state, router]);
-
-  const submit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setState(tryUnlock(code) ? "ok" : "bad");
-  };
-
+function Card({ children }: { children: React.ReactNode }) {
   return (
     <main className="flex flex-1 items-center justify-center bg-mist px-4 pb-24 pt-28">
       <div className="w-full max-w-md rounded-2xl border border-line bg-white p-8 text-center shadow-[0_16px_40px_-18px_rgba(12,45,77,0.35)]">
-        {state === "ok" ? (
-          <>
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-verdict-green/15">
-              <span className="text-3xl">✓</span>
-            </div>
-            <h1 className="mt-4 font-display text-2xl font-bold text-ink">
-              You are in. Welcome to Glufloat.
-            </h1>
-            <p className="mt-2 text-sm text-ink-soft">
-              The whole app is open now on your phone. Taking you in...
-            </p>
-            <Link
-              href="/app"
-              className="mt-6 inline-block rounded-full bg-leaf px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-leaf-deep"
-            >
-              Open the app now
-            </Link>
-          </>
-        ) : (
-          <>
-            <h1 className="font-display text-2xl font-bold text-ink">
-              Enter your access code
-            </h1>
-            <p className="mt-2 text-sm leading-relaxed text-ink-soft">
-              After you pay on Paystack you are sent back into the app
-              automatically. If you have an access code, enter it here to unlock
-              this device.
-            </p>
-            <form onSubmit={submit} className="mt-6">
-              <input
-                value={code}
-                onChange={(e) => {
-                  setCode(e.target.value);
-                  setState("idle");
-                }}
-                placeholder="e.g. GLU-XXXX-XXXX"
-                className="w-full rounded-full border-2 border-line px-5 py-3 text-center text-base font-semibold tracking-wider text-ink outline-none transition-colors focus:border-brand"
-                aria-label="Access code"
-              />
-              {state === "bad" && (
-                <p className="mt-2 text-xs font-medium text-verdict-red">
-                  That code did not work. Check the code and try again.
-                </p>
-              )}
-              <button
-                type="submit"
-                className="mt-4 w-full rounded-full bg-brand px-6 py-3.5 text-sm font-bold text-white transition-colors hover:bg-brand-deep"
-              >
-                Unlock full access
-              </button>
-            </form>
-            <p className="mt-5 text-xs text-ink-soft">
-              No code yet?{" "}
-              <a
-                href={PAYSTACK_URL}
-                className="font-semibold text-brand hover:underline"
-              >
-                Subscribe for N1,500 / month
-              </a>{" "}
-              or{" "}
-              <Link
-                href="/trial"
-                className="font-semibold text-brand hover:underline"
-              >
-                start a free trial
-              </Link>
-            </p>
-          </>
-        )}
+        {children}
       </div>
     </main>
   );
 }
 
 export default function UnlockPage() {
+  const router = useRouter();
+  const [slow, setSlow] = useState(false);
+
+  useEffect(() => {
+    let stop = false;
+    let tries = 0;
+
+    (async function poll() {
+      if (stop) return;
+      const { access } = await getAccess();
+
+      if (access.status === "anon") {
+        router.replace("/signin");
+        return;
+      }
+      if (access.status === "subscribed" || access.status === "trial") {
+        events.unlocked();
+        router.replace("/app");
+        return;
+      }
+      // "new" or "expired": the webhook has not written the subscription yet.
+      if (++tries >= MAX_TRIES) {
+        setSlow(true);
+        return;
+      }
+      setTimeout(poll, POLL_MS);
+    })();
+
+    return () => {
+      stop = true;
+    };
+  }, [router]);
+
+  if (slow) {
+    return (
+      <>
+        <Navbar />
+        <Card>
+          <h1 className="font-display text-2xl font-bold text-ink">
+            Your payment is still going through
+          </h1>
+          <p className="mt-2 text-sm leading-relaxed text-ink-soft">
+            This can take a minute. Your money is safe.
+          </p>
+          <p className="mt-3 text-sm leading-relaxed text-ink-soft">
+            Open the app in a minute and you should be in. If it still asks you
+            to pay, send us the email you paid with and we will fix it.
+          </p>
+          <Link
+            href="/app"
+            className="mt-6 inline-block rounded-full bg-leaf px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-leaf-deep"
+          >
+            Open the app
+          </Link>
+        </Card>
+        <Footer />
+      </>
+    );
+  }
+
   return (
     <>
       <Navbar />
-      <Suspense>
-        <UnlockInner />
-      </Suspense>
+      <Card>
+        <h1 className="font-display text-2xl font-bold text-ink">
+          Checking your payment
+        </h1>
+        <p className="mt-2 text-sm leading-relaxed text-ink-soft">
+          One moment. We are opening the app for you.
+        </p>
+      </Card>
       <Footer />
     </>
   );
