@@ -62,10 +62,29 @@ GI bands are the ISO 26642-2010 thresholds: **low ≤55, medium 56–69, high �
 | Wheat flour dough (swallow) | 97.4 | Nigerian J. Nutr. Sci., as above | Medium |
 | Pineapple | 94.9 | Nigerian J. Nutr. Sci., as above | Medium |
 | Banana | 99.3 | Nigerian J. Nutr. Sci., as above | Low (see §3) |
-| Boiled yam | 94 | [SW Nigeria single/mixed meals](https://www.sciencepublishinggroup.com/article/10.11648/10069896) | Medium |
-| Unripe plantain, boiled | 89 | SW Nigeria, as above | Medium |
+| Boiled yam | 94 single food, 84 with fried egg | [SW Nigeria, n=80 healthy adults](https://www.sciencepublishinggroup.com/article/10.11648/10069896) | High (paper read, not just abstract) |
+| Unripe plantain, **boiled** | 89 single food, 88 with stew | SW Nigeria, n=80, as above | High |
+| Unripe plantain **flour** meal (plantain amala) | **52.80** | [Unripe plantain / red banana flour meals, n=12 healthy](https://bio-research.com.ng/index.php/home/article/view/259) | Medium (n=12) |
+| Unripe red banana flour meal | 54.96 | as above | Medium |
 | Plantain: boiled 96.5, roasted 92.0, fried 88.8 | | Nigerian staples study | Medium |
 | Nigerian staples generally (tuwo, abacha, rice, plantain) | 75–97 | [ScienceDirect overview](https://pubmed.ncbi.nlm.nih.gov/36584553/) | High |
+
+### The pairing mechanic is supported by measurement
+
+The whole product rests on "add soup and meat and it slows the sugar". The SW
+Nigeria study (n=80) measured exactly this, and the effect is real and large:
+
+| Meal | GI alone | GI paired |
+|---|---|---|
+| Boiled yam | 94 | **84** with fried egg |
+| Unripe plantain | 89 | 88 with stew |
+| Boiled rice | 93 | lower in every mixed meal |
+| Ogi (pap) | 92 | lower in every mixed meal |
+
+"The GI of boiled-rice (93) and ogi (92) as single foods were significantly
+higher than when eaten as mixed meals." Note the size of the effect varies by
+what is added: a protein (egg) moved yam 10 points; a stew moved plantain 1.
+The app should not promise that any pairing rescues any starch.
 
 ### Legumes — low, and this is well supported
 
@@ -106,6 +125,38 @@ suspicion that the app was wrong here did not survive cross-checking.
 cultivars. That would be a *loosening*, and the asymmetry rule requires two
 independent sources; there is no Nigerian in-vivo measurement. **Resolution:
 keep `gi: medium`.** Revisit if a second source appears.
+
+**Plantain: the form is the food.** A first reading suggested the literature
+contradicted itself — boiled unripe plantain at 89, yet "unripe plantain flour
+GI 52.8, recommended for diabetic Nigerians". It does not contradict. They are
+different foods:
+
+- **Boiled** unripe plantain: **89** (n=80 healthy, paper read in full). High.
+- Unripe plantain **flour** dough, i.e. plantain amala: **52.80** (n=12). Low.
+
+Drying plantain into flour changes its starch. So `boiled-plantain-unripe:
+gi high` stands on strong evidence, and the 52.8 figure never applied to it.
+Beware secondary summaries that say "unripe plantain is low GI" without naming
+the preparation; a boiled finger and a ball of plantain amala are not the same
+food.
+
+**Do not cite these for plantain.** [PMC5156628](https://pmc.ncbi.nlm.nih.gov/articles/PMC5156628/)
+is a **rat** study on plantain-soybean-cassava blends, and the Springer
+"blood glucose lowering" paper is also in rats. Neither supports a human GI
+claim. They surface high in searches for plantain GI.
+
+**Unresolved: roasted plantain.** The Nigerian staples overview puts roasted
+plantain at **92** (high). A 60-subject study of processed unripe plantain
+meals reports roasted as having the **lowest** GI of the preparations tested.
+The full text is paywalled and the number could not be read. **Resolution: keep
+`boli: gi high`**, the conservative reading, and flag it. This is the single
+open question a dietitian should settle.
+
+**`amala-plantain` (plantain flour swallow) stays `gi: medium`.** One verified
+direct measurement (52.80) says low. That is a *loosening*, and the asymmetry
+rule requires two independent sources; the second candidate is paywalled and
+unverified. Medium already sits between the two readings. Revisit when the
+60-subject paper can be read.
 
 ---
 

@@ -128,6 +128,38 @@ const LOGIC = {
   beer: "Alcohol can drop or raise your sugar, and beer carries starch. If you drink, keep to the size shown below and eat first.",
   gizdodo:
     "Gizzard is body-building food with very little starch. The fried ripe plantain is the sugar to watch.",
+
+  // Descriptions that used words nobody outside a kitchen magazine says:
+  // "a tangy, low-sugar condiment", "rich in oil", "moderate the quantity".
+  mustard:
+    "A sharp yellow sauce with almost no sugar. Some kinds have honey in them, so do not buy those.",
+  "popcorn-plain":
+    "Plain popcorn is fine in the size shown below. The caramel and sugar kinds are red.",
+  "whole-wheat-bread":
+    "Many wheat breads are mostly white flour. Look at the packet and pick one that says whole wheat first.",
+  "edikang-ikong": "Full of vegetables and body-building food. One of the best.",
+  "banga-soup": "Very little starch, but heavy with oil. Use less oil.",
+  "velvet-tamarind": "Sharp and sweet. Keep to the size shown below.",
+  "editan-soup": "An Efik bitter-leaf soup, full of vegetables. Friendly.",
+  "atama-soup":
+    "Palm-fruit and atama-leaf soup. Very little starch, but heavy with oil, so use less oil.",
+  "ofe-akwu":
+    "Palm-fruit sauce with little starch, but heavy with oil. The rice beside it is what to keep to the size shown below.",
+  sardine:
+    "Oily fish with little starch and good fat. Choose the ones packed in water, not in oil.",
+  "monkey-kola": "A local fruit with little sugar. Friendly in the size shown below.",
+  "passion-fruit":
+    "Sharp and sweet, with some natural sugar. Keep to the size shown below.",
+  "soy-milk":
+    "Plant milk with body-building food and little sugar, when it has no sugar added. Look at the packet and do not buy the sweet kind.",
+  ayamase:
+    "A green pepper sauce with plenty of palm oil and assorted meat. Little starch, but heavy with oil, so use less oil.",
+  "smoked-fish":
+    "Dried, smoked fish with little starch and plenty of body-building food. Rinse off the extra salt.",
+  "peanut-butter":
+    "Ground groundnuts give good fat and body-building food. Look at the packet and choose the kind with no added sugar.",
+  cauliflower:
+    "Very little starch, and it fills you up. Put more of it on the plate so you need less rice.",
   "cow-tail":
     "A fatty meat with very little starch, so it does not raise sugar. Trim the heavy fat if you can.",
 };
@@ -144,10 +176,30 @@ const NAMES = {
   "sweetened-yogurt": "Sweet / Flavoured Yogurt",
 };
 
-/** Pairings that pointed at "a small portion" instead of naming the amount. */
+/**
+ * Pairings must name food this audience actually eats, cooked the way they cook
+ * it. "Stir-fry", "dressings" and peanut butter on celery are not Nigerian
+ * food. A pairing nobody would make is worse than no pairing (founder rule).
+ */
 const PAIRING = {
   "tea-coffee": "Drink it with no sugar at all.",
   weetabix: "Milk with no sugar, and about 10 nuts.",
+  cabbage: "In salads, or cooked into stews and soups.",
+  "green-beans": "Cooked into stews and sauces, with fish, chicken, or an egg.",
+  broccoli: "Steamed or boiled, with fish, chicken, or an egg.",
+  cauliflower: "Boiled, or added to stews, with fish, chicken, or an egg.",
+  mushroom: "Add to stews, sauces, and soups, with fish, chicken, or an egg.",
+  kale: "Add to soups and stews, with fish, chicken, or an egg.",
+  zucchini: "Add to sauces and soups, with fish, chicken, or an egg.",
+  tofu: "Grill it, or add it to stews and sauces with vegetables.",
+  "spring-onion": "Add to stews, sauces, and salads.",
+  celery: "In soups and stews, with fish, chicken, or an egg.",
+  radish: "In salads, or added to stews.",
+  turnip: "In soups and stews.",
+  "bean-sprouts": "In salads, or added to stews, with fish, chicken, or an egg.",
+  "peanut-butter": "On one thin slice of bread (30g). Do not add jam.",
+  mustard: "With meat, fish, or eggs.",
+  "baked-beans": "Add an egg and vegetables. Eat with one thin slice of bread (30g), not more.",
   "tomato-stew":
     "It already has fish, chicken, or meat. Eat with half a cup of rice (130g), or a fist-size ball of swallow (100g). Remember, the swallow you pick matters as much as the soup.",
   ayamase: "It already has assorted meat. Eat with half a cup of ofada rice (130g).",
@@ -256,6 +308,13 @@ const RULES = [
   [/\bthe portion is what matters most\b/gi, "the size is what matters most"],
   [/\bkeep the portion\b/gi, "keep to the size shown below"],
   [/\bkeep the ball small\b/gi, "keep to one fist-size ball (100g)"],
+  [/\brich in\b/gi, "full of"],
+  [/\bmoderate the quantity\b/gi, "use less of it"],
+  [/\bkeep the oil in check\b/gi, "use less oil"],
+  [/\bfriendly in small amounts\b/gi, "friendly in the size shown below"],
+  [/\bOK in small amounts\b/gi, "fine in the size shown below"],
+  [/\bsmall amounts only\b/gi, "keep to the size shown below"],
+  [/\bEat with a small starch, not a large one\.$/, "Eat one thin slice of bread (30g), not more."],
   [/\bMake it small, use whole fruit, and never add sugar\.$/, "Keep to the size shown below, use whole fruit, and never add sugar."],
   [/\bmake it small\b/gi, "keep to the size shown below"],
 
@@ -323,6 +382,11 @@ const RULES = [
   [/\buse only a little at a time\b/gi, "use only one teaspoon at a time"],
   [/\buse only a little\b/gi, "use only a pinch"],
   [/\bwith little salad cream\b/gi, "with one teaspoon of salad cream"],
+
+  // A semicolon joins two ideas the way a comma does, and it is harder to read.
+  // Split every one into its own sentence. `tidy` capitalises what follows.
+  // Must run last, after the phrase rules that expect their own punctuation.
+  [/;\s+/g, ". "],
 ];
 
 /** Sentence-case the letters a swap left lowercase, and squash double spaces. */
@@ -419,6 +483,21 @@ const BANNED = [
   /\bfood food\b/i,
   /,\s*,/,
   /palm-size/i,
+  // Kitchen-magazine words, and cooking nobody here does.
+  /\btangy\b/i,
+  /\bcondiment\b/i,
+  /\bthe label\b/i,
+  /\bdressing/i,
+  /stir-fr/i,
+  /\brich in\b/i,
+  /\bsmall amounts\b/i,
+  /\bamounts only\b/i,
+  /\bmoderate the quantity\b/i,
+  /\bin check\b/i,
+  /\ba small starch\b/i,
+  /\bin place of rice\b/i,
+  // A semicolon joins two ideas. Every instruction is its own sentence.
+  /;/,
 ];
 // Real Nigerian foods whose names repeat a word. Everything else that doubles
 // a word is a rule that fired twice ("the the", "White white").
@@ -440,6 +519,18 @@ for (const f of foods) {
   // The title is read first of all, so it may not carry a hard word either.
   if (/unsweetened|sweetened/i.test(f.name)) {
     leftovers.push(`${f.id}.name: ${f.name}`);
+  }
+
+  // Coherence: never suggest eating a food with something nobody would eat it
+  // with. Peanut butter on celery is an American snack, not a Nigerian one.
+  if (f.pairingAdvice) {
+    const p = f.pairingAdvice.toLowerCase();
+    if (f.id === "peanut-butter" && p.includes("celery")) {
+      leftovers.push(`${f.id}.pairingAdvice: nobody here eats peanut butter on celery`);
+    }
+    if (/\bcasserole|\bsmoothie bowl|\bcrudit|\bdip\b|\bhummus\b/.test(p)) {
+      leftovers.push(`${f.id}.pairingAdvice: not a Nigerian preparation -> ${f.pairingAdvice}`);
+    }
   }
 }
 if (leftovers.length) {

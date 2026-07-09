@@ -41,7 +41,7 @@
     "portionGuidance": "One ball the size of your fist. That is about half a cup of the cooked swallow (100g).",
     "pairingAdvice": "Egusi or vegetable soup plus meat or fish.",
     "frequency": "About 2 times a week.",
-    "logicNote": "Smooth and dense; easy to overeat. Slow it with the rough part of food and body-building food.",
+    "logicNote": "Smooth and dense. Easy to overeat. Slow it with the rough part of food and body-building food.",
     "tags": [
       "local",
       "staple"
@@ -64,7 +64,7 @@
     "portionGuidance": "One ball the size of your fist. That is about half a cup of the cooked swallow (100g).",
     "pairingAdvice": "Ewedu and gbegiri plus fish, chicken, or an egg.",
     "frequency": "About 2 times a week.",
-    "logicNote": "Slightly friendlier than white swallows but still a starch; the size matters.",
+    "logicNote": "Slightly friendlier than white swallows but still a starch. The size matters.",
     "tags": [
       "local",
       "staple"
@@ -111,7 +111,7 @@
     "portionGuidance": "One ball the size of your fist. That is about half a cup of the cooked swallow (100g).",
     "pairingAdvice": "Vegetable soup plus fish, chicken, or an egg.",
     "frequency": "About 2 times a week.",
-    "logicNote": "High starch; eat less of it and eat it with soup.",
+    "logicNote": "High starch. Eat less of it and eat it with soup.",
     "tags": [
       "local",
       "staple"
@@ -134,7 +134,7 @@
     "portionGuidance": "One ball the size of your fist. That is about half a cup of the cooked swallow (100g).",
     "pairingAdvice": "Vegetable soup and fish, chicken, or an egg.",
     "frequency": "About 2 times a week.",
-    "logicNote": "White wheat flour; pushes your sugar up fast.",
+    "logicNote": "White wheat flour. Pushes your sugar up fast.",
     "tags": [
       "staple"
     ],
@@ -176,7 +176,7 @@
     "portionGuidance": "One ball the size of your fist. That is about half a cup of the cooked swallow (100g).",
     "pairingAdvice": "Any vegetable soup and fish, chicken, or an egg.",
     "frequency": "About 3 times a week.",
-    "logicNote": "One of the friendliest swallows; more of the rough part of food, slower rise.",
+    "logicNote": "One of the friendliest swallows. More of the rough part of food, slower rise.",
     "tags": [
       "swap",
       "friendly"
@@ -200,7 +200,7 @@
     "portionGuidance": "One ball the size of your fist. That is about half a cup of the cooked swallow (100g).",
     "pairingAdvice": "Miyan kuka or vegetable soup plus fish, chicken, or an egg.",
     "frequency": "About 2 times a week.",
-    "logicNote": "Soft white rice paste; fast sugar.",
+    "logicNote": "Soft white rice paste. Fast sugar.",
     "tags": [
       "local",
       "northern"
@@ -223,7 +223,7 @@
     "portionGuidance": "One ball the size of your fist. That is about half a cup of the cooked swallow (100g).",
     "pairingAdvice": "Vegetable soup plus fish, chicken, or an egg.",
     "frequency": "About 2 times a week.",
-    "logicNote": "Corn-based; a touch friendlier than rice tuwo.",
+    "logicNote": "Corn-based. A touch friendlier than rice tuwo.",
     "tags": [
       "local",
       "northern"
@@ -368,7 +368,7 @@
     "portionGuidance": "Three-quarters of a cup of cooked rice (about 120g).",
     "pairingAdvice": "Stew, vegetables, fish, chicken, or an egg.",
     "frequency": "About 2 times a week.",
-    "logicNote": "More of the rough part of food than white rice; the smarter default swap.",
+    "logicNote": "More of the rough part of food than white rice. The smarter default swap.",
     "tags": [
       "swap"
     ],
@@ -432,7 +432,7 @@
     "portionGuidance": "Two small pieces. Each is about the size of a matchbox (about 100g).",
     "pairingAdvice": "Egg sauce, vegetable sauce, or fish stew.",
     "frequency": "About 2 times a week.",
-    "logicNote": "Dense starch; pair with fish, meat, or egg and keep pieces few.",
+    "logicNote": "Dense starch. Pair with fish, meat, or egg and keep pieces few.",
     "tags": [
       "local",
       "staple"
@@ -550,7 +550,7 @@
     "portionGuidance": "Two small potatoes. That is about the size of two eggs (120g).",
     "pairingAdvice": "Vegetables and fish, chicken, or an egg.",
     "frequency": "About 2 times a week.",
-    "logicNote": "Raises sugar faster than sweet potato; watch the size.",
+    "logicNote": "Raises sugar faster than sweet potato. Watch the size.",
     "tags": [],
     "portionIcon": "eggs"
   },
@@ -571,7 +571,7 @@
     "portionGuidance": "Two small pieces. That is about the size of two eggs (120g).",
     "pairingAdvice": "Vegetables and fish, chicken, or an egg.",
     "frequency": "About 2 times a week.",
-    "logicNote": "Raises sugar more slowly than yam; a decent swap.",
+    "logicNote": "Raises sugar more slowly than yam. A decent swap.",
     "tags": [
       "swap"
     ],
@@ -707,7 +707,7 @@
     "portionGuidance": "One cup of popped corn (about 8g). Add no sugar.",
     "pairingAdvice": "",
     "frequency": "About 2 times a week.",
-    "logicNote": "Plain is OK in small amounts; caramel and sugar versions are red.",
+    "logicNote": "Plain popcorn is fine in the size shown below. The caramel and sugar kinds are red.",
     "tags": [],
     "portionIcon": "cup"
   },
@@ -726,7 +726,7 @@
     "portionGuidance": "One small plate. That is about one cup, as it is served (150g).",
     "pairingAdvice": "Fish, ugba, garden egg, vegetables in it.",
     "frequency": "About 2 times a week.",
-    "logicNote": "Cassava base; the vegetables and fish help.",
+    "logicNote": "Cassava base. The vegetables and fish help.",
     "tags": [
       "local",
       "eastern"
@@ -753,7 +753,7 @@
     "portionGuidance": "One stick. That is about six to eight pieces (90g of meat).",
     "pairingAdvice": "Onions, tomato, cabbage.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Spiced grilled meat; very little starch. A great street-food choice.",
+    "logicNote": "Spiced grilled meat. Very little starch. A great street-food choice.",
     "tags": [
       "local",
       "street",
@@ -777,7 +777,7 @@
     "portionGuidance": "Three to four pieces (about 30g).",
     "pairingAdvice": "Alone.",
     "frequency": "About 3 times a week.",
-    "logicNote": "Mostly body-building food; check for sweet coatings.",
+    "logicNote": "Mostly body-building food. Check for sweet coatings.",
     "tags": [
       "local",
       "northern"
@@ -800,7 +800,7 @@
     "portionGuidance": "One small bowl (about 150g).",
     "pairingAdvice": "Alone.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Cow foot in spicy sauce; very little starch.",
+    "logicNote": "Cow foot in spicy sauce. Very little starch.",
     "tags": [
       "local",
       "eastern"
@@ -854,7 +854,7 @@
     "portionGuidance": "Best to skip this. If you do have it, about 10 pieces (30g).",
     "pairingAdvice": "",
     "frequency": "About 1 time a month.",
-    "logicNote": "Fried sweet flour; pushes your sugar up fast.",
+    "logicNote": "Fried sweet flour. Pushes your sugar up fast.",
     "tags": [
       "fried"
     ],
@@ -878,7 +878,7 @@
     "portionGuidance": "Best to skip this. If you do have it, only one ball the size of a golf ball (about 40g).",
     "pairingAdvice": "",
     "frequency": "About 1 time a month.",
-    "logicNote": "Fried sweet dough; one of the worst snacks.",
+    "logicNote": "Fried sweet dough. One of the worst snacks.",
     "tags": [
       "fried",
       "street"
@@ -908,7 +908,7 @@
     "portionGuidance": "Best to skip this. If you do have it, only half of one pie.",
     "pairingAdvice": "",
     "frequency": "About 1 time a month.",
-    "logicNote": "White flour pastry; fast rise.",
+    "logicNote": "White flour pastry. Fast rise.",
     "tags": [],
     "healthNote": "This food is fried or heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, keep to the size shown below and use less oil. Boiled or grilled is better.",
     "portionIcon": "avoid"
@@ -1105,7 +1105,7 @@
     "portionGuidance": "Half a cup of cooked beans. Fill a tea cup halfway. Go easy on the oil (130g).",
     "pairingAdvice": "Add fish, meat, or egg. Skip the bread.",
     "frequency": "About 4 times a week.",
-    "logicNote": "Beans are great; the heavy palm-oil sauce is the only caution.",
+    "logicNote": "Beans are great. The heavy palm-oil sauce is the only caution.",
     "tags": [
       "local",
       "street"
@@ -1155,7 +1155,7 @@
     "portionGuidance": "Three small balls (about 90g).",
     "pairingAdvice": "Pap is the problem, not the akara. Pair it with vegetables instead.",
     "frequency": "About 4 times a week.",
-    "logicNote": "Beans are friendly; deep frying is the only downside.",
+    "logicNote": "Beans are friendly. Deep frying is the only downside.",
     "tags": [
       "local",
       "street",
@@ -1232,7 +1232,7 @@
     "portionGuidance": "One thin slice at most (30g). Never eat it on its own.",
     "pairingAdvice": "If eaten, add egg, beans, or moi moi, never on its own.",
     "frequency": "About 1 time a month.",
-    "logicNote": "Soft white flour; it pushes your sugar up faster than most foods.",
+    "logicNote": "Soft white flour. It pushes your sugar up faster than most foods.",
     "tags": [
       "staple"
     ],
@@ -1253,7 +1253,7 @@
     "portionGuidance": "One to two slices (about 30g each).",
     "pairingAdvice": "Egg, avocado, beans, or moi moi. Never on its own.",
     "frequency": "About 2 times a week.",
-    "logicNote": "Check the label; many wheat breads are mostly white flour.",
+    "logicNote": "Many wheat breads are mostly white flour. Look at the packet and pick one that says whole wheat first.",
     "tags": [
       "swap"
     ],
@@ -1301,7 +1301,7 @@
     "portionGuidance": "One small cup (about 200ml). Make it with water. Add no sugar.",
     "pairingAdvice": "Moi moi or akara.",
     "frequency": "About 2 times a week.",
-    "logicNote": "Like pap; danger is the added sugar and milk.",
+    "logicNote": "Like pap. Danger is the added sugar and milk.",
     "tags": [
       "breakfast"
     ],
@@ -1345,7 +1345,7 @@
     "portionGuidance": "Four tablespoons of the dry cereal (about 40g). Add no sugar.",
     "pairingAdvice": "Plain milk, no sugar.",
     "frequency": "About 2 times a week.",
-    "logicNote": "Often eaten very sweet; that is the problem.",
+    "logicNote": "Often eaten very sweet. That is the problem.",
     "tags": [
       "breakfast"
     ],
@@ -1437,7 +1437,7 @@
     "portionGuidance": "One to two big spoons. That is about one cup.",
     "pairingAdvice": "A fist-size ball of swallow (100g) and plenty of vegetables. The swallow matters too. Oat swallow raises sugar the least, and eba, fufu, pounded yam and semovita raise it the most.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Melon seed and vegetables; friendly. The swallow beside it is what to watch.",
+    "logicNote": "Melon seed and vegetables. Friendly. The swallow beside it is what to watch.",
     "tags": [
       "local",
       "friendly"
@@ -1464,7 +1464,7 @@
     "portionGuidance": "One to two big spoons. That is about one cup.",
     "pairingAdvice": "A fist-size ball of swallow (100g) and plenty of vegetables. The swallow matters too. Oat swallow raises sugar the least, and eba, fufu, pounded yam and semovita raise it the most.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Very little starch on its own; the swallow is the variable.",
+    "logicNote": "Very little starch on its own. The swallow is the variable.",
     "tags": [
       "local",
       "friendly"
@@ -1518,7 +1518,7 @@
     "portionGuidance": "Eat as much as you like. Two or more big spoons.",
     "pairingAdvice": "Fish, meat, or egg, with a fist-size ball of swallow (100g) if any. The swallow matters too. Oat swallow raises sugar the least, and eba, fufu, pounded yam and semovita raise it the most.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Rich in vegetables and body-building food. One of the best.",
+    "logicNote": "Full of vegetables and body-building food. One of the best.",
     "tags": [
       "local",
       "friendly",
@@ -1545,7 +1545,7 @@
     "portionGuidance": "Eat as much as you like. Two or more big spoons.",
     "pairingAdvice": "Fish, meat, or egg, with a fist-size ball of swallow (100g) if any. The swallow matters too. Oat swallow raises sugar the least, and eba, fufu, pounded yam and semovita raise it the most.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Leafy and full of body-building food; friendly.",
+    "logicNote": "Leafy and full of body-building food. Friendly.",
     "tags": [
       "local",
       "friendly"
@@ -1567,7 +1567,7 @@
     "portionGuidance": "One to two big spoons. That is about one cup.",
     "pairingAdvice": "A fist-size ball of swallow (100g) with fish, meat, or egg. The swallow matters too. Oat swallow raises sugar the least, and eba, fufu, pounded yam and semovita raise it the most.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Vegetable soup; watch only the thickener and swallow.",
+    "logicNote": "Vegetable soup. Watch only the thickener and swallow.",
     "tags": [
       "local",
       "friendly",
@@ -1664,7 +1664,7 @@
     "portionGuidance": "One big spoon. That is about half a cup. Go easy on the oil.",
     "pairingAdvice": "Fish, with a fist-size ball of swallow (100g) if any. The swallow matters too. Oat swallow raises sugar the least, and eba, fufu, pounded yam and semovita raise it the most.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Very little starch; just rich in oil, so moderate the quantity.",
+    "logicNote": "Very little starch, but heavy with oil. Use less oil.",
     "tags": [
       "local",
       "delta"
@@ -1687,7 +1687,7 @@
     "portionGuidance": "Eat as much as you like. Two or more big spoons.",
     "pairingAdvice": "Gbegiri and a fist-size ball of swallow (100g), with fish or meat. The swallow matters too. Oat swallow raises sugar the least, and eba, fufu, pounded yam and semovita raise it the most.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Pure leafy soup; very friendly.",
+    "logicNote": "Pure leafy soup. Very friendly.",
     "tags": [
       "local",
       "friendly",
@@ -1763,7 +1763,7 @@
     "portionGuidance": "One to two big spoons. That is about one cup.",
     "pairingAdvice": "Fish or meat, with a fist-size ball of swallow (100g). The swallow matters too. Oat swallow raises sugar the least, and eba, fufu, pounded yam and semovita raise it the most.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Light, very little starch; watch only the yam thickener if used.",
+    "logicNote": "Light, very little starch. Watch only the yam thickener if used.",
     "tags": [
       "local",
       "eastern"
@@ -1897,7 +1897,7 @@
     "portionGuidance": "Two or three medium chunks (90g). Put together, they fill your palm.",
     "pairingAdvice": "Pepper sauce, vegetables.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Lean red meat; friendly.",
+    "logicNote": "Lean red meat. Friendly.",
     "tags": [
       "local"
     ],
@@ -2061,7 +2061,7 @@
     "portionGuidance": "Two to three small pieces (about 60g).",
     "pairingAdvice": "Soups and stews.",
     "frequency": "You can eat this every day.",
-    "logicNote": "No starch; fine for blood sugar.",
+    "logicNote": "No starch. Fine for blood sugar.",
     "tags": [
       "local"
     ],
@@ -2084,7 +2084,7 @@
     "portionGuidance": "One slice as wide as your palm (90g).",
     "pairingAdvice": "Vegetables.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Full of body-building food; fine for blood sugar.",
+    "logicNote": "Full of body-building food. Fine for blood sugar.",
     "tags": [],
     "healthNote": "Beef and goat are red meat. Liver, kidney, shaki, and pomo are organ meat. Both are fine for your sugar but not for everyone. If you have high blood pressure, high cholesterol, or kidney problems, pick fish or skinless chicken instead and use less salt.",
     "portionIcon": "cards"
@@ -2108,7 +2108,7 @@
     "portionGuidance": "One piece as wide as your palm (90g). Do not eat it often.",
     "pairingAdvice": "Vegetables.",
     "frequency": "About 3 times a week.",
-    "logicNote": "The body-building food is fine; deep frying is the only caution.",
+    "logicNote": "The body-building food is fine. Deep frying is the only caution.",
     "tags": [
       "fried"
     ],
@@ -2131,7 +2131,7 @@
     "portionGuidance": "Eat as much as you like.",
     "pairingAdvice": "Everything.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Leafy green; very friendly.",
+    "logicNote": "Leafy green. Very friendly.",
     "tags": [
       "local",
       "friendly"
@@ -2155,7 +2155,7 @@
     "portionGuidance": "Eat as much as you like.",
     "pairingAdvice": "Soups.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Leafy green; friendly.",
+    "logicNote": "Leafy green. Friendly.",
     "tags": [
       "local",
       "friendly"
@@ -2265,7 +2265,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "Eat as much as you like. One to two cups shredded.",
-    "pairingAdvice": "Salads and stir-fry.",
+    "pairingAdvice": "In salads, or cooked into stews and soups.",
     "frequency": "You can eat this every day.",
     "logicNote": "Very little starch, full of the rough part of food.",
     "tags": [],
@@ -2322,7 +2322,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "Eat as much as you like. That is about one cup.",
-    "pairingAdvice": "Stir-fry, fish, chicken, or an egg.",
+    "pairingAdvice": "Cooked into stews and sauces, with fish, chicken, or an egg.",
     "frequency": "You can eat this every day.",
     "logicNote": "Very little starch, full of the rough part of food.",
     "tags": [],
@@ -2344,7 +2344,7 @@
     "portionGuidance": "Half a cup. Fill a tea cup halfway.",
     "pairingAdvice": "Abacha, fish.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Fermented oil bean; low sugar.",
+    "logicNote": "Fermented oil bean. Low sugar.",
     "tags": [
       "local",
       "eastern"
@@ -2388,7 +2388,7 @@
     "portionGuidance": "One slice. That is about half a cup diced (120g).",
     "pairingAdvice": "About 10 nuts to slow the sugar.",
     "frequency": "About 3 times a week.",
-    "logicNote": "Friendlier fruit, but still natural sugar; keep to the size shown below.",
+    "logicNote": "Friendlier fruit, but still natural sugar. Keep to the size shown below.",
     "tags": [],
     "carbExchange": "one slice (half a cup diced)",
     "portionIcon": "slice"
@@ -2407,7 +2407,7 @@
     "portionGuidance": "One cup diced. That is about one thin slice (150g).",
     "pairingAdvice": "About 10 nuts to slow the sugar.",
     "frequency": "About 2 times a week.",
-    "logicNote": "Mostly water but raises sugar fast; keep to the size shown below.",
+    "logicNote": "Mostly water but raises sugar fast. Keep to the size shown below.",
     "tags": [],
     "carbExchange": "one cup diced",
     "portionIcon": "slice"
@@ -2428,7 +2428,7 @@
     "portionGuidance": "One medium whole orange. Eat it whole. Do not drink it as juice.",
     "pairingAdvice": "Eat whole for the rough part of the fruit.",
     "frequency": "About 3 times a week.",
-    "logicNote": "Whole orange OK; orange juice is red.",
+    "logicNote": "Whole orange OK. Orange juice is red.",
     "tags": [],
     "carbExchange": "one medium orange",
     "portionIcon": "whole-fruit"
@@ -2449,7 +2449,7 @@
     "portionGuidance": "One small apple. That is about the size of a big egg (120g).",
     "pairingAdvice": "About 10 nuts.",
     "frequency": "About 3 times a week.",
-    "logicNote": "A fruit that raises sugar slowly; the skin adds the rough part of food.",
+    "logicNote": "A fruit that raises sugar slowly. The skin adds the rough part of food.",
     "tags": [],
     "carbExchange": "one small apple",
     "portionIcon": "whole-fruit"
@@ -2490,7 +2490,7 @@
     "portionGuidance": "Half of one small mango. That is about half a cup (80g).",
     "pairingAdvice": "About 10 nuts.",
     "frequency": "About 3 times a week.",
-    "logicNote": "Sweet; keep to the size shown below.",
+    "logicNote": "Sweet. Keep to the size shown below.",
     "tags": [
       "seasonal"
     ],
@@ -2511,7 +2511,7 @@
     "portionGuidance": "One thin slice. That is about half a cup (80g).",
     "pairingAdvice": "About 10 nuts.",
     "frequency": "About 2 times a week.",
-    "logicNote": "Raises sugar fast; keep to the size shown below.",
+    "logicNote": "Raises sugar fast. Keep to the size shown below.",
     "tags": [],
     "carbExchange": "one thin slice",
     "portionIcon": "slice"
@@ -2531,7 +2531,7 @@
     "portionGuidance": "One small guava (about 55g).",
     "pairingAdvice": "Alone.",
     "frequency": "About 3 times a week.",
-    "logicNote": "Full of the rough part of food, raises sugar more slowly; a friendly fruit.",
+    "logicNote": "Full of the rough part of food, raises sugar more slowly. A friendly fruit.",
     "tags": [
       "friendly"
     ],
@@ -2555,7 +2555,7 @@
     "portionGuidance": "One to two small fruits.",
     "pairingAdvice": "Alone.",
     "frequency": "About 2 times a week.",
-    "logicNote": "Tart but sugary; keep to the size shown below.",
+    "logicNote": "Tart but sugary. Keep to the size shown below.",
     "tags": [
       "local",
       "seasonal"
@@ -2619,7 +2619,7 @@
     "portionGuidance": "One to two fruits.",
     "pairingAdvice": "Alone.",
     "frequency": "About 2 times a week.",
-    "logicNote": "Juicy and sweet; keep to the size shown below.",
+    "logicNote": "Juicy and sweet. Keep to the size shown below.",
     "tags": [
       "seasonal"
     ],
@@ -2665,7 +2665,7 @@
     "portionGuidance": "About 15 cashew nuts (30g).",
     "pairingAdvice": "Alone.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Healthy fat; keep to the size shown below for calories.",
+    "logicNote": "Healthy fat. Keep to the size shown below for calories.",
     "tags": [],
     "portionIcon": "handful"
   },
@@ -2685,7 +2685,7 @@
     "portionGuidance": "About 20 tiger nuts (30g).",
     "pairingAdvice": "Alone.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Full of the rough part of food; the whole nut is friendlier than the sweet drink.",
+    "logicNote": "Full of the rough part of food. The whole nut is friendlier than the sweet drink.",
     "tags": [
       "local"
     ],
@@ -2710,7 +2710,7 @@
     "portionGuidance": "Two to three small pieces (about 40g).",
     "pairingAdvice": "Great with corn.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Low sugar; pairs well to slow corn.",
+    "logicNote": "Low sugar. Pairs well to slow corn.",
     "tags": [
       "local"
     ],
@@ -2840,7 +2840,7 @@
     "portionGuidance": "None at all.",
     "pairingAdvice": "",
     "frequency": "Never.",
-    "logicNote": "Sugar and caffeine; bad combination for blood sugar.",
+    "logicNote": "Sugar and caffeine. Bad combination for blood sugar.",
     "tags": [],
     "portionIcon": "avoid"
   },
@@ -2860,7 +2860,7 @@
     "portionGuidance": "One cup (250ml). Add no sugar.",
     "pairingAdvice": "Alone.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Hibiscus drink; friendly only if no sugar is added.",
+    "logicNote": "Hibiscus drink. Friendly only if no sugar is added.",
     "tags": [
       "local",
       "friendly"
@@ -2903,7 +2903,7 @@
     "portionGuidance": "One small cup (200ml). Add no sugar.",
     "pairingAdvice": "Alone.",
     "frequency": "About 2 times a week.",
-    "logicNote": "Grain drink; the sweet kind pushes your sugar up fast. Millet kunu with no sugar is gentler.",
+    "logicNote": "Grain drink. The sweet kind pushes your sugar up fast. Millet kunu with no sugar is gentler.",
     "tags": [
       "local",
       "northern"
@@ -2949,7 +2949,7 @@
     "portionGuidance": "One small glass (100ml).",
     "pairingAdvice": "Alone.",
     "frequency": "About 1 time a month.",
-    "logicNote": "Alcohol plus natural sugar; both affect blood sugar.",
+    "logicNote": "Alcohol plus natural sugar. Both affect blood sugar.",
     "tags": [
       "local"
     ],
@@ -3155,7 +3155,7 @@
     "portionGuidance": "Three to four small pieces (about 90g).",
     "pairingAdvice": "Pepper sauce.",
     "frequency": "About 4 times a week.",
-    "logicNote": "Soft cheese; very little starch, full of body-building food.",
+    "logicNote": "Soft cheese. Very little starch, full of body-building food.",
     "tags": [
       "local"
     ],
@@ -3178,7 +3178,7 @@
     "portionGuidance": "One to two teaspoons. No more than that.",
     "pairingAdvice": "In soups and stews.",
     "frequency": "About 3 times a week.",
-    "logicNote": "No effect on blood sugar, but heavy for the heart; go easy.",
+    "logicNote": "No effect on blood sugar, but heavy for the heart. Go easy.",
     "tags": [
       "local"
     ],
@@ -3206,7 +3206,7 @@
     "portionGuidance": "One to two teaspoons. No more than that.",
     "pairingAdvice": "In cooking.",
     "frequency": "About 3 times a week.",
-    "logicNote": "No sugar impact; watch total quantity.",
+    "logicNote": "No sugar impact. Watch total quantity.",
     "tags": [],
     "portionIcon": "spoon"
   },
@@ -3224,7 +3224,7 @@
     "portionGuidance": "One to two teaspoons.",
     "pairingAdvice": "Salads, cooking.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Heart-friendly fat; no sugar impact.",
+    "logicNote": "Heart-friendly fat. No sugar impact.",
     "tags": [
       "friendly"
     ],
@@ -3249,7 +3249,7 @@
     "portionGuidance": "One thin scrape. That is about one teaspoon.",
     "pairingAdvice": "On wheat bread, not white.",
     "frequency": "About 3 times a week.",
-    "logicNote": "No sugar impact; the bread under it is the issue.",
+    "logicNote": "No sugar impact. The bread under it is the issue.",
     "tags": [],
     "healthNote": "This is high in fat that can raise your cholesterol. If you have high cholesterol, high blood pressure, or heart trouble, use only one teaspoon at a time.",
     "portionIcon": "spoon"
@@ -3272,7 +3272,7 @@
     "portionGuidance": "One teaspoon.",
     "pairingAdvice": "Salads.",
     "frequency": "About 3 times a week.",
-    "logicNote": "Some sugar in salad cream; use lightly.",
+    "logicNote": "Some sugar in salad cream. Use lightly.",
     "tags": [],
     "healthNote": "This is high in fat that can raise your cholesterol. If you have high cholesterol, high blood pressure, or heart trouble, use only one teaspoon at a time.",
     "portionIcon": "spoon"
@@ -3373,7 +3373,7 @@
     "portionGuidance": "One small cup (200ml). Add no sugar.",
     "pairingAdvice": "Alone, with no sugar.",
     "frequency": "About 2 times a week.",
-    "logicNote": "Millet balls in fermented milk. Gentle without sugar; the sweet kind pushes your sugar up fast.",
+    "logicNote": "Millet balls in fermented milk. Gentle without sugar. The sweet kind pushes your sugar up fast.",
     "tags": [
       "local",
       "northern"
@@ -3419,7 +3419,7 @@
     "portionGuidance": "One small plate. That is about one cup of the cooked dumplings (150g).",
     "pairingAdvice": "One teaspoon of oil and some pepper. Add plenty of vegetables.",
     "frequency": "About 4 times a week.",
-    "logicNote": "Bean-flour dumplings; full of the rough part of food and slow to raise sugar.",
+    "logicNote": "Bean-flour dumplings. Full of the rough part of food and slow to raise sugar.",
     "tags": [
       "local",
       "northern"
@@ -3441,7 +3441,7 @@
     "portionGuidance": "One to two big spoons. That is about one cup.",
     "pairingAdvice": "A fist-size ball of swallow (100g) with fish, meat, or egg. The swallow matters too. Oat swallow raises sugar the least, and eba, fufu, pounded yam and semovita raise it the most.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Pumpkin and groundnut soup; filling and friendly.",
+    "logicNote": "Pumpkin and groundnut soup. Filling and friendly.",
     "tags": [
       "local",
       "northern"
@@ -3463,7 +3463,7 @@
     "portionGuidance": "Two sticks (about 30g).",
     "pairingAdvice": "Eat it alone. If you add garri, keep the garri to a fist-size ball (100g).",
     "frequency": "About 2 times a week.",
-    "logicNote": "Fried groundnut cake; the nut is fine, the frying oil is the caution.",
+    "logicNote": "Fried groundnut cake. The nut is fine, the frying oil is the caution.",
     "tags": [
       "local",
       "northern"
@@ -3487,7 +3487,7 @@
     "portionGuidance": "Enough of the shredded meat to fill your palm (about 60g).",
     "pairingAdvice": "Alone or with vegetables.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Dried, spiced, shredded meat; mostly body-building food.",
+    "logicNote": "Dried, spiced, shredded meat. Mostly body-building food.",
     "tags": [
       "local",
       "northern"
@@ -3510,7 +3510,7 @@
     "portionGuidance": "One small bowl. That is about three-quarters of a cup of the cooked dish (150g).",
     "pairingAdvice": "Plenty vegetables and fish in it.",
     "frequency": "About 2 times a week.",
-    "logicNote": "Grated water yam porridge; load it with vegetables and body-building food.",
+    "logicNote": "Grated water yam porridge. Load it with vegetables and body-building food.",
     "tags": [
       "local",
       "yoruba"
@@ -3532,7 +3532,7 @@
     "portionGuidance": "One to two wraps, palm size (150g).",
     "pairingAdvice": "Ata sauce and fish. Skip the eko.",
     "frequency": "About 4 times a week.",
-    "logicNote": "Steamed beans with no oil inside; full of body-building food and slow.",
+    "logicNote": "Steamed beans with no oil inside. Full of body-building food and slow.",
     "tags": [
       "local",
       "yoruba"
@@ -3553,7 +3553,7 @@
     "portionGuidance": "Three to four small fritters (about 80g).",
     "pairingAdvice": "Pepper sauce. Pair it with vegetables.",
     "frequency": "About 2 times a week.",
-    "logicNote": "Fried water yam balls; keep them few because of the frying.",
+    "logicNote": "Fried water yam balls. Keep them few because of the frying.",
     "tags": [
       "local",
       "yoruba"
@@ -3601,7 +3601,7 @@
     "portionGuidance": "One small bowl. That is about three-quarters of a cup of the cooked dish (150g).",
     "pairingAdvice": "One teaspoon of palm oil, plus fish.",
     "frequency": "About 4 times a week.",
-    "logicNote": "African breadfruit; full of the rough part of food, and body-building, a filling meal.",
+    "logicNote": "African breadfruit. Full of the rough part of food, and body-building, a filling meal.",
     "tags": [
       "local",
       "eastern"
@@ -3623,7 +3623,7 @@
     "portionGuidance": "Half a cup of the cooked pottage. Fill a tea cup halfway (130g).",
     "pairingAdvice": "Vegetables and fish.",
     "frequency": "About 4 times a week.",
-    "logicNote": "Pigeon pea pottage; beans-like, full of the rough part of food and slow.",
+    "logicNote": "Pigeon pea pottage. Beans-like, full of the rough part of food and slow.",
     "tags": [
       "local",
       "eastern"
@@ -3647,7 +3647,7 @@
     "portionGuidance": "One small bowl. That is about three-quarters of a cup of the cooked dish (150g).",
     "pairingAdvice": "Plenty vegetables and fish.",
     "frequency": "About 2 times a week.",
-    "logicNote": "Dried cocoyam cooked with beans; the beans help slow it.",
+    "logicNote": "Dried cocoyam cooked with beans. The beans help slow it.",
     "tags": [
       "local",
       "eastern"
@@ -3669,7 +3669,7 @@
     "portionGuidance": "One to two big spoons. That is about one cup.",
     "pairingAdvice": "A fist-size ball of swallow (100g) with fish, meat, or egg. The swallow matters too. Oat swallow raises sugar the least, and eba, fufu, pounded yam and semovita raise it the most.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Leafy vegetable soup; friendly, watch only the thickener and swallow.",
+    "logicNote": "Leafy vegetable soup. Friendly, watch only the thickener and swallow.",
     "tags": [
       "local",
       "eastern"
@@ -3691,7 +3691,7 @@
     "portionGuidance": "One to two big spoons. That is about one cup.",
     "pairingAdvice": "Fish or bush meat, with a fist-size ball of swallow (100g) if any. The swallow matters too. Oat swallow raises sugar the least, and eba, fufu, pounded yam and semovita raise it the most.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Light palm-based Delta soup; very little starch and friendly.",
+    "logicNote": "Light palm-based Delta soup. Very little starch and friendly.",
     "tags": [
       "local",
       "delta"
@@ -3740,7 +3740,7 @@
     "portionGuidance": "One small bowl. That is about three-quarters of a cup of the cooked dish (150g).",
     "pairingAdvice": "Plenty vegetables, periwinkle, and fish in it.",
     "frequency": "About 2 times a week.",
-    "logicNote": "Grated cocoyam wrapped and cooked; dense, so keep it moderate.",
+    "logicNote": "Grated cocoyam wrapped and cooked. Dense, so keep it moderate.",
     "tags": [
       "local",
       "south-south"
@@ -3763,7 +3763,7 @@
     "portionGuidance": "About 15 periwinkles (60g).",
     "pairingAdvice": "In soups like afang and edikang ikong.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Small shellfish; very little starch and full of body-building food.",
+    "logicNote": "Small shellfish. Very little starch and full of body-building food.",
     "tags": [
       "local",
       "south-south"
@@ -3810,7 +3810,7 @@
     "portionGuidance": "Two to three small pieces (about 90g).",
     "pairingAdvice": "In soups and pepper soup.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Cow tripe; very little starch, fine for blood sugar.",
+    "logicNote": "Cow tripe. Very little starch, fine for blood sugar.",
     "tags": [
       "local"
     ],
@@ -3839,7 +3839,7 @@
     "portionGuidance": "About five pieces (90g). Put together, they fill your palm.",
     "pairingAdvice": "Pepper sauce and vegetables.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Chicken gizzard; lean body-building food, very little starch.",
+    "logicNote": "Chicken gizzard. Lean body-building food, very little starch.",
     "tags": [],
     "healthNote": "Beef and goat are red meat. Liver, kidney, shaki, and pomo are organ meat. Both are fine for your sugar but not for everyone. If you have high blood pressure, high cholesterol, or kidney problems, pick fish or skinless chicken instead and use less salt.",
     "portionIcon": "pieces"
@@ -3858,7 +3858,7 @@
     "portionGuidance": "One medium crab. That is about half a cup of the meat (90g).",
     "pairingAdvice": "In soups and pepper soup.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Shellfish; very little starch and full of body-building food.",
+    "logicNote": "Shellfish. Very little starch and full of body-building food.",
     "tags": [],
     "portionIcon": "handful"
   },
@@ -3877,7 +3877,7 @@
     "portionGuidance": "Two or three medium chunks (90g). Put together, they fill your palm.",
     "pairingAdvice": "Pepper soup and vegetables.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Lean bush meat; very little starch.",
+    "logicNote": "Lean bush meat. Very little starch.",
     "tags": [
       "local"
     ],
@@ -3900,7 +3900,7 @@
     "portionGuidance": "Eat as much as you like.",
     "pairingAdvice": "In soups, pepper soup, and stews.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Aromatic leaf; very low sugar and friendly.",
+    "logicNote": "Aromatic leaf. Very low sugar and friendly.",
     "tags": [
       "local"
     ],
@@ -3920,7 +3920,7 @@
     "portionGuidance": "One handful of leaves (about 30g). Or use a pinch of the seed.",
     "pairingAdvice": "In soups like oha and nsala.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Peppery leaf and seed; low sugar, adds flavour.",
+    "logicNote": "Peppery leaf and seed. Low sugar, adds flavour.",
     "tags": [
       "local",
       "eastern"
@@ -3941,7 +3941,7 @@
     "portionGuidance": "One handful, sliced thin (about 30g).",
     "pairingAdvice": "In abacha, nkwobi, and pepper soup.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Slightly bitter leaf; low sugar and friendly.",
+    "logicNote": "Slightly bitter leaf. Low sugar and friendly.",
     "tags": [
       "local",
       "eastern"
@@ -3963,7 +3963,7 @@
     "portionGuidance": "Eat as much as you like. One to two peppers.",
     "pairingAdvice": "In stews, sauces, and salads.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Sweet pepper; low sugar and full of the rough part of food.",
+    "logicNote": "Sweet pepper. Low sugar and full of the rough part of food.",
     "tags": [
       "local"
     ],
@@ -3985,7 +3985,7 @@
     "portionGuidance": "One medium onion used in cooking.",
     "pairingAdvice": "In nearly everything.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Low sugar and friendly; also good for the heart.",
+    "logicNote": "Low sugar and friendly. Also good for the heart.",
     "tags": [],
     "portionIcon": "pieces"
   },
@@ -4004,7 +4004,7 @@
     "portionGuidance": "Eat as much as you like. Two to three cups.",
     "pairingAdvice": "Salads and sandwiches.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Leafy and watery; almost no sugar.",
+    "logicNote": "Leafy and watery. Almost no sugar.",
     "tags": [],
     "portionIcon": "free"
   },
@@ -4024,7 +4024,7 @@
     "portionGuidance": "Eat as much as you like.",
     "pairingAdvice": "In soups and as a side.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Leafy green; some studies link it to steadier blood sugar.",
+    "logicNote": "Leafy green. Some studies link it to steadier blood sugar.",
     "tags": [
       "local"
     ],
@@ -4046,7 +4046,7 @@
     "portionGuidance": "Two to three softened pears.",
     "pairingAdvice": "Great with boiled or roasted corn.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Oily fruit; low sugar and high in good fat, and it slows corn.",
+    "logicNote": "Oily fruit. Low sugar and high in good fat, and it slows corn.",
     "tags": [
       "local",
       "seasonal"
@@ -4067,7 +4067,7 @@
     "portionGuidance": "One medium tangerine. Eat it whole. Do not drink it as juice.",
     "pairingAdvice": "Eat whole for the rough part of the fruit.",
     "frequency": "About 3 times a week.",
-    "logicNote": "Whole tangerine is fine; the juice is not.",
+    "logicNote": "Whole tangerine is fine. The juice is not.",
     "tags": [],
     "carbExchange": "one medium fruit",
     "portionIcon": "whole-fruit"
@@ -4086,7 +4086,7 @@
     "portionGuidance": "Half of one medium fruit.",
     "pairingAdvice": "Alone.",
     "frequency": "About 3 times a week.",
-    "logicNote": "Lower sugar citrus; a friendly fruit.",
+    "logicNote": "Lower sugar citrus. A friendly fruit.",
     "tags": [],
     "carbExchange": "half of a medium fruit",
     "portionIcon": "half-fruit"
@@ -4106,7 +4106,7 @@
     "portionGuidance": "A squeeze in water or food.",
     "pairingAdvice": "In water, tea, and cooking.",
     "frequency": "About 5 times a week.",
-    "logicNote": "Very low sugar; adds flavour with almost no starch.",
+    "logicNote": "Very low sugar. Adds flavour with almost no starch.",
     "tags": [],
     "portionIcon": "whole-fruit"
   },
@@ -4126,7 +4126,7 @@
     "portionGuidance": "Best to skip this. If you do have it, one small piece to chew.",
     "pairingAdvice": "",
     "frequency": "About 1 time a month.",
-    "logicNote": "You chew out pure sugar; it raises blood sugar fast.",
+    "logicNote": "You chew out pure sugar. It raises blood sugar fast.",
     "tags": [
       "local"
     ],
@@ -4148,7 +4148,7 @@
     "portionGuidance": "About 10 pods.",
     "pairingAdvice": "Alone.",
     "frequency": "About 2 times a week.",
-    "logicNote": "Tart and sweet; small amounts only.",
+    "logicNote": "Sharp and sweet. Keep to the size shown below.",
     "tags": [
       "local",
       "seasonal"
@@ -4194,7 +4194,7 @@
     "portionGuidance": "One to two seeds.",
     "pairingAdvice": "Alone.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Chewed seed; very low sugar.",
+    "logicNote": "Chewed seed. Very low sugar.",
     "tags": [
       "local"
     ],
@@ -4236,7 +4236,7 @@
     "portionGuidance": "One small glass (200ml). Drink it fresh and plain.",
     "pairingAdvice": "Alone.",
     "frequency": "About 3 times a week.",
-    "logicNote": "Fresh coconut water is low in sugar; the packaged sweet type is not.",
+    "logicNote": "Fresh coconut water is low in sugar. The packaged sweet type is not.",
     "tags": [
       "local"
     ],
@@ -4256,7 +4256,7 @@
     "portionGuidance": "Three to four pieces. That is about half a cup (80g).",
     "pairingAdvice": "About 10 nuts.",
     "frequency": "About 2 times a week.",
-    "logicNote": "Sweet tropical fruit; keep to the size shown below.",
+    "logicNote": "Sweet tropical fruit. Keep to the size shown below.",
     "tags": [],
     "carbExchange": "three to four pieces (half a cup)",
     "portionIcon": "pieces"
@@ -4294,7 +4294,7 @@
     "portionGuidance": "About ten to fifteen grapes (80g).",
     "pairingAdvice": "About 10 nuts to slow the sugar.",
     "frequency": "About 2 times a week.",
-    "logicNote": "Small but sweet; easy to overeat, so count them.",
+    "logicNote": "Small but sweet. Easy to overeat, so count them.",
     "tags": [],
     "carbExchange": "ten to fifteen grapes",
     "portionIcon": "berries"
@@ -4471,7 +4471,7 @@
     "portionGuidance": "One ball the size of your fist. That is about half a cup of the cooked swallow (100g).",
     "pairingAdvice": "Vegetable soup like ewedu or efo, plus fish, chicken, or an egg.",
     "frequency": "About 2 times a week.",
-    "logicNote": "Cassava swallow; turns to sugar fast, so the size you eat, and the soup you eat it with, matter most.",
+    "logicNote": "Cassava swallow. Turns to sugar fast, so the size you eat, and the soup you eat it with, matter most.",
     "tags": [
       "local",
       "yoruba"
@@ -4493,7 +4493,7 @@
     "portionGuidance": "Half a cup of cooked rice. That is about the size of a tennis ball (90g).",
     "pairingAdvice": "Fish, chicken, or an egg and plenty vegetables.",
     "frequency": "About 2 times a week.",
-    "logicNote": "Still white rice; the coconut does not lower the sugar. Eat less of it and add the rough part of food.",
+    "logicNote": "Still white rice. The coconut does not lower the sugar. Eat less of it and add the rough part of food.",
     "tags": [
       "local"
     ],
@@ -4537,7 +4537,7 @@
     "portionGuidance": "Two small pieces. That is about the size of two matchboxes (100g).",
     "pairingAdvice": "Vegetable sauce, egg, or fish stew.",
     "frequency": "About 2 times a week.",
-    "logicNote": "Dense starch like white yam; keep the pieces few and pair with fish, meat, or egg.",
+    "logicNote": "Dense starch like white yam. Keep the pieces few and pair with fish, meat, or egg.",
     "tags": [
       "local"
     ],
@@ -4580,7 +4580,7 @@
     "portionGuidance": "One small bowl. That is about three-quarters of a cup of the cooked dish (150g).",
     "pairingAdvice": "Fish, or two slices of plantain (80g). Keep the corn to about two tablespoons.",
     "frequency": "About 3 times a week.",
-    "logicNote": "Beans are friendly; the corn adds some sugar, so keep the corn share small.",
+    "logicNote": "Beans are friendly. The corn adds some sugar, so keep the corn share small.",
     "tags": [
       "local",
       "yoruba"
@@ -4602,7 +4602,7 @@
     "portionGuidance": "Half a cup of cooked beans. Add two or three slices of plantain.",
     "pairingAdvice": "Use boiled or roasted plantain, not fried. Add fish.",
     "frequency": "About 3 times a week.",
-    "logicNote": "The beans are great; the plantain is the sugar. Boiled beats fried, and keep the plantain small.",
+    "logicNote": "The beans are great. The plantain is the sugar. Boiled beats fried, and keep the plantain small.",
     "tags": [
       "local"
     ],
@@ -4623,7 +4623,7 @@
     "portionGuidance": "One to two big spoons. That is about one cup.",
     "pairingAdvice": "A fist-size ball of swallow (100g) with plenty of fish or meat. The swallow matters too. Oat swallow raises sugar the least, and eba, fufu, pounded yam and semovita raise it the most.",
     "frequency": "You can eat this every day.",
-    "logicNote": "A rich Igbo vegetable and meat soup; very little starch, watch only the swallow beside it.",
+    "logicNote": "A rich Igbo vegetable and meat soup. Very little starch, watch only the swallow beside it.",
     "tags": [
       "local",
       "eastern"
@@ -4647,7 +4647,7 @@
     "portionGuidance": "Eat as much as you like. Two or more big spoons.",
     "pairingAdvice": "Fish, meat, or egg, with a fist-size ball of swallow (100g) if any. The swallow matters too. Oat swallow raises sugar the least, and eba, fufu, pounded yam and semovita raise it the most.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Leafy Igbo soup, close to afang; friendly and very little starch.",
+    "logicNote": "Leafy Igbo soup, close to afang. Friendly and very little starch.",
     "tags": [
       "local",
       "eastern"
@@ -4668,7 +4668,7 @@
     "portionGuidance": "One to two big spoons. That is about one cup.",
     "pairingAdvice": "Fish, meat, or egg, with a fist-size ball of swallow (100g). The swallow matters too. Oat swallow raises sugar the least, and eba, fufu, pounded yam and semovita raise it the most.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Efik bitter-leaf style soup, rich in vegetables; friendly.",
+    "logicNote": "An Efik bitter-leaf soup, full of vegetables. Friendly.",
     "tags": [
       "local",
       "efik"
@@ -4694,7 +4694,7 @@
     "portionGuidance": "One big spoon. That is about half a cup. Go easy on the oil.",
     "pairingAdvice": "Fish and seafood, with a fist-size ball of swallow (100g). The swallow matters too. Oat swallow raises sugar the least, and eba, fufu, pounded yam and semovita raise it the most.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Palm-fruit and atama-leaf soup; very little starch but rich in oil, so go easy on the oil.",
+    "logicNote": "Palm-fruit and atama-leaf soup. Very little starch, but heavy with oil, so use less oil.",
     "tags": [
       "local",
       "south-south"
@@ -4718,7 +4718,7 @@
     "portionGuidance": "One big spoon. That is about half a cup. Go easy on the oil.",
     "pairingAdvice": "Fish or meat. Eat it with half a cup of white rice (about 130g).",
     "frequency": "About 3 times a week.",
-    "logicNote": "Palm-fruit sauce, low in starch but rich in oil; the rice beside it is what to keep small.",
+    "logicNote": "Palm-fruit sauce with little starch, but heavy with oil. The rice beside it is what to keep to the size shown below.",
     "tags": [
       "local",
       "eastern"
@@ -4740,7 +4740,7 @@
     "portionGuidance": "Eat as much as you like. Two or more big spoons.",
     "pairingAdvice": "Small tuwo and fish, chicken, or an egg.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Northern okra soup; okra is one of the friendliest foods for blood sugar.",
+    "logicNote": "Northern okra soup. Okra is one of the friendliest foods for blood sugar.",
     "tags": [
       "local",
       "northern"
@@ -4762,7 +4762,7 @@
     "portionGuidance": "Two or three medium chunks (90g). Put together, they fill your palm.",
     "pairingAdvice": "Onions and pepper, with a vegetable side.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Grilled, peppered goat meat; very little starch and friendly. Trim heavy fat.",
+    "logicNote": "Grilled, peppered goat meat. Very little starch and friendly. Trim heavy fat.",
     "tags": [
       "local",
       "street"
@@ -4811,7 +4811,7 @@
     "portionGuidance": "Two or three medium chunks (90g). Put together, they fill your palm.",
     "pairingAdvice": "Vegetables. Trim the fat.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Red meat with no starch; trim visible fat, as fatty cuts are heavy for the heart.",
+    "logicNote": "Red meat with no starch. Trim visible fat, as fatty cuts are heavy for the heart.",
     "tags": [
       "local"
     ],
@@ -4834,7 +4834,7 @@
     "portionGuidance": "Enough pieces to fill your palm (90g).",
     "pairingAdvice": "In pepper soup or stew.",
     "frequency": "About 3 times a week.",
-    "logicNote": "Organ meat; very little starch and full of body-building food. Fine in the size shown below.",
+    "logicNote": "Organ meat. Very little starch and full of body-building food. Fine in the size shown below.",
     "tags": [],
     "healthNote": "Beef and goat are red meat. Liver, kidney, shaki, and pomo are organ meat. Both are fine for your sugar but not for everyone. If you have high blood pressure, high cholesterol, or kidney problems, pick fish or skinless chicken instead and use less salt.",
     "portionIcon": "pieces"
@@ -4854,7 +4854,7 @@
     "portionGuidance": "Half a small tin.",
     "pairingAdvice": "With vegetables. Skip the bread if you can.",
     "frequency": "About 3 times a week.",
-    "logicNote": "Oily fish, low in starch and rich in good fat. Choose the ones packed in water rather than oil.",
+    "logicNote": "Oily fish with little starch and good fat. Choose the ones packed in water, not in oil.",
     "tags": [],
     "healthNote": "This food is very salty. If you have high blood pressure, high cholesterol, or kidney problems, use only a pinch. Too much salt harms your heart and kidneys even when your sugar is fine.",
     "portionIcon": "cards"
@@ -4896,7 +4896,7 @@
     "portionGuidance": "Eat as much as you like.",
     "pairingAdvice": "In soups and stews.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Leafy green; very low sugar and friendly.",
+    "logicNote": "Leafy green. Very low sugar and friendly.",
     "tags": [
       "local",
       "yoruba"
@@ -4915,9 +4915,9 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "Eat as much as you like. About one cup.",
-    "pairingAdvice": "Steamed or stir-fried with fish, chicken, or an egg.",
+    "pairingAdvice": "Steamed or boiled, with fish, chicken, or an egg.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Very little starch, full of the rough part of food; a very friendly vegetable.",
+    "logicNote": "Very little starch, full of the rough part of food. A very friendly vegetable.",
     "tags": [],
     "portionIcon": "free"
   },
@@ -4933,9 +4933,9 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "Eat as much as you like. About one cup.",
-    "pairingAdvice": "Stir-fry, or use in place of rice.",
+    "pairingAdvice": "Boiled, or added to stews, with fish, chicken, or an egg.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Very little starch and filling; some people use it in place of rice.",
+    "logicNote": "Very little starch, and it fills you up. Put more of it on the plate so you need less rice.",
     "tags": [],
     "portionIcon": "free"
   },
@@ -4974,7 +4974,7 @@
     "portionGuidance": "About seven to eight berries (100g).",
     "pairingAdvice": "About 10 nuts, or one small cup of plain yogurt (150g).",
     "frequency": "About 3 times a week.",
-    "logicNote": "Lower sugar and full of the rough part of food; a friendly fruit.",
+    "logicNote": "Lower sugar and full of the rough part of food. A friendly fruit.",
     "tags": [
       "seasonal"
     ],
@@ -4996,7 +4996,7 @@
     "portionGuidance": "One cup diced (about 150g).",
     "pairingAdvice": "About 10 nuts to slow the sugar.",
     "frequency": "About 2 times a week.",
-    "logicNote": "Mostly water but still sweet; keep it to one cup.",
+    "logicNote": "Mostly water but still sweet. Keep it to one cup.",
     "tags": [],
     "carbExchange": "one cup diced",
     "portionIcon": "pieces"
@@ -5017,7 +5017,7 @@
     "portionGuidance": "Two to three small fruits.",
     "pairingAdvice": "Alone.",
     "frequency": "About 3 times a week.",
-    "logicNote": "A local low-sugar fruit; friendly in small amounts.",
+    "logicNote": "A local fruit with little sugar. Friendly in the size shown below.",
     "tags": [
       "local",
       "seasonal"
@@ -5039,7 +5039,7 @@
     "portionGuidance": "One to two fruits.",
     "pairingAdvice": "Alone or on plain yogurt.",
     "frequency": "About 2 times a week.",
-    "logicNote": "Tangy with some natural sugar; small amounts only.",
+    "logicNote": "Sharp and sweet, with some natural sugar. Keep to the size shown below.",
     "tags": [],
     "carbExchange": "one to two fruits",
     "portionIcon": "whole-fruit"
@@ -5059,7 +5059,7 @@
     "portionGuidance": "About 20 almonds (30g).",
     "pairingAdvice": "Alone.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Healthy fat and the rough part of food; slow to raise sugar. A smart snack.",
+    "logicNote": "Healthy fat and the rough part of food. Slow to raise sugar. A smart snack.",
     "tags": [],
     "portionIcon": "handful"
   },
@@ -5078,7 +5078,7 @@
     "portionGuidance": "In soup. Or about two tablespoons, roasted (30g).",
     "pairingAdvice": "In soups, or roasted as a snack.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Melon seed is body-building food and fat; low sugar. Mostly eaten in soup.",
+    "logicNote": "Melon seed is body-building food and fat. Low sugar. Mostly eaten in soup.",
     "tags": [
       "local"
     ],
@@ -5099,7 +5099,7 @@
     "portionGuidance": "Best to skip this. It is a sweet drink.",
     "pairingAdvice": "",
     "frequency": "Never.",
-    "logicNote": "A mix of soft drinks and syrup; liquid sugar. Ask for a sugar-free version or skip it.",
+    "logicNote": "A mix of soft drinks and syrup. Liquid sugar. Ask for a sugar-free version or skip it.",
     "tags": [
       "popular"
     ],
@@ -5120,7 +5120,7 @@
     "portionGuidance": "None at all.",
     "pairingAdvice": "",
     "frequency": "Never.",
-    "logicNote": "A sweet bottled soft drink; liquid sugar like any soda.",
+    "logicNote": "A sweet bottled soft drink. Liquid sugar like any soda.",
     "tags": [
       "popular"
     ],
@@ -5164,7 +5164,7 @@
     "portionGuidance": "One small cup (200ml).",
     "pairingAdvice": "Eat food first.",
     "frequency": "About 1 time a month.",
-    "logicNote": "Fermented grain brew with alcohol and some sugar; both affect blood sugar.",
+    "logicNote": "Fermented grain brew with alcohol and some sugar. Both affect blood sugar.",
     "tags": [
       "local",
       "northern"
@@ -5188,7 +5188,7 @@
     "portionGuidance": "Best to skip this.",
     "pairingAdvice": "",
     "frequency": "Never.",
-    "logicNote": "Strong local spirit; alcohol can make your sugar swing and is hard on the body. Best to skip.",
+    "logicNote": "Strong local spirit. Alcohol can make your sugar swing and is hard on the body. Best to skip.",
     "tags": [
       "local"
     ],
@@ -5237,7 +5237,7 @@
     "portionGuidance": "One small cup (200ml). Add no sugar.",
     "pairingAdvice": "Alone, with no sugar.",
     "frequency": "About 4 times a week.",
-    "logicNote": "Plain fermented milk is friendly; the sweetened kind is not.",
+    "logicNote": "Plain fermented milk is friendly. The sweetened kind is not.",
     "tags": [
       "local",
       "northern"
@@ -5280,7 +5280,7 @@
     "portionGuidance": "Two biscuits. Add milk that has no sugar.",
     "pairingAdvice": "Milk with no sugar, and about 10 nuts.",
     "frequency": "About 3 times a week.",
-    "logicNote": "Wholewheat cereal is better than sugary ones, but still a starch; no added sugar.",
+    "logicNote": "Wholewheat cereal is better than sugary ones, but still a starch. No added sugar.",
     "tags": [],
     "portionIcon": "pieces"
   },
@@ -5298,7 +5298,7 @@
     "portionGuidance": "One thin slice at most (30g).",
     "pairingAdvice": "Egg, beans, or moi moi. Never on its own.",
     "frequency": "About 2 times a week.",
-    "logicNote": "Softer, sweeter bread; white flour pushes your sugar up fast. One thin slice, with fish, meat, or egg.",
+    "logicNote": "Softer, sweeter bread. White flour pushes your sugar up fast. One thin slice, with fish, meat, or egg.",
     "tags": [
       "local"
     ],
@@ -5340,7 +5340,7 @@
     "portionGuidance": "Best to skip this. If you do have it, only one or two small ones.",
     "pairingAdvice": "",
     "frequency": "About 1 time a month.",
-    "logicNote": "Fried pastry; pushes your sugar up fast. Keep to a rare treat.",
+    "logicNote": "Fried pastry. Pushes your sugar up fast. Keep to a rare treat.",
     "tags": [
       "street",
       "fried"
@@ -5363,7 +5363,7 @@
     "portionGuidance": "Best to skip this. If you do have it, only one or two rolls.",
     "pairingAdvice": "",
     "frequency": "About 1 time a month.",
-    "logicNote": "Fried wrap around vegetables; the wrapper and the frying are the problem.",
+    "logicNote": "Fried wrap around vegetables. The wrapper and the frying are the problem.",
     "tags": [
       "street",
       "fried"
@@ -5385,7 +5385,7 @@
     "portionGuidance": "Best to skip this. If you do have it, only one fish roll.",
     "pairingAdvice": "",
     "frequency": "About 1 time a month.",
-    "logicNote": "Fish in fried dough; the dough is white flour that pushes your sugar up fast.",
+    "logicNote": "Fish in fried dough. The dough is white flour that pushes your sugar up fast.",
     "tags": [
       "street",
       "fried"
@@ -5407,7 +5407,7 @@
     "portionGuidance": "Best to skip this. If you do have it, only about four pieces.",
     "pairingAdvice": "",
     "frequency": "About 1 time a month.",
-    "logicNote": "A mix of fried snacks like puff puff, samosa, and spring roll; all quick sugar and oil.",
+    "logicNote": "A mix of fried snacks like puff puff, samosa, and spring roll. All quick sugar and oil.",
     "tags": [
       "popular",
       "fried"
@@ -5453,7 +5453,7 @@
     "portionGuidance": "Best to skip this. If you do have it, about four sticks (30g).",
     "pairingAdvice": "",
     "frequency": "About 1 time a month.",
-    "logicNote": "Fried maize sticks; white flour and oily, pushes your sugar up fast.",
+    "logicNote": "Fried maize sticks. White flour and oily, pushes your sugar up fast.",
     "tags": [
       "local",
       "street"
@@ -5497,7 +5497,7 @@
     "portionGuidance": "Three pieces (about 40g).",
     "pairingAdvice": "Alone.",
     "frequency": "About 2 times a week.",
-    "logicNote": "Fried melon-seed cake; the seed is friendly, the frying is the only caution.",
+    "logicNote": "Fried melon-seed cake. The seed is friendly, the frying is the only caution.",
     "tags": [
       "local",
       "yoruba"
@@ -5519,7 +5519,7 @@
     "portionGuidance": "Best to skip this. If you do have it, only one small piece.",
     "pairingAdvice": "",
     "frequency": "About 1 time a month.",
-    "logicNote": "Coconut cooked in sugar; the sugar makes it a red.",
+    "logicNote": "Coconut cooked in sugar. The sugar makes it a red.",
     "tags": [
       "local"
     ],
@@ -5539,7 +5539,7 @@
     "portionGuidance": "Best to skip this. If you do have it, about 15 chips (30g).",
     "pairingAdvice": "",
     "frequency": "About 1 time a month.",
-    "logicNote": "Fried cassava; starchy and oily, pushes your sugar up fast.",
+    "logicNote": "Fried cassava. Starchy and oily, pushes your sugar up fast.",
     "tags": [
       "street",
       "fried"
@@ -5583,7 +5583,7 @@
     "portionGuidance": "Use as much as you like in cooking.",
     "pairingAdvice": "In nearly everything.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Low sugar and good for the heart; use as much as you like in cooking.",
+    "logicNote": "Low sugar and good for the heart. Use as much as you like in cooking.",
     "tags": [],
     "portionIcon": "pinch"
   },
@@ -5605,7 +5605,7 @@
     "portionGuidance": "A spoon or two in soups.",
     "pairingAdvice": "In soups and stews.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Fermented seasoning; low sugar and full of body-building food. Good for flavour.",
+    "logicNote": "Fermented seasoning. Low sugar and full of body-building food. Good for flavour.",
     "tags": [
       "local"
     ],
@@ -5847,7 +5847,7 @@
     "portionGuidance": "Best to skip this. If you do have it, about 10 crisps (25g).",
     "pairingAdvice": "Better to snack on about 10 nuts, or on cucumber.",
     "frequency": "About 1 time a month.",
-    "logicNote": "Thin fried potato with salt; a fast sugar rise and a lot of oil in a small pack.",
+    "logicNote": "Thin fried potato with salt. A fast sugar rise and a lot of oil in a small pack.",
     "tags": [
       "fried",
       "processed"
@@ -5987,7 +5987,7 @@
     "portionGuidance": "Best to skip this. If you do have it, only one small waffle. Add no syrup.",
     "pairingAdvice": "Have with an egg and no syrup.",
     "frequency": "About 1 time a month.",
-    "logicNote": "White flour and sugar; a fast sugar rise, more so with syrup on top.",
+    "logicNote": "White flour and sugar. A fast sugar rise, more so with syrup on top.",
     "tags": [],
     "portionIcon": "avoid"
   },
@@ -6043,9 +6043,9 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One cup, cooked (about 100g).",
-    "pairingAdvice": "Add to stews, sauces, and stir-fries with fish, chicken, or an egg.",
+    "pairingAdvice": "Add to stews, sauces, and soups, with fish, chicken, or an egg.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Very low in starch and calories; a friendly way to add bulk and taste.",
+    "logicNote": "Very low in starch and calories. A friendly way to add bulk and taste.",
     "tags": [],
     "portionIcon": "cup"
   },
@@ -6061,7 +6061,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One to two cups. Eat it cooked or raw.",
-    "pairingAdvice": "Use in soups, stir-fries, and salads with fish, chicken, or an egg.",
+    "pairingAdvice": "Add to soups and stews, with fish, chicken, or an egg.",
     "frequency": "You can eat this every day.",
     "logicNote": "A leafy green that is full of the rough part of food and very low in sugar.",
     "tags": [],
@@ -6080,9 +6080,9 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One cup, cooked (about 120g).",
-    "pairingAdvice": "Add to stir-fries, sauces, and soups with fish, chicken, or an egg.",
+    "pairingAdvice": "Add to sauces and soups, with fish, chicken, or an egg.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Mostly water and the rough part of food; a friendly low-sugar vegetable.",
+    "logicNote": "Mostly water and the rough part of food. A friendly low-sugar vegetable.",
     "tags": [],
     "portionIcon": "cup"
   },
@@ -6188,7 +6188,7 @@
     "portionGuidance": "One small fruit (about 80g).",
     "pairingAdvice": "About 10 nuts to slow the sugar.",
     "frequency": "About 2 times a week.",
-    "logicNote": "Tart-sweet fruit with the rough part of food; keep to the size shown below.",
+    "logicNote": "Tart-sweet fruit with the rough part of food. Keep to the size shown below.",
     "tags": [],
     "carbExchange": "one small fruit",
     "portionIcon": "whole-fruit"
@@ -6229,7 +6229,7 @@
     "portionGuidance": "One medium star fruit (about 90g).",
     "pairingAdvice": "About 10 nuts.",
     "frequency": "About 3 times a week.",
-    "logicNote": "Low in sugar and high in water and the rough part of food; a friendly fruit in the size shown below.",
+    "logicNote": "Low in sugar and high in water and the rough part of food. A friendly fruit in the size shown below.",
     "tags": [],
     "carbExchange": "one medium star fruit",
     "healthNote": "Do not eat this if you have kidney problems. Star fruit has a natural poison that strong kidneys clear but weak kidneys cannot, and it can make a kidney patient very sick.",
@@ -6271,7 +6271,7 @@
     "portionGuidance": "One whole kiwi (about 75g).",
     "pairingAdvice": "About 10 nuts, or a small cup of plain yogurt (150g).",
     "frequency": "About 2 times a week.",
-    "logicNote": "Sweet but full of the rough part of food and vitamin C; a small one is fine.",
+    "logicNote": "Sweet but full of the rough part of food and vitamin C. A small one is fine.",
     "tags": [],
     "carbExchange": "one whole kiwi",
     "portionIcon": "whole-fruit"
@@ -6311,9 +6311,9 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One block as wide as your palm (about 90g).",
-    "pairingAdvice": "Grill it, or add to stews, sauces, and stir-fries with vegetables.",
+    "pairingAdvice": "Grill it, or add it to stews and sauces with vegetables.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Made from soybeans; low in starch, high in body-building food, and friendly for blood sugar.",
+    "logicNote": "Made from soybeans. Low in starch, high in body-building food, and friendly for blood sugar.",
     "tags": [
       "plant"
     ],
@@ -6356,7 +6356,7 @@
     "portionGuidance": "One cup (about 250ml). Add no sugar.",
     "pairingAdvice": "Drink it plain, or use in tea, oats, or pap with no sugar.",
     "frequency": "About 4 times a week.",
-    "logicNote": "Plant milk with body-building food and little sugar, when it has no sugar added. Check the label and do not buy the sweet kind.",
+    "logicNote": "Plant milk with body-building food and little sugar, when it has no sugar added. Look at the packet and do not buy the sweet kind.",
     "tags": [
       "plant"
     ],
@@ -6441,7 +6441,7 @@
     "portionGuidance": "Best to skip this. If you do have it, only one short piece (about 30g). Never eat it on its own.",
     "pairingAdvice": "Add an egg and vegetables, never bread on its own.",
     "frequency": "About 1 time a month.",
-    "logicNote": "White flour, like agege bread; it pushes your sugar up faster than most foods.",
+    "logicNote": "White flour, like agege bread. It pushes your sugar up faster than most foods.",
     "tags": [],
     "portionIcon": "avoid"
   },
@@ -6507,7 +6507,7 @@
     "portionGuidance": "Two to three big spoons (about half a cup).",
     "pairingAdvice": "It already has fish, chicken, or meat. Eat with half a cup of rice (130g), or a fist-size ball of swallow (100g). The swallow matters too. Oat swallow raises sugar the least, and eba, fufu, pounded yam and semovita raise it the most.",
     "frequency": "You can eat this every day.",
-    "logicNote": "A pepper and tomato sauce with oil and body-building food. It is low in starch, so it does not raise sugar much on its own; the rice or swallow is what to watch.",
+    "logicNote": "A pepper and tomato sauce with oil and body-building food. It is low in starch, so it does not raise sugar much on its own. The rice or swallow is what to watch.",
     "tags": [],
     "healthNote": "Beef and goat are red meat. Liver, kidney, shaki, and pomo are organ meat. Both are fine for your sugar but not for everyone. If you have high blood pressure, high cholesterol, or kidney problems, pick fish or skinless chicken instead and use less salt.",
     "portionIcon": "bowl"
@@ -6528,7 +6528,7 @@
     "portionGuidance": "Two to three big spoons (about half a cup).",
     "pairingAdvice": "It already has assorted meat. Eat with half a cup of ofada rice (130g).",
     "frequency": "About 3 times a week.",
-    "logicNote": "A green pepper sauce with plenty of palm oil and assorted meat. Low in starch, but heavy on oil, so keep the oil in check.",
+    "logicNote": "A green pepper sauce with plenty of palm oil and assorted meat. Little starch, but heavy with oil, so use less oil.",
     "tags": [],
     "healthNote": "This dish is cooked with a lot of palm oil. If you have high blood pressure, high cholesterol, or kidney problems, use less oil and go easy on the red meat.",
     "portionIcon": "bowl"
@@ -6575,7 +6575,7 @@
     "portionGuidance": "One to two big spoons (about a quarter cup).",
     "pairingAdvice": "Use with half a cup of rice, or two pieces of yam or plantain, plus fish or meat.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Fried pepper, onion, and oil. Very low in starch; the starch it goes with is what to watch.",
+    "logicNote": "Fried pepper, onion, and oil. Very low in starch. The starch it goes with is what to watch.",
     "tags": [],
     "healthNote": "This dish is cooked with a lot of palm oil. If you have high blood pressure, high cholesterol, or kidney problems, use less oil and go easy on the red meat.",
     "portionIcon": "bowl"
@@ -6595,7 +6595,7 @@
     "portionGuidance": "One to two pieces (about 90g).",
     "pairingAdvice": "In pepper soup or stew, with vegetables.",
     "frequency": "About 4 times a week.",
-    "logicNote": "Mostly skin, bone, and collagen; low in starch and does not raise sugar.",
+    "logicNote": "Mostly skin, bone, and collagen. Low in starch and does not raise sugar.",
     "tags": [],
     "healthNote": "Beef and goat are red meat. Liver, kidney, shaki, and pomo are organ meat. Both are fine for your sugar but not for everyone. If you have high blood pressure, high cholesterol, or kidney problems, pick fish or skinless chicken instead and use less salt.",
     "portionIcon": "pieces"
@@ -6639,7 +6639,7 @@
     "portionGuidance": "One piece as wide as your palm (about 90g).",
     "pairingAdvice": "In soups, stews, and pepper sauce, with vegetables.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Dried, smoked fish; low in starch and rich in body-building food. Rinse off extra salt.",
+    "logicNote": "Dried, smoked fish with little starch and plenty of body-building food. Rinse off the extra salt.",
     "tags": [],
     "healthNote": "This food is very salty. If you have high blood pressure, high cholesterol, or kidney problems, use only a pinch. Too much salt harms your heart and kidneys even when your sugar is fine.",
     "portionIcon": "cards"
@@ -6678,7 +6678,7 @@
     "gi": "medium",
     "baseVerdict": "yellow",
     "portionGuidance": "Half a cup of the tinned beans (about 130g).",
-    "pairingAdvice": "Add an egg and vegetables. Eat with a small starch, not a large one.",
+    "pairingAdvice": "Add an egg and vegetables. Eat with one thin slice of bread (30g), not more.",
     "frequency": "About 2 times a week.",
     "logicNote": "Beans are friendly, but the tinned tomato sauce has added sugar, so keep to the size shown below.",
     "tags": [
@@ -6701,7 +6701,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One handful, chopped (about 30g).",
-    "pairingAdvice": "Add to stews, sauces, salads, and stir-fries.",
+    "pairingAdvice": "Add to stews, sauces, and salads.",
     "frequency": "You can eat this every day.",
     "logicNote": "A flavour vegetable with almost no sugar.",
     "tags": [],
@@ -6719,7 +6719,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One to two stalks.",
-    "pairingAdvice": "In salads, soups, and stir-fries with fish, chicken, or an egg.",
+    "pairingAdvice": "In soups and stews, with fish, chicken, or an egg.",
     "frequency": "You can eat this every day.",
     "logicNote": "Mostly water and the rough part of food, with almost no sugar.",
     "tags": [],
@@ -6866,9 +6866,9 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One tablespoon (about 15g).",
-    "pairingAdvice": "On one thin slice of bread (30g), or with celery.",
+    "pairingAdvice": "On one thin slice of bread (30g). Do not add jam.",
     "frequency": "You can eat this every day.",
-    "logicNote": "Ground groundnuts give healthy fat and body-building food. Check the label and choose the kind with no added sugar.",
+    "logicNote": "Ground groundnuts give good fat and body-building food. Look at the packet and choose the kind with no added sugar.",
     "tags": [],
     "portionIcon": "spoon"
   },
@@ -6947,7 +6947,7 @@
     "portionGuidance": "Best to skip this. If you do have it, only one small piece (about 30g).",
     "pairingAdvice": "Better to snack on plain groundnuts, about 10.",
     "frequency": "About 1 time a month.",
-    "logicNote": "Groundnuts set in melted sugar; the groundnut is fine but the sugar is not.",
+    "logicNote": "Groundnuts set in melted sugar. The groundnut is fine but the sugar is not.",
     "tags": [],
     "portionIcon": "avoid"
   },
@@ -6967,7 +6967,7 @@
     "portionGuidance": "Best to skip this. If you do have it, only one small piece.",
     "pairingAdvice": "Better to have a small piece of fruit instead.",
     "frequency": "About 1 time a month.",
-    "logicNote": "A hard toffee made from melted sugar; it raises sugar fast.",
+    "logicNote": "A hard toffee made from melted sugar. It raises sugar fast.",
     "tags": [],
     "portionIcon": "avoid"
   },
@@ -6991,7 +6991,7 @@
     "portionGuidance": "Best to skip this. If you do have it, only a thin scrape on one slice of bread.",
     "pairingAdvice": "Better to use one tablespoon of peanut butter with no added sugar.",
     "frequency": "About 1 time a month.",
-    "logicNote": "Mostly sugar and oil; it raises sugar fast.",
+    "logicNote": "Mostly sugar and oil. It raises sugar fast.",
     "tags": [],
     "portionIcon": "avoid"
   },
@@ -7013,7 +7013,7 @@
     "portionGuidance": "Best to skip this. If you do have it, only a thin scrape on one slice of bread.",
     "pairingAdvice": "Better to top your bread with an egg or avocado.",
     "frequency": "About 1 time a month.",
-    "logicNote": "Fruit boiled with a lot of sugar; the rough part is gone and it raises sugar fast.",
+    "logicNote": "Fruit boiled with a lot of sugar. The rough part is gone and it raises sugar fast.",
     "tags": [],
     "portionIcon": "avoid"
   },
@@ -7106,7 +7106,7 @@
     "portionGuidance": "Half a cup, cooked (about 130g).",
     "pairingAdvice": "In stews and soups, with vegetables.",
     "frequency": "About 4 times a week.",
-    "logicNote": "A beans food that raises sugar slowly, full of the rough part of food, and body-building; friendly for sugar.",
+    "logicNote": "A beans food that raises sugar slowly, full of the rough part of food, and body-building. Friendly for sugar.",
     "tags": [],
     "portionIcon": "half-cup"
   },
@@ -7150,7 +7150,7 @@
     "portionGuidance": "Best to skip this. If you do have it, only one small piece.",
     "pairingAdvice": "Better to snack on about 10 nuts.",
     "frequency": "About 1 time a month.",
-    "logicNote": "Fried wheat dough soaked in sugar syrup; it raises sugar fast.",
+    "logicNote": "Fried wheat dough soaked in sugar syrup. It raises sugar fast.",
     "tags": [
       "local",
       "northern"
@@ -7170,7 +7170,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One handful, sliced (about 100g).",
-    "pairingAdvice": "In salads and stir-fries.",
+    "pairingAdvice": "In salads, or added to stews.",
     "frequency": "You can eat this every day.",
     "logicNote": "A crunchy root with almost no sugar.",
     "tags": [],
@@ -7188,7 +7188,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "Half a cup, cooked (about 80g).",
-    "pairingAdvice": "In soups, stews, and stir-fries.",
+    "pairingAdvice": "In soups and stews.",
     "frequency": "About 4 times a week.",
     "logicNote": "A low-sugar root vegetable with the rough part of food.",
     "tags": [],
@@ -7208,7 +7208,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One cup (about 100g).",
-    "pairingAdvice": "In stir-fries and salads with fish, chicken, or an egg.",
+    "pairingAdvice": "In salads, or added to stews, with fish, chicken, or an egg.",
     "frequency": "You can eat this every day.",
     "logicNote": "Crunchy sprouts, very low in sugar.",
     "tags": [],
@@ -7300,7 +7300,7 @@
     "portionGuidance": "Half a cup of the made salad (about 130g).",
     "pairingAdvice": "Add a boiled egg and vegetables. Go easy on the mayonnaise.",
     "frequency": "About 2 times a week.",
-    "logicNote": "Boiled potato with mayonnaise; the potato is a starch, so keep to the size shown below.",
+    "logicNote": "Boiled potato with mayonnaise. The potato is a starch, so keep to the size shown below.",
     "tags": [],
     "portionIcon": "half-cup"
   },
@@ -7317,9 +7317,9 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One to two teaspoons.",
-    "pairingAdvice": "With meat, eggs, and in dressings.",
+    "pairingAdvice": "With meat, fish, or eggs.",
     "frequency": "You can eat this every day.",
-    "logicNote": "A tangy, low-sugar condiment. Check the label and skip honey mustard.",
+    "logicNote": "A sharp yellow sauce with almost no sugar. Some kinds have honey in them, so do not buy those.",
     "tags": [],
     "portionIcon": "spoon"
   }
