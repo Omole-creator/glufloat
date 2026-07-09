@@ -15,7 +15,7 @@ const GREEN_AT = 1.75;
 const YELLOW_AT = 0.75;
 
 const DECK =
-  "Add a palm-size piece of fish, chicken, or meat, about the size of a deck of cards (90g).";
+  "Add a piece of fish, chicken, or meat as big as your palm, without the fingers (90g).";
 
 /**
  * Shown right after a fix that suggests meat. Many people with diabetes also
@@ -34,7 +34,7 @@ const MEAT_NOTE =
  */
 const VEG_FIX: Record<string, string> = {
   swallow:
-    "Add a green vegetable soup, like efo riro, okra, or egusi. Two serving spoons, about one cup.",
+    "Add a green vegetable soup, like efo riro, okra, or egusi. Two big spoons, about one cup.",
   rice: "Add vegetables to it, like a spoon of ugu or a garden-egg and tomato stew. About one cup.",
   pasta: "Add vegetables to it, like a sauce with carrot, green beans, and pepper. About one cup.",
   tuber: "Add a garden-egg sauce or green vegetables on the side. About one cup.",
@@ -111,7 +111,7 @@ export function scoreMeal(items: MealItem[]): MealResult {
         `${names} is sweet, and sweet drinks make sugar rise very fast.`,
       );
       fixes.push(
-        `Take away the ${sweetDrinks[0].food.name}. Instead drink water, or unsweetened zobo, one cup (250ml). Nothing else can fix a sweet drink.`,
+        `Take away the ${sweetDrinks[0].food.name}. Instead drink water, or zobo with no sugar, one cup (250ml). Nothing else can fix a sweet drink.`,
       );
     } else {
       const names = sweetFoods.map((i) => i.food.name).join(", ");
@@ -169,7 +169,7 @@ export function scoreMeal(items: MealItem[]): MealResult {
   }
   if (hasProtein) {
     score += 0.5;
-    breakdown.push("You added a protein food. That helps too.");
+    breakdown.push("You added fish, meat, egg, or beans. That helps too.");
   }
 
   if (worstStarch) {
@@ -197,9 +197,10 @@ export function scoreMeal(items: MealItem[]): MealResult {
 
     if (worstStarch && worstStarch.portion !== "half") {
       const pg = worstStarch.food.portionGuidance;
-      if (/^avoid[.\s]*/i.test(pg)) {
-        // Portions that start with "Avoid." read badly after "A safe size is".
-        const rest = pg.replace(/^avoid[.\s]*/i, "");
+      if (worstStarch.food.portionIcon === "avoid") {
+        // A food to skip reads badly after "A safe size is". Drop the opening
+        // "Best to skip this." so the sentence is not said twice.
+        const rest = pg.replace(/^(best to skip this|none)[.,\s]*/i, "");
         fixes.push(
           rest
             ? `Best to skip the ${worstStarch.food.name}. ${rest}`
@@ -224,7 +225,7 @@ export function scoreMeal(items: MealItem[]): MealResult {
       const hasDrink = items.some((i) => i.food.role === "drink");
       fixes.push(
         hasDrink
-          ? "This is a drink, so keep it small and take it with food, not on its own."
+          ? "This is a drink. Keep it to one glass (200ml), and take it with food, not on its own."
           : "Keep each food to the safe size shown below, and do not eat on an empty stomach.",
       );
     }

@@ -151,6 +151,15 @@ await check("small size turns meal green", async () =>
 await check("green answer word is obvious", async () =>
   visible(page.getByText("Good to eat", { exact: true })),
 );
+
+// The meal builder answers "how often", the way a single food card does. The
+// strictest food on the plate sets it: white rice here, at 2 times a week.
+await check("meal builder shows a countable how-often", async () =>
+  visible(page.getByText("About 2 times a week", { exact: true })),
+);
+await check("meal names the food holding it back", async () =>
+  visible(page.getByText("is what holds it back", { exact: false })),
+);
 await page.screenshot({ path: `${OUT}/meal-after-fix.png` });
 
 // ---- 6. hard red: any sweet drink locks the meal ---------------------------
@@ -159,6 +168,10 @@ await page.locator("ul button").first().click();
 await page.waitForTimeout(400);
 await check("coke locks meal red", async () =>
   visible(page.getByText("The sweet drink makes this red.")),
+);
+// The how-often line must never contradict the hard red lock.
+await check("coke makes how-often say never", async () =>
+  visible(page.getByText("Best not to eat this meal at all", { exact: true })),
 );
 await page.screenshot({ path: `${OUT}/meal-hard-red.png` });
 

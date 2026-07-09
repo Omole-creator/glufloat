@@ -6,6 +6,7 @@ import { searchFoods } from "@/lib/search";
 import { scoreMeal } from "@/lib/verdictEngine";
 import type { Food, MealItem, PortionSize } from "@/lib/types";
 import { PortionMini } from "./PortionVisual";
+import { mealFrequency } from "@/lib/frequency";
 import { events } from "@/lib/analytics";
 
 const PORTIONS: { key: PortionSize; label: string }[] = [
@@ -47,6 +48,7 @@ export default function MealBuilder() {
 
   const results = useMemo(() => searchFoods(query, 6), [query]);
   const result = useMemo(() => scoreMeal(items), [items]);
+  const often = useMemo(() => mealFrequency(items), [items]);
 
   useEffect(() => {
     if (items.length > 0) events.mealBuilt(result.verdict);
@@ -277,6 +279,22 @@ export default function MealBuilder() {
                     <PortionMini key={i.food.id} food={i.food} />
                   ))}
                 </div>
+              </div>
+            )}
+
+            {showVerdict && often && (
+              <div className="mt-4 border-t border-line pt-4">
+                <p className="text-xs font-bold uppercase tracking-wider text-ink/60">
+                  How often
+                </p>
+                <p className="mt-2 text-base font-semibold text-ink">
+                  {often.text}
+                </p>
+                {items.length > 1 && often.limits && (
+                  <p className="mt-1 text-sm text-ink-soft">
+                    The {often.limiting.name} is what holds it back.
+                  </p>
+                )}
               </div>
             )}
           </div>

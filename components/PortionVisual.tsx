@@ -12,21 +12,26 @@ function Icon({ k }: { k: PortionKey }) {
   const s = { stroke: BLUE, strokeWidth: 3, strokeLinejoin: "round" as const, strokeLinecap: "round" as const };
   switch (k) {
     case "fist":
+      // A closed fist seen from the back: knuckle creases and a thumb.
       return (
         <svg viewBox="0 0 96 96" aria-hidden>
-          <path d="M28 44c0-7 5-12 12-12h16c9 0 15 6 15 15v8c0 10-8 16-17 16H41c-7 0-13-6-13-13V44z" fill={MINT} {...s} />
-          <path d="M40 34v-4M50 33v-6M60 34v-4" fill="none" {...s} />
+          <path d="M30 46c0-6 5-10 11-10h14c7 0 11 4 11 10v14c0 6-5 10-11 10H41c-6 0-11-4-11-10z" fill={MINT} {...s} />
+          <path d="M39 37v10M48 36v11M57 37v10" fill="none" stroke={BLUE} strokeWidth={2.5} strokeLinecap="round" />
+          <path d="M30 52c-6 1-7 8-1 10" fill="none" {...s} />
         </svg>
       );
     case "half-cup":
     case "three-quarter-cup":
     case "cup": {
-      const fill = k === "cup" ? 30 : k === "three-quarter-cup" ? 40 : 52;
+      // A straight-sided measuring cup, not a tea mug: this is a measure of
+      // food (rice, beans, salad) as often as it is a measure of drink.
+      const fill = k === "cup" ? 32 : k === "three-quarter-cup" ? 41 : 52;
       return (
         <svg viewBox="0 0 96 96" aria-hidden>
-          <path d="M30 34h34l-3 34a6 6 0 0 1-6 5H39a6 6 0 0 1-6-5z" fill="#fff" {...s} />
-          <path d={`M32 ${fill}h30l-2 ${68 - fill}a6 6 0 0 1-6 5H40a6 6 0 0 1-6-5z`} fill={GREEN} opacity={0.45} stroke="none" />
-          <path d="M64 40c9 0 9 13 0 13" fill="none" {...s} />
+          <rect x="30" y="28" width="34" height="46" rx="4" fill="#fff" {...s} />
+          <rect x="32" y={fill} width="30" height={72 - fill} rx="2" fill={GREEN} opacity={0.45} stroke="none" />
+          <path d="M64 36c9 0 9 14 0 14" fill="none" {...s} />
+          <path d="M36 40h6M36 52h6M36 64h6" stroke={BLUE} strokeWidth={2} opacity={0.45} strokeLinecap="round" />
         </svg>
       );
     }
@@ -106,17 +111,18 @@ function Icon({ k }: { k: PortionKey }) {
         </svg>
       );
     case "spoon":
+      // Upright, so it does not read as a magnifying glass.
       return (
         <svg viewBox="0 0 96 96" aria-hidden>
-          <ellipse cx="40" cy="40" rx="13" ry="10" fill={MINT} {...s} />
-          <path d="M47 47l18 22" stroke={BLUE} strokeWidth={5} fill="none" strokeLinecap="round" />
+          <ellipse cx="48" cy="36" rx="12" ry="15" fill={MINT} {...s} />
+          <path d="M48 51v25" stroke={BLUE} strokeWidth={5} fill="none" strokeLinecap="round" />
         </svg>
       );
     case "eggs":
       return (
         <svg viewBox="0 0 96 96" aria-hidden>
-          <ellipse cx="41" cy="54" rx="11" ry="15" fill="#fff" {...s} />
-          <ellipse cx="57" cy="50" rx="11" ry="15" fill={MINT} {...s} />
+          <ellipse cx="40" cy="55" rx="10" ry="14" fill="#fff" {...s} />
+          <ellipse cx="57" cy="48" rx="10" ry="14" fill={MINT} {...s} />
         </svg>
       );
     case "cob":
@@ -124,6 +130,46 @@ function Icon({ k }: { k: PortionKey }) {
         <svg viewBox="0 0 96 96" aria-hidden>
           <rect x="40" y="26" width="16" height="44" rx="8" fill="#f1c40f" {...s} />
           <path d="M46 34v28M50 34v28" stroke={GREEN} strokeWidth={2} opacity={0.5} />
+        </svg>
+      );
+    case "palm":
+      // An open hand, palm towards you: the wrap sits in it.
+      return (
+        <svg viewBox="0 0 96 96" aria-hidden>
+          <path d="M32 48c0-4 3-7 7-7h18c4 0 7 3 7 7v12c0 8-6 14-14 14h-4c-8 0-14-6-14-14z" fill={MINT} {...s} />
+          <path d="M36 41V30M44 41V26M52 41V26M60 41V30" fill="none" {...s} />
+          <path d="M32 52c-5 0-7-6-3-8" fill="none" {...s} />
+        </svg>
+      );
+    case "plantain": {
+      // A fat crescent: two stacked strokes give an outlined banana shape.
+      const curve = "M32 28c0 24 16 40 40 42";
+      return (
+        <svg viewBox="0 0 96 96" aria-hidden>
+          <path d={curve} stroke={BLUE} strokeWidth={18} fill="none" strokeLinecap="round" />
+          <path d={curve} stroke={MINT} strokeWidth={12} fill="none" strokeLinecap="round" />
+          <path d="M32 28v-6" stroke={BLUE} strokeWidth={3} fill="none" strokeLinecap="round" />
+        </svg>
+      );
+    }
+    case "pinch":
+      // Thumb and finger taking a pinch, with the grains falling below.
+      return (
+        <svg viewBox="0 0 96 96" aria-hidden>
+          <path d="M34 26c5 8 9 14 13 20" fill="none" stroke={BLUE} strokeWidth={7} strokeLinecap="round" />
+          <path d="M62 26c-5 8-9 14-13 20" fill="none" stroke={BLUE} strokeWidth={7} strokeLinecap="round" />
+          <circle cx="48" cy="58" r="3" fill={GREEN} />
+          <circle cx="42" cy="68" r="3" fill={GREEN} />
+          <circle cx="54" cy="70" r="3" fill={GREEN} />
+        </svg>
+      );
+    case "sticks":
+      // Two raw sticks, one with a leafy top.
+      return (
+        <svg viewBox="0 0 96 96" aria-hidden>
+          <rect x="34" y="32" width="12" height="40" rx="6" fill={MINT} {...s} />
+          <rect x="52" y="38" width="12" height="34" rx="6" fill={MINT} {...s} />
+          <path d="M40 32c-1-6-6-8-9-7 1 5 5 8 9 7z" fill={GREEN} stroke="none" />
         </svg>
       );
     case "avoid":
@@ -134,11 +180,11 @@ function Icon({ k }: { k: PortionKey }) {
         </svg>
       );
     case "free":
+      // A plain green tick: yes, as much as you like.
       return (
         <svg viewBox="0 0 96 96" aria-hidden>
-          <circle cx="48" cy="52" r="20" fill="#fff" {...s} />
-          <path d="M48 44c-7 0-11 5-11 11 7 0 11-5 11-11z" fill={GREEN} stroke="none" />
-          <path d="M48 44c7 0 11 5 11 11" stroke={GREEN} strokeWidth={3} fill="none" strokeLinecap="round" />
+          <circle cx="48" cy="50" r="20" fill="#fff" stroke={GREEN} strokeWidth={3} />
+          <path d="M38 50l7 8 14-16" stroke={GREEN} strokeWidth={5} fill="none" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       );
     default:

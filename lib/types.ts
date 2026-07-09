@@ -1,4 +1,35 @@
 export type Verdict = "green" | "yellow" | "red";
+
+/**
+ * Which picture to draw for a food's portion. This is stored per food rather
+ * than guessed from the wording of `portionGuidance`, so that rewriting the
+ * copy can never silently change the picture on a card.
+ */
+export type PortionKey =
+  | "fist"
+  | "half-cup"
+  | "three-quarter-cup"
+  | "cup"
+  | "bowl"
+  | "cards"
+  | "handful"
+  | "matchbox"
+  | "slice"
+  | "half-fruit"
+  | "whole-fruit"
+  | "berries"
+  | "pieces"
+  | "glass"
+  | "spoon"
+  | "eggs"
+  | "cob"
+  | "palm"
+  | "plantain"
+  | "pinch"
+  | "sticks"
+  | "avoid"
+  | "free"
+  | "generic";
 export type Level = "low" | "medium" | "high";
 export type Role =
   | "starch"
@@ -27,6 +58,12 @@ export interface Food {
   frequency: string;
   logicNote: string;
   tags: string[];
+  /**
+   * The picture drawn beside the portion text. Set for every food by
+   * `scripts/portion-icons.mjs`. When it is "avoid", the food is one to skip:
+   * the verdict engine reads this instead of parsing the portion wording.
+   */
+  portionIcon?: PortionKey;
   /**
    * For fruit only: the amount that gives about 15g of carbohydrate, i.e. one
    * diabetes "fruit exchange". Omitted for fruits where a 15g-carb serving does
