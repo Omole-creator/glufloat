@@ -30,18 +30,28 @@ export async function POST(request: Request) {
   const email: string = (data.customer?.email || "").toLowerCase();
   const admin = createAdminClient();
 
-  async function userIdByEmail(em: string): Promise<string | null> {
-    if (!em) return null;
+  /**
+   * Who paid. `metadata.user_id` is authoritative when present, because it was
+   * set by us rather than typed by the buyer. Email is only a fallback, and a
+   * weak one: a buyer who edits their email on the checkout page matches no
+   * profile, so nothing is written and they pay without gaining access. The
+   * /unlock callback covers that case by claiming the reference against the
+   * signed-in session (see app/api/paystack/claim/route.ts).
+   */
+  async function payerUserId(): Promise<string | null> {
+    const fromMeta = data.metadata?.user_id;
+    if (typeof fromMeta === "string" && fromMeta) return fromMeta;
+    if (!email) return null;
     const { data: p } = await admin
       .from("profiles")
       .select("id")
-      .eq("email", em)
+      .ilike("email", email)
       .maybeSingle();
     return p?.id ?? null;
   }
 
   if (type === "charge.success") {
-    const uid = await userIdByEmail(email);
+    const uid = await payerUserId();
     await admin.from("payments").upsert(
       {
         user_id: uid,
@@ -67,7 +77,7 @@ export async function POST(request: Request) {
       );
     }
   } else if (type === "subscription.create") {
-    const uid = await userIdByEmail(email);
+    const uid = await payerUserId();
     if (uid) {
       await admin.from("subscriptions").upsert(
         {
@@ -84,7 +94,7 @@ export async function POST(request: Request) {
       );
     }
   } else if (type === "subscription.disable" || type === "subscription.not_renew") {
-    const uid = await userIdByEmail(email);
+    const uid = await payerUserId();
     if (uid) {
       // Keep access until the paid period ends; just stop it renewing.
       await admin

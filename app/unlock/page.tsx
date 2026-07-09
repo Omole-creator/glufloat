@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -10,13 +10,19 @@ import { events } from "@/lib/analytics";
 
 /**
  * Where Paystack sends a buyer after payment. The redirect URL set in the
- * Paystack dashboard is /unlock?code=..., so this route must keep existing even
- * though the code is ignored: deleting it would 404 every buyer.
+ * Paystack dashboard points here, so this route must keep existing even though
+ * the old `code` param is ignored: deleting it would 404 every buyer.
  *
  * There used to be an access-code form here backed by localStorage. Access is
  * an account fact now (see lib/account.ts), so a code could never open the app,
- * yet the page still said "You are in". It now waits for the Paystack webhook
- * to write the subscription, then sends the buyer into the app for real.
+ * yet the page still said "You are in".
+ *
+ * Paystack appends `reference` (and `trxref`) to the callback. We hand that to
+ * /api/paystack/claim, which verifies it with Paystack and grants the payment to
+ * the signed-in account. That is what makes access survive a buyer paying under
+ * a different email than they signed up with: the webhook matches on email and
+ * would miss them, but the claim matches on session. If there is no reference
+ * (they reopened the page later) we fall back to waiting for the webhook.
  */
 const POLL_MS = 1500;
 const MAX_TRIES = 12; // about 18 seconds
@@ -31,15 +37,17 @@ function Card({ children }: { children: React.ReactNode }) {
   );
 }
 
-export default function UnlockPage() {
+function UnlockInner() {
   const router = useRouter();
+  const params = useSearchParams();
   const [slow, setSlow] = useState(false);
 
   useEffect(() => {
     let stop = false;
     let tries = 0;
+    const reference = params.get("reference") || params.get("trxref");
 
-    (async function poll() {
+    (async function run() {
       if (stop) return;
       const { access } = await getAccess();
 
@@ -52,18 +60,28 @@ export default function UnlockPage() {
         router.replace("/app");
         return;
       }
-      // "new" or "expired": the webhook has not written the subscription yet.
+
+      // Signed in but no access yet. If Paystack sent a reference, claim it
+      // against this account rather than waiting on the email-matched webhook.
+      if (reference && tries === 0) {
+        await fetch("/api/paystack/claim", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ reference }),
+        }).catch(() => {});
+      }
+
       if (++tries >= MAX_TRIES) {
         setSlow(true);
         return;
       }
-      setTimeout(poll, POLL_MS);
+      setTimeout(run, POLL_MS);
     })();
 
     return () => {
       stop = true;
     };
-  }, [router]);
+  }, [router, params]);
 
   if (slow) {
     return (
@@ -105,5 +123,14 @@ export default function UnlockPage() {
       </Card>
       <Footer />
     </>
+  );
+}
+
+// useSearchParams needs a Suspense boundary above it.
+export default function UnlockPage() {
+  return (
+    <Suspense>
+      <UnlockInner />
+    </Suspense>
   );
 }
