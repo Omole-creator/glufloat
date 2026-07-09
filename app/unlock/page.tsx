@@ -45,30 +45,35 @@ function UnlockInner() {
   useEffect(() => {
     let stop = false;
     let tries = 0;
+    let claimed = false;
     const reference = params.get("reference") || params.get("trxref");
 
     (async function run() {
       if (stop) return;
-      const { access } = await getAccess();
+      let { access } = await getAccess();
 
       if (access.status === "anon") {
         router.replace("/signin");
         return;
       }
-      if (access.status === "subscribed" || access.status === "trial") {
-        events.unlocked();
-        router.replace("/app");
-        return;
-      }
 
-      // Signed in but no access yet. If Paystack sent a reference, claim it
-      // against this account rather than waiting on the email-matched webhook.
-      if (reference && tries === 0) {
+      // Claim before deciding where to send them. Someone who pays while still
+      // on their free trial already reads as "trial", so an early redirect here
+      // would leave the payment unlinked and lock them out when the trial ends.
+      if (reference && !claimed) {
+        claimed = true;
         await fetch("/api/paystack/claim", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ reference }),
         }).catch(() => {});
+        ({ access } = await getAccess());
+      }
+
+      if (access.status === "subscribed" || access.status === "trial") {
+        events.unlocked();
+        router.replace("/app");
+        return;
       }
 
       if (++tries >= MAX_TRIES) {
