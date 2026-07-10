@@ -4089,7 +4089,8 @@
     "logicNote": "Lower sugar citrus. A friendly fruit.",
     "tags": [],
     "carbExchange": "half of a medium fruit",
-    "portionIcon": "half-fruit"
+    "portionIcon": "half-fruit",
+    "healthNote": "Do not eat this fruit if you take medicine for cholesterol, blood pressure, or your heart. It can make the medicine far too strong in your body and harm you, even hours later. Ask your doctor or pharmacist before you eat it."
   },
   {
     "id": "lime-lemon",
@@ -6148,7 +6149,8 @@
     "logicNote": "A large citrus, low in sugar and full of the rough part of food and vitamin C.",
     "tags": [],
     "carbExchange": "three-quarters of a cup of segments",
-    "portionIcon": "three-quarter-cup"
+    "portionIcon": "three-quarter-cup",
+    "healthNote": "Do not eat this fruit if you take medicine for cholesterol, blood pressure, or your heart. It can make the medicine far too strong in your body and harm you, even hours later. Ask your doctor or pharmacist before you eat it."
   },
   {
     "id": "sweetsop",

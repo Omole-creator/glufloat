@@ -32,12 +32,22 @@ const NOTES = {
   // tablets. See docs/EVIDENCE.md section 5.
   alcohol:
     "Alcohol can drop your sugar dangerously low, even a whole day after you drink. This is worse if you take insulin or sugar-lowering tablets. Never drink on an empty stomach. Eat first, and check your sugar before you sleep.",
+  // Grapefruit and pomelo block the gut enzyme that breaks many tablets down,
+  // so the drug builds up in the blood. One glass of grapefruit juice raises
+  // simvastatin levels by about 260 percent. Many people with diabetes also
+  // take a statin for cholesterol or a calcium-channel blocker for blood
+  // pressure. See docs/EVIDENCE.md section 6.
+  citrus:
+    "Do not eat this fruit if you take medicine for cholesterol, blood pressure, or your heart. It can make the medicine far too strong in your body and harm you, even hours later. Ask your doctor or pharmacist before you eat it.",
 };
 
 // Specific foods that need a note their keywords do not catch.
 const KIDNEY_IDS = new Set(["star-fruit"]);
 // Alcoholic drinks. The danger is delayed low sugar, not the sugar in the drink.
 const ALCOHOL_IDS = new Set(["beer", "pito", "palm-wine", "local-gin"]);
+// Furanocoumarin citrus. The danger is the tablets, not the sugar. Sweet orange
+// and tangerine do NOT do this, so they must not be listed here.
+const CITRUS_IDS = new Set(["grapefruit", "pomelo"]);
 // Saturated or heavy fats that raise cholesterol (oils, butter, full-fat dairy).
 const FAT_IDS = new Set([
   "butter", "coconut-oil", "palm-oil", "mayonnaise", "milk-full-cream",
@@ -109,6 +119,7 @@ function noteFor(f) {
   if (EXCLUDE_IDS.has(f.id)) return null;
   if (KIDNEY_IDS.has(f.id)) return NOTES.kidney;
   if (ALCOHOL_IDS.has(f.id)) return NOTES.alcohol;
+  if (CITRUS_IDS.has(f.id)) return NOTES.citrus;
   const text = identity(f);
   if (MEAT_ROLES.has(f.role) && hasAny(text, MEAT_WORDS)) return NOTES.meat;
   if (SALT_IDS.has(f.id) || (SALT_ROLES.has(f.role) && hasAny(text, SALT_WORDS)))

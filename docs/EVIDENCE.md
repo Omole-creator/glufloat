@@ -236,7 +236,56 @@ empty stomach. Eat first, and check your sugar before you sleep."*
 
 ---
 
-## 6. What has no evidence, and never will
+## 6. Food and medicine: the risk the app was missing
+
+Everything above asks "will this raise my sugar". Our users are also **on
+tablets**, and some of these foods change what a tablet does. Searched PubMed
+directly (E-utilities) rather than by web summary.
+
+### Acted on: grapefruit and pomelo
+
+Grapefruit blocks the gut enzyme (CYP3A4) that breaks down many common tablets,
+so the drug builds up in the blood. Quantified in humans: **a daily glass of
+grapefruit juice raises simvastatin and lovastatin blood levels by about 260%
+when taken together, and atorvastatin by about 80% whenever taken**
+([Lee, Morris & Wald, *Am J Med* 2016, PMID 26299317](https://pubmed.ncbi.nlm.nih.gov/26299317/)).
+It does the same to calcium-channel blockers used for blood pressure (87 PubMed
+hits). People with diabetes very often take a statin, a blood-pressure tablet,
+or both.
+
+**Pomelo (shaddock) does the same thing.** It is the parent species of
+grapefruit and carries the same furanocoumarins (26 PubMed hits for pomelo ×
+CYP3A4 / drug interaction).
+
+The app had both as green fruit with **no warning at all**. Both now carry a
+`citrus` health note. Confidence: **High** — human, quantified, replicated.
+
+**Sweet orange and tangerine do not do this** and must never be added to
+`CITRUS_IDS`. Only furanocoumarin citrus.
+
+### Found, deliberately NOT acted on
+
+**Okra and metformin.** One study reports that the water-soluble fraction of
+okra reduces metformin absorption, and concludes okra "should not be taken
+concurrently with metformin"
+([Khatun et al., *ISRN Pharm* 2011, PMID 22389848](https://pubmed.ncbi.nlm.nih.gov/22389848/)).
+**It is a rat study, and it is the only one.** Okra soup is a staple, the app
+correctly calls it one of the best things a Nigerian with diabetes can eat, and
+a warning here could push people off a genuinely good food. Adding a medical
+instruction ("separate your metformin from your okra") on the strength of one
+rodent experiment is not something this app should do on its own.
+**Confidence: Low. For the dietitian to decide.** A separate 2023 human RCT
+(PMID 37507536) found okra pods *helped* glycaemic control as an adjuvant.
+
+**Bitter leaf, bitter kola, hibiscus (zobo).** Each has a real literature on
+lowering blood glucose or blood pressure (35, 18 and 96 PubMed hits). If they
+genuinely lower glucose, they could stack with medication and cause a hypo. None
+is well enough established in humans at food-portion doses to put a warning on a
+card. **Open questions, listed here so they are not forgotten.**
+
+---
+
+## 7. What has no evidence, and never will
 
 Roughly 260 of the 327 foods have no published GI value for their Nigerian
 preparation, and no trial will ever be run on gizdodo, abacha or most soups.
