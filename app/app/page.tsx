@@ -9,7 +9,7 @@ import DisclaimerGate from "@/components/DisclaimerGate";
 import FeedbackPopup from "@/components/FeedbackPopup";
 import SearchPanel from "@/components/SearchPanel";
 import MealBuilder from "@/components/MealBuilder";
-import { PAYSTACK_URL } from "@/lib/access";
+import { PAYSTACK_URL, pendingReference, clearPendingReference } from "@/lib/access";
 import { getAccess, signOut, type Access } from "@/lib/account";
 
 export default function AppPage() {
@@ -19,7 +19,30 @@ export default function AppPage() {
   const [email, setEmail] = useState<string | null>(null);
 
   useEffect(() => {
-    getAccess().then(({ access, email }) => {
+    /**
+     * A transfer or USSD payment can land minutes after the buyer left the
+     * checkout. If this device is still holding an unsettled reference, try to
+     * claim it once more before deciding what they may see. This is what saves
+     * the buyer who paid by transfer under a different email than they signed up
+     * with: the webhook would never match them, but the claim matches the
+     * session. Costs one request, and only when a reference is actually pending.
+     */
+    async function settlePendingPayment() {
+      const reference = pendingReference();
+      if (!reference) return;
+      const res = await fetch("/api/paystack/claim", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reference }),
+      }).catch(() => null);
+      // 200 linked it, 402 means Paystack called it failed. Either way we are
+      // done with this reference. A 202 means still settling: keep it for later.
+      if (res && (res.ok || res.status === 402)) clearPendingReference();
+    }
+
+    (async () => {
+      await settlePendingPayment();
+      const { access, email } = await getAccess();
       setEmail(email);
       if (access.status === "anon") {
         router.replace("/signin");
@@ -28,7 +51,7 @@ export default function AppPage() {
       } else {
         setAccess(access);
       }
-    });
+    })();
   }, [router]);
 
   if (access === null) return null; // loading / redirecting

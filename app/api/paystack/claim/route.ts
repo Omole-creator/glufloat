@@ -44,8 +44,29 @@ export async function POST(request: Request) {
     { headers: { Authorization: `Bearer ${secret}` }, cache: "no-store" },
   );
   const body = await res.json().catch(() => null);
-  if (!res.ok || !body?.status || body.data?.status !== "success") {
+  const status: string = body?.data?.status ?? "";
+
+  // Paystack does not know this reference. Invented or mistyped: refuse it, and
+  // keep refusing. Only a reference Paystack has seen can be worth retrying.
+  if (!res.ok || !body?.status) {
     return NextResponse.json({ ok: false, error: "not_paid" }, { status: 402 });
+  }
+
+  if (status !== "success") {
+    /**
+     * Card is instant, so anything other than "success" used to mean "not paid".
+     * Transfer and USSD are not. A transfer the buyer has begun but the bank has
+     * not settled verifies as "abandoned" (Paystack's transaction statuses are
+     * only success / failed / abandoned, with no "pending"). So only an outright
+     * "failed" is final. Anything else means "ask again in a moment", and the
+     * caller keeps retrying. Calling a settling transfer `not_paid` is exactly
+     * what would lock a paying customer out of the app they just bought.
+     */
+    const finalFailure = status === "failed";
+    return NextResponse.json(
+      { ok: false, error: finalFailure ? "not_paid" : "pending", status },
+      { status: finalFailure ? 402 : 202 },
+    );
   }
   const tx = body.data;
 
