@@ -172,6 +172,7 @@ asymmetry rule.
 | `boiled-plantain-ripe` | gi medium | gi high | Boiled plantain 96.5; ripe is not gentler than unripe. |
 | `boli` (roasted plantain) | gi medium | gi high | Roasted plantain 92.0. |
 | `wheat-swallow` | gi medium | gi high | Wheat flour dough 97.4. |
+| `whole-wheat-bread` | gi medium | gi high | Commercial finely-milled wholemeal bread measures 70–80, and that is what is sold here. Coarse stone-ground loaves measure 61–65, but nobody in Lagos is buying those. Conservative reading of a genuinely mixed literature (59–80). |
 
 Deliberately **not** changed: `amala-plantain` (plantain-flour amala has no
 direct measurement; the 82–99 band is for yam-flour amala), `sweet-potato`,
@@ -263,6 +264,38 @@ The app had both as green fruit with **no warning at all**. Both now carry a
 **Sweet orange and tangerine do not do this** and must never be added to
 `CITRUS_IDS`. Only furanocoumarin citrus.
 
+### The systematic sweep
+
+Every food was checked, at the level the literature exists at. **230 of the 327
+foods** were queried directly against PubMed (E-utilities), twice each — once for
+food-drug interaction, once for glycaemic index. That is 460 queries. The
+remaining **97 are composite dishes** (egusi soup, meat pie, chin chin, jollof).
+No study exists on a dish; studies exist on its ingredients, and every ingredient
+is in the query map (`scripts/` sweep, kept out of the repo as it is one-off).
+
+Result: **168 of 230 foods have some GI literature; 62 have none at all** and
+never will (suya, moi moi, akara, pap, most proteins). Those keep dietitian
+judgement, as section 7 says.
+
+### Checked, and the answer was NO — which is the useful part
+
+Raw hit counts are not evidence. Garlic returns 604 PubMed hits for
+"drug interaction OR warfarin", ginger 249, turmeric 3,052. It would have been
+easy, and wrong, to warn on all three.
+
+A **systematic review of randomised controlled trials** of herb-warfarin
+interaction settles it:
+*"Ginseng, ginger, garlic, and cranberry had no significant effect on the PK
+parameters"*, and *"ginger, garlic, aged garlic ... did not significantly alter
+the PD parameters"*
+([PLoS One 2017, PMID 28797065](https://pubmed.ncbi.nlm.nih.gov/28797065/)).
+
+So **garlic and ginger carry no warning**, and the app keeps telling people to
+use them as much as they like in cooking. Turmeric's literature is nearly all in
+vitro or at supplement doses; a pinch of curry powder is not a supplement.
+**No card changed.** Warning people off garlic, ginger and curry would have been
+a real harm dressed up as caution.
+
 ### Found, deliberately NOT acted on
 
 **Okra and metformin.** One study reports that the water-soluble fraction of
@@ -282,6 +315,19 @@ lowering blood glucose or blood pressure (35, 18 and 96 PubMed hits). If they
 genuinely lower glucose, they could stack with medication and cause a hypo. None
 is well enough established in humans at food-portion doses to put a warning on a
 card. **Open questions, listed here so they are not forgotten.**
+
+**Nigerian soup leaves.** The sweep added the soup ingredients the first pass
+missed. Uziza (*Piper guineense*, 131 hits), scent leaf (*Ocimum gratissimum*,
+85), oha (*Pterocarpus*, 37) and utazi (*Gongronema latifolium*, 19) all have a
+blood-glucose literature. Same reasoning as above: plausible, not established at
+the amount that goes in a pot of soup. Ogbono (*Irvingia*, 8), ewedu
+(*Corchorus*, 5) and afang (*Gnetum*, 1) are thin. **Open.**
+
+**Method note, learned the hard way.** Never guess a PMID. Twice while doing this
+an invented ID returned a real paper on an unrelated subject (chamomile, then
+lorazepam in children with malaria), which would have been cited as evidence for
+a food claim. Always `esearch` first, then `efetch` the ID it returns. And check
+the species: several top hits for plantain and okra GI are **rat** studies.
 
 ---
 

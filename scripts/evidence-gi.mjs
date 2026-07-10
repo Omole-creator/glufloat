@@ -57,6 +57,10 @@ const CORRECTIONS = {
       "Wheat swallow has more of the rough part of food than semo or eba, but it still turns to sugar fast. Keep to one fist-size ball.",
     why: "wheat flour dough measured GI 97.4 (Nigerian J. Nutritional Sciences).",
   },
+  "whole-wheat-bread": {
+    gi: "high",
+    why: "commercial finely-milled wholemeal bread measures GI 70-80, and Nigerian 'whole wheat' bread is finely milled. Lower values (61-65) exist for coarse stone-ground loaves we do not sell here. Conservative reading; see EVIDENCE.md.",
+  },
 };
 
 const foods = JSON.parse(readFileSync(FILE, "utf8"));

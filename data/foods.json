@@ -1248,7 +1248,7 @@
     "category": "bread",
     "role": "starch",
     "carbLoad": "medium",
-    "gi": "medium",
+    "gi": "high",
     "baseVerdict": "yellow",
     "portionGuidance": "One to two slices (about 30g each).",
     "pairingAdvice": "Egg, avocado, beans, or moi moi. Never on its own.",
