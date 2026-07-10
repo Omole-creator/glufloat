@@ -1230,7 +1230,7 @@
     "gi": "high",
     "baseVerdict": "red",
     "portionGuidance": "One thin slice at most (30g). Never eat it on its own.",
-    "pairingAdvice": "If eaten, add egg, beans, or moi moi, never on its own.",
+    "pairingAdvice": "If you do have it, eat it with an egg, beans, or moi moi. Never bread on its own.",
     "frequency": "About 1 time a month.",
     "logicNote": "Soft white flour. It pushes your sugar up faster than most foods.",
     "tags": [
@@ -1251,7 +1251,7 @@
     "gi": "high",
     "baseVerdict": "yellow",
     "portionGuidance": "One to two slices (about 30g each).",
-    "pairingAdvice": "Egg, avocado, beans, or moi moi. Never on its own.",
+    "pairingAdvice": "Eat it with an egg, avocado, beans, or moi moi. Never bread on its own.",
     "frequency": "About 2 times a week.",
     "logicNote": "Many wheat breads are mostly white flour. Look at the packet and pick one that says whole wheat first.",
     "tags": [
@@ -3417,7 +3417,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One small plate. That is about one cup of the cooked dumplings (150g).",
-    "pairingAdvice": "One teaspoon of oil and some pepper. Add plenty of vegetables.",
+    "pairingAdvice": "One teaspoon of oil and a pinch of pepper. Add plenty of vegetables.",
     "frequency": "About 4 times a week.",
     "logicNote": "Bean-flour dumplings. Full of the rough part of food and slow to raise sugar.",
     "tags": [
@@ -5297,7 +5297,7 @@
     "gi": "high",
     "baseVerdict": "yellow",
     "portionGuidance": "One thin slice at most (30g).",
-    "pairingAdvice": "Egg, beans, or moi moi. Never on its own.",
+    "pairingAdvice": "Eat it with an egg, beans, or moi moi. Never bread on its own.",
     "frequency": "About 2 times a week.",
     "logicNote": "Softer, sweeter bread. White flour pushes your sugar up fast. One thin slice, with fish, meat, or egg.",
     "tags": [
@@ -6124,7 +6124,7 @@
     "gi": "medium",
     "baseVerdict": "yellow",
     "portionGuidance": "Half a cup of cooked corn (about 80g).",
-    "pairingAdvice": "Mix a little into a vegetable salad or sauce with fish, chicken, or an egg.",
+    "pairingAdvice": "Mix two tablespoons into a vegetable salad or sauce, with fish, chicken, or an egg.",
     "frequency": "About 2 times a week.",
     "logicNote": "Sweet corn has more sugar than fresh corn on the cob. Keep to the size shown below.",
     "tags": [],
@@ -6441,7 +6441,7 @@
     "gi": "high",
     "baseVerdict": "red",
     "portionGuidance": "Best to skip this. If you do have it, only one short piece (about 30g). Never eat it on its own.",
-    "pairingAdvice": "Add an egg and vegetables, never bread on its own.",
+    "pairingAdvice": "Eat it with an egg, beans, or moi moi. Never bread on its own.",
     "frequency": "About 1 time a month.",
     "logicNote": "White flour, like agege bread. It pushes your sugar up faster than most foods.",
     "tags": [],

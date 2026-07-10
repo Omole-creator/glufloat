@@ -200,6 +200,14 @@ const PAIRING = {
   "peanut-butter": "On one thin slice of bread (30g). Do not add jam.",
   mustard: "With meat, fish, or eggs.",
   "baked-beans": "Add an egg and vegetables. Eat with one thin slice of bread (30g), not more.",
+  // Nobody here puts vegetables on bread. Bread goes with egg, beans, moi moi,
+  // akara or avocado.
+  baguette: "Eat it with an egg, beans, or moi moi. Never bread on its own.",
+  "agege-bread": "If you do have it, eat it with an egg, beans, or moi moi. Never bread on its own.",
+  "whole-wheat-bread": "Eat it with an egg, avocado, beans, or moi moi. Never bread on its own.",
+  "coconut-bread": "Eat it with an egg, beans, or moi moi. Never bread on its own.",
+  "dan-wake": "One teaspoon of oil and a pinch of pepper. Add plenty of vegetables.",
+  "sweet-corn": "Mix two tablespoons into a vegetable salad or sauce, with fish, chicken, or an egg.",
   "tomato-stew":
     "It already has fish, chicken, or meat. Eat with half a cup of rice (130g), or a fist-size ball of swallow (100g). Remember, the swallow you pick matters as much as the soup.",
   ayamase: "It already has assorted meat. Eat with half a cup of ofada rice (130g).",
@@ -530,6 +538,16 @@ for (const f of foods) {
     }
     if (/\bcasserole|\bsmoothie bowl|\bcrudit|\bdip\b|\bhummus\b/.test(p)) {
       leftovers.push(`${f.id}.pairingAdvice: not a Nigerian preparation -> ${f.pairingAdvice}`);
+    }
+    // Nobody adds vegetables to bread, to a cereal like pap or custard, or to a
+    // drink. Bread goes with egg, beans, moi moi, akara, avocado.
+    const NO_VEG = new Set(["bread", "cereal"]);
+    if (
+      (NO_VEG.has(f.category) || f.role === "drink") &&
+      /\bvegetable/.test(p) &&
+      !/salad/.test(p)
+    ) {
+      leftovers.push(`${f.id}.pairingAdvice: nobody adds vegetables to ${f.category} -> ${f.pairingAdvice}`);
     }
   }
 }

@@ -41,12 +41,16 @@ const VEG_FIX: Record<string, string> = {
   tuber: "Add a garden-egg sauce or green vegetables on the side. About one cup.",
   plantain:
     "Add green vegetables or a vegetable sauce on the side. About one cup.",
-  bread: "Add an egg and vegetables, never bread on its own.",
+  // Bread is deliberately absent. Nobody puts vegetables on bread here, so
+  // there is no coherent vegetable fix for it. Its fix lives in PROTEIN_FIX.
 };
 
 /**
  * What protein or slow-down food to add, again worded to match the main food.
- * Bread is left out on purpose; its VEG_FIX line already mentions the egg.
+ * Each line must name something people actually eat with that food. Bread gets
+ * an egg, beans or moi moi, which is how bread is eaten here. It does not get
+ * "add vegetables", and it does not get the meat line, because nobody eats a
+ * palm-size piece of goat meat with a slice of bread.
  */
 const PROTEIN_FIX: Record<string, string> = {
   swallow: DECK,
@@ -56,6 +60,7 @@ const PROTEIN_FIX: Record<string, string> = {
   plantain: DECK,
   cereal: "Add moi moi or akara to slow it down.",
   corn: "Add groundnut or a boiled egg to slow it down.",
+  bread: "Eat it with an egg, beans, or moi moi. Never bread on its own.",
 };
 
 /** Lowercase the first letter so a portion phrase reads well mid-sentence. */
