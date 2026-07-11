@@ -56,6 +56,25 @@ export function sourcePost(): string {
 }
 
 /**
+ * The partner who sent this visitor, if any.
+ *
+ * Set as a cookie by /r/[code] on the server, because first touch has to be
+ * enforced somewhere the visitor cannot fiddle with it. Read here so the sign-up
+ * form can carry it into the new account.
+ */
+export function partnerCode(): string {
+  try {
+    const hit = document.cookie
+      .split(";")
+      .map((c) => c.trim())
+      .find((c) => c.startsWith("gf_ref="));
+    return hit ? decodeURIComponent(hit.slice("gf_ref=".length)) : "";
+  } catch {
+    return "";
+  }
+}
+
+/**
  * Send one event. Fire-and-forget, and `keepalive` so it still arrives when the
  * reader is closing the tab (which is exactly when the "read to the end" event
  * fires).

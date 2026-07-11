@@ -191,7 +191,13 @@ export default async function AdminPage({
               data.
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <Link
+              href="/admin/partners"
+              className="rounded-full border border-line bg-white px-5 py-2 font-display text-sm font-bold text-ink transition-colors hover:border-brand"
+            >
+              Partner dashboard
+            </Link>
             <Link
               href="/admin/blog"
               className="rounded-full border border-line bg-white px-5 py-2 font-display text-sm font-bold text-ink transition-colors hover:border-brand"

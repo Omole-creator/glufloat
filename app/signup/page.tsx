@@ -7,7 +7,7 @@ import { Eye, EyeOff } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { createClient } from "@/lib/supabase/client";
-import { sourcePost } from "@/lib/attribution";
+import { partnerCode, sourcePost } from "@/lib/attribution";
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -24,13 +24,20 @@ export default function SignUpPage() {
     setBusy(true);
     setErr("");
     const supabase = createClient();
-    // If a blog post brought them here, carry it into the account. The database
-    // trigger copies it onto their profile, and the admin screen can then say
-    // which post earned this sign-up. Empty for everyone who came in another way.
+    // Carry whatever brought them here into the account: a blog post, a partner's
+    // referral link, or neither. The database trigger copies both onto their
+    // profile. Both are empty for someone who arrived any other way, and that
+    // person signs up exactly as they always did.
     const { error } = await supabase.auth.signUp({
       email: email.trim(),
       password,
-      options: { data: { name: name.trim(), source_post: sourcePost() } },
+      options: {
+        data: {
+          name: name.trim(),
+          source_post: sourcePost(),
+          partner_code: partnerCode(),
+        },
+      },
     });
     if (error) {
       setErr(error.message);
