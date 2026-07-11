@@ -10,7 +10,7 @@ export default function PrivacyPage() {
     <LegalShell
       eyebrow="The serious part"
       title="Privacy Policy"
-      updated="Last updated: 2 July 2026. Written to follow the Nigeria Data Protection Act 2023 (NDPA). GluFloat is the data controller."
+      updated="Last updated: 11 July 2026. Written to follow the Nigeria Data Protection Act 2023 (NDPA). GluFloat is the data controller."
     >
       <h2>1. Who we are</h2>
       <p>
@@ -25,6 +25,12 @@ export default function PrivacyPage() {
       </p>
       <ul>
         <li>
+          Your account: the name and email you give us when you sign up, and
+          your password, which is kept in a scrambled form we cannot read. We
+          also keep the date your free trial started and whether your membership
+          is active.
+        </li>
+        <li>
           Checkout details (name, email, payment) are collected and processed
           by our checkout partner, Paystack, and their payment providers. We
           receive confirmation of your membership, not your full card number.
@@ -34,12 +40,46 @@ export default function PrivacyPage() {
           not store them on our servers in this version.
         </li>
         <li>
+          A count of blog visits, explained in the next section. It holds no
+          personal information at all.
+        </li>
+        <li>
           Basic, anonymous usage information may be collected to keep the site
           working and improve it.
         </li>
       </ul>
 
-      <h2>3. Sensitive (health) information</h2>
+      <h2>3. How we count blog visits</h2>
+      <p>
+        We count how many people open each blog post, how many read it to the
+        end, and how many go on to make an account. This is how we learn which
+        posts are useful and which are not.
+      </p>
+      <p>To do it, we store only this:</p>
+      <ul>
+        <li>
+          Which post was opened, and whether the reader reached the bottom or
+          clicked the free-trial button.
+        </li>
+        <li>
+          A random number your own browser makes up for itself. It is not your
+          name, your email, or your address. It is there only so that if you
+          open the same post five times, we count one person and not five.
+        </li>
+        <li>
+          If you later make an account, we keep a note of the first blog post
+          you landed on, so we know which post brought you to us.
+        </li>
+      </ul>
+      <p>
+        We do not store your name, your email, your location, your IP address,
+        or anything that could point back to you as a person. We do not follow
+        you around other websites, and we do not sell any of this. If you clear
+        your browser storage, the random number is gone and you start again as
+        somebody new.
+      </p>
+
+      <h2>4. Sensitive (health) information</h2>
       <p>
         Using a diabetes food guide can hint at your health status, which
         counts as sensitive personal data under the NDPA. We treat this with
@@ -51,7 +91,7 @@ export default function PrivacyPage() {
         <li>You can clear it from your device at any time.</li>
       </ul>
 
-      <h2>4. Why we use your information</h2>
+      <h2>5. Why we use your information</h2>
       <ul>
         <li>To give you the service you signed up for (contract).</li>
         <li>To take payment for your subscription (contract).</li>
@@ -62,7 +102,7 @@ export default function PrivacyPage() {
         <li>To meet our legal duties in Nigeria (legal obligation).</li>
       </ul>
 
-      <h2>5. We do not sell your data</h2>
+      <h2>6. We do not sell your data</h2>
       <p>
         We do not sell your personal information to anyone. We only share it
         where needed: with our checkout partner to process your subscription,
@@ -70,21 +110,21 @@ export default function PrivacyPage() {
         hosting), and with authorities if the law requires us to.
       </p>
 
-      <h2>6. Where your data is kept</h2>
+      <h2>7. Where your data is kept</h2>
       <p>
         Data may be stored or processed on servers inside or outside Nigeria.
         When data leaves Nigeria, we take the steps required by the NDPA to
         make sure it stays protected.
       </p>
 
-      <h2>7. How long we keep it</h2>
+      <h2>8. How long we keep it</h2>
       <p>
         We keep information for as long as your membership is active, and for
         a reasonable period after, to meet legal, tax, and accounting duties.
         When it is no longer needed, we delete or anonymise it.
       </p>
 
-      <h2>8. Your rights under the NDPA</h2>
+      <h2>9. Your rights under the NDPA</h2>
       <ul>
         <li>Ask what data we hold about you and get a copy.</li>
         <li>Correct data that is wrong.</li>
@@ -101,21 +141,21 @@ export default function PrivacyPage() {
         respond within the time the NDPA requires.
       </p>
 
-      <h2>9. Children</h2>
+      <h2>10. Children</h2>
       <p>
         Glufloat is not made for children under 18. We do not knowingly
         collect data from children. If you believe a child has given us data,
         contact us and we will delete it.
       </p>
 
-      <h2>10. Changes to this policy</h2>
+      <h2>11. Changes to this policy</h2>
       <p>
         We may update this policy. If we make an important change, we will
         tell you on the site or by email. The &ldquo;last updated&rdquo; date
         at the top shows the latest version.
       </p>
 
-      <h2>11. Contact</h2>
+      <h2>12. Contact</h2>
       <p>
         Privacy questions or requests: glufloat@gmail.com / Lagos State,
         Nigeria. You may also contact the Nigeria Data Protection Commission
