@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Post } from "@/lib/blog";
 import { slugify } from "@/lib/blog";
@@ -51,9 +51,93 @@ export default function BlogEditor({ initial }: { initial: Post[] }) {
   const [error, setError] = useState("");
   const [note, setNote] = useState("");
   const [preview, setPreview] = useState(false);
+  const bodyRef = useRef<HTMLTextAreaElement>(null);
 
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) =>
     setD((prev) => ({ ...prev, [k]: v }));
+
+  /* ---- the toolbar -------------------------------------------------------
+   * Nobody should have to remember what ## or [](). means. These buttons type
+   * the formatting for the writer, around whatever they have selected, and put
+   * the cursor back where it belongs. The post is still stored as plain text,
+   * which is what keeps it fast to render and safe to escape.
+   */
+
+  /** Replace the selected text, then re-focus and re-select the useful part. */
+  function apply(fn: (selected: string) => { text: string; select?: [number, number] }) {
+    const ta = bodyRef.current;
+    if (!ta) return;
+    const start = ta.selectionStart;
+    const end = ta.selectionEnd;
+    const selected = d.body_md.slice(start, end);
+    const { text, select } = fn(selected);
+    const next = d.body_md.slice(0, start) + text + d.body_md.slice(end);
+    set("body_md", next);
+    requestAnimationFrame(() => {
+      ta.focus();
+      const [a, b] = select ?? [start + text.length, start + text.length];
+      ta.setSelectionRange(start + a, start + b);
+    });
+  }
+
+  /** **bold**, *italic*: wrap the selection, or drop in a placeholder word. */
+  const wrap = (mark: string, placeholder: string) =>
+    apply((sel) => {
+      const word = sel || placeholder;
+      return {
+        text: `${mark}${word}${mark}`,
+        select: [mark.length, mark.length + word.length],
+      };
+    });
+
+  /** Headings, bullets, numbers, quotes: put a marker at the start of the line. */
+  const linePrefix = (prefix: string, placeholder: string) =>
+    apply((sel) => {
+      const lines = (sel || placeholder).split("\n");
+      const text = lines.map((l) => `${prefix}${l}`).join("\n");
+      // A block needs a blank line before it or it joins the paragraph above.
+      const lead = d.body_md.slice(0, bodyRef.current!.selectionStart).endsWith("\n\n") ||
+        bodyRef.current!.selectionStart === 0
+        ? ""
+        : "\n\n";
+      return {
+        text: lead + text,
+        select: [lead.length + prefix.length, lead.length + text.length],
+      };
+    });
+
+  function addLink() {
+    const url = prompt(
+      "Paste the web address.\n\nFor a page on Glufloat, type it like /app or /blog/eba.\nFor another website, paste the full address starting with https://",
+    );
+    if (!url) return;
+    apply((sel) => {
+      const words = sel || "the words people click";
+      return { text: `[${words}](${url.trim()})`, select: [1, 1 + words.length] };
+    });
+  }
+
+  /** Upload a picture and drop it into the body where the cursor is. */
+  async function addImage(file: File) {
+    setBusy(true);
+    setError("");
+    const body = new FormData();
+    body.append("file", file);
+    const res = await fetch("/api/admin/upload", { method: "POST", body });
+    const json = await res.json();
+    setBusy(false);
+    if (!res.ok) {
+      setError(json.error ?? "The picture did not upload.");
+      return;
+    }
+    const alt =
+      prompt("Say what is in the picture. Blind readers and Google both read this.") ??
+      "";
+    apply(() => ({ text: `\n\n![${alt}](${json.url})\n\n` }));
+  }
+
+  const tool =
+    "rounded-lg border border-line bg-white px-2.5 py-1.5 text-sm font-semibold text-ink transition-colors hover:border-brand hover:text-brand disabled:opacity-40";
 
   // The address is derived from the title until the writer types their own, so
   // they never have to think about it, but can still fix it if they want to.
@@ -170,15 +254,26 @@ export default function BlogEditor({ initial }: { initial: Post[] }) {
             <label className={label} htmlFor="slug">
               Web address
             </label>
-            <input
-              id="slug"
-              className={input}
-              value={d.slug}
-              onChange={(e) => set("slug", slugify(e.target.value))}
-              placeholder="is-eba-bad-for-diabetes"
-            />
+            {/*
+              The prefix is shown but not editable. The founder asked whether
+              they type the whole address or only the last part: only the last
+              part, and this makes that obvious instead of explaining it.
+            */}
+            <div className="mt-1.5 flex items-stretch overflow-hidden rounded-xl border-2 border-line focus-within:border-brand">
+              <span className="flex select-none items-center bg-mist px-3 text-sm text-ink-soft">
+                glufloat.com/blog/
+              </span>
+              <input
+                id="slug"
+                className="w-full bg-white px-3 py-2.5 text-ink outline-none"
+                value={d.slug}
+                onChange={(e) => set("slug", slugify(e.target.value))}
+                placeholder="is-eba-bad-for-diabetes"
+              />
+            </div>
             <p className="mt-1 text-xs text-ink-soft">
-              glufloat.com/blog/{d.slug || "your-post"}
+              This fills in from the title on its own. You only change it if you
+              want to.
             </p>
           </div>
 
@@ -258,7 +353,7 @@ export default function BlogEditor({ initial }: { initial: Post[] }) {
                 className={input}
                 value={d.reviewed_by}
                 onChange={(e) => set("reviewed_by", e.target.value)}
-                placeholder="e.g. Dr Ada Okoye, Dietitian"
+                placeholder="The name of the dietitian who checked it"
               />
               <p className="mt-1 text-xs text-ink-soft">
                 You can still publish without this. When you fill it in, a green
@@ -301,18 +396,67 @@ export default function BlogEditor({ initial }: { initial: Post[] }) {
                 dangerouslySetInnerHTML={{ __html: renderMarkdown(d.body_md) }}
               />
             ) : (
-              <textarea
-                id="body"
-                rows={20}
-                className={`${input} font-mono text-sm`}
-                value={d.body_md}
-                onChange={(e) => set("body_md", e.target.value)}
-                placeholder={"## A heading\n\nWrite normally here.\n\n- A bullet point\n- Another one\n\n**Bold words** look like this.\n\n[A link to the eba card](/app)"}
-              />
+              <>
+                {/* Click these instead of typing the marks by hand. */}
+                <div className="mt-2 flex flex-wrap gap-1.5 rounded-t-xl border-2 border-b-0 border-line bg-mist p-2">
+                  <button type="button" className={tool} onClick={() => linePrefix("## ", "Your subhead")}>
+                    Subhead
+                  </button>
+                  <button type="button" className={tool} onClick={() => linePrefix("### ", "Smaller subhead")}>
+                    Smaller subhead
+                  </button>
+                  <span className="mx-1 w-px bg-line" />
+                  <button type="button" className={`${tool} font-bold`} onClick={() => wrap("**", "bold words")}>
+                    B
+                  </button>
+                  <button type="button" className={`${tool} italic`} onClick={() => wrap("*", "slanted words")}>
+                    I
+                  </button>
+                  <span className="mx-1 w-px bg-line" />
+                  <button type="button" className={tool} onClick={() => linePrefix("- ", "A point")}>
+                    Bullets
+                  </button>
+                  <button type="button" className={tool} onClick={() => linePrefix("1. ", "First thing")}>
+                    Numbers
+                  </button>
+                  <button type="button" className={tool} onClick={() => linePrefix("> ", "Something worth pulling out")}>
+                    Quote
+                  </button>
+                  <span className="mx-1 w-px bg-line" />
+                  <button type="button" className={tool} onClick={addLink}>
+                    Add a link
+                  </button>
+                  <label className={`${tool} cursor-pointer`}>
+                    Add a picture
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/avif"
+                      className="hidden"
+                      disabled={busy}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) addImage(file);
+                        e.target.value = "";
+                      }}
+                    />
+                  </label>
+                </div>
+                <textarea
+                  id="body"
+                  ref={bodyRef}
+                  rows={20}
+                  className={`${input} mt-0 rounded-t-none text-base leading-relaxed`}
+                  value={d.body_md}
+                  onChange={(e) => set("body_md", e.target.value)}
+                  placeholder={
+                    "Write here the way you would talk.\n\nSelect some words, then press a button above to make them a subhead, bold, a link, or a list."
+                  }
+                />
+              </>
             )}
             <p className="mt-1 text-xs text-ink-soft">
-              Use ## for a heading, - for a bullet, **word** for bold, and
-              [words](/link) for a link.
+              Write normally. Select words first, then press a button. Press
+              &ldquo;See how it will look&rdquo; to check it before you publish.
             </p>
           </div>
 

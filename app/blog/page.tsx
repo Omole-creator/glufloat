@@ -11,9 +11,9 @@ import { abs, SITE_NAME } from "@/lib/site";
 // case a revalidate call is ever lost.
 export const revalidate = 3600;
 
-const TITLE = "The Glufloat blog | Nigerian food and diabetes, explained simply";
+const TITLE = "The Glufloat blog | Your diabetes health deserves the best";
 const DESCRIPTION =
-  "Plain answers about Nigerian food and blood sugar. What to eat, how much, and how often, written so anyone can follow it.";
+  "Research-backed advice and practical tips designed to keep your diabetes under control. Nigerian food, explained simply.";
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -65,10 +65,11 @@ export default async function BlogIndex() {
             The Glufloat blog
           </p>
           <h1 className="mt-3 max-w-3xl font-display text-4xl font-bold leading-tight text-ink sm:text-5xl">
-            Nigerian food and your sugar, explained simply.
+            Your diabetes health deserves the best.
           </h1>
           <p className="mt-4 max-w-2xl text-lg text-ink-soft">
-            No hard words. Just what to eat, how much, and how often.
+            Our blog shares research-backed advice and practical tips designed to
+            keep your diabetes under control.
           </p>
 
           {posts.length === 0 ? (
