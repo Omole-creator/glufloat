@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import Link from "next/link";
 import { ADMIN_COOKIE, adminToken } from "@/lib/adminAuth";
 import { createAdminClient } from "@/lib/supabase/server";
 import AdminLogin from "./AdminLogin";
@@ -190,7 +191,15 @@ export default async function AdminPage({
               data.
             </p>
           </div>
-          <ExportButton data={exportData} />
+          <div className="flex items-center gap-3">
+            <Link
+              href="/admin/blog"
+              className="rounded-full border border-line bg-white px-5 py-2 font-display text-sm font-bold text-ink transition-colors hover:border-brand"
+            >
+              Write a blog post
+            </Link>
+            <ExportButton data={exportData} />
+          </div>
         </div>
 
         {/* period dropdown */}

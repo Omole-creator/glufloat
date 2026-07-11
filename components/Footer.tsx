@@ -27,6 +27,7 @@ export default function Footer() {
               <li><Link className="hover:text-brand" href="/#how">How it works</Link></li>
               <li><Link className="hover:text-brand" href="/#demo">Try it free</Link></li>
               <li><Link className="hover:text-brand" href="/#pricing">Price</Link></li>
+              <li><Link className="hover:text-brand" href="/blog">Blog</Link></li>
               <li><Link className="hover:text-brand" href="/about">About us</Link></li>
               <li><Link className="hover:text-brand" href="/app">Open the app</Link></li>
             </ul>
