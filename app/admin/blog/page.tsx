@@ -4,6 +4,7 @@ import { ADMIN_COOKIE, adminToken } from "@/lib/adminAuth";
 import { createAdminClient } from "@/lib/supabase/server";
 import AdminLogin from "../AdminLogin";
 import BlogEditor from "./BlogEditor";
+import BlogStats from "./BlogStats";
 import type { Post } from "@/lib/blog";
 
 export const dynamic = "force-dynamic";
@@ -38,6 +39,8 @@ export default async function AdminBlogPage() {
             Back to dashboard
           </Link>
         </div>
+
+        <BlogStats posts={(data ?? []) as Post[]} />
 
         <BlogEditor initial={(data ?? []) as Post[]} />
       </div>

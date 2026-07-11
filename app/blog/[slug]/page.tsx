@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import BlogTracker, { CtaTracker } from "@/components/BlogTracker";
 import { getPostBySlug, getPublishedPosts, longDate, relatedTo } from "@/lib/blog";
 import { readingMinutes, renderMarkdown } from "@/lib/markdown";
 import { abs, SITE_NAME } from "@/lib/site";
@@ -204,6 +205,13 @@ export default async function PostPage({ params }: Props) {
             .
           </p>
 
+          {/*
+            The read-to-the-end marker sits here, just before the call to action.
+            So "read" on the admin screen means they genuinely got to the bottom,
+            not that they bounced off the headline.
+          */}
+          <BlogTracker slug={post.slug} />
+
           {/* The funnel. The blog is public; the product is not. */}
           <div className="mt-10 rounded-2xl bg-brand p-7 text-white sm:p-9">
             <h2 className="font-display text-2xl font-bold sm:text-3xl">
@@ -213,12 +221,14 @@ export default async function PostPage({ params }: Props) {
               Green, yellow, or red on 1,400+ Nigerian foods, and the fix that
               turns your meal green. Free for 3 days. No card.
             </p>
-            <Link
-              href="/trial"
-              className="mt-5 inline-block rounded-full bg-white px-7 py-3 font-display font-bold text-brand transition-transform hover:scale-105"
-            >
-              Start my 3-day free trial
-            </Link>
+            <CtaTracker slug={post.slug}>
+              <Link
+                href="/trial"
+                className="mt-5 inline-block rounded-full bg-white px-7 py-3 font-display font-bold text-brand transition-transform hover:scale-105"
+              >
+                Start my 3-day free trial
+              </Link>
+            </CtaTracker>
           </div>
 
           {related.length > 0 && (
