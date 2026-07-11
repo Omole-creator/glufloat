@@ -1,16 +1,21 @@
 import { createAdminClient } from "@/lib/supabase/server";
 import type { Partner } from "@/lib/partners";
+import { inPeriod, type Period } from "@/lib/period";
 
 /**
  * The numbers behind the Partner Dashboard. Server-only (service-role key).
  *
- * Everything except "paid out so far" is filtered by the period you are looking
- * at. "Pending payout" deliberately is NOT: money you still owe somebody is owed
- * whatever week you happen to be viewing, and showing a smaller figure because a
- * date filter is on would be a good way to underpay a nurse by accident.
+ * Clicks, sign-ups, trials and earnings are counted inside whatever period you
+ * chose, so you can open June 2027 and see what June 2027 actually did.
+ *
+ * Two figures deliberately IGNORE the period, and it matters:
+ *
+ *   "Owed now" is money you still owe somebody. It is owed whatever month you
+ *   happen to be looking at. Filtering it by date would show less than the truth,
+ *   which is an excellent way to underpay a nurse by accident.
+ *
+ *   "Paying right now" is a fact about today, not about the window.
  */
-
-export type Range = "today" | "week" | "month" | "year" | "all";
 
 export type PartnerRow = {
   partner: Partner;
@@ -38,55 +43,11 @@ export type PayoutRow = {
   paid_at: string;
 };
 
-/** Start of the period, in local time. `null` means "since the beginning". */
-export function rangeStart(range: Range, year: number): Date | null {
-  const now = new Date();
-  const thisYear = now.getFullYear();
-
-  // Looking at a past year: the window is that whole year.
-  if (year !== thisYear) return new Date(year, 0, 1);
-
-  const d = new Date();
-  switch (range) {
-    case "today":
-      d.setHours(0, 0, 0, 0);
-      return d;
-    case "week": {
-      // Week starts Monday, which is how a weekly payout run is counted.
-      const day = (d.getDay() + 6) % 7;
-      d.setDate(d.getDate() - day);
-      d.setHours(0, 0, 0, 0);
-      return d;
-    }
-    case "month":
-      return new Date(thisYear, now.getMonth(), 1);
-    case "year":
-      return new Date(thisYear, 0, 1);
-    case "all":
-      return null;
-  }
-}
-
-export function rangeEnd(year: number): Date | null {
-  const thisYear = new Date().getFullYear();
-  return year !== thisYear ? new Date(year + 1, 0, 1) : null;
-}
-
-const within = (iso: string | null, from: Date | null, to: Date | null) => {
-  if (!iso) return false;
-  const t = new Date(iso).getTime();
-  if (from && t < from.getTime()) return false;
-  if (to && t >= to.getTime()) return false;
-  return true;
-};
-
-export async function getPartnerStats(range: Range, year: number): Promise<{
+export async function getPartnerStats(period: Period): Promise<{
   rows: PartnerRow[];
   totals: Omit<PartnerRow, "partner">;
 }> {
   const admin = createAdminClient();
-  const from = rangeStart(range, year);
-  const to = rangeEnd(year);
 
   const [{ data: partners }, { data: clicks }, { data: profiles }, { data: subs }, { data: comms }] =
     await Promise.all([
@@ -111,20 +72,20 @@ export async function getPartnerStats(range: Range, year: number): Promise<{
 
   const rows: PartnerRow[] = (partners ?? []).map((p) => {
     const mine = (profiles ?? []).filter((x) => x.partner_id === p.id);
-    const inRange = mine.filter((x) => within(x.created_at, from, to));
+    const inWindow = mine.filter((x) => inPeriod(x.created_at, period));
 
     return {
       partner: p as Partner,
       clicks: (clicks ?? []).filter(
-        (c) => c.partner_id === p.id && within(c.created_at, from, to),
+        (c) => c.partner_id === p.id && inPeriod(c.created_at, period),
       ).length,
-      signups: inRange.length,
-      trials: inRange.filter((x) => x.trial_start).length,
-      // "Paying right now" is a fact about today, so it is not date-filtered by
-      // when they signed up -- it counts every referred user currently paying.
+      signups: inWindow.length,
+      trials: inWindow.filter((x) => x.trial_start).length,
+      // "Paying right now" is a fact about today, so it is not filtered by when
+      // they signed up: it counts every referred user currently paying.
       activeSubs: mine.filter((x) => paying.has(x.id)).length,
       earned: (comms ?? [])
-        .filter((c) => c.partner_id === p.id && within(c.earned_at, from, to))
+        .filter((c) => c.partner_id === p.id && inPeriod(c.earned_at, period))
         .reduce((n, c) => n + c.amount, 0),
       pending: (comms ?? [])
         .filter((c) => c.partner_id === p.id && c.status === "pending")

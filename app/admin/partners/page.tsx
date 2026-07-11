@@ -4,23 +4,18 @@ import { ADMIN_COOKIE, adminToken } from "@/lib/adminAuth";
 import AdminLogin from "../AdminLogin";
 import PartnerPanel from "./PartnerPanel";
 import ReferredUsers from "./ReferredUsers";
+import PeriodPicker from "@/components/PeriodPicker";
+import PartnerReportButton from "./PartnerReportButton";
 import { COMMISSION_CAP, COMMISSION_RATE, naira } from "@/lib/partners";
-import { getPartnerStats, type Range } from "@/lib/partnerStats";
+import { getPartnerStats } from "@/lib/partnerStats";
+import { parsePeriod, type PeriodParams } from "@/lib/period";
 
 export const dynamic = "force-dynamic";
-
-const RANGES: Record<Range, string> = {
-  today: "Today",
-  week: "This week",
-  month: "This month",
-  year: "This year",
-  all: "All time",
-};
 
 export default async function PartnersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ range?: string; year?: string; partner?: string }>;
+  searchParams: Promise<PeriodParams & { partner?: string }>;
 }) {
   const c = await cookies();
   const authed =
@@ -28,18 +23,21 @@ export default async function PartnersPage({
   if (!authed) return <AdminLogin />;
 
   const sp = await searchParams;
-  const range = (sp.range && sp.range in RANGES ? sp.range : "week") as Range;
-  const thisYear = new Date().getFullYear();
-  const year = Number(sp.year) || thisYear;
+  const period = parsePeriod(sp);
 
-  const years: number[] = [];
-  for (let y = 2026; y <= Math.max(thisYear + 1, 2027); y++) years.push(y);
-
-  const { rows, totals } = await getPartnerStats(range, year);
+  const { rows, totals } = await getPartnerStats(period);
   const open = sp.partner ? rows.find((r) => r.partner.id === sp.partner) : undefined;
 
+  /** A link to this page, keeping the period you are looking at. */
   const q = (extra: Record<string, string>) => {
-    const p = new URLSearchParams({ range, year: String(year), ...extra });
+    const p = new URLSearchParams({
+      grain: period.grain,
+      y: String(period.y),
+      m: String(period.m),
+      q: String(period.q),
+      d: period.d,
+      ...extra,
+    });
     return `/admin/partners?${p}`;
   };
 
@@ -50,14 +48,6 @@ export default async function PartnersPage({
       {sub && <p className="mt-1 text-xs text-ink-soft">{sub}</p>}
     </div>
   );
-
-  const chip = (on: boolean) =>
-    `rounded-full px-4 py-1.5 text-sm font-display font-bold transition-colors ${
-      on ? "bg-brand text-white" : "border border-line bg-white text-ink hover:border-brand"
-    }`;
-
-  const th = "px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-ink/50";
-  const td = "px-3 py-3 text-sm text-ink";
 
   return (
     <main className="min-h-screen bg-mist px-5 py-10">
@@ -79,26 +69,13 @@ export default async function PartnersPage({
           </Link>
         </div>
 
-        {/* period */}
-        <div className="mt-6 flex flex-wrap items-center gap-2">
-          {(Object.keys(RANGES) as Range[]).map((r) => (
-            <Link key={r} href={q({ range: r })} className={chip(r === range)}>
-              {RANGES[r]}
-            </Link>
-          ))}
-          <span className="mx-2 h-5 w-px bg-line" />
-          {years.map((y) => (
-            <Link key={y} href={q({ year: String(y) })} className={chip(y === year)}>
-              {y}
-            </Link>
-          ))}
-        </div>
+        <PeriodPicker period={period} basePath="/admin/partners" keep={["partner"]} />
 
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-          <Tile label="Link clicks" value={totals.clicks.toLocaleString()} />
+          <Tile label="Link clicks" value={totals.clicks.toLocaleString()} sub={period.label} />
           <Tile label="Free trials" value={totals.trials.toLocaleString()} sub={`${totals.signups} signed up`} />
           <Tile label="Active subs" value={totals.activeSubs.toLocaleString()} sub="paying right now" />
-          <Tile label="Total earnings" value={naira(totals.earned)} sub={RANGES[range].toLowerCase()} />
+          <Tile label="Total earnings" value={naira(totals.earned)} sub={period.label} />
           <Tile
             label="Pending payout"
             value={totals.pending > 0 ? naira(totals.pending) : "Nothing"}
@@ -127,7 +104,13 @@ export default async function PartnersPage({
             paidOut: r.paidOut,
           }))}
           openId={sp.partner ?? null}
-          query={{ range, year: String(year) }}
+          query={{
+            grain: period.grain,
+            y: String(period.y),
+            m: String(period.m),
+            q: String(period.q),
+            d: period.d,
+          }}
         />
 
         {/* one partner, opened */}
@@ -143,9 +126,27 @@ export default async function PartnersPage({
                 </h2>
                 <p className="mt-1 text-sm text-ink-soft">{open.partner.email}</p>
               </div>
-              <Link href={q({})} className="text-sm text-ink-soft underline hover:text-brand">
-                Close
-              </Link>
+              <div className="flex items-center gap-4">
+                {/*
+                  The report they can be sent, for whatever period is on screen.
+                  It is aggregate only: no name, email or date of anybody they
+                  referred ever appears in it.
+                */}
+                <PartnerReportButton
+                  partnerId={open.partner.id}
+                  partnerName={open.partner.name}
+                  query={{
+                    grain: period.grain,
+                    y: String(period.y),
+                    m: String(period.m),
+                    q: String(period.q),
+                    d: period.d,
+                  }}
+                />
+                <Link href={q({})} className="text-sm text-ink-soft underline hover:text-brand">
+                  Close
+                </Link>
+              </div>
             </div>
 
             <div className="mt-5 grid gap-4 sm:grid-cols-3">
@@ -153,6 +154,11 @@ export default async function PartnersPage({
               <Tile label="Paid so far" value={naira(open.paidOut)} />
               <Tile label="People still paying" value={String(open.activeSubs)} />
             </div>
+
+            <p className="mt-4 rounded-xl bg-mist px-4 py-3 text-sm text-ink-soft">
+              The report you send them shows counts and money only. The names and
+              emails below are for you, and never leave Glufloat.
+            </p>
 
             {/* the people they brought, and the payouts */}
             <ReferredUsers partnerId={open.partner.id} />

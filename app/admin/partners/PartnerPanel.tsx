@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PROFESSIONS, naira } from "@/lib/partners";
+import PartnerReportButton from "./PartnerReportButton";
 
 type Row = {
   id: string;
@@ -380,6 +381,13 @@ export default function PartnerPanel({
                         >
                           Edit
                         </button>
+                        {/* A PDF they can be sent. Counts and money only. */}
+                        <PartnerReportButton
+                          partnerId={r.id}
+                          partnerName={r.name}
+                          query={query}
+                          small
+                        />
                         <button
                           onClick={() => togglePartner(r.id, !r.active)}
                           className="text-xs text-ink-soft underline hover:text-brand"

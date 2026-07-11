@@ -4,22 +4,14 @@ import { ADMIN_COOKIE, adminToken } from "@/lib/adminAuth";
 import { createAdminClient } from "@/lib/supabase/server";
 import AdminLogin from "./AdminLogin";
 import ExportButton, { type ExportData } from "./ExportButton";
-import RangeSelect from "./RangeSelect";
-import YearSelect from "./YearSelect";
+import PeriodPicker from "@/components/PeriodPicker";
+import { inPeriod, parsePeriod, type PeriodParams } from "@/lib/period";
 
 export const dynamic = "force-dynamic";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const naira = (kobo: number) => "N" + Math.round(kobo / 100).toLocaleString();
 const SUB_PRICE_KOBO = 150000; // N1,500
-
-const RANGES: Record<string, { days: number; label: string }> = {
-  day: { days: 1, label: "Today" },
-  week: { days: 7, label: "This week" },
-  month: { days: 30, label: "This month" },
-  quarter: { days: 90, label: "This quarter" },
-  year: { days: 365, label: "This year" },
-};
 
 function Tile({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
@@ -34,7 +26,7 @@ function Tile({ label, value, sub }: { label: string; value: string; sub?: strin
 export default async function AdminPage({
   searchParams,
 }: {
-  searchParams: Promise<{ range?: string; year?: string }>;
+  searchParams: Promise<PeriodParams>;
 }) {
   const c = await cookies();
   const authed =
@@ -42,14 +34,18 @@ export default async function AdminPage({
   if (!authed) return <AdminLogin />;
 
   const sp = await searchParams;
-  const range = sp.range && RANGES[sp.range] ? sp.range : "month";
-  const rangeStart = Date.now() - RANGES[range].days * DAY_MS;
+
+  /**
+   * A real window, not "the last 30 days". "This month" used to mean the 30 days
+   * up to right now, so you could never open June of last year, or compare one
+   * quarter with another. Now the period is chosen and named: June 2027 means
+   * June 2027, whenever you look at it.
+   */
+  const period = parsePeriod(sp);
 
   const nowD = new Date();
-  const curYear = nowD.getFullYear();
-  const year = Number(sp.year) || curYear;
-  const years: number[] = [];
-  for (let y = 2026; y <= curYear + 2; y++) years.push(y);
+  // The month-by-month table follows whichever year the period is pointing at.
+  const year = period.y;
 
   const admin = createAdminClient();
   const [{ data: profiles }, { data: subs }, { data: payments }] = await Promise.all([
@@ -69,13 +65,12 @@ export default async function AdminPage({
     s.current_period_end &&
     new Date(s.current_period_end).getTime() > now;
 
-  // Range-scoped
-  const signupsInRange = P.filter(
-    (p) => new Date(p.created_at).getTime() >= rangeStart,
-  ).length;
-  const revenueRange = Y.filter(
-    (p) => p.paid_at && new Date(p.paid_at).getTime() >= rangeStart,
-  ).reduce((n, p) => n + (p.amount || 0), 0);
+  // Inside the chosen window.
+  const signupsInRange = P.filter((p) => inPeriod(p.created_at, period)).length;
+  const revenueRange = Y.filter((p) => inPeriod(p.paid_at, period)).reduce(
+    (n, p) => n + (p.amount || 0),
+    0,
+  );
 
   // Lifetime
   const signups = P.length;
@@ -163,15 +158,15 @@ export default async function AdminPage({
     .slice(0, 12);
 
   const exportData: ExportData = {
-    range: RANGES[range].label,
+    range: period.label,
     stats: [
-      { label: `Signups (${RANGES[range].label.toLowerCase()})`, value: signupsInRange.toLocaleString() },
+      { label: `Signups (${period.label.toLowerCase()})`, value: signupsInRange.toLocaleString() },
       { label: "Signups (all time)", value: signups.toLocaleString() },
       { label: "Trials started", value: trialsStarted.toLocaleString() },
       { label: "Trial to paid", value: `${conversion}%` },
       { label: "Active subscribers", value: activeSubs.toLocaleString() },
       { label: "MRR", value: naira(mrr) },
-      { label: `Revenue (${RANGES[range].label.toLowerCase()})`, value: naira(revenueRange) },
+      { label: `Revenue (${period.label.toLowerCase()})`, value: naira(revenueRange) },
       { label: "Revenue (all time)", value: naira(revenue) },
       { label: "Churn (all time)", value: `${churnRateOverall}%` },
     ],
@@ -208,18 +203,16 @@ export default async function AdminPage({
           </div>
         </div>
 
-        {/* period dropdown */}
-        <div className="mt-6">
-          <RangeSelect range={range} year={year} />
-        </div>
+        {/* Any period, not just the one we happen to be in. */}
+        <PeriodPicker period={period} basePath="/admin" />
 
         <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Tile label={`Signups · ${RANGES[range].label}`} value={signupsInRange.toLocaleString()} sub={`${signups} all time`} />
+          <Tile label={`Signups · ${period.label}`} value={signupsInRange.toLocaleString()} sub={`${signups} all time`} />
           <Tile label="Active trials" value={P.filter((p) => p.trial_start && (now - new Date(p.trial_start).getTime()) / DAY_MS < 3).length.toLocaleString()} sub={`${trialsStarted} started ever`} />
           <Tile label="Trial → paid" value={`${conversion}%`} sub={`${everSubscribed} converted`} />
           <Tile label="Active subscribers" value={activeSubs.toLocaleString()} sub="paying right now" />
           <Tile label="MRR" value={naira(mrr)} sub="active subs × N1,500" />
-          <Tile label={`Revenue · ${RANGES[range].label}`} value={naira(revenueRange)} sub={`${naira(revenue)} all time`} />
+          <Tile label={`Revenue · ${period.label}`} value={naira(revenueRange)} sub={`${naira(revenue)} all time`} />
           <Tile label="Churn (all time)" value={`${churnRateOverall}%`} sub={`${churnedNow} lapsed`} />
           <Tile label="Total revenue" value={naira(revenue)} />
         </div>
@@ -227,9 +220,8 @@ export default async function AdminPage({
         {/* month on month */}
         <div className="mt-10 flex flex-wrap items-center justify-between gap-3">
           <h2 className="font-display text-lg font-bold text-ink">
-            Retention & churn, month on month
+            Retention &amp; churn, month on month &middot; {year}
           </h2>
-          <YearSelect range={range} year={year} years={years} />
         </div>
         <div className="mt-3 overflow-x-auto rounded-2xl border border-line bg-white">
           <table className="w-full text-left text-sm">
