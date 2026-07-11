@@ -81,12 +81,12 @@ const COOKED = {
   "ewa-agoyin": "Half a cup of cooked beans. Fill a tea cup halfway. Go easy on the oil (130g).",
   "fio-fio": "Half a cup of the cooked pottage. Fill a tea cup halfway (130g).",
   "beans-and-plantain": "Half a cup of cooked beans. Add two or three slices of plantain.",
-  "african-yam-bean": "Half a cup, cooked (about 130g).",
+  "african-yam-bean": "Half a cup of cooked beans (about 130g).",
   "baked-beans": "Half a cup of the tinned beans (about 130g).",
-  chickpeas: "Half a cup, cooked (about 130g).",
-  lentils: "Half a cup, cooked (about 130g).",
+  chickpeas: "Half a cup of cooked chickpeas (about 130g).",
+  lentils: "Half a cup of cooked lentils (about 130g).",
   "green-peas": "Half a cup of cooked peas (about 80g).",
-  "rice-and-beans": "Three-quarters of a cup, cooked. Use more beans than rice (about 130g).",
+  "rice-and-beans": "Three-quarters of a cup of the cooked rice and beans (about 130g). Use more beans than rice.",
   // Parboiled read "Half a cup, cooked (about 130g)", but 130g is the cooked-BEANS
   // anchor. Half a cup of cooked rice is 90g on every other rice card, so the same
   // words were promising a size 40g bigger than white rice. Parboiled is medium GI,
@@ -104,9 +104,22 @@ const COOKED = {
   adalu: "One small bowl. That is about three-quarters of a cup of the cooked dish (150g).",
   "unripe-plantain-porridge": "One bowl. That is about one cup of the cooked porridge (200g). Serve it with plenty of vegetables.",
   "dan-wake": "One small plate. That is about one cup of the cooked dumplings (150g).",
-  abacha: "One small plate. That is about one cup, as it is served (150g).",
-  gizdodo: "One small plate. That is about one cup, as it is served (150g). It is plantain with gizzard.",
+  abacha: "One small plate. That is about one cup of the dish as it is served (150g).",
+  gizdodo: "One small plate. That is about one cup of the dish as it is served (150g). It is plantain with gizzard.",
   "potato-salad": "Half a cup of the made salad (about 130g).",
+
+  // Pasta, couscous and noodles. Name the food after "of", never "a cup, cooked".
+  spaghetti: "Half a cup of cooked pasta (about 130g).",
+  macaroni: "Half a cup of cooked pasta (about 130g).",
+  couscous: "Half a cup of cooked couscous (about 120g).",
+  indomie:
+    "Best to skip this. If you do have it, only half a pack. That is about half a cup of the cooked noodles.",
+
+  // Vegetables measured in cups. Same rule: say what the cup is full of.
+  pumpkin: "Half a cup of cooked pumpkin (about 100g).",
+  mushroom: "One cup of cooked mushroom (about 100g).",
+  zucchini: "One cup of cooked zucchini (about 120g).",
+  turnip: "Half a cup of cooked turnip (about 80g).",
 
   // Corn and plantain.
   // Tightened from four or five slices (120g). Boiled unripe plantain measures
@@ -235,6 +248,38 @@ const TACKED_ON =
 for (const f of foods) {
   if (TACKED_ON.test(f.portionGuidance)) {
     problems.push(`${f.id}: comma carries a second instruction -> ${f.portionGuidance}`);
+  }
+}
+
+/**
+ * A comma may not be used to bolt the state of the food onto a measure.
+ *
+ * "Half a cup, cooked" is the exact thing rule 4 forbids, and it slipped past
+ * this file twelve times, because the raw-or-cooked audit above accepts ANY text
+ * containing the word "cooked" and the TACKED_ON list above is a hand-kept list
+ * of phrases that never happened to include ", cooked". The two audits let it
+ * through between them.
+ *
+ * Do not fix this by adding ", cooked" to the list above. Catch the SHAPE: a
+ * comma followed by a bare state word is always wrong. Say what the cup is full
+ * of instead, so the transition carries the meaning:
+ *
+ *   NO   Half a cup, cooked (about 130g).
+ *   YES  Half a cup of cooked beans (about 130g).
+ *
+ * The comma must follow a MEASURE for this to fire. A plain list of ways to cook
+ * a thing is not the error ("Grilled, boiled, or peppered" is fine), so anchoring
+ * on the measure word is what keeps this from crying wolf.
+ */
+const COMMA_STATE =
+  /\b(cup|cups|spoon|spoons|tablespoon|teaspoon|plate|bowl|pack|ball|slice|slices|piece|pieces|handful)\s*,\s*(cooked|raw|dry|uncooked|boiled|popped|tinned|canned|as it is served)\b/i;
+for (const f of foods) {
+  for (const field of ["portionGuidance", "pairingAdvice", "logicNote"]) {
+    if (f[field] && COMMA_STATE.test(f[field])) {
+      problems.push(
+        `${f.id}.${field}: a comma is explaining instead of a transition. Say "a cup OF cooked X" -> ${f[field]}`,
+      );
+    }
   }
 }
 
