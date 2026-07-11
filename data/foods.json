@@ -86,7 +86,7 @@
     "baseVerdict": "yellow",
     "portionGuidance": "One ball the size of your fist. That is about half a cup of the cooked swallow (100g).",
     "pairingAdvice": "Vegetable soup and fish, chicken, or an egg.",
-    "frequency": "About 2 times a week.",
+    "frequency": "About 3 times a week.",
     "logicNote": "Often a smarter swap than cassava or yam swallow.",
     "tags": [
       "local",
@@ -218,12 +218,12 @@
     "category": "swallow",
     "role": "starch",
     "carbLoad": "high",
-    "gi": "medium",
+    "gi": "high",
     "baseVerdict": "yellow",
     "portionGuidance": "One ball the size of your fist. That is about half a cup of the cooked swallow (100g).",
     "pairingAdvice": "Vegetable soup plus fish, chicken, or an egg.",
     "frequency": "About 2 times a week.",
-    "logicNote": "Corn-based. A touch friendlier than rice tuwo.",
+    "logicNote": "A corn swallow. It still pushes your sugar up fast, so keep to one fist-size ball (100g) and eat it with a green vegetable soup.",
     "tags": [
       "local",
       "northern"
@@ -346,7 +346,7 @@
     "baseVerdict": "yellow",
     "portionGuidance": "Three-quarters of a cup of cooked rice (about 120g).",
     "pairingAdvice": "Ayamase sauce and fish, chicken, or an egg.",
-    "frequency": "About 2 times a week.",
+    "frequency": "About 3 times a week.",
     "logicNote": "Less polished than white rice, so a slower rise. A good swap.",
     "tags": [
       "local",
@@ -367,7 +367,7 @@
     "baseVerdict": "yellow",
     "portionGuidance": "Three-quarters of a cup of cooked rice (about 120g).",
     "pairingAdvice": "Stew, vegetables, fish, chicken, or an egg.",
-    "frequency": "About 2 times a week.",
+    "frequency": "About 3 times a week.",
     "logicNote": "More of the rough part of food than white rice. The smarter default swap.",
     "tags": [
       "swap"
@@ -387,7 +387,7 @@
     "baseVerdict": "yellow",
     "portionGuidance": "Three-quarters of a cup of cooked rice (about 120g).",
     "pairingAdvice": "Vegetables and fish, chicken, or an egg.",
-    "frequency": "About 2 times a week.",
+    "frequency": "About 3 times a week.",
     "logicNote": "Raises sugar more slowly than ordinary white rice.",
     "tags": [
       "swap"
@@ -527,7 +527,7 @@
     "baseVerdict": "yellow",
     "portionGuidance": "One medium piece. That is about the size of your fist (120g).",
     "pairingAdvice": "Egg sauce or vegetables and fish, chicken, or an egg.",
-    "frequency": "About 2 times a week.",
+    "frequency": "About 3 times a week.",
     "logicNote": "More of the rough part of food than white yam. A good swap when boiled.",
     "tags": [
       "swap"
@@ -570,7 +570,7 @@
     "baseVerdict": "yellow",
     "portionGuidance": "Two small pieces. That is about the size of two eggs (120g).",
     "pairingAdvice": "Vegetables and fish, chicken, or an egg.",
-    "frequency": "About 2 times a week.",
+    "frequency": "About 3 times a week.",
     "logicNote": "Raises sugar more slowly than yam. A decent swap.",
     "tags": [
       "swap"
@@ -589,10 +589,10 @@
     "carbLoad": "medium",
     "gi": "high",
     "baseVerdict": "yellow",
-    "portionGuidance": "About four to five slices of boiled plantain. That is roughly one cup (120g).",
+    "portionGuidance": "About three slices of boiled plantain. That is roughly three-quarters of a cup (100g).",
     "pairingAdvice": "Vegetable sauce, egg, or fish.",
     "frequency": "About 2 times a week.",
-    "logicNote": "Unripe plantain is less sweet than ripe, but it still turns to sugar fast. Keep to the size shown below, and eat it with vegetables and fish, meat, or egg.",
+    "logicNote": "Many people think unripe plantain is safe because it is not sweet. It still pushes your sugar up fast. Keep to the size shown below, and always eat it with vegetables and fish, meat, or egg.",
     "tags": [
       "local",
       "friendly"
@@ -706,7 +706,7 @@
     "baseVerdict": "yellow",
     "portionGuidance": "One cup of popped corn (about 8g). Add no sugar.",
     "pairingAdvice": "",
-    "frequency": "About 2 times a week.",
+    "frequency": "About 3 times a week.",
     "logicNote": "Plain popcorn is fine in the size shown below. The caramel and sugar kinds are red.",
     "tags": [],
     "portionIcon": "cup"
@@ -725,7 +725,7 @@
     "baseVerdict": "yellow",
     "portionGuidance": "One small plate. That is about one cup, as it is served (150g).",
     "pairingAdvice": "Fish, ugba, garden egg, vegetables in it.",
-    "frequency": "About 2 times a week.",
+    "frequency": "About 3 times a week.",
     "logicNote": "Cassava base. The vegetables and fish help.",
     "tags": [
       "local",
@@ -1344,7 +1344,7 @@
     "baseVerdict": "yellow",
     "portionGuidance": "Four tablespoons of the dry cereal (about 40g). Add no sugar.",
     "pairingAdvice": "Plain milk, no sugar.",
-    "frequency": "About 2 times a week.",
+    "frequency": "About 3 times a week.",
     "logicNote": "Often eaten very sweet. That is the problem.",
     "tags": [
       "breakfast"
@@ -1387,7 +1387,7 @@
     "baseVerdict": "yellow",
     "portionGuidance": "Half of one medium cob.",
     "pairingAdvice": "Coconut, ube (pear), or groundnut.",
-    "frequency": "About 2 times a week.",
+    "frequency": "About 3 times a week.",
     "logicNote": "Pairing with pear or coconut slows the rise. Better than roasted.",
     "tags": [
       "local",
@@ -1409,7 +1409,7 @@
     "baseVerdict": "yellow",
     "portionGuidance": "Half of one medium cob.",
     "pairingAdvice": "Ube (African pear) or coconut.",
-    "frequency": "About 2 times a week.",
+    "frequency": "About 3 times a week.",
     "logicNote": "Roasting raises your sugar a little more than boiling does.",
     "tags": [
       "local",
@@ -3509,7 +3509,7 @@
     "baseVerdict": "yellow",
     "portionGuidance": "One small bowl. That is about three-quarters of a cup of the cooked dish (150g).",
     "pairingAdvice": "Plenty vegetables and fish in it.",
-    "frequency": "About 2 times a week.",
+    "frequency": "About 3 times a week.",
     "logicNote": "Grated water yam porridge. Load it with vegetables and body-building food.",
     "tags": [
       "local",
@@ -3646,7 +3646,7 @@
     "baseVerdict": "yellow",
     "portionGuidance": "One small bowl. That is about three-quarters of a cup of the cooked dish (150g).",
     "pairingAdvice": "Plenty vegetables and fish.",
-    "frequency": "About 2 times a week.",
+    "frequency": "About 3 times a week.",
     "logicNote": "Dried cocoyam cooked with beans. The beans help slow it.",
     "tags": [
       "local",
@@ -3739,7 +3739,7 @@
     "baseVerdict": "yellow",
     "portionGuidance": "One small bowl. That is about three-quarters of a cup of the cooked dish (150g).",
     "pairingAdvice": "Plenty vegetables, periwinkle, and fish in it.",
-    "frequency": "About 2 times a week.",
+    "frequency": "About 3 times a week.",
     "logicNote": "Grated cocoyam wrapped and cooked. Dense, so keep it moderate.",
     "tags": [
       "local",
@@ -4514,7 +4514,7 @@
     "gi": "high",
     "baseVerdict": "yellow",
     "portionGuidance": "Half a cup of cooked rice. That is about the size of a tennis ball (90g).",
-    "pairingAdvice": "It has vegetables and fish in it. Keep the rice to half a cup (about 130g).",
+    "pairingAdvice": "It has vegetables and fish in it. Keep the rice to half a cup (about 90g).",
     "frequency": "About 2 times a week.",
     "logicNote": "A one-pot rice with vegetables and fish, which helps, but a big plate of rice still pushes your sugar up fast.",
     "tags": [
@@ -4537,7 +4537,7 @@
     "baseVerdict": "yellow",
     "portionGuidance": "Two small pieces. That is about the size of two matchboxes (100g).",
     "pairingAdvice": "Vegetable sauce, egg, or fish stew.",
-    "frequency": "About 2 times a week.",
+    "frequency": "About 3 times a week.",
     "logicNote": "Dense starch like white yam. Keep the pieces few and pair with fish, meat, or egg.",
     "tags": [
       "local"
@@ -4558,7 +4558,7 @@
     "baseVerdict": "yellow",
     "portionGuidance": "One small plate. That is about one cup, as it is served (150g). It is plantain with gizzard.",
     "pairingAdvice": "The gizzard is the friendly part. Keep the fried plantain to about four slices.",
-    "frequency": "About 2 times a week.",
+    "frequency": "About 3 times a week.",
     "logicNote": "Gizzard is body-building food with very little starch. The fried ripe plantain is the sugar to watch.",
     "tags": [
       "local"
@@ -4717,7 +4717,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One big spoon. That is about half a cup. Go easy on the oil.",
-    "pairingAdvice": "Fish or meat. Eat it with half a cup of white rice (about 130g).",
+    "pairingAdvice": "Fish or meat. Eat it with half a cup of white rice (about 90g).",
     "frequency": "About 3 times a week.",
     "logicNote": "Palm-fruit sauce with little starch, but heavy with oil. The rice beside it is what to keep to the size shown below.",
     "tags": [
@@ -5476,7 +5476,7 @@
     "baseVerdict": "yellow",
     "portionGuidance": "One small piece (about 40g).",
     "pairingAdvice": "Alone.",
-    "frequency": "About 2 times a week.",
+    "frequency": "About 3 times a week.",
     "logicNote": "Cornmeal snack with oil and pepper. Still corn starch, so keep to the size shown below.",
     "tags": [
       "local",
@@ -5893,7 +5893,7 @@
     "baseVerdict": "yellow",
     "portionGuidance": "Half a cup, cooked (about 130g).",
     "pairingAdvice": "Add a tomato and vegetable sauce with fish, chicken, or meat.",
-    "frequency": "About 2 times a week.",
+    "frequency": "About 3 times a week.",
     "logicNote": "White pasta is gentler than white rice but still a starch. Keep to the size shown below and pair with fish, meat, or egg, and vegetables.",
     "tags": [],
     "portionIcon": "half-cup"
@@ -5912,7 +5912,7 @@
     "baseVerdict": "yellow",
     "portionGuidance": "Half a cup, cooked (about 130g).",
     "pairingAdvice": "Add a vegetable sauce with fish, chicken, or meat.",
-    "frequency": "About 2 times a week.",
+    "frequency": "About 3 times a week.",
     "logicNote": "White wheat flour, like other pasta. Keep to the size shown below and eat it with fish, meat, or egg, and vegetables.",
     "tags": [],
     "portionIcon": "half-cup"
@@ -6125,7 +6125,7 @@
     "baseVerdict": "yellow",
     "portionGuidance": "Half a cup of cooked corn (about 80g).",
     "pairingAdvice": "Mix two tablespoons into a vegetable salad or sauce, with fish, chicken, or an egg.",
-    "frequency": "About 2 times a week.",
+    "frequency": "About 3 times a week.",
     "logicNote": "Sweet corn has more sugar than fresh corn on the cob. Keep to the size shown below.",
     "tags": [],
     "portionIcon": "half-cup"
@@ -6419,12 +6419,12 @@
     "carbLoad": "high",
     "gi": "medium",
     "baseVerdict": "yellow",
-    "portionGuidance": "Half a cup, cooked (about 130g).",
+    "portionGuidance": "Three-quarters of a cup of cooked rice (about 120g).",
     "pairingAdvice": "Add a vegetable stew and fish, chicken, or meat.",
     "frequency": "About 3 times a week.",
     "logicNote": "Parboiled rice raises sugar a little slower than white rice, but it is still a starch. Keep to the size shown below.",
     "tags": [],
-    "portionIcon": "half-cup"
+    "portionIcon": "three-quarter-cup"
   },
   {
     "id": "baguette",
@@ -6480,7 +6480,7 @@
     "baseVerdict": "yellow",
     "portionGuidance": "One small bowl. That is about three-quarters of a cup of the cooked porridge (150g).",
     "pairingAdvice": "Add plenty of vegetables and fish or meat.",
-    "frequency": "About 2 times a week.",
+    "frequency": "About 3 times a week.",
     "logicNote": "Sweet potato is gentler than yam, but the porridge is still a starch. Load the vegetables and keep to the size shown below.",
     "tags": [],
     "portionIcon": "bowl"
@@ -7055,11 +7055,11 @@
     "category": "swallow",
     "role": "starch",
     "carbLoad": "high",
-    "gi": "medium",
+    "gi": "high",
     "baseVerdict": "yellow",
     "portionGuidance": "One ball the size of your fist. That is about half a cup of the cooked swallow (100g).",
     "pairingAdvice": "A green vegetable soup like miyan kuka or okra, plus fish or meat.",
-    "frequency": "About 3 times a week.",
+    "frequency": "About 2 times a week.",
     "logicNote": "A sorghum swallow. Whole grain, but still a starch, so keep to one fist-size ball (100g).",
     "tags": [
       "local",
@@ -7301,7 +7301,7 @@
     "baseVerdict": "yellow",
     "portionGuidance": "Half a cup of the made salad (about 130g).",
     "pairingAdvice": "Add a boiled egg and vegetables. Go easy on the mayonnaise.",
-    "frequency": "About 2 times a week.",
+    "frequency": "About 3 times a week.",
     "logicNote": "Boiled potato with mayonnaise. The potato is a starch, so keep to the size shown below.",
     "tags": [],
     "portionIcon": "half-cup"

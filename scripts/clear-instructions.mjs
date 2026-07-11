@@ -87,6 +87,11 @@ const COOKED = {
   lentils: "Half a cup, cooked (about 130g).",
   "green-peas": "Half a cup of cooked peas (about 80g).",
   "rice-and-beans": "Three-quarters of a cup, cooked. Use more beans than rice (about 130g).",
+  // Parboiled read "Half a cup, cooked (about 130g)", but 130g is the cooked-BEANS
+  // anchor. Half a cup of cooked rice is 90g on every other rice card, so the same
+  // words were promising a size 40g bigger than white rice. Parboiled is medium GI,
+  // the same band as brown, ofada and basmati, so it takes the same size they do.
+  "parboiled-rice": "Three-quarters of a cup of cooked rice (about 120g).",
 
   // Cooked dishes served in a bowl or on a plate.
   "yam-porridge": "One small bowl. That is about three-quarters of a cup of the cooked porridge (150g).",
@@ -104,7 +109,11 @@ const COOKED = {
   "potato-salad": "Half a cup of the made salad (about 130g).",
 
   // Corn and plantain.
-  "boiled-plantain-unripe": "About four to five slices of boiled plantain. That is roughly one cup (120g).",
+  // Tightened from four or five slices (120g). Boiled unripe plantain measures
+  // GI 89 and boiled ripe measures 96.5, only 7 points apart, so the old size
+  // let people eat half again as much of the unripe one just because it tastes
+  // less sweet. See docs/EVIDENCE.md section 3.
+  "boiled-plantain-unripe": "About three slices of boiled plantain. That is roughly three-quarters of a cup (100g).",
   "sweet-corn": "Half a cup of cooked corn (about 80g).",
   "popcorn-plain": "One cup of popped corn (about 8g). Add no sugar.",
 

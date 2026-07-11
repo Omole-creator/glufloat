@@ -153,13 +153,29 @@ function fromStored(f) {
 /**
  * The asymmetry rule, applied to frequency (docs/EVIDENCE.md section 1).
  *
- * The rule may make a food STRICTER, never looser. The stored number carries
- * dietitian judgement the rule cannot see: cow leg, kidney and canned sardine
- * are all green, sugar-free proteins, so the rule alone would call them daily
- * foods, ignoring the organ meat, the saturated fat and the salt. Bacon and
- * sausage are processed meat. Taking the stricter of the two keeps that
- * judgement and still fixes the real inconsistency: eba (measured GI 84) said
- * 3 times a week while pounded yam (GI 81) said 2.
+ * For most foods the rule may make a food STRICTER, never looser, because the
+ * stored number carries dietitian judgement the rule cannot see: cow leg, kidney
+ * and canned sardine are all green, sugar-free proteins, so the rule alone would
+ * call them daily foods, ignoring the organ meat, the saturated fat and the
+ * salt. Bacon and sausage are processed meat. Taking the stricter of the two
+ * keeps that judgement.
+ *
+ * STARCH IS THE EXCEPTION, and the exception is the point.
+ *
+ * On a starch there is no such hidden judgement. The only thing that decides how
+ * often you may eat eba is how fast it turns to sugar, and that is exactly what
+ * `gi` and `carbLoad` already say. What the stored number carried on a starch was
+ * not judgement, it was LEGACY PROSE ("a few times a week"), and keeping it is
+ * what produced two bugs of the same shape:
+ *
+ *   - eba (measured GI 84) said 3 times a week while pounded yam (GI 81) said 2.
+ *   - 23 of the 28 medium-GI starches said 2 while the rule said 3, so brown rice
+ *     and ofada, the better swaps, were capped HARDER than parboiled rice. The
+ *     card was telling people to eat less of the healthier rice.
+ *
+ * So for `role: "starch"` the rule wins outright. Every other role keeps
+ * `stricter(rule, stored)`. Do not widen this exception to protein or dairy: the
+ * salt and organ-meat judgement lives there and the rule is blind to it.
  */
 function derive(f) {
   if (HYPO.has(f.id)) return { tier: 1 };
@@ -170,6 +186,8 @@ function derive(f) {
   if (DAILY_BUT_LIMITED.has(f.id)) return { tier: 4 };
 
   const rule = fromRule(f);
+  if (f.role === "starch") return rule;
+
   const stored = fromStored(f);
   return stored ? stricter(rule, stored) : rule;
 }
@@ -212,6 +230,23 @@ const loose = foods.filter(
 );
 if (loose.length) {
   console.error(`these say "every day" but carry sugar or starch: ${loose.map((f) => f.id).join(", ")}`);
+  process.exit(1);
+}
+
+// The starch exception in derive() lets the rule loosen a starch. Bound what it
+// is allowed to loosen TO, so the exception can never drift into saying a fast
+// food is fine. A high-GI starch is capped at 2 a week and a red one at monthly,
+// whatever the rule computes.
+const tooOften = foods.filter((f) => {
+  if (f.role !== "starch") return false;
+  const n = f.frequency.match(/About (\d+) times a week/);
+  if (f.baseVerdict === "red" && n) return true;
+  return f.gi === "high" && n && Number(n[1]) > 2;
+});
+if (tooOften.length) {
+  console.error(
+    `these turn to sugar fast but say too often: ${tooOften.map((f) => `${f.id} (${f.gi}/${f.baseVerdict}: ${f.frequency})`).join(", ")}`,
+  );
   process.exit(1);
 }
 

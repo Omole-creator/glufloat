@@ -31,8 +31,12 @@ const CORRECTIONS = {
     gi: "high",
     baseVerdict: "yellow",
     logicNote:
-      "Unripe plantain is less sweet than ripe, but it still turns to sugar fast. Keep to the size shown below, and eat it with vegetables and fish, meat, or egg.",
-    why: "boiled unripe plantain measured GI 89 (SW Nigeria). 'low GI / green' was not defensible.",
+      "Many people think unripe plantain is safe because it is not sweet. It still pushes your sugar up fast. Keep to the size shown below, and always eat it with vegetables and fish, meat, or egg.",
+    // The matching portion tightening (three slices / 100g, down from four or
+    // five / 120g) does NOT live here. `portionGuidance` has exactly one owner,
+    // scripts/clear-instructions.mjs, which runs LAST and would silently stomp
+    // anything this script wrote. One field, one owner.
+    why: "boiled unripe plantain measured GI 89 (SW Nigeria, n=80, paper read in full). 'low GI / green' was not defensible. Secondary summaries putting unripe plantain at 45-52 are measuring plantain FLOUR (amala), a different food: drying changes the starch. Do not loosen this on such a summary.",
   },
   "unripe-plantain-porridge": {
     gi: "high",
@@ -61,6 +65,19 @@ const CORRECTIONS = {
     gi: "high",
     why: "commercial finely-milled wholemeal bread measures GI 70-80, and Nigerian 'whole wheat' bread is finely milled. Lower values (61-65) exist for coarse stone-ground loaves we do not sell here. Conservative reading; see EVIDENCE.md.",
   },
+  "tuwo-masara": {
+    gi: "high",
+    // The old line, "Corn-based. A touch friendlier than rice tuwo", cannot
+    // stand next to a high band. Tuwo shinkafa measures 95.8 and this measures
+    // 86.8, so it is lower, but 86.8 is not friendly to anyone.
+    logicNote:
+      "A corn swallow. It still pushes your sugar up fast, so keep to one fist-size ball (100g) and eat it with a green vegetable soup.",
+    why: "tuwo masara measured GI 86.8. Was medium, which sat below tuwo shinkafa (95.8) and tuwo dawa (85.3) for no reason.",
+  },
+  "tuwo-dawa": {
+    gi: "high",
+    why: "tuwo dawa (sorghum swallow) measured GI 85.3. Whole grain, but still high. Drops to 2 times a week under the high-GI rule.",
+  },
 };
 
 const foods = JSON.parse(readFileSync(FILE, "utf8"));
@@ -86,6 +103,7 @@ for (const [id, c] of Object.entries(CORRECTIONS)) {
     process.exit(1);
   }
 
+  // Not `portionGuidance`: clear-instructions.mjs owns that field and runs last.
   for (const key of ["gi", "baseVerdict", "logicNote"]) {
     if (c[key] && f[key] !== c[key]) {
       changed.push(`${id}.${key}: ${f[key]} -> ${c[key]}`);

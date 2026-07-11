@@ -42,7 +42,7 @@ const ICONS = {
   "fried-rice": "half-cup",
   "coconut-rice": "half-cup",
   "native-rice": "half-cup",
-  "parboiled-rice": "half-cup",
+  "parboiled-rice": "three-quarter-cup",
   "ofada-rice": "three-quarter-cup",
   "brown-rice": "three-quarter-cup",
   "basmati-rice": "three-quarter-cup",

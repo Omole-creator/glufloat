@@ -5,7 +5,28 @@ It exists so a dietitian can sign off on what the app tells people, and so the
 next person to touch `data/foods.json` knows which numbers rest on measurement
 and which rest on judgement.
 
-Last reviewed: 2026-07-09. Reviewed by: _(pending dietitian sign-off)_
+Last reviewed: 2026-07-11. Reviewed by: _(pending dietitian sign-off)_
+
+**Top three questions for the dietitian**, in order: (1) is `parboiled-rice`
+medium or high — see §3; (2) confirm the weekly counts in §1, which are still a
+house rule; (3) set a gram anchor for cooked pasta — see the end of §4.
+
+---
+
+## 0. A note on the July 2026 research synthesis
+
+A research document on the glycaemic index of Nigerian foods was supplied by the
+founder in July 2026 and is the source of the changes marked *(2026-07)* below.
+
+**It is a secondary AI-generated synthesis. Its bracketed citations are not
+resolvable from the text, so nothing in it is a primary source.** It was
+therefore used **only to tighten, never to loosen** — see the asymmetry rule in
+§1, and the six refusals in §3. Where it conflicts with a paper we read in full,
+the paper wins. It repeats, in particular, the plantain flour-versus-boiled
+mix-up this file already documents.
+
+Its genuinely new and useful contributions were the **mixed-meal measurements**
+(§2) and an independent route to the **weekly frequency numbers** (§1).
 
 ---
 
@@ -17,6 +38,15 @@ carbohydrate amounts per meal. So the weekly count on each card is **not** a
 research finding. It is a house rule, derived deterministically from measured
 glycaemic index and the food's role, and it needs professional sign-off rather
 than a citation.
+
+**It does, however, now have outside convergence (2026-07).** Reasoning from a
+different starting point — a 21-meal week (3 meals × 7 days), allocated so that
+low-GI food dominates — the synthesis lands on **high GI ≤ 2 meals a week,
+medium GI 3–5, low GI the majority**. That is what `capFor()` already produces
+(high 2, medium/low 3, legume 4, daily for sugar-free green food). Two unrelated
+routes reaching the same numbers is worth recording, and it means our "2 times a
+week" for eba is not arbitrary. **This is convergence, not a citation.** It does
+not remove the need for sign-off.
 
 The rule, in full (`scripts/frequency-numbers.mjs`):
 
@@ -85,6 +115,29 @@ Nigeria study (n=80) measured exactly this, and the effect is real and large:
 higher than when eaten as mixed meals." Note the size of the effect varies by
 what is added: a protein (egg) moved yam 10 points; a stew moved plantain 1.
 The app should not promise that any pairing rescues any starch.
+
+**Nigerian mixed meals, as actually eaten (2026-07).** These are the numbers that
+most directly support the product, because they are the real plate, not a lab
+single food:
+
+| Meal | The swallow alone | Eaten with the soup |
+|---|---|---|
+| Eba + efo-egusi | 99 | **74** |
+| Amala + efo riro | 97 | **75** |
+| Fufu + okra or ewedu | ~92 | **78–80** |
+| Boiled rice, in a mixed meal | 93 | **74–78** |
+
+The soup moves a swallow by roughly 20 GI points. That is large, it is measured,
+and it is the whole mechanic. **But every one of those meals is still high GI
+(≥70).** So the soup is a real improvement and not a rescue, which is exactly why
+the engine also requires a small size before it will show green.
+
+**The warning case, and it matters.** *Beans porridge + soaked garri* measures
+**96**, although beans alone is 40–56 (low). A low-GI food does not protect a
+plate; the worst thing on the plate sets it. `verdictEngine.ts` already catches
+this one: soaked garri is a high-GI **drink**, so the sweet-drink override hard-
+locks the meal RED and returns early. Verified by driving the engine, not by
+reading it.
 
 ### Legumes — low, and this is well supported
 
@@ -158,6 +211,34 @@ rule requires two independent sources; the second candidate is paywalled and
 unverified. Medium already sits between the two readings. Revisit when the
 60-subject paper can be read.
 
+### Refused loosenings from the 2026-07 synthesis
+
+The synthesis asks for six foods to be marked **safer** than the app says. **All
+six are refused**, on the asymmetry rule: making a food look better needs two
+independent sources, and a secondary summary is not one. They are listed here so
+that the next person does not "discover" them and quietly apply them.
+
+| Food | Synthesis says | We keep | Why we hold |
+|---|---|---|---|
+| `boiled-plantain-unripe` | GI ~45, low | **high** | We measured 89 (n=80, **full paper read**). The 45–52 band is plantain **FLOUR** (amala), a different food. Drying changes the starch. This is the single most repeated error about plantain. |
+| `boiled-plantain-ripe` | ~54 | **high** | Same study: 96.5. Ripe is not gentler than unripe. |
+| `sweet-potato` | 41, low | **medium** | Already refused above. Still no Nigerian in-vivo measurement. Needs a genuine second source. |
+| `brown-rice`, `ofada-rice` | ~50, low | **medium** | One secondary source. They do gain: both now say 3 times a week (§4), so the better swap finally reads better than white rice. |
+| `agbalumo` | 28, low | **medium** | One secondary source. |
+| `cashew-fruit` | 31.6, low | **medium** | One secondary source. |
+
+**`parboiled-rice` is the reverse case, and it is the top open question.** The
+synthesis calls it **high**; we hold **medium** on a measured pilot trial in
+healthy and T2D adults (GI 50–60). The synthesis supplies no counter-*number*,
+only a general classification, and parboiled is the rice most Nigerians actually
+eat: marking it high would drop it to 2 a week and seed staple meals RED. **Held
+at medium. This is the first thing to put in front of the dietitian.**
+
+Also noted, not acted on: palm wine measures **11** (we say medium; the frequency
+is pinned to monthly by the alcohol rule regardless, so the band is not doing any
+work), and plain popcorn's literature spans **55–89**, which straddles two bands.
+Both left as they are.
+
 ---
 
 ## 4. Corrections applied to `data/foods.json`
@@ -191,6 +272,61 @@ fat, salt and processing that the rule cannot see. Taking the stricter of the
 two keeps that judgement, and still fixes the eba/pounded-yam inconsistency.
 
 Net effect: **11 foods tightened, 0 loosened**, plus the two condiments below.
+
+### 2026-07 corrections
+
+**Two GI tightenings**, the only two the synthesis supports in the direction the
+asymmetry rule permits:
+
+| Food | Was | Now | Why |
+|---|---|---|---|
+| `tuwo-masara` | gi medium | gi **high** | Measured **86.8**. Its old description ("a touch friendlier than rice tuwo") could not stand next to that, and was rewritten. |
+| `tuwo-dawa` | gi medium | gi **high** | Measured **85.3**. Whole grain, but still high. Drops 3 → 2 a week on its own. |
+
+Both now seed a meal RED, as every high-GI non-green starch does. Tuwo masara +
+efo riro + fish moved from GREEN to YELLOW, and reaches green only at a small
+size. That is correct: 86.8 is not a friendly number.
+
+**The medium-GI band was incoherent, and it is now fixed.** `capFor()` said a
+medium-GI starch may be eaten 3 times a week, but **23 of the 28 medium-GI
+starches said 2**, because `stricter(rule, stored)` preserved whatever legacy
+prose was stored. The visible damage: **brown rice and ofada, the better swaps,
+were capped HARDER than parboiled rice** — the card was telling people to eat
+less of the healthier rice. This is the eba-versus-pounded-yam bug again.
+
+`derive()` in `frequency-numbers.mjs` now takes **the rule alone for
+`role: "starch"`**, and keeps `stricter(rule, stored)` for every other role.
+The scoping is the whole point and must not be widened: on a starch, `gi` and
+`carbLoad` are the only things that decide, so the stored number was only prose.
+On a **protein or dairy** the stored number carries dietitian judgement the rule
+is blind to — organ meat, saturated fat, salt, processing — which is why cow leg,
+kidney, sardine, bacon and sausage must keep it.
+
+Effect: **22 medium-GI starches move 2 → 3 a week** (sweet potato, brown rice,
+ofada, basmati, cocoyam, water yam, ikokore, achicha, ekpang nkukwo, sweet potato
+porridge, spaghetti, macaroni, abacha, gizdodo, popcorn, boiled and roasted and
+tinned corn, aadun, golden morn, amala plantain-flour, potato salad), and
+tuwo dawa moves **3 → 2**. No high-GI starch moved. **No meat, dairy, fruit,
+legume or drink moved at all.** A new assertion in the script bounds the
+exception: a high-GI starch may never say more than 2 a week, and a red one never
+a weekly number at all.
+
+**A gram-anchor bug, found while checking the above.** `130g` is the cooked-BEANS
+anchor. It had been pasted onto rice, where the anchor is `90g` for half a cup:
+
+- `parboiled-rice` said *half a cup, cooked (about 130g)* — 40g more than white
+  rice for the same words. It is medium GI, the same band as brown, ofada and
+  basmati, so it now takes the same size they do: *three-quarters of a cup
+  (120g)*, and its `portionIcon` moved from `half-cup` to `three-quarter-cup`.
+- `ofe-akwu` told people to eat it with *half a cup of white rice (about 130g)*,
+  while the White Rice card itself says **90g**. Corrected to 90g.
+- `native-rice` said *half a cup (about 130g)* in its pairing while its own
+  portion field said **90g**. It was contradicting itself. Corrected to 90g.
+
+Still open: `spaghetti` and `macaroni` say *half a cup, cooked (about 130g)*.
+Half a cup of cooked pasta is nearer **70–80g**; 130g is closer to a full cup.
+Left alone because no house anchor for pasta exists to correct it against.
+**A dietitian should set the pasta anchor.**
 
 | Food | Was | Now |
 |---|---|---|

@@ -35,7 +35,9 @@ const pairingAdvice = {
   "egg-sauce": "A fist-size piece of boiled yam (100g), two slices of plantain (80g), or one small boiled potato.",
   omelette: "One thin slice of bread (30g), or a fist-size piece of yam (100g).",
   adalu: "Fish, or two slices of plantain (80g). Keep the corn to about two tablespoons.",
-  "ofe-akwu": "Fish or meat. Eat it with half a cup of white rice (about 130g).",
+  // 130g was the cooked-beans anchor. Half a cup of cooked rice is 90g, which is
+  // what the White Rice card itself says.
+  "ofe-akwu": "Fish or meat. Eat it with half a cup of white rice (about 90g).",
   strawberry: "About 10 nuts, or one small cup of plain yogurt (150g).",
   "golden-melon": "About 10 nuts to slow the sugar.",
   smoothie: "One small glass (200ml) with a meal, not on its own. Better to eat the whole fruit.",
@@ -78,7 +80,8 @@ const pairingAdvice = {
   ojojo: "Pepper sauce. Pair it with vegetables.",
   "owho-soup": "Fish or bush meat, with a fist-size ball of swallow (100g) if any.",
   "beef-regular": "Vegetables. Trim the visible fat.",
-  "native-rice": "It has vegetables and fish in it. Keep the rice to half a cup (about 130g).",
+  // Its own portion field says half a cup is 90g. The card was contradicting itself.
+  "native-rice": "It has vegetables and fish in it. Keep the rice to half a cup (about 90g).",
   gizdodo: "The gizzard is the friendly part. Keep the fried plantain to about four slices.",
   "beans-and-plantain": "Use boiled or roasted plantain, not fried. Add fish.",
   "isi-ewu": "Utazi and onions. Eat it on its own.",
