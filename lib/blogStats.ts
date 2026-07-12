@@ -5,7 +5,8 @@ import { createAdminClient } from "@/lib/supabase/server";
  *
  * The funnel, in order, and each step is a real thing that happened:
  *
- *   opened   somebody opened the post          (unique people, not page loads)
+ *   opened   somebody opened the post          (one device, counted once, even
+ *                                              if they come back ten times)
  *   read     they reached the bottom of it     (so the post held them)
  *   clicked  they clicked the free-trial button
  *   signedUp they made an account, and THIS post is the one that first brought
@@ -24,7 +25,6 @@ import { createAdminClient } from "@/lib/supabase/server";
 
 export type PostStats = {
   slug: string;
-  views: number;      // raw page opens, including repeat visits
   opened: number;     // unique people
   read: number;       // unique people who reached the bottom
   clicked: number;    // unique people who clicked the trial button
@@ -42,7 +42,6 @@ export type BlogStats = {
 
 const empty = (slug: string): PostStats => ({
   slug,
-  views: 0,
   opened: 0,
   read: 0,
   clicked: 0,
@@ -66,12 +65,13 @@ export async function getBlogStats(): Promise<BlogStats> {
     return byPost.get(slug)!;
   };
 
-  // Unique people per post per event. A visitor who opens a post five times is
-  // one person who opened it, and five views.
+  // Unique people per post per event. Counting rows would count one person's
+  // re-reads as new readers, so a visitor is only ever added to a set. The
+  // tracker no longer sends a repeat at all, and this holds the line for the
+  // rows that were written before it stopped.
   const uniq = new Map<string, Set<string>>(); // `${slug}|${event}` -> visitors
   for (const e of events ?? []) {
-    const s = get(e.slug);
-    if (e.event === "view") s.views += 1;
+    get(e.slug);
     const key = `${e.slug}|${e.event}`;
     if (!uniq.has(key)) uniq.set(key, new Set());
     uniq.get(key)!.add(e.visitor);
@@ -111,7 +111,6 @@ export async function getBlogStats(): Promise<BlogStats> {
 
   const totals = empty("all posts");
   for (const s of byPost.values()) {
-    totals.views += s.views;
     totals.opened += s.opened;   // people can appear under two posts; close enough
     totals.read += s.read;
     totals.clicked += s.clicked;

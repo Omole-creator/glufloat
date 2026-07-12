@@ -11,11 +11,28 @@ import { rememberSourcePost, trackPost } from "@/lib/attribution";
  *   read  they reached the bottom, so they actually read it
  *   cta   they clicked the free-trial button
  *
- * The "view" fires once per browser session per post. Without that guard, React
- * Strict Mode in development double-fires it, and a reader who navigates back to
- * the post counts twice, which would quietly inflate every number on the admin
- * screen.
+ * **Each one is sent at most ONCE per device, per post, for good.** One person
+ * who opens the same post on ten different days is one person who read it, not
+ * ten. The mark is kept in localStorage, so it survives closing the tab, closing
+ * the browser, and coming back next week.
+ *
+ * It used to be sessionStorage, which only guarded a single browsing session:
+ * every fresh visit from the same phone wrote another row, and the raw count on
+ * the admin screen quietly grew with re-reads. If storage is blocked (private
+ * mode), the event is sent and the same-person guard is lost. That is the right
+ * way round: a number slightly too high beats a post that looks like nobody read
+ * it.
  */
+function once(key: string, send: () => void): void {
+  try {
+    if (localStorage.getItem(key)) return;
+    localStorage.setItem(key, "1");
+  } catch {
+    /* storage blocked: send it anyway rather than lose the reader entirely */
+  }
+  send();
+}
+
 export default function BlogTracker({ slug }: { slug: string }) {
   const endRef = useRef<HTMLDivElement>(null);
 
@@ -23,31 +40,16 @@ export default function BlogTracker({ slug }: { slug: string }) {
     // This post is now the one that brought them here, if none did before.
     rememberSourcePost(slug);
 
-    const seenKey = `gf_seen_${slug}`;
-    try {
-      if (!sessionStorage.getItem(seenKey)) {
-        sessionStorage.setItem(seenKey, "1");
-        trackPost(slug, "view");
-      }
-    } catch {
-      trackPost(slug, "view");
-    }
+    once(`gf_seen_${slug}`, () => trackPost(slug, "view"));
 
     // "Read" = the bottom of the article came into view.
     const target = endRef.current;
     if (!target) return;
 
-    const readKey = `gf_read_${slug}`;
     const io = new IntersectionObserver(
       (entries) => {
         if (!entries[0]?.isIntersecting) return;
-        try {
-          if (sessionStorage.getItem(readKey)) return;
-          sessionStorage.setItem(readKey, "1");
-        } catch {
-          /* ignore */
-        }
-        trackPost(slug, "read");
+        once(`gf_read_${slug}`, () => trackPost(slug, "read"));
         io.disconnect();
       },
       { threshold: 0.5 },
@@ -59,7 +61,7 @@ export default function BlogTracker({ slug }: { slug: string }) {
   return <div ref={endRef} aria-hidden className="h-px w-full" />;
 }
 
-/** Wraps the free-trial button on a post, so a click is counted. */
+/** Wraps the free-trial button on a post, so a click is counted. Once per device. */
 export function CtaTracker({
   slug,
   children,
@@ -68,7 +70,10 @@ export function CtaTracker({
   children: React.ReactNode;
 }) {
   return (
-    <span onClick={() => trackPost(slug, "cta")} className="contents">
+    <span
+      onClick={() => once(`gf_cta_${slug}`, () => trackPost(slug, "cta"))}
+      className="contents"
+    >
       {children}
     </span>
   );

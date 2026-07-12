@@ -40,7 +40,7 @@ export default async function BlogStats({ posts }: { posts: Post[] }) {
         <Tile
           label="People who opened a post"
           value={totals.opened.toLocaleString()}
-          sub={`${totals.views.toLocaleString()} opens in total`}
+          sub="One person, counted once, however often they come back"
         />
         <Tile
           label="Read to the end"
@@ -80,7 +80,7 @@ export default async function BlogStats({ posts }: { posts: Post[] }) {
             <tbody>
               {rows.map(({ post, s }) => {
                 const v = s ?? {
-                  opened: 0, views: 0, read: 0, clicked: 0, signedUp: 0, trials: 0, paid: 0,
+                  opened: 0, read: 0, clicked: 0, signedUp: 0, trials: 0, paid: 0,
                 };
                 return (
                   <tr key={post.id} className="border-b border-line last:border-0">
@@ -94,12 +94,7 @@ export default async function BlogStats({ posts }: { posts: Post[] }) {
                         {post.title}
                       </a>
                     </td>
-                    <td className={td}>
-                      {v.opened.toLocaleString()}
-                      <span className="ml-1 text-xs text-ink-soft">
-                        ({v.views.toLocaleString()} opens)
-                      </span>
-                    </td>
+                    <td className={td}>{v.opened.toLocaleString()}</td>
                     <td className={td}>
                       {v.read.toLocaleString()}
                       <span className="ml-1 text-xs text-ink-soft">

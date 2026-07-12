@@ -153,21 +153,8 @@ export default async function PostPage({ params }: Props) {
               </Link>
             </nav>
 
-            {post.tags.length > 0 && (
-              <div className="mt-5 flex flex-wrap gap-2">
-                {post.tags.slice(0, 3).map((t) => (
-                  <span
-                    key={t}
-                    className="rounded-full bg-brand/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-brand"
-                  >
-                    {t}
-                  </span>
-                ))}
-              </div>
-            )}
-
             {/* Same face, weight and tracking as the hero headline on the landing page. */}
-            <h1 className="mt-4 font-display text-[2.1rem] font-bold leading-[1.12] tracking-tight text-ink sm:text-5xl">
+            <h1 className="mt-5 font-display text-[2.1rem] font-bold leading-[1.12] tracking-tight text-ink sm:text-5xl">
               {post.title}
             </h1>
 
@@ -263,21 +250,11 @@ export default async function PostPage({ params }: Props) {
               </div>
             </div>
 
-            {/* Every health page carries the same disclaimer the rest of the site does. */}
-            <p className="mt-6 rounded-2xl border border-line bg-white p-5 text-sm leading-relaxed text-ink-soft">
-              GluFloat provides food guidance for people living with diabetes. It
-              is not a substitute for medical advice and does not diagnose, treat,
-              cure, or prevent any medical condition. Always consult your doctor
-              or other qualified healthcare professional about your individual
-              care.{" "}
-              <Link
-                href="/disclaimer"
-                className="text-brand underline underline-offset-2"
-              >
-                Read our full disclaimer
-              </Link>
-              .
-            </p>
+            {/*
+              No disclaimer box here: the same words sit in the footer of every
+              page, this one included. Saying it twice on one screen only teaches
+              people to skip it.
+            */}
 
             {/*
               The read-to-the-end marker sits here, just before the call to action.
@@ -294,11 +271,12 @@ export default async function PostPage({ params }: Props) {
               />
               <div className="relative">
                 <h2 className="font-display text-2xl font-bold sm:text-3xl">
-                  Check your own food before you eat it.
+                  Check your food before you eat it.
                 </h2>
-                <p className="mt-2 max-w-lg text-white/85">
-                  Green, yellow, or red on 1,400+ Nigerian foods, and the fix that
-                  turns your meal green. Free for 3 days. No card required.
+                <p className="mt-3 max-w-xl text-white/85">
+                  Search from 1,400+ Nigerian foods and meals to instantly see
+                  whether it&apos;s green, yellow, or red for your diabetes and
+                  discover simple changes that can turn it into a better choice.
                 </p>
                 <CtaTracker slug={post.slug}>
                   <Link
@@ -309,6 +287,9 @@ export default async function PostPage({ params }: Props) {
                     <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </Link>
                 </CtaTracker>
+                <p className="mt-4 text-sm text-white/80">
+                  Free for 3 days. No card required.
+                </p>
               </div>
             </div>
 
