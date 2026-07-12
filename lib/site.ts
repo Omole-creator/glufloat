@@ -14,7 +14,7 @@ export const SITE_URL = (
 export const SITE_NAME = "Glufloat";
 
 export const SITE_DESCRIPTION =
-  "Clear answers on Nigerian food for people living with diabetes. Green, yellow, or red, and always the fix.";
+  "Clear answers on Nigerian foods for people living with diabetes. Every meal gets a green, yellow, or red rating, plus simple ways to improve it.";
 
 /** Absolute URL for a path. `abs("/blog")` -> "https://www.glufloat.com/blog". */
 export const abs = (path: string) =>

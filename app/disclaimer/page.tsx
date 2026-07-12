@@ -10,76 +10,74 @@ export default function DisclaimerPage() {
     <LegalShell
       eyebrow="The serious part"
       title="Medical Disclaimer"
-      updated="Please read this before you use Glufloat."
+      updated="Please read this before using GluFloat."
     >
       <p>
-        Glufloat gives you general information about food. It is here to help
-        you make easier choices about what to eat. It is not medical advice.
+        GluFloat provides guidance on food choices for people living with
+        diabetes. It is designed to help you make informed decisions about what
+        to eat. It is not a substitute for medical advice.
       </p>
 
-      <h2>What Glufloat does</h2>
+      <h2>What GluFloat Does</h2>
       <ul>
         <li>
-          It shows you whether a food or meal is a good, fair, or poor choice
-          for a person living with diabetes, whether Type 1 or Type 2.
+          Shows you whether a food or meal is a good, fair, or poor choice for
+          someone living with Type 1 or Type 2 diabetes.
         </li>
         <li>
-          It suggests how to change a meal, like the portion size or what to
-          eat with it, so it is gentler on your blood sugar.
+          Shows you how to improve a meal, such as adjusting the portion size or
+          pairing it with other foods to reduce its impact on your blood sugar.
         </li>
         <li>
-          All of this is general guidance based on common knowledge about food
-          and blood sugar.
+          Provides guidance based on established knowledge of nutrition and
+          blood sugar management.
         </li>
       </ul>
 
-      <h2>What Glufloat does NOT do</h2>
+      <h2>What GluFloat Does Not Do</h2>
       <ul>
-        <li>It does not diagnose diabetes or any other condition.</li>
+        <li>It does not diagnose diabetes or any other medical condition.</li>
         <li>It does not treat, cure, or reverse diabetes.</li>
         <li>
-          It does not replace your doctor, your nurse, your pharmacist, or
-          your dietitian.
+          It does not replace your doctor, nurse, pharmacist, or dietitian.
         </li>
-        <li>It does not tell you to start, stop, or change any medicine.</li>
         <li>
-          It does not know your personal medical history, your test results,
-          or your other health conditions.
+          It does not tell you to start, stop, or change any medication.
+        </li>
+        <li>
+          It does not have access to your personal medical history, laboratory
+          results, or other health conditions.
         </li>
       </ul>
 
-      <h2>Always do this</h2>
+      <h2>Always Do This</h2>
       <ul>
         <li>
-          Talk to your doctor or a qualified health worker before you make big
-          changes to how you eat.
+          Continue taking your medication exactly as prescribed by your doctor
+          unless your doctor advises otherwise.
         </li>
         <li>
-          Keep taking your medicine exactly as your doctor told you, unless
-          your doctor says otherwise.
+          Continue checking your blood sugar as recommended by your healthcare
+          provider.
         </li>
-        <li>Keep checking your blood sugar the way your doctor advised.</li>
         <li>
-          If you feel unwell, dizzy, very weak, or your blood sugar is very
-          high or very low, treat it as an emergency and get medical help at
-          once. Do not wait to check the app.
+          If you feel unwell, dizzy, very weak, or if your blood sugar is
+          extremely high or low, treat it as a medical emergency and seek
+          immediate medical attention. Do not wait to check the app.
         </li>
       </ul>
 
-      <h2>Our promise and our limit</h2>
+      <h2>Our Promise and Our Limits</h2>
       <p>
-        We work hard to keep the food information correct and useful. Even
-        so, food affects every
-        person differently, and we cannot promise the guidance will be right
-        for your own body. You use Glufloat at your own choice. To the extent
-        the law allows, GluFloat is not responsible for any loss or harm
-        that comes from relying on the app instead of professional medical
-        care.
+        We work hard to ensure the information in GluFloat is accurate,
+        practical, and useful. However, every person&apos;s body responds to
+        food differently, so we cannot guarantee that our guidance will be
+        appropriate for everyone.
       </p>
       <p>
-        By tapping &ldquo;I understand&rdquo; in the app you agree that you
-        have read this and that you will use Glufloat as general food
-        information only.
+        To understand how a meal affects your body, check your blood sugar about
+        2 hours after eating. This will help you confirm whether the meal and
+        portion worked well for your diabetes.
       </p>
     </LegalShell>
   );

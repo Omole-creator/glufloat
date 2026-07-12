@@ -10,7 +10,7 @@
  *
  * Run this after ANY edit to lib/markdown.ts.
  */
-import { renderMarkdown, readingMinutes } from "../lib/markdown";
+import { extractHeadings, renderMarkdown, readingMinutes } from "../lib/markdown";
 
 let fail = 0;
 const t = (name: string, ok: boolean, got?: string) => {
@@ -73,6 +73,43 @@ t("code block stays literal", renderMarkdown("```\n<b>hi</b>\n```").includes("&l
 t("a greater-than in prose survives", renderMarkdown("5 > 3 is true").includes("5 &gt; 3"));
 t("reading time is never zero", readingMinutes("hi") === 1);
 t("ampersand escaped", renderMarkdown("salt & pepper").includes("&amp;"));
+
+// Regression: a writer who leaves a blank line between the points makes each one
+// its own list, and every list used to restart at "1." -> 1, 1, 1, 1 on the live
+// page. The number they typed is now carried through as the list's start.
+t(
+  "a numbered point standing alone keeps its number",
+  renderMarkdown("1. one\n\n2. two\n\n3. three").includes('start="2"') &&
+    renderMarkdown("1. one\n\n2. two\n\n3. three").includes('start="3"'),
+);
+t(
+  "a list that starts at 1 needs no start attribute",
+  !renderMarkdown("1. one\n2. two").includes("start="),
+);
+// An unterminated code fence is the one path that used to emit post text raw.
+t(
+  "an unclosed code fence is still escaped",
+  renderMarkdown("```\n<script>alert(1)</script>").includes("&lt;script&gt;"),
+);
+
+const toc = extractHeadings("# Title\n\n## How much eba?\n\n### **Bold** bit\n\n```\n## not a heading\n```");
+t("contents lists the h2 and h3 only", toc.length === 2);
+t("contents id matches the rendered heading id", toc[0].id === "how-much-eba");
+t("contents strips the markdown marks", toc[1].text === "Bold bit");
+
+// A real post asks the same question twice, and two headings then carried the
+// same id: React complained about the duplicate key, and every jump link for the
+// second one landed on the first.
+const twice = "## Is eba safe?\n\ntext\n\n## Is eba safe?\n\nmore";
+t("a repeated heading gets its own id", renderMarkdown(twice).includes('id="is-eba-safe-2"'));
+t(
+  "the contents list agrees with the ids in the article",
+  extractHeadings(twice).map((h) => h.id).join() === "is-eba-safe,is-eba-safe-2",
+);
+t(
+  "an h1 with the same words still shifts the h2's id",
+  extractHeadings("# Eba\n\n## Eba")[0].id === "eba-2",
+);
 
 console.log("");
 console.log(fail === 0 ? "ALL MARKDOWN TESTS PASS" : `${fail} FAILED`);

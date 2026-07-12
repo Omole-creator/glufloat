@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
 import { motion, type Variants } from "framer-motion";
 import Link from "next/link";
 import { ArrowRight, ShieldCheck } from "lucide-react";
@@ -20,39 +19,6 @@ const item: Variants = {
     transition: { duration: 0.65, ease: [0.22, 1, 0.36, 1] },
   },
 };
-
-function RotatingWord() {
-  const words = useMemo(() => ["a food", "a meal", "a snack"], []);
-  const [i, setI] = useState(0);
-
-  useEffect(() => {
-    const t = setTimeout(
-      () => setI((n) => (n === words.length - 1 ? 0 : n + 1)),
-      1900,
-    );
-    return () => clearTimeout(t);
-  }, [i, words]);
-
-  return (
-    <span className="relative inline-grid overflow-hidden pb-[0.08em] align-bottom text-leaf-deep">
-      {words.map((w, idx) => (
-        <motion.span
-          key={w}
-          className="col-start-1 row-start-1 whitespace-nowrap"
-          initial={false}
-          animate={
-            i === idx
-              ? { y: "0%", opacity: 1 }
-              : { y: i > idx ? "-115%" : "115%", opacity: 0 }
-          }
-          transition={{ type: "spring", stiffness: 60, damping: 13 }}
-        >
-          {w}
-        </motion.span>
-      ))}
-    </span>
-  );
-}
 
 function Hero() {
   return (
@@ -88,17 +54,17 @@ function Hero() {
           variants={item}
           className="mt-6 font-display text-[1.9rem] font-bold leading-[1.12] tracking-tight text-ink sm:text-4xl lg:text-[2.9rem]"
         >
-          Know if <RotatingWord /> is right for your diabetes,
-          <br className="hidden sm:block" />{" "}
+          Check your food{" "}
           <span className="text-brand">before you eat it.</span>
         </motion.h1>
 
         <motion.p
           variants={item}
-          className="mt-5 max-w-xl text-balance font-display text-lg leading-relaxed text-ink-soft"
+          className="mt-5 max-w-2xl text-balance font-display text-lg leading-relaxed text-ink-soft"
         >
-          Check any Nigerian food before you cook or buy it. In seconds you see
-          if it is safe for your sugar, and the simple way to make it better.
+          Search from 1,400+ Nigerian foods and meals to instantly see whether
+          it&apos;s green, yellow, or red for your diabetes and discover simple
+          changes that can turn it into a better choice.
         </motion.p>
 
         <motion.div variants={item} className="mt-8">
@@ -110,8 +76,7 @@ function Hero() {
             <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
           </Link>
           <p className="mt-4 text-sm text-ink-soft">
-            3 days free. You do not need a card. After that it is N1,500 a
-            month, and you can stop any time.
+            Free for 3 days. No card required.
           </p>
           <p className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-leaf/10 px-3.5 py-1.5 text-sm font-semibold text-leaf-deep">
             <ShieldCheck className="h-4 w-4" />

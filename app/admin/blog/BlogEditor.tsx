@@ -53,8 +53,30 @@ export default function BlogEditor({ initial }: { initial: Post[] }) {
   const [preview, setPreview] = useState(false);
   const bodyRef = useRef<HTMLTextAreaElement>(null);
 
+  /**
+   * Where the writer last had the cursor.
+   *
+   * This must be remembered, not read off the textarea at the moment a button
+   * is pressed. Opening a prompt() for a link, or the file picker for a
+   * picture, takes the focus away first, and the textarea can come back
+   * reporting a cursor at 0 - which is how a link or a picture ended up jumping
+   * to the very top of the post instead of landing where it was put. Null means
+   * the writer has not put the cursor anywhere yet, and then new text goes to
+   * the end, never to the beginning.
+   */
+  const selRef = useRef<[number, number] | null>(null);
+  const remember = (ta: HTMLTextAreaElement) => {
+    selRef.current = [ta.selectionStart, ta.selectionEnd];
+  };
+
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) =>
     setD((prev) => ({ ...prev, [k]: v }));
+
+  /** Load a post (or a blank one) into the editor, cursor forgotten with it. */
+  const load = (draft: Draft) => {
+    selRef.current = null;
+    setD(draft);
+  };
 
   /* ---- the toolbar -------------------------------------------------------
    * Nobody should have to remember what ## or [](). means. These buttons type
@@ -64,18 +86,22 @@ export default function BlogEditor({ initial }: { initial: Post[] }) {
    */
 
   /** Replace the selected text, then re-focus and re-select the useful part. */
-  function apply(fn: (selected: string) => { text: string; select?: [number, number] }) {
-    const ta = bodyRef.current;
-    if (!ta) return;
-    const start = ta.selectionStart;
-    const end = ta.selectionEnd;
-    const selected = d.body_md.slice(start, end);
-    const { text, select } = fn(selected);
-    const next = d.body_md.slice(0, start) + text + d.body_md.slice(end);
+  function apply(
+    fn: (selected: string, start: number) => { text: string; select?: [number, number] },
+  ) {
+    const body = d.body_md;
+    const [start, end] = selRef.current ?? [body.length, body.length];
+    const selected = body.slice(start, end);
+    const { text, select } = fn(selected, start);
+    const next = body.slice(0, start) + text + body.slice(end);
     set("body_md", next);
+
+    const [a, b] = select ?? [text.length, text.length];
+    selRef.current = [start + a, start + b];
     requestAnimationFrame(() => {
+      const ta = bodyRef.current;
+      if (!ta) return;
       ta.focus();
-      const [a, b] = select ?? [start + text.length, start + text.length];
       ta.setSelectionRange(start + a, start + b);
     });
   }
@@ -90,19 +116,25 @@ export default function BlogEditor({ initial }: { initial: Post[] }) {
       };
     });
 
-  /** Headings, bullets, numbers, quotes: put a marker at the start of the line. */
-  const linePrefix = (prefix: string, placeholder: string) =>
-    apply((sel) => {
+  /**
+   * Headings, bullets, numbers, quotes: put a marker at the start of the line.
+   * `mark` gets the line's position, so a numbered list counts 1, 2, 3, 4
+   * instead of writing "1." four times.
+   */
+  const linePrefix = (
+    mark: string | ((i: number) => string),
+    placeholder: string,
+  ) =>
+    apply((sel, start) => {
+      const at = (i: number) => (typeof mark === "string" ? mark : mark(i));
       const lines = (sel || placeholder).split("\n");
-      const text = lines.map((l) => `${prefix}${l}`).join("\n");
+      const text = lines.map((l, i) => `${at(i)}${l}`).join("\n");
       // A block needs a blank line before it or it joins the paragraph above.
-      const lead = d.body_md.slice(0, bodyRef.current!.selectionStart).endsWith("\n\n") ||
-        bodyRef.current!.selectionStart === 0
-        ? ""
-        : "\n\n";
+      const before = d.body_md.slice(0, start);
+      const lead = start === 0 || before.endsWith("\n\n") ? "" : "\n\n";
       return {
         text: lead + text,
-        select: [lead.length + prefix.length, lead.length + text.length],
+        select: [lead.length + at(0).length, lead.length + text.length],
       };
     });
 
@@ -117,7 +149,7 @@ export default function BlogEditor({ initial }: { initial: Post[] }) {
     });
   }
 
-  /** Upload a picture and drop it into the body where the cursor is. */
+  /** Upload a picture and drop it into the body where the cursor was left. */
   async function addImage(file: File) {
     setBusy(true);
     setError("");
@@ -213,7 +245,7 @@ export default function BlogEditor({ initial }: { initial: Post[] }) {
       body: JSON.stringify({ id }),
     });
     setBusy(false);
-    if (d.id === id) setD(BLANK);
+    if (d.id === id) load(BLANK);
     await refresh();
     router.refresh();
   }
@@ -228,7 +260,7 @@ export default function BlogEditor({ initial }: { initial: Post[] }) {
           </h2>
           {d.id && (
             <button
-              onClick={() => setD(BLANK)}
+              onClick={() => load(BLANK)}
               className="text-sm text-ink-soft underline hover:text-brand"
             >
               Start a new one
@@ -416,7 +448,11 @@ export default function BlogEditor({ initial }: { initial: Post[] }) {
                   <button type="button" className={tool} onClick={() => linePrefix("- ", "A point")}>
                     Bullets
                   </button>
-                  <button type="button" className={tool} onClick={() => linePrefix("1. ", "First thing")}>
+                  <button
+                    type="button"
+                    className={tool}
+                    onClick={() => linePrefix((i) => `${i + 1}. `, "First thing")}
+                  >
                     Numbers
                   </button>
                   <button type="button" className={tool} onClick={() => linePrefix("> ", "Something worth pulling out")}>
@@ -447,7 +483,16 @@ export default function BlogEditor({ initial }: { initial: Post[] }) {
                   rows={20}
                   className={`${input} mt-0 rounded-t-none text-base leading-relaxed`}
                   value={d.body_md}
-                  onChange={(e) => set("body_md", e.target.value)}
+                  onChange={(e) => {
+                    set("body_md", e.target.value);
+                    remember(e.currentTarget);
+                  }}
+                  // Every way the cursor can move is recorded, so a toolbar
+                  // button always knows where the writer is standing.
+                  onSelect={(e) => remember(e.currentTarget)}
+                  onKeyUp={(e) => remember(e.currentTarget)}
+                  onClick={(e) => remember(e.currentTarget)}
+                  onBlur={(e) => remember(e.currentTarget)}
                   placeholder={
                     "Write here the way you would talk.\n\nSelect some words, then press a button above to make them a subhead, bold, a link, or a list."
                   }
@@ -516,7 +561,7 @@ export default function BlogEditor({ initial }: { initial: Post[] }) {
             >
               <button
                 onClick={() => {
-                  setD(toDraft(p));
+                  load(toDraft(p));
                   setPreview(false);
                   setNote("");
                   setError("");

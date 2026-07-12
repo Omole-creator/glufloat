@@ -2,11 +2,15 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ArrowRight, CalendarDays, Clock } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import BlogTracker, { CtaTracker } from "@/components/BlogTracker";
+import PostToc from "@/components/PostToc";
+import ReadingProgress from "@/components/ReadingProgress";
+import ShareButtons from "@/components/ShareButtons";
 import { getPostBySlug, getPublishedPosts, longDate, relatedTo } from "@/lib/blog";
-import { readingMinutes, renderMarkdown } from "@/lib/markdown";
+import { extractHeadings, readingMinutes, renderMarkdown } from "@/lib/markdown";
 import { abs, SITE_NAME } from "@/lib/site";
 
 export const revalidate = 3600;
@@ -67,6 +71,9 @@ export default async function PostPage({ params }: Props) {
   const related = relatedTo(post, all);
   const url = abs(`/blog/${post.slug}`);
   const html = renderMarkdown(post.body_md);
+  const headings = extractHeadings(post.body_md);
+  const minutes = readingMinutes(post.body_md);
+  const initial = post.author.trim().charAt(0).toUpperCase() || "G";
 
   /**
    * BlogPosting structured data. `reviewedBy` is only included when a reviewer
@@ -120,136 +127,228 @@ export default async function PostPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbs) }}
       />
       <Navbar />
+      <ReadingProgress targetId="post-body" />
+
       <main className="flex-1 bg-white">
-        {/* pt clears the fixed 64px Navbar. */}
-        <article className="mx-auto max-w-3xl px-5 pb-20 pt-28 sm:pt-32">
-          {/* Visible breadcrumb, matching the structured data above. */}
-          <nav aria-label="Breadcrumb" className="text-sm text-ink-soft/70">
-            <Link href="/" className="hover:text-brand">
-              Home
-            </Link>
-            <span className="px-2">/</span>
-            <Link href="/blog" className="hover:text-brand">
-              Blog
-            </Link>
-          </nav>
+        {/* ---- the headline block. pt clears the fixed 64px Navbar. ---- */}
+        <header className="relative overflow-hidden bg-gradient-to-b from-mist via-mist/50 to-white pb-10 pt-28 sm:pt-32">
+          <div
+            className="dots pointer-events-none absolute inset-x-0 top-0 h-72 opacity-50"
+            aria-hidden
+          />
+          <div
+            className="pointer-events-none absolute -right-24 top-4 h-72 w-72 rounded-full bg-leaf-bright/10 blur-3xl"
+            aria-hidden
+          />
 
-          <h1 className="mt-5 font-display text-4xl font-bold leading-tight text-ink sm:text-5xl">
-            {post.title}
-          </h1>
+          <div className="relative mx-auto max-w-3xl px-5">
+            {/* Visible breadcrumb, matching the structured data above. */}
+            <nav aria-label="Breadcrumb" className="text-sm text-ink-soft/70">
+              <Link href="/" className="hover:text-brand">
+                Home
+              </Link>
+              <span className="px-2">/</span>
+              <Link href="/blog" className="hover:text-brand">
+                Blog
+              </Link>
+            </nav>
 
-          <p className="mt-5 text-xl leading-relaxed text-ink-soft">{post.excerpt}</p>
+            {post.tags.length > 0 && (
+              <div className="mt-5 flex flex-wrap gap-2">
+                {post.tags.slice(0, 3).map((t) => (
+                  <span
+                    key={t}
+                    className="rounded-full bg-brand/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-brand"
+                  >
+                    {t}
+                  </span>
+                ))}
+              </div>
+            )}
 
-          <div className="mt-6 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-ink-soft/80">
-            <span>By {post.author}</span>
-            <span aria-hidden>&middot;</span>
-            <time dateTime={post.published_at ?? undefined}>
-              {longDate(post.published_at)}
-            </time>
-            <span aria-hidden>&middot;</span>
-            <span>{readingMinutes(post.body_md)} min read</span>
-          </div>
+            {/* Same face, weight and tracking as the hero headline on the landing page. */}
+            <h1 className="mt-4 font-display text-[2.1rem] font-bold leading-[1.12] tracking-tight text-ink sm:text-5xl">
+              {post.title}
+            </h1>
 
-          {/*
-            The reviewer line. It renders only when a reviewer is set, so a post
-            can go live before anyone has checked it, and it simply stays quiet.
-            When it IS set, it is the strongest trust signal on the page.
-          */}
-          {post.reviewed_by && (
-            <p className="mt-4 inline-flex items-center gap-2 rounded-full border border-green/30 bg-green/10 px-4 py-1.5 text-sm font-semibold text-ink">
-              <span aria-hidden>&#10003;</span>
-              Checked by {post.reviewed_by}
-              {post.reviewed_at && <span className="font-normal text-ink-soft">on {longDate(post.reviewed_at)}</span>}
+            <p className="mt-5 text-lg leading-relaxed text-ink-soft sm:text-xl">
+              {post.excerpt}
             </p>
-          )}
 
-          {post.cover_url && (
-            <div className="relative mt-9 aspect-[16/9] w-full overflow-hidden rounded-2xl bg-mist">
+            <div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-3 text-sm text-ink-soft">
+              <span className="flex items-center gap-2.5">
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-brand to-leaf font-display text-sm font-bold text-white">
+                  {initial}
+                </span>
+                <span className="font-semibold text-ink">{post.author}</span>
+              </span>
+              <span className="flex items-center gap-1.5">
+                <CalendarDays className="h-4 w-4 text-ink-soft/60" />
+                <time dateTime={post.published_at ?? undefined}>
+                  {longDate(post.published_at)}
+                </time>
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Clock className="h-4 w-4 text-ink-soft/60" />
+                {minutes} min read
+              </span>
+            </div>
+
+            {/*
+              The reviewer line. It renders only when a reviewer is set, so a post
+              can go live before anyone has checked it, and it simply stays quiet.
+              When it IS set, it is the strongest trust signal on the page.
+            */}
+            {post.reviewed_by && (
+              <p className="mt-5 inline-flex items-center gap-2 rounded-full border border-leaf/30 bg-mint px-4 py-1.5 text-sm font-semibold text-ink">
+                <span aria-hidden className="text-leaf-deep">&#10003;</span>
+                Checked by {post.reviewed_by}
+                {post.reviewed_at && (
+                  <span className="font-normal text-ink-soft">
+                    on {longDate(post.reviewed_at)}
+                  </span>
+                )}
+              </p>
+            )}
+
+            <div className="mt-7 border-t border-line pt-5">
+              <ShareButtons url={url} title={post.title} size="sm" />
+            </div>
+          </div>
+        </header>
+
+        {post.cover_url && (
+          <div className="mx-auto max-w-5xl px-5">
+            <div className="relative aspect-[16/9] w-full overflow-hidden rounded-3xl bg-mist shadow-[0_30px_60px_-30px_rgba(12,42,71,0.45)] ring-1 ring-line">
               <Image
                 src={post.cover_url}
                 alt={post.cover_alt ?? post.title}
                 fill
                 priority
-                sizes="(max-width: 768px) 100vw, 768px"
+                sizes="(max-width: 1024px) 100vw, 1024px"
                 className="object-cover"
               />
             </div>
-          )}
-
-          <div
-            className="mt-4"
-            dangerouslySetInnerHTML={{ __html: html }}
-          />
-
-          {post.tags.length > 0 && (
-            <div className="mt-12 flex flex-wrap gap-2">
-              {post.tags.map((t) => (
-                <span
-                  key={t}
-                  className="rounded-full bg-mist px-3 py-1 text-sm text-ink-soft"
-                >
-                  {t}
-                </span>
-              ))}
-            </div>
-          )}
-
-          {/* Every health page carries the same disclaimer the rest of the site does. */}
-          <p className="mt-10 rounded-2xl border border-line bg-mist p-5 text-sm text-ink-soft">
-            Glufloat gives general food information for people living with diabetes.
-            It is not medical advice, and it does not diagnose, treat, or cure any
-            condition. Always talk to your doctor about your own care. Read the{" "}
-            <Link href="/disclaimer" className="text-brand underline underline-offset-2">
-              full disclaimer
-            </Link>
-            .
-          </p>
-
-          {/*
-            The read-to-the-end marker sits here, just before the call to action.
-            So "read" on the admin screen means they genuinely got to the bottom,
-            not that they bounced off the headline.
-          */}
-          <BlogTracker slug={post.slug} />
-
-          {/* The funnel. The blog is public; the product is not. */}
-          <div className="mt-10 rounded-2xl bg-brand p-7 text-white sm:p-9">
-            <h2 className="font-display text-2xl font-bold sm:text-3xl">
-              Check your own food before you eat it.
-            </h2>
-            <p className="mt-2 text-white/85">
-              Green, yellow, or red on 1,400+ Nigerian foods, and the fix that
-              turns your meal green. Free for 3 days. No card.
-            </p>
-            <CtaTracker slug={post.slug}>
-              <Link
-                href="/trial"
-                className="mt-5 inline-block rounded-full bg-white px-7 py-3 font-display font-bold text-brand transition-transform hover:scale-105"
-              >
-                Start my 3-day free trial
-              </Link>
-            </CtaTracker>
           </div>
+        )}
 
-          {related.length > 0 && (
-            <section className="mt-14">
-              <h2 className="font-display text-2xl font-bold text-ink">Read next</h2>
-              <ul className="mt-5 space-y-3">
-                {related.map((r) => (
-                  <li key={r.id}>
-                    <Link
-                      href={`/blog/${r.slug}`}
-                      className="block rounded-xl border border-line p-4 transition-colors hover:border-brand hover:bg-mist"
-                    >
-                      <span className="font-display font-bold text-ink">{r.title}</span>
-                      <span className="mt-1 block text-sm text-ink-soft">{r.excerpt}</span>
-                    </Link>
-                  </li>
+        {/* ---- the article, with the contents list beside it on a big screen ---- */}
+        <div className="mx-auto grid max-w-6xl justify-center gap-10 px-5 pb-20 pt-8 lg:grid-cols-[minmax(0,44rem)_15rem] lg:gap-14">
+          <article id="post-body">
+            <div dangerouslySetInnerHTML={{ __html: html }} />
+
+            {post.tags.length > 0 && (
+              <div className="mt-12 flex flex-wrap gap-2">
+                {post.tags.map((t) => (
+                  <span
+                    key={t}
+                    className="rounded-full bg-mist px-3 py-1 text-sm text-ink-soft"
+                  >
+                    {t}
+                  </span>
                 ))}
-              </ul>
-            </section>
+              </div>
+            )}
+
+            {/* Share again at the end, where somebody who found it useful is. */}
+            <div className="mt-10 rounded-2xl border border-line bg-mist/60 p-5">
+              <p className="font-display text-base font-bold text-ink">
+                Know someone who needs this?
+              </p>
+              <p className="mt-1 text-sm text-ink-soft">
+                Send it to them. It is free to read.
+              </p>
+              <div className="mt-4">
+                <ShareButtons url={url} title={post.title} />
+              </div>
+            </div>
+
+            {/* Every health page carries the same disclaimer the rest of the site does. */}
+            <p className="mt-6 rounded-2xl border border-line bg-white p-5 text-sm leading-relaxed text-ink-soft">
+              GluFloat provides food guidance for people living with diabetes. It
+              is not a substitute for medical advice and does not diagnose, treat,
+              cure, or prevent any medical condition. Always consult your doctor
+              or other qualified healthcare professional about your individual
+              care.{" "}
+              <Link
+                href="/disclaimer"
+                className="text-brand underline underline-offset-2"
+              >
+                Read our full disclaimer
+              </Link>
+              .
+            </p>
+
+            {/*
+              The read-to-the-end marker sits here, just before the call to action.
+              So "read" on the admin screen means they genuinely got to the bottom,
+              not that they bounced off the headline.
+            */}
+            <BlogTracker slug={post.slug} />
+
+            {/* The funnel. The blog is public; the product is not. */}
+            <div className="relative mt-10 overflow-hidden rounded-3xl bg-gradient-to-br from-brand to-brand-deep p-7 text-white shadow-[0_24px_50px_-24px_rgba(27,95,170,0.8)] sm:p-9">
+              <div
+                className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-leaf-bright/25 blur-3xl"
+                aria-hidden
+              />
+              <div className="relative">
+                <h2 className="font-display text-2xl font-bold sm:text-3xl">
+                  Check your own food before you eat it.
+                </h2>
+                <p className="mt-2 max-w-lg text-white/85">
+                  Green, yellow, or red on 1,400+ Nigerian foods, and the fix that
+                  turns your meal green. Free for 3 days. No card required.
+                </p>
+                <CtaTracker slug={post.slug}>
+                  <Link
+                    href="/trial"
+                    className="group mt-6 inline-flex items-center gap-2 rounded-full bg-white px-7 py-3.5 font-display font-bold text-brand transition-transform hover:scale-105"
+                  >
+                    Start my 3-day free trial
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </Link>
+                </CtaTracker>
+              </div>
+            </div>
+
+            {related.length > 0 && (
+              <section className="mt-14">
+                <h2 className="font-display text-2xl font-bold text-ink">
+                  Read next
+                </h2>
+                <ul className="mt-5 grid gap-4 sm:grid-cols-2">
+                  {related.map((r) => (
+                    <li key={r.id}>
+                      <Link
+                        href={`/blog/${r.slug}`}
+                        className="group flex h-full flex-col rounded-2xl border border-line bg-white p-5 transition-all hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-lg"
+                      >
+                        <span className="font-display font-bold leading-snug text-ink group-hover:text-brand">
+                          {r.title}
+                        </span>
+                        <span className="mt-2 line-clamp-2 flex-1 text-sm text-ink-soft">
+                          {r.excerpt}
+                        </span>
+                        <span className="mt-3 text-xs font-semibold text-ink-soft/70">
+                          {readingMinutes(r.body_md)} min read
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+          </article>
+
+          {headings.length > 1 && (
+            <aside className="hidden lg:block">
+              <div className="sticky top-24">
+                <PostToc headings={headings} />
+              </div>
+            </aside>
           )}
-        </article>
+        </div>
       </main>
       <Footer />
     </>
