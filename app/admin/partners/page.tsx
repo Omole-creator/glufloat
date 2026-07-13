@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import Link from "next/link";
 import { ADMIN_COOKIE, adminToken } from "@/lib/adminAuth";
 import AdminLogin from "../AdminLogin";
+import AdminShell from "../AdminShell";
 import PartnerPanel from "./PartnerPanel";
 import ReferredUsers from "./ReferredUsers";
 import PeriodPicker from "@/components/PeriodPicker";
@@ -50,25 +51,13 @@ export default async function PartnersPage({
   );
 
   return (
-    <main className="min-h-screen bg-mist px-5 py-10">
-      <div className="mx-auto max-w-6xl">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="font-display text-3xl font-bold text-ink">Partner dashboard</h1>
-            <p className="mt-1 text-ink-soft">
-              Dietitians, nurses, pharmacists and doctors who send you people.
-              They earn {Math.round(COMMISSION_RATE * 100)}% of every payment,
-              for up to {COMMISSION_CAP} payments per person they bring.
-            </p>
-          </div>
-          <Link
-            href="/admin"
-            className="rounded-full border border-line bg-white px-5 py-2 font-display font-bold text-ink hover:border-brand"
-          >
-            Back to dashboard
-          </Link>
-        </div>
-
+    <AdminShell
+      title="Partners"
+      intro={`Dietitians, nurses, pharmacists and doctors who send you people. They earn ${Math.round(
+        COMMISSION_RATE * 100,
+      )}% of every payment, for up to ${COMMISSION_CAP} payments per person they bring.`}
+    >
+      <>
         <PeriodPicker period={period} basePath="/admin/partners" keep={["partner"]} />
 
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
@@ -176,7 +165,7 @@ export default async function PartnersPage({
             double-counted, and nothing is hidden from it.
           </p>
         )}
-      </div>
-    </main>
+      </>
+    </AdminShell>
   );
 }

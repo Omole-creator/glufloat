@@ -1,8 +1,8 @@
 import { cookies } from "next/headers";
-import Link from "next/link";
 import { ADMIN_COOKIE, adminToken } from "@/lib/adminAuth";
 import { createAdminClient } from "@/lib/supabase/server";
 import AdminLogin from "../AdminLogin";
+import AdminShell from "../AdminShell";
 import UsersPanel, { type UserRow } from "./UsersPanel";
 import { isUserType } from "@/lib/userType";
 
@@ -74,24 +74,11 @@ export default async function UsersPage() {
     counts.all ? `${Math.round((n / counts.all) * 100)}% of everyone` : "";
 
   return (
-    <main className="min-h-screen bg-mist px-5 py-10">
-      <div className="mx-auto max-w-6xl">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="font-display text-3xl font-bold text-ink">Users</h1>
-            <p className="mt-1 text-ink-soft">
-              Everyone who has ever signed up. Nobody is hidden and nobody drops
-              off this list.
-            </p>
-          </div>
-          <Link
-            href="/admin"
-            className="rounded-full border border-line bg-white px-5 py-2 font-display font-bold text-ink hover:border-brand"
-          >
-            Back to dashboard
-          </Link>
-        </div>
-
+    <AdminShell
+      title="Users"
+      intro="Everyone who has ever signed up. Nobody is hidden and nobody drops off this list."
+    >
+      <>
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Tile label="Everyone" value={counts.all.toLocaleString()} sub="all accounts" />
           <Tile
@@ -129,7 +116,7 @@ export default async function UsersPage() {
           only here, for your numbers and for sending a mail to one group. Every
           new sign-up must pick one.
         </p>
-      </div>
-    </main>
+      </>
+    </AdminShell>
   );
 }

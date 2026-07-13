@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ADMIN_COOKIE, adminToken } from "@/lib/adminAuth";
 import { createAdminClient } from "@/lib/supabase/server";
 import AdminLogin from "./AdminLogin";
+import AdminShell from "./AdminShell";
 import ExportButton, { type ExportData } from "./ExportButton";
 import PeriodPicker from "@/components/PeriodPicker";
 import { inPeriod, parsePeriod, type PeriodParams } from "@/lib/period";
@@ -235,41 +236,12 @@ export default async function AdminPage({
   };
 
   return (
-    <main className="min-h-screen bg-mist px-4 py-10 sm:px-8">
-      <div className="mx-auto max-w-5xl">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="font-display text-2xl font-bold text-ink">
-              Glufloat — the numbers
-            </h1>
-            <p className="mt-1 text-sm text-ink-soft">
-              Live from your database. The PDF holds totals only, no personal
-              data.
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <Link
-              href="/admin/users"
-              className="rounded-full border border-line bg-white px-5 py-2 font-display text-sm font-bold text-ink transition-colors hover:border-brand"
-            >
-              Users
-            </Link>
-            <Link
-              href="/admin/partners"
-              className="rounded-full border border-line bg-white px-5 py-2 font-display text-sm font-bold text-ink transition-colors hover:border-brand"
-            >
-              Partner dashboard
-            </Link>
-            <Link
-              href="/admin/blog"
-              className="rounded-full border border-line bg-white px-5 py-2 font-display text-sm font-bold text-ink transition-colors hover:border-brand"
-            >
-              Write a blog post
-            </Link>
-            <ExportButton data={exportData} />
-          </div>
-        </div>
-
+    <AdminShell
+      title="The numbers"
+      intro="Live from your database. The PDF holds totals only, no personal data."
+      actions={<ExportButton data={exportData} />}
+    >
+      <>
         {/* Any period, not just the one we happen to be in. */}
         <PeriodPicker period={period} basePath="/admin" />
 
@@ -480,7 +452,7 @@ export default async function AdminPage({
             </tbody>
           </table>
         </div>
-      </div>
-    </main>
+      </>
+    </AdminShell>
   );
 }
