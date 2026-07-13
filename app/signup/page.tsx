@@ -8,12 +8,14 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { createClient } from "@/lib/supabase/client";
 import { partnerCode, sourcePost } from "@/lib/attribution";
+import { SIGNUP_CHOICES, type UserType } from "@/lib/userType";
 
 export default function SignUpPage() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [userType, setUserType] = useState<UserType | "">("");
   const [showPw, setShowPw] = useState(false);
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
@@ -21,6 +23,13 @@ export default function SignUpPage() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (busy) return;
+    // A health worker looking at the app and a person living with diabetes are
+    // two different numbers. Mixed together they tell you nothing, so this one
+    // is not optional.
+    if (!userType) {
+      setErr("Please tap which one you are.");
+      return;
+    }
     setBusy(true);
     setErr("");
     const supabase = createClient();
@@ -36,6 +45,7 @@ export default function SignUpPage() {
           name: name.trim(),
           source_post: sourcePost(),
           partner_code: partnerCode(),
+          user_type: userType,
         },
       },
     });
@@ -63,6 +73,37 @@ export default function SignUpPage() {
           </p>
 
           <form onSubmit={submit} className="mt-6 space-y-3">
+            {/*
+              Three big tap targets, not a drop-down. Most of these people are on
+              a phone, and many are older. A list you must open, scroll and pick
+              from is the part they abandon.
+            */}
+            <fieldset>
+              <legend className="mb-2 font-display text-sm font-bold text-ink">
+                What are you?
+              </legend>
+              <div className="space-y-2">
+                {SIGNUP_CHOICES.map((c) => (
+                  <button
+                    key={c.value}
+                    type="button"
+                    onClick={() => setUserType(c.value)}
+                    aria-pressed={userType === c.value}
+                    className={`w-full rounded-xl border-2 px-4 py-3 text-left transition-colors ${
+                      userType === c.value
+                        ? "border-brand bg-brand/5"
+                        : "border-line hover:border-brand/40"
+                    }`}
+                  >
+                    <span className="block text-base font-semibold text-ink">
+                      {c.label}
+                    </span>
+                    <span className="block text-sm text-ink-soft">{c.hint}</span>
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}

@@ -116,7 +116,7 @@ export default function PartnerReportButton({
       y += 8;
       doc.setFontSize(10);
       const life: [string, string][] = [
-        ["Clicks on your link", d.lifetimeClicks.toLocaleString()],
+        ["People who clicked your link", d.lifetimeClicks.toLocaleString()],
         ["People you have brought", d.lifetimePeople.toLocaleString()],
         ["Total you have earned", naira(d.lifetimeEarned)],
       ];

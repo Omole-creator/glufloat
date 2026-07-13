@@ -306,7 +306,8 @@ export default function PartnerPanel({
                 <tr>
                   <th className={th}>Partner</th>
                   <th className={th}>Their link</th>
-                  <th className={th}>Clicks</th>
+                  {/* People, not taps: the same person clicking ten times is one. */}
+                  <th className={th}>People reached</th>
                   <th className={th}>Trials</th>
                   <th className={th}>Active subs</th>
                   <th className={th}>Earned</th>

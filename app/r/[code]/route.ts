@@ -1,20 +1,36 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
-import { REF_COOKIE, REF_COOKIE_DAYS } from "@/lib/partners";
+import {
+  CLICK_COOKIE,
+  CLICK_COOKIE_DAYS,
+  REF_COOKIE,
+  REF_COOKIE_DAYS,
+} from "@/lib/partners";
 
 export const dynamic = "force-dynamic";
 
 /**
  * A partner's link: /r/ada4
  *
- * Records the click, remembers the partner in a cookie, and sends the visitor to
+ * Counts the person, remembers the partner in a cookie, and sends the visitor to
  * the landing page, which is where the product actually gets sold.
+ *
+ * ONE PERSON IS COUNTED ONCE, FOR GOOD. Clicking the same link ten times is one
+ * row, not ten. The number on a partner's dashboard is meant to be "how many
+ * people did my link reach", and a nurse opening her own link to show it to a
+ * patient must not inflate it.
  *
  * FIRST touch wins, and it is enforced here on the server rather than in the
  * browser. If the visitor already carries a referral cookie, we do NOT overwrite
  * it: the partner who introduced them keeps them, even if they later click
  * somebody else's link. A partner can never have a referral taken from them by
  * whoever happened to be last.
+ *
+ * The two cookies are separate on purpose and answer different questions.
+ * `gf_ref` is "who gets paid for this person" and can only ever be one partner.
+ * `gf_clk` is "whose links has this person already been counted for" and is a
+ * list, so somebody who clicks Ada's link and later Tunde's is a person each of
+ * them genuinely reached, while the money still belongs to Ada.
  *
  * An unknown or switched-off code is not an error the visitor should ever see.
  * They just land on the home page like any other visitor.
@@ -30,6 +46,14 @@ export async function GET(
   const clean = (code ?? "").toLowerCase();
   if (!/^[a-z0-9-]{1,40}$/.test(clean)) return res;
 
+  const cookieHeader = request.headers.get("cookie") ?? "";
+  const readCookie = (name: string) =>
+    cookieHeader
+      .split(";")
+      .map((c) => c.trim())
+      .find((c) => c.startsWith(`${name}=`))
+      ?.slice(name.length + 1) ?? "";
+
   try {
     const admin = createAdminClient();
     const { data: partner } = await admin
@@ -41,15 +65,25 @@ export async function GET(
 
     if (!partner) return res;
 
-    // Every click counts, including repeat clicks from the same person. This is
-    // "how many times was the link opened", which is what a partner is asking.
-    await admin.from("referral_clicks").insert({ partner_id: partner.id });
+    // Have we already counted this person for THIS partner? If so, they are not
+    // a new person, and nothing is written. Ten taps stay one row.
+    const counted = readCookie(CLICK_COOKIE)
+      .split(",")
+      .map((c) => c.trim())
+      .filter(Boolean);
+
+    if (!counted.includes(clean)) {
+      await admin.from("referral_clicks").insert({ partner_id: partner.id });
+      res.cookies.set(CLICK_COOKIE, [...counted, clean].join(","), {
+        path: "/",
+        maxAge: CLICK_COOKIE_DAYS * 24 * 60 * 60,
+        sameSite: "lax",
+        httpOnly: true, // nothing in the browser reads this; only this route does
+      });
+    }
 
     // First touch: only set the cookie if they do not already have one.
-    const already = request.headers
-      .get("cookie")
-      ?.split(";")
-      .some((c) => c.trim().startsWith(`${REF_COOKIE}=`));
+    const already = !!readCookie(REF_COOKIE);
 
     if (!already) {
       res.cookies.set(REF_COOKIE, clean, {

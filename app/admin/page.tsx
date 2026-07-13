@@ -6,6 +6,7 @@ import AdminLogin from "./AdminLogin";
 import ExportButton, { type ExportData } from "./ExportButton";
 import PeriodPicker from "@/components/PeriodPicker";
 import { inPeriod, parsePeriod, type PeriodParams } from "@/lib/period";
+import { GROUPS, groupLabel, inGroup, type Group } from "@/lib/userType";
 
 export const dynamic = "force-dynamic";
 
@@ -49,9 +50,9 @@ export default async function AdminPage({
 
   const admin = createAdminClient();
   const [{ data: profiles }, { data: subs }, { data: payments }] = await Promise.all([
-    admin.from("profiles").select("id,email,name,trial_start,created_at"),
+    admin.from("profiles").select("id,email,name,trial_start,created_at,user_type"),
     admin.from("subscriptions").select("user_id,status,current_period_end,amount"),
-    admin.from("payments").select("email,amount,status,paid_at"),
+    admin.from("payments").select("user_id,email,amount,status,paid_at"),
   ]);
 
   const now = Date.now();
@@ -59,33 +60,85 @@ export default async function AdminPage({
   const S = subs ?? [];
   const Y = (payments ?? []).filter((p) => p.status === "success");
   const profById = new Map(P.map((p) => [p.id, p]));
+  const profByEmail = new Map(P.map((p) => [p.email.toLowerCase(), p]));
 
   const isLive = (s: (typeof S)[number]) =>
     (s.status === "active" || s.status === "non-renewing") &&
     s.current_period_end &&
     new Date(s.current_period_end).getTime() > now;
 
-  // Inside the chosen window.
-  const signupsInRange = P.filter((p) => inPeriod(p.created_at, period)).length;
-  const revenueRange = Y.filter((p) => inPeriod(p.paid_at, period)).reduce(
-    (n, p) => n + (p.amount || 0),
-    0,
-  );
+  /**
+   * Who a payment belongs to. Paystack's webhook may identify the payer by id or
+   * only by the email they typed, so both paths are tried, exactly as the webhook
+   * itself does. A payment we cannot place lands in "Not set" with the accounts
+   * that never answered, rather than being quietly dropped from the totals.
+   */
+  const payerType = (p: (typeof Y)[number]) =>
+    (p.user_id ? profById.get(p.user_id) : undefined)?.user_type ??
+    (p.email ? profByEmail.get(p.email.toLowerCase()) : undefined)?.user_type ??
+    null;
 
-  // Lifetime
-  const signups = P.length;
-  const trialsStarted = P.filter((p) => p.trial_start).length;
-  const activeSubs = S.filter(isLive).length;
-  const everSubscribed = S.length;
-  const conversion = trialsStarted
-    ? Math.round((everSubscribed / trialsStarted) * 100)
-    : 0;
-  const revenue = Y.reduce((n, p) => n + (p.amount || 0), 0);
-  const mrr = activeSubs * SUB_PRICE_KOBO;
-  const churnedNow = everSubscribed - activeSubs;
-  const churnRateOverall = everSubscribed
-    ? Math.round((churnedNow / everSubscribed) * 100)
-    : 0;
+  const subType = (s: (typeof S)[number]) =>
+    profById.get(s.user_id)?.user_type ?? null;
+
+  /**
+   * Every number, for one kind of person.
+   *
+   * A health worker signing up to look at the app almost never subscribes, so
+   * mixed in with everybody else they drag trial-to-paid down and it stops
+   * meaning anything. Each group is measured on its own, and "Everyone" is the
+   * same maths over all of them, so the totals still add up.
+   */
+  function metricsFor(g: Group) {
+    const people = P.filter((p) => inGroup(p.user_type, g));
+    const theirSubs = S.filter((s) => inGroup(subType(s), g));
+    const theirPay = Y.filter((p) => inGroup(payerType(p), g));
+
+    const signups = people.length;
+    const trialsStarted = people.filter((p) => p.trial_start).length;
+    const activeSubs = theirSubs.filter(isLive).length;
+    const everSubscribed = theirSubs.length;
+    const churnedNow = everSubscribed - activeSubs;
+
+    return {
+      group: g,
+      signups,
+      signupsInRange: people.filter((p) => inPeriod(p.created_at, period)).length,
+      trialsStarted,
+      activeSubs,
+      everSubscribed,
+      churnedNow,
+      conversion: trialsStarted
+        ? Math.round((everSubscribed / trialsStarted) * 100)
+        : 0,
+      churnRate: everSubscribed
+        ? Math.round((churnedNow / everSubscribed) * 100)
+        : 0,
+      revenue: theirPay.reduce((n, p) => n + (p.amount || 0), 0),
+      revenueInRange: theirPay
+        .filter((p) => inPeriod(p.paid_at, period))
+        .reduce((n, p) => n + (p.amount || 0), 0),
+      mrr: activeSubs * SUB_PRICE_KOBO,
+    };
+  }
+
+  const byType = GROUPS.map(metricsFor);
+  const all = byType[0]; // "all" is first in GROUPS
+
+  // The headline tiles are still the whole business, unchanged.
+  const {
+    signups,
+    signupsInRange,
+    trialsStarted,
+    activeSubs,
+    everSubscribed,
+    conversion,
+    revenue,
+    revenueInRange: revenueRange,
+    mrr,
+    churnedNow,
+    churnRate: churnRateOverall,
+  } = all;
 
   // First success payment per email (for "new subscribers" per month)
   const firstPaid = new Map<string, number>();
@@ -170,6 +223,14 @@ export default async function AdminPage({
       { label: "Revenue (all time)", value: naira(revenue) },
       { label: "Churn (all time)", value: `${churnRateOverall}%` },
     ],
+    byType: byType.map((m) => ({
+      who: groupLabel(m.group),
+      signups: m.signups.toLocaleString(),
+      trials: m.trialsStarted.toLocaleString(),
+      conversion: m.trialsStarted ? `${m.conversion}%` : "-",
+      paying: m.activeSubs.toLocaleString(),
+      revenue: naira(m.revenue),
+    })),
     monthly,
   };
 
@@ -187,6 +248,12 @@ export default async function AdminPage({
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
+            <Link
+              href="/admin/users"
+              className="rounded-full border border-line bg-white px-5 py-2 font-display text-sm font-bold text-ink transition-colors hover:border-brand"
+            >
+              Users
+            </Link>
             <Link
               href="/admin/partners"
               className="rounded-full border border-line bg-white px-5 py-2 font-display text-sm font-bold text-ink transition-colors hover:border-brand"
@@ -216,6 +283,80 @@ export default async function AdminPage({
           <Tile label="Churn (all time)" value={`${churnRateOverall}%`} sub={`${churnedNow} lapsed`} />
           <Tile label="Total revenue" value={naira(revenue)} />
         </div>
+
+        {/*
+          The same numbers again, but split by who the person is.
+
+          This is the point of the whole thing. A health worker signing up to look
+          at the app almost never subscribes, so mixed in with everybody else they
+          drag trial-to-paid down and the number stops meaning anything. Read the
+          Diabetic row: that is the real business. "Everyone" is the same maths
+          over all of them, so the totals still tie back to the tiles above.
+        */}
+        <h2 className="mt-10 font-display text-lg font-bold text-ink">
+          Every number, by who they are{" "}
+          <Link href="/admin/users" className="text-sm font-normal text-brand hover:underline">
+            see and search everyone
+          </Link>
+        </h2>
+        <div className="mt-3 overflow-x-auto rounded-2xl border border-line bg-white">
+          <table className="w-full min-w-[54rem] text-left text-sm">
+            <thead className="border-b border-line text-xs uppercase tracking-wider text-ink/50">
+              <tr>
+                <th className="px-4 py-3">Who</th>
+                <th className="px-4 py-3">Signups · {period.label}</th>
+                <th className="px-4 py-3">Signups (all)</th>
+                <th className="px-4 py-3">Trials</th>
+                <th className="px-4 py-3">Trial → paid</th>
+                <th className="px-4 py-3">Paying now</th>
+                <th className="px-4 py-3">MRR</th>
+                <th className="px-4 py-3">Revenue · {period.label}</th>
+                <th className="px-4 py-3">Revenue (all)</th>
+                <th className="px-4 py-3">Churn</th>
+              </tr>
+            </thead>
+            <tbody>
+              {byType.map((m) => {
+                const everyone = m.group === "all";
+                return (
+                  <tr
+                    key={m.group}
+                    className={`border-b border-line/60 ${
+                      everyone ? "bg-mist font-display font-bold text-ink" : ""
+                    }`}
+                  >
+                    <td className="px-4 py-2.5 text-ink">
+                      {groupLabel(m.group)}
+                      {m.group === "none" && (
+                        <span className="block text-xs font-normal text-ink-soft">
+                          signed up before we asked
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-2.5">{m.signupsInRange.toLocaleString()}</td>
+                    <td className="px-4 py-2.5">{m.signups.toLocaleString()}</td>
+                    <td className="px-4 py-2.5">{m.trialsStarted.toLocaleString()}</td>
+                    <td className="px-4 py-2.5">
+                      {m.trialsStarted ? `${m.conversion}%` : "—"}
+                    </td>
+                    <td className="px-4 py-2.5">{m.activeSubs.toLocaleString()}</td>
+                    <td className="px-4 py-2.5">{naira(m.mrr)}</td>
+                    <td className="px-4 py-2.5">{naira(m.revenueInRange)}</td>
+                    <td className="px-4 py-2.5">{naira(m.revenue)}</td>
+                    <td className="px-4 py-2.5">
+                      {m.everSubscribed ? `${m.churnRate}%` : "—"}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        <p className="mt-2 text-xs text-ink-soft">
+          A dash means nobody in that group has got that far yet, which is not the
+          same as zero percent. Everyone who signed up before the question existed
+          sits in Not set, and nobody was guessed into a group.
+        </p>
 
         {/* month on month */}
         <div className="mt-10 flex flex-wrap items-center justify-between gap-3">
@@ -295,9 +436,16 @@ export default async function AdminPage({
           </table>
         </div>
 
-        {/* recent signups */}
+        {/*
+          The newest 12 only. Say so: an older person dropping off the bottom of
+          this table as new ones arrive looks exactly like an account being
+          deleted, and it worried the founder. The full list is /admin/users.
+        */}
         <h2 className="mt-10 font-display text-lg font-bold text-ink">
-          Recent signups
+          The newest 12 signups{" "}
+          <Link href="/admin/users" className="text-sm font-normal text-brand hover:underline">
+            see and search all {signups.toLocaleString()}
+          </Link>
         </h2>
         <div className="mt-3 overflow-x-auto rounded-2xl border border-line bg-white">
           <table className="w-full text-left text-sm">

@@ -6,6 +6,15 @@ import { jsPDF } from "jspdf";
 export type ExportData = {
   range: string;
   stats: { label: string; value: string }[];
+  /** The same numbers split by who the person is. Counts and money only. */
+  byType: {
+    who: string;
+    signups: string;
+    trials: string;
+    conversion: string;
+    paying: string;
+    revenue: string;
+  }[];
   monthly: {
     month: string;
     newSubs: number;
@@ -37,6 +46,25 @@ export default function ExportButton({ data }: { data: ExportData }) {
       doc.text(`${s.label}`, 16, y);
       doc.text(`${s.value}`, 120, y);
       y += 7;
+    }
+
+    // Who these people are. Without it the summary above hides the fact that
+    // health workers barely subscribe, which is the whole reason for the split.
+    y += 6;
+    doc.setFontSize(12);
+    doc.text("By who they are", 14, y);
+    y += 8;
+    doc.setFontSize(9);
+    const tCols = [16, 62, 92, 118, 148, 172];
+    const tHead = ["Who", "Signups", "Trials", "Trial to paid", "Paying now", "Revenue"];
+    tHead.forEach((h, i) => doc.text(h, tCols[i], y));
+    y += 5;
+    doc.setDrawColor(200);
+    doc.line(14, y - 2, 196, y - 2);
+    for (const t of data.byType) {
+      const row = [t.who, t.signups, t.trials, t.conversion, t.paying, t.revenue];
+      row.forEach((c, i) => doc.text(c, tCols[i], y));
+      y += 6;
     }
 
     y += 6;

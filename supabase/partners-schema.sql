@@ -29,8 +29,11 @@ create table if not exists public.partners (
 create index if not exists partners_code_idx on public.partners (code);
 
 -- 2. Link clicks -------------------------------------------------------------
--- One row per click of a partner link. Small: even 100 partners at 50 clicks a
--- day is about 2MB a year.
+-- One row per PERSON who opened a partner link, not one per tap. A device that
+-- has already been counted for this partner carries the `gf_clk` cookie and
+-- writes nothing more, so a nurse opening her own link ten times to show it to a
+-- patient is one row. See app/r/[code]/route.ts. Small either way: even 100
+-- partners reaching 50 people a day is about 2MB a year.
 create table if not exists public.referral_clicks (
   id         bigint generated always as identity primary key,
   partner_id uuid not null references public.partners (id) on delete cascade,
@@ -143,6 +146,11 @@ create trigger payments_earn_commission
 -- 7. Carry the partner through sign-up ---------------------------------------
 -- The sign-up form puts the partner's code into the new user's metadata. This
 -- trigger resolves it to a partner and stamps the profile.
+--
+-- THIS IS NO LONGER THE NEWEST COPY. `user-type-schema.sql` runs after this file
+-- and replaces the function again, adding a fifth thing (user_type). Edit it
+-- there, not here, or your change is overwritten the moment the files are run in
+-- order.
 --
 -- It REPLACES the function from blog-analytics.sql. Keep all four things it
 -- copies (name, email, source_post, partner_id) if you ever touch it again --

@@ -72,7 +72,11 @@ export default async function PartnersPage({
         <PeriodPicker period={period} basePath="/admin/partners" keep={["partner"]} />
 
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-          <Tile label="Link clicks" value={totals.clicks.toLocaleString()} sub={period.label} />
+          <Tile
+            label="People reached"
+            value={totals.clicks.toLocaleString()}
+            sub={`${period.label}, counted once each`}
+          />
           <Tile label="Free trials" value={totals.trials.toLocaleString()} sub={`${totals.signups} signed up`} />
           <Tile label="Active subs" value={totals.activeSubs.toLocaleString()} sub="paying right now" />
           <Tile label="Total earnings" value={naira(totals.earned)} sub={period.label} />

@@ -13,6 +13,25 @@ export const REF_COOKIE = "gf_ref";
 export const REF_COOKIE_DAYS = 365;
 
 /**
+ * The cookie that remembers whose links this device has ALREADY been counted
+ * for. It holds the codes, comma separated: "ada4,tunde7".
+ *
+ * A click is counted once per person, for good. One nurse opening her own link
+ * ten times to show it to a patient used to write ten rows, and a partner's
+ * "clicks" number was really "taps", which flatters everybody and tells you
+ * nothing about how many people she actually reached.
+ *
+ * Two honest limits, worth stating rather than papering over: a phone and a
+ * laptop are two people (a click has no login, so nothing can know they are
+ * one), and somebody who clears their browser data looks new again. Same shape
+ * as the blog reader rule, and the same trade.
+ */
+export const CLICK_COOKIE = "gf_clk";
+
+/** As long as a browser will keep it. Chrome caps a cookie at 400 days. */
+export const CLICK_COOKIE_DAYS = 400;
+
+/**
  * 40% of what the customer actually paid, on every renewal, for the first 12
  * payments. After that the customer is fully Glufloat's.
  *
