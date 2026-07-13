@@ -73,36 +73,22 @@ export default function SignUpPage() {
           </p>
 
           <form onSubmit={submit} className="mt-6 space-y-3">
-            {/*
-              Three big tap targets, not a drop-down. Most of these people are on
-              a phone, and many are older. A list you must open, scroll and pick
-              from is the part they abandon.
-            */}
-            <fieldset>
-              <legend className="mb-2 font-display text-sm font-bold text-ink">
-                What are you?
-              </legend>
-              <div className="space-y-2">
-                {SIGNUP_CHOICES.map((c) => (
-                  <button
-                    key={c.value}
-                    type="button"
-                    onClick={() => setUserType(c.value)}
-                    aria-pressed={userType === c.value}
-                    className={`w-full rounded-xl border-2 px-4 py-3 text-left transition-colors ${
-                      userType === c.value
-                        ? "border-brand bg-brand/5"
-                        : "border-line hover:border-brand/40"
-                    }`}
-                  >
-                    <span className="block text-base font-semibold text-ink">
-                      {c.label}
-                    </span>
-                    <span className="block text-sm text-ink-soft">{c.hint}</span>
-                  </button>
-                ))}
-              </div>
-            </fieldset>
+            <select
+              value={userType}
+              onChange={(e) => setUserType(e.target.value as UserType | "")}
+              required
+              aria-label="What are you?"
+              className={`w-full rounded-xl border-2 border-line bg-white px-4 py-3 text-base outline-none transition-colors focus:border-brand ${
+                userType ? "text-ink" : "text-ink-soft"
+              }`}
+            >
+              <option value="">What are you?</option>
+              {SIGNUP_CHOICES.map((c) => (
+                <option key={c.value} value={c.value}>
+                  {c.label}
+                </option>
+              ))}
+            </select>
 
             <input
               value={name}

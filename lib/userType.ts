@@ -16,23 +16,11 @@ export const USER_TYPES = ["diabetic", "health_pro", "caregiver"] as const;
 
 export type UserType = (typeof USER_TYPES)[number];
 
-/** What the person picking it reads on the sign-up form. Plain, spoken words. */
-export const SIGNUP_CHOICES: { value: UserType; label: string; hint: string }[] = [
-  {
-    value: "diabetic",
-    label: "I have diabetes",
-    hint: "You are checking food for yourself",
-  },
-  {
-    value: "health_pro",
-    label: "I am a health worker",
-    hint: "Doctor, nurse, dietitian, pharmacist",
-  },
-  {
-    value: "caregiver",
-    label: "I care for someone",
-    hint: "A family member or friend with diabetes",
-  },
+/** What the person picking it reads on the sign-up form. The founder's words. */
+export const SIGNUP_CHOICES: { value: UserType; label: string }[] = [
+  { value: "diabetic", label: "I have diabetes" },
+  { value: "health_pro", label: "Health professional" },
+  { value: "caregiver", label: "Family member (caregiver)" },
 ];
 
 /** What you read in the admin. Short, because it sits in a table cell. */
