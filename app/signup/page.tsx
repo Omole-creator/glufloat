@@ -73,23 +73,6 @@ export default function SignUpPage() {
           </p>
 
           <form onSubmit={submit} className="mt-6 space-y-3">
-            <select
-              value={userType}
-              onChange={(e) => setUserType(e.target.value as UserType | "")}
-              required
-              aria-label="What are you?"
-              className={`w-full rounded-xl border-2 border-line bg-white px-4 py-3 text-base outline-none transition-colors focus:border-brand ${
-                userType ? "text-ink" : "text-ink-soft"
-              }`}
-            >
-              <option value="">What are you?</option>
-              {SIGNUP_CHOICES.map((c) => (
-                <option key={c.value} value={c.value}>
-                  {c.label}
-                </option>
-              ))}
-            </select>
-
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -130,6 +113,23 @@ export default function SignUpPage() {
                 {showPw ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
               </button>
             </div>
+
+            <select
+              value={userType}
+              onChange={(e) => setUserType(e.target.value as UserType | "")}
+              required
+              aria-label="What are you?"
+              className={`w-full rounded-xl border-2 border-line bg-white px-4 py-3 text-base outline-none transition-colors focus:border-brand ${
+                userType ? "text-ink" : "text-ink-soft"
+              }`}
+            >
+              <option value="">What are you?</option>
+              {SIGNUP_CHOICES.map((c) => (
+                <option key={c.value} value={c.value}>
+                  {c.label}
+                </option>
+              ))}
+            </select>
             {err && (
               <p className="text-sm font-medium text-verdict-red">{err}</p>
             )}
