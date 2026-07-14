@@ -478,3 +478,73 @@ measurement**, and this file is the place that says so.
 Source tiers used throughout: peer-reviewed in-vivo measurement > compendium /
 systematic review > guideline body > secondary summary. No card cites a source,
 by design — the evidence lives here.
+
+---
+
+## 8. The dietitian review, returned 2026-07-12
+
+The 12-question pack (`Glufloat-Dietitian-Review.docx` at the repo root) came
+back marked up. **It is NOT signed.** Name, registration number, signature and
+the Approved box are all blank; only a date. So this is clinical input, and the
+frequency rule in section 1 **still does not have sign-off**. Founder's
+instruction: nothing on the website may say so.
+
+### Acted on
+
+- **Salt and seasoning (Q1).** She called the row vague and gave the real
+  number: **under 5g of salt a day, about one level teaspoon**, which is the WHO
+  figure. Seasoning cubes to be replaced with **onions, turmeric, garlic and
+  local spices**. The old warning said "use only a pinch"; a pinch and 5g cannot
+  both be the number, so the number won. Applied in `NOTES.salt`
+  (`health-notes.mjs`) and `DIETICIAN_*` (`clear-instructions.mjs`).
+  - This also exposed a live bug: salt and the seasoning cube are **yellow**
+    condiments, so `canBeEveryday()` in `lib/frequency.ts` returned false and the
+    card was rendering **"About 2 times a week"** for salt, which means nothing.
+    `DAILY_BUT_LIMITED` now mirrors the set in `frequency-numbers.mjs`.
+- **Okra and metformin (Q5).** She asked for a *gentle* warning. See below for
+  why it is not a red one.
+- **Ogbono (Q6).** The only plant of the eight she wanted flagged, and her reason
+  was **fat, not blood sugar** — correct, ogbono is an oilseed. It already
+  carried the palm-oil note, which blamed the oil alone; it now names the seed.
+- **Beans with ripe plantain (Q7).** She rejected RED and said **YELLOW, keep the
+  plantain small**. Implemented as a legume bonus in `verdictEngine.ts`, gated so
+  beans can never rescue a starch that is already red: **beans with dodo stays
+  red**, because frying is what makes dodo red, and her instruction was about
+  boiled plantain. The `beans-and-plantain` card was already yellow and already
+  said "keep the plantain small"; only the meal builder was wrong.
+
+### Checked, and the answer was NO — which is the useful part
+
+- **Seven of the eight plants need no warning.** She declined uziza, scent leaf,
+  zobo/hibiscus, oha, bitter leaf, utazi and bitter kola. That is a considered
+  rejection of the whole "these plants drop blood sugar on their own" premise,
+  from someone who sees patients, and it is worth as much as the one she did
+  flag. Do not re-litigate it without new evidence.
+- **Okra is not dangerous, and the note must not say it is.** The only evidence
+  pointing that way is a **rat** study (Khatun, ISRN Pharmacology, 2011); the 2023
+  RCT in people found okra *improved* control. Okra is a green staple. A red box
+  under a green headline would tell people to stop eating one of the best foods on
+  the list, which is false and is the more likely way to do harm. Hence the new
+  `medicineNote` field: a calm grey box that says *when to take the tablet*, never
+  *avoid the food*. **Do not move this into `healthNote`.**
+- Garlic, ginger and curry powder (Q12): no warning needed at cooking amounts.
+  Grapefruit (Q9) and the strictness rule (Q2): she approved neither and rejected
+  neither — see below.
+
+### Left as they were
+
+Boli (Q3, "I do not know, leave it"), plantain amala (Q4, medium and twice a week
+is right), the alcohol warning (Q10, correct as written), and all six existing
+comorbidity warnings (Q11, "All correct").
+
+### Still open — go back to her
+
+1. **The signature**, plus name and registration number.
+2. **Q9, grapefruit: no mark at all.** The warning is live and well-evidenced
+   (section 6), but she has not confirmed it.
+3. **Q2, the strictness rule: no box ticked**, and "No" typed on the *"what should
+   it say instead"* line, which could mean either thing.
+4. **She struck through the two evidence notes at the back** with no comment. One
+   of them is why **banana is not a red food** (99 in one Nigerian study vs about
+   51 internationally, and we kept the middle). If that strike means she disagrees,
+   banana changes. Do not guess it.

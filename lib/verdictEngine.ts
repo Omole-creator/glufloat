@@ -168,6 +168,7 @@ export function scoreMeal(items: MealItem[]): MealResult {
 
   const hasVeg = items.some((i) => isVeg(i.food));
   const hasProtein = items.some((i) => isProtein(i.food));
+  const hasBeans = items.some((i) => i.food.role === "legume");
 
   if (hasVeg) {
     score += 1;
@@ -176,6 +177,19 @@ export function scoreMeal(items: MealItem[]): MealResult {
   if (hasProtein) {
     score += 0.5;
     breakdown.push("You added fish, meat, egg, or beans. That helps too.");
+  }
+
+  // Beans are the one food on the Nigerian plate that really slows a starch
+  // down, so they lift the plate one band: beans with boiled ripe plantain is
+  // "eat with care", not "better to skip". Dietician-reviewed.
+  //
+  // But beans may NOT rescue a starch that is already red. Ewa ati dodo is
+  // usually made with FRIED plantain, and frying is the reason dodo is red in
+  // the first place. Beans with dodo stays red, which is also what the
+  // Beans and Plantain card says: use boiled or roasted plantain, not fried.
+  if (hasBeans && worstStarch && worstStarch.food.baseVerdict !== "red") {
+    score += 0.5;
+    breakdown.push("The beans slow the sugar down a lot. That helps here.");
   }
 
   if (worstStarch) {

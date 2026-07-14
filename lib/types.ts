@@ -76,6 +76,17 @@ export interface Food {
    * or red/organ-meat choice could harm them even when the sugar is fine.
    */
   healthNote?: string;
+  /**
+   * A CALM, grey-box note about timing a tablet around a food. Owned by
+   * `scripts/medicine-notes.mjs`.
+   *
+   * This is deliberately not `healthNote`. The red box means "this food may
+   * harm you", and a red box on a green staple like okra would tell people to
+   * stop eating one of the best foods on the list, which is the opposite of the
+   * truth. So a medicine note must always say WHEN to take the tablet, and must
+   * never discourage the food. Dietician-reviewed.
+   */
+  medicineNote?: string;
 }
 
 export type PortionSize = "half" | "normal" | "large";

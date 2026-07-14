@@ -54,6 +54,17 @@ export default function VerdictCard({ food }: { food: Food }) {
         </div>
       )}
 
+      {/* Calm on purpose. This tells you when to take your tablet, not to stop
+          eating the food, so it must never be dressed up as a red warning. */}
+      {food.medicineNote && (
+        <div className="mt-3 rounded-xl border border-line bg-mist p-3">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-ink/60">
+            If you take medicine
+          </p>
+          <p className="mt-1 text-sm text-ink">{food.medicineNote}</p>
+        </div>
+      )}
+
       <div className="mt-4 space-y-2">
         <PortionVisual food={food} />
         {food.carbExchange && (

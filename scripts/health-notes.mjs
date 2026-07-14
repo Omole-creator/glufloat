@@ -16,14 +16,23 @@ const foods = JSON.parse(readFileSync(FILE, "utf8"));
 const NOTES = {
   meat:
     "Beef and goat are red meat. Liver, kidney, shaki, and pomo are organ meat. Both are fine for your sugar but not for everyone. If you have high blood pressure, high cholesterol, or kidney problems, pick fish or skinless chicken instead and use less salt.",
+  // The dietician replaced "use only a pinch" with a real number: under 5g of
+  // salt a day, which is about one level teaspoon. That is a budget for ALL the
+  // salt in a day's food, not a per-serving amount, so it reads correctly on
+  // stockfish and indomie as well as on the salt itself.
   salt:
-    "This food is very salty. If you have high blood pressure, high cholesterol, or kidney problems, use only a little. Too much salt harms your heart and kidneys even when your sugar is fine.",
+    "This food is very salty. If you have high blood pressure, high cholesterol, or kidney problems, use very little of it. Keep all the salt in your food under one level teaspoon (5g) for the whole day. Too much salt harms your heart and kidneys even when your sugar is fine.",
   oil:
-    "This food is fried or heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, keep it small and use less oil. Boiled or grilled is better.",
+    "This food is fried or heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, keep to the size shown below and use less oil. Boiled or grilled is better.",
   dishOil:
     "This dish is cooked with a lot of palm oil. If you have high blood pressure, high cholesterol, or kidney problems, use less oil and go easy on the red meat.",
+  // Ogbono is an oilseed, so the seed itself is heavy with fat on top of the
+  // palm oil the soup is cooked with. The dietician asked for this one by name,
+  // and it was the ONLY plant of the eight she wanted a warning on.
+  ogbono:
+    "Ogbono seed is high in fat, and this dish is cooked with a lot of palm oil too. If you have high blood pressure, high cholesterol, or kidney problems, use less oil, go easy on the red meat, and keep to the size shown below.",
   fat:
-    "This is high in fat that can raise your cholesterol. If you have high cholesterol, high blood pressure, or heart trouble, use only a little at a time.",
+    "This is high in fat that can raise your cholesterol. If you have high cholesterol, high blood pressure, or heart trouble, use only one teaspoon at a time.",
   kidney:
     "Do not eat this if you have kidney problems. Star fruit has a natural poison that strong kidneys clear but weak kidneys cannot, and it can make a kidney patient very sick.",
   // Alcohol stops the liver from releasing sugar, so the sugar can crash long
@@ -57,6 +66,8 @@ const FAT_IDS = new Set([
 const SALT_IDS = new Set(["indomie", "locust-bean", "baked-beans"]);
 // Cooked dishes heavy with palm oil that are not soups.
 const OIL_IDS = new Set(["native-rice", "abacha"]);
+// Ogbono is an oilseed: the seed carries its own fat, on top of the palm oil.
+const OGBONO_IDS = new Set(["ogbono-soup"]);
 
 // Red and organ meat. Only checked on meaty roles.
 const MEAT_ROLES = new Set(["protein", "soup", "snack"]);
@@ -120,6 +131,9 @@ function noteFor(f) {
   if (KIDNEY_IDS.has(f.id)) return NOTES.kidney;
   if (ALCOHOL_IDS.has(f.id)) return NOTES.alcohol;
   if (CITRUS_IDS.has(f.id)) return NOTES.citrus;
+  // Must come before the dishOil branch, which would otherwise catch ogbono on
+  // its "draw soup" alias and blame the palm oil alone, never the seed.
+  if (OGBONO_IDS.has(f.id)) return NOTES.ogbono;
   const text = identity(f);
   if (MEAT_ROLES.has(f.role) && hasAny(text, MEAT_WORDS)) return NOTES.meat;
   if (SALT_IDS.has(f.id) || (SALT_ROLES.has(f.role) && hasAny(text, SALT_WORDS)))

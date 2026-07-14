@@ -71,6 +71,39 @@ for (const [label, r] of cases) {
   r.fixes.forEach((x) => console.log("   fix:", x));
 }
 
+/**
+ * Beans lift a plate one band, but they may never rescue a red, fried starch.
+ * Dietician-reviewed: beans with boiled ripe plantain is "eat with care", while
+ * beans with dodo stays "better to skip", because frying is what makes dodo red.
+ */
+const expected: [string, string[], "green" | "yellow" | "red"][] = [
+  ["beans + boiled ripe plantain", ["cooked-beans", "boiled-plantain-ripe"], "yellow"],
+  ["beans + dodo (fried, red)", ["cooked-beans", "dodo"], "red"],
+  ["beans + white rice", ["cooked-beans", "white-rice"], "yellow"],
+  ["whole wheat bread + beans", ["whole-wheat-bread", "cooked-beans"], "yellow"],
+  // White bread is red on its own, so beans do not lift it either.
+  ["white bread + beans (red starch)", ["agege-bread", "cooked-beans"], "red"],
+  ["beans alone", ["cooked-beans"], "green"],
+  ["boiled ripe plantain alone (no beans)", ["boiled-plantain-ripe"], "red"],
+  ["eba alone (no beans)", ["garri-eba"], "red"],
+];
+
+let failed = 0;
+console.log("\nassertions:");
+for (const [label, ids, want] of expected) {
+  const got = scoreMeal(ids.map((id) => ({ food: f(id), portion: "normal" as const })));
+  const ok = got.verdict === want;
+  if (!ok) failed++;
+  console.log(
+    `  ${ok ? "ok  " : "FAIL"} ${label} -> ${got.verdict} (want ${want}, score ${got.score})`
+  );
+}
+if (failed > 0) {
+  console.error(`\n${failed} assertion(s) failed.`);
+  process.exit(1);
+}
+console.log("  all passed.");
+
 console.log("\nsearch 'eba':", searchFoods("eba").map((x) => x.name));
 console.log("search 'dodo':", searchFoods("dodo").map((x) => x.name));
 console.log("search 'coke':", searchFoods("coke").map((x) => x.name));

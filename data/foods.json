@@ -1469,7 +1469,7 @@
       "local",
       "friendly"
     ],
-    "healthNote": "This dish is cooked with a lot of palm oil. If you have high blood pressure, high cholesterol, or kidney problems, use less oil and go easy on the red meat.",
+    "healthNote": "Ogbono seed is high in fat, and this dish is cooked with a lot of palm oil too. If you have high blood pressure, high cholesterol, or kidney problems, use less oil, go easy on the red meat, and keep to the size shown below.",
     "portionIcon": "bowl"
   },
   {
@@ -1624,7 +1624,8 @@
       "local",
       "friendly"
     ],
-    "portionIcon": "free"
+    "portionIcon": "free",
+    "medicineNote": "Okra is very good for you. Keep eating it. If you take metformin, take your tablet about 2 hours before or after okra soup."
   },
   {
     "id": "vegetable-soup",
@@ -2039,7 +2040,7 @@
     "frequency": "You can eat this every day.",
     "logicNote": "Very little starch seafood.",
     "tags": [],
-    "healthNote": "This food is very salty. If you have high blood pressure, high cholesterol, or kidney problems, use only a pinch. Too much salt harms your heart and kidneys even when your sugar is fine.",
+    "healthNote": "This food is very salty. If you have high blood pressure, high cholesterol, or kidney problems, use very little of it. Keep all the salt in your food under one level teaspoon (5g) for the whole day. Too much salt harms your heart and kidneys even when your sugar is fine.",
     "portionIcon": "handful"
   },
   {
@@ -2229,7 +2230,8 @@
     "tags": [
       "friendly"
     ],
-    "portionIcon": "free"
+    "portionIcon": "free",
+    "medicineNote": "Okra is very good for you. Keep eating it. If you take metformin, take your tablet about 2 hours before or after okra."
   },
   {
     "id": "cucumber",
@@ -3347,12 +3349,12 @@
     "carbLoad": "low",
     "gi": "low",
     "baseVerdict": "yellow",
-    "portionGuidance": "Less than one teaspoon a day in total.",
+    "portionGuidance": "Less than one level teaspoon (5g) in all your food for the whole day.",
     "pairingAdvice": "Cooking.",
     "frequency": "You can eat this every day.",
     "logicNote": "No sugar impact, but too much raises blood pressure, which diabetics must watch.",
     "tags": [],
-    "healthNote": "This food is very salty. If you have high blood pressure, high cholesterol, or kidney problems, use only a pinch. Too much salt harms your heart and kidneys even when your sugar is fine.",
+    "healthNote": "This food is very salty. If you have high blood pressure, high cholesterol, or kidney problems, use very little of it. Keep all the salt in your food under one level teaspoon (5g) for the whole day. Too much salt harms your heart and kidneys even when your sugar is fine.",
     "portionIcon": "spoon"
   },
   {
@@ -3791,7 +3793,7 @@
     "tags": [
       "local"
     ],
-    "healthNote": "This food is very salty. If you have high blood pressure, high cholesterol, or kidney problems, use only a pinch. Too much salt harms your heart and kidneys even when your sugar is fine.",
+    "healthNote": "This food is very salty. If you have high blood pressure, high cholesterol, or kidney problems, use very little of it. Keep all the salt in your food under one level teaspoon (5g) for the whole day. Too much salt harms your heart and kidneys even when your sugar is fine.",
     "portionIcon": "cards"
   },
   {
@@ -4857,7 +4859,7 @@
     "frequency": "About 3 times a week.",
     "logicNote": "Oily fish with little starch and good fat. Choose the ones packed in water, not in oil.",
     "tags": [],
-    "healthNote": "This food is very salty. If you have high blood pressure, high cholesterol, or kidney problems, use only a pinch. Too much salt harms your heart and kidneys even when your sugar is fine.",
+    "healthNote": "This food is very salty. If you have high blood pressure, high cholesterol, or kidney problems, use very little of it. Keep all the salt in your food under one level teaspoon (5g) for the whole day. Too much salt harms your heart and kidneys even when your sugar is fine.",
     "portionIcon": "cards"
   },
   {
@@ -5610,7 +5612,7 @@
     "tags": [
       "local"
     ],
-    "healthNote": "This food is very salty. If you have high blood pressure, high cholesterol, or kidney problems, use only a pinch. Too much salt harms your heart and kidneys even when your sugar is fine.",
+    "healthNote": "This food is very salty. If you have high blood pressure, high cholesterol, or kidney problems, use very little of it. Keep all the salt in your food under one level teaspoon (5g) for the whole day. Too much salt harms your heart and kidneys even when your sugar is fine.",
     "portionIcon": "spoon"
   },
   {
@@ -5628,11 +5630,11 @@
     "gi": "low",
     "baseVerdict": "yellow",
     "portionGuidance": "One cube per pot. Do not use more than that.",
-    "pairingAdvice": "In cooking. Balance it with less added salt.",
+    "pairingAdvice": "In cooking. Onions, turmeric, garlic, and local spices give the same taste with no salt.",
     "frequency": "You can eat this every day.",
     "logicNote": "No sugar impact, but very salty. Too much salt raises blood pressure, which diabetics must watch.",
     "tags": [],
-    "healthNote": "This food is very salty. If you have high blood pressure, high cholesterol, or kidney problems, use only a pinch. Too much salt harms your heart and kidneys even when your sugar is fine.",
+    "healthNote": "This food is very salty. If you have high blood pressure, high cholesterol, or kidney problems, use very little of it. Keep all the salt in your food under one level teaspoon (5g) for the whole day. Too much salt harms your heart and kidneys even when your sugar is fine.",
     "portionIcon": "pinch"
   },
   {
@@ -5876,7 +5878,7 @@
     "tags": [
       "processed"
     ],
-    "healthNote": "This food is very salty. If you have high blood pressure, high cholesterol, or kidney problems, use only a pinch. Too much salt harms your heart and kidneys even when your sugar is fine.",
+    "healthNote": "This food is very salty. If you have high blood pressure, high cholesterol, or kidney problems, use very little of it. Keep all the salt in your food under one level teaspoon (5g) for the whole day. Too much salt harms your heart and kidneys even when your sugar is fine.",
     "portionIcon": "avoid"
   },
   {
@@ -6643,7 +6645,7 @@
     "frequency": "You can eat this every day.",
     "logicNote": "Dried, smoked fish with little starch and plenty of body-building food. Rinse off the extra salt.",
     "tags": [],
-    "healthNote": "This food is very salty. If you have high blood pressure, high cholesterol, or kidney problems, use only a pinch. Too much salt harms your heart and kidneys even when your sugar is fine.",
+    "healthNote": "This food is very salty. If you have high blood pressure, high cholesterol, or kidney problems, use very little of it. Keep all the salt in your food under one level teaspoon (5g) for the whole day. Too much salt harms your heart and kidneys even when your sugar is fine.",
     "portionIcon": "cards"
   },
   {
@@ -6686,7 +6688,7 @@
     "tags": [
       "processed"
     ],
-    "healthNote": "This food is very salty. If you have high blood pressure, high cholesterol, or kidney problems, use only a pinch. Too much salt harms your heart and kidneys even when your sugar is fine.",
+    "healthNote": "This food is very salty. If you have high blood pressure, high cholesterol, or kidney problems, use very little of it. Keep all the salt in your food under one level teaspoon (5g) for the whole day. Too much salt harms your heart and kidneys even when your sugar is fine.",
     "portionIcon": "half-cup"
   },
   {
@@ -7134,7 +7136,7 @@
     "tags": [
       "processed"
     ],
-    "healthNote": "This food is very salty. If you have high blood pressure, high cholesterol, or kidney problems, use only a pinch. Too much salt harms your heart and kidneys even when your sugar is fine.",
+    "healthNote": "This food is very salty. If you have high blood pressure, high cholesterol, or kidney problems, use very little of it. Keep all the salt in your food under one level teaspoon (5g) for the whole day. Too much salt harms your heart and kidneys even when your sugar is fine.",
     "portionIcon": "pieces"
   },
   {

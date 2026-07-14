@@ -17,7 +17,13 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
 const FILE = join(dirname(fileURLToPath(import.meta.url)), "..", "data", "foods.json");
-const FIELDS = ["portionGuidance", "pairingAdvice", "logicNote", "healthNote"];
+const FIELDS = [
+  "portionGuidance",
+  "pairingAdvice",
+  "logicNote",
+  "healthNote",
+  "medicineNote",
+];
 
 /**
  * Amounts that used to be a "handful" or "a few". A handful is a different

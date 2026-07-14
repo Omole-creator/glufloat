@@ -1,6 +1,18 @@
 import type { Food, MealItem } from "./types";
 
 /**
+ * Salt and the seasoning cube are used every day, and the limit on them is the
+ * AMOUNT, not the number of days. `portionGuidance` carries that amount.
+ *
+ * They are yellow, so without this they fall through to `weeklyFallback` and the
+ * card tells people to eat salt "About 2 times a week", which means nothing.
+ *
+ * This mirrors `DAILY_BUT_LIMITED` in `scripts/frequency-numbers.mjs`, which is
+ * the write side. The two must always list the same ids.
+ */
+const DAILY_BUT_LIMITED = new Set(["salt", "seasoning-cube"]);
+
+/**
  * Foods that may safely be eaten every day. Per dietician guidance: if a food
  * carries any form of sugar or starch, it is NOT a daily food, even when it is
  * green. So "every day" is reserved for sugar-free foods only: non-starchy
@@ -9,6 +21,7 @@ import type { Food, MealItem } from "./types";
  * (legumes, fruit, tubers, dairy, sweets, grains) is capped to a weekly count.
  */
 function canBeEveryday(food: Food): boolean {
+  if (DAILY_BUT_LIMITED.has(food.id)) return true;
   if (food.baseVerdict !== "green") return false;
   if (food.role === "vegetable" || food.role === "soup") return true;
   if (

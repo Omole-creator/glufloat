@@ -269,6 +269,32 @@ export default function MealBuilder() {
                 ) : null;
               })()}
 
+            {showVerdict &&
+              (() => {
+                // Medicine notes are calm and grey, never red. They say when to
+                // take a tablet, not to stop eating the food. See lib/types.ts.
+                const notes = [
+                  ...new Set(
+                    items.map((i) => i.food.medicineNote).filter(Boolean),
+                  ),
+                ];
+                return notes.length > 0 ? (
+                  <div className="mt-4 space-y-2">
+                    {notes.map((n, idx) => (
+                      <div
+                        key={idx}
+                        className="rounded-xl border border-line bg-mist p-3"
+                      >
+                        <p className="text-[11px] font-bold uppercase tracking-wider text-ink/60">
+                          If you take medicine
+                        </p>
+                        <p className="mt-1 text-sm text-ink">{n}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : null;
+              })()}
+
             {showVerdict && (
               <div className="mt-4 border-t border-line pt-4">
                 <p className="text-xs font-bold uppercase tracking-wider text-ink/60">

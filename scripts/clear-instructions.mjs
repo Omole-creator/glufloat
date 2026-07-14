@@ -199,16 +199,41 @@ const RULES = [
   [/^Two biscuits\. Add milk that has no sugar\.$/, "Two biscuits. Add milk that has no sugar."],
 ];
 
+/**
+ * The dietician's corrections. She said the salt and seasoning advice was too
+ * vague to be any use, and gave the real number: under 5g of salt a day, which
+ * is about one level teaspoon, and natural herbs in place of the cube.
+ *
+ * This script runs LAST, so this is where a correction has to live to survive.
+ */
+const DIETICIAN_PORTION = {
+  salt: "Less than one level teaspoon (5g) in all your food for the whole day.",
+};
+
+const DIETICIAN_PAIRING = {
+  "seasoning-cube":
+    "In cooking. Onions, turmeric, garlic, and local spices give the same taste with no salt.",
+};
+
 const foods = JSON.parse(readFileSync(FILE, "utf8"));
 const byId = new Map(foods.map((f) => [f.id, f]));
 
-for (const [id, text] of Object.entries({ ...MEAT, ...COOKED })) {
+for (const [id, text] of Object.entries({ ...MEAT, ...COOKED, ...DIETICIAN_PORTION })) {
   const f = byId.get(id);
   if (!f) {
     console.error(`no such food: ${id}`);
     process.exit(1);
   }
   f.portionGuidance = text;
+}
+
+for (const [id, text] of Object.entries(DIETICIAN_PAIRING)) {
+  const f = byId.get(id);
+  if (!f) {
+    console.error(`no such food: ${id}`);
+    process.exit(1);
+  }
+  f.pairingAdvice = text;
 }
 
 let changed = 0;
