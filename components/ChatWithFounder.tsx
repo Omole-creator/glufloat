@@ -7,7 +7,7 @@
  * that is what wa.me needs: 08132097317 -> 2348132097317.
  */
 const FOUNDER_WHATSAPP = "2348132097317";
-const GREETING = "Hi GluFloat, I would like to speak with the founder.";
+const GREETING = "Hi GluFloat, I would like to speak with you.";
 
 export default function ChatWithFounder() {
   const href = `https://wa.me/${FOUNDER_WHATSAPP}?text=${encodeURIComponent(GREETING)}`;
@@ -17,8 +17,8 @@ export default function ChatWithFounder() {
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      aria-label="Chat with the founder on WhatsApp"
-      title="Chat with the founder"
+      aria-label="Chat with us on WhatsApp"
+      title="Chat with us"
       className="fixed bottom-5 right-5 z-30 flex h-12 w-12 items-center justify-center rounded-full bg-[#25D366] text-white shadow-[0_6px_18px_-6px_rgba(37,211,102,0.7)] transition-transform hover:scale-105 hover:bg-[#1DA851]"
     >
       <svg viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6" aria-hidden>
