@@ -9,6 +9,7 @@ import DisclaimerGate from "@/components/DisclaimerGate";
 import FeedbackPopup from "@/components/FeedbackPopup";
 import SearchPanel from "@/components/SearchPanel";
 import MealBuilder from "@/components/MealBuilder";
+import ChatWithFounder from "@/components/ChatWithFounder";
 import { PAYSTACK_URL, pendingReference, clearPendingReference } from "@/lib/access";
 import { getAccess, signOut, type Access } from "@/lib/account";
 
@@ -177,6 +178,8 @@ export default function AppPage() {
           </div>
         </div>
       </main>
+
+      <ChatWithFounder />
 
       <Footer />
     </>
