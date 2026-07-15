@@ -7,6 +7,8 @@ import { scoreMeal } from "@/lib/verdictEngine";
 import type { Food, MealItem, PortionSize } from "@/lib/types";
 import { PortionMini } from "./PortionVisual";
 import { mealFrequency } from "@/lib/frequency";
+import { mealShareMessage } from "@/lib/shareMessage";
+import ShareOnWhatsApp from "./ShareOnWhatsApp";
 import { events } from "@/lib/analytics";
 
 const PORTIONS: { key: PortionSize; label: string }[] = [
@@ -319,6 +321,12 @@ export default function MealBuilder() {
                 {often.reason && (
                   <p className="mt-1 text-sm text-ink-soft">{often.reason}</p>
                 )}
+              </div>
+            )}
+
+            {showVerdict && (
+              <div className="mt-4 border-t border-line pt-4">
+                <ShareOnWhatsApp text={mealShareMessage(items, result, often)} />
               </div>
             )}
           </div>

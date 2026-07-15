@@ -1,6 +1,8 @@
 import type { Food } from "@/lib/types";
 import { plainFrequency } from "@/lib/frequency";
+import { foodShareMessage } from "@/lib/shareMessage";
 import PortionVisual from "./PortionVisual";
+import ShareOnWhatsApp from "./ShareOnWhatsApp";
 
 const STYLES = {
   green: {
@@ -94,6 +96,10 @@ export default function VerdictCard({ food }: { food: Food }) {
             <p className="mt-1 text-sm text-ink">{plainFrequency(food)}</p>
           </div>
         </div>
+      </div>
+
+      <div className="mt-4">
+        <ShareOnWhatsApp text={foodShareMessage(food)} />
       </div>
     </div>
   );
