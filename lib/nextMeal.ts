@@ -1,6 +1,7 @@
 import { getFood } from "./search";
 import type { Food } from "./types";
 import type { NamedMeal } from "./mealtime";
+import { shortFoodName } from "./foodName";
 
 /**
  * Safe meal ideas to suggest for the next meal.
@@ -40,33 +41,66 @@ const IDEAS: Record<NamedMeal, string[][]> = {
 
 export interface MealIdea {
   foods: Food[];
-  /** Index of this idea within its meal, so "another" can avoid repeating it. */
+  /** How to name each food cleanly on the card (no "Titus / Mackerel" lists). */
+  names: string[];
   index: number;
   count: number;
 }
 
-/** Resolve idea `index` for a meal into real Food objects. */
 function resolve(meal: NamedMeal, index: number): MealIdea {
   const list = IDEAS[meal];
   const ids = list[index] ?? list[0];
   const foods = ids
     .map((id) => getFood(id))
     .filter((f): f is Food => Boolean(f));
-  return { foods, index, count: list.length };
+  return {
+    foods,
+    names: foods.map((f) => shortFoodName(f.name)),
+    index,
+    count: list.length,
+  };
+}
+
+/** A small, stable hash so a day + an idea has one fixed pseudo-random order. */
+function hash(s: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
 }
 
 /**
- * Pick an idea for the meal. Pass the last index shown to get a DIFFERENT one
- * (the "show me another" button), so pressing it always moves the plate on.
+ * The meal to show for a given day.
+ *
+ * Two rules the founder set: it must **change every day**, and it must **learn
+ * from what the person has been eating** (bring something other than their usual
+ * plate). So each idea is scored by how often its foods appear in the person's
+ * log (lower is fresher), and ties are broken by a per-day order, which is what
+ * makes the choice stable within a day but different the next day. `offset`
+ * steps to the next idea for a "show me another" tap.
  */
-export function pickIdea(meal: NamedMeal, avoidIndex?: number): MealIdea {
-  const count = IDEAS[meal].length;
-  if (count === 0) return { foods: [], index: 0, count: 0 };
-  let index = Math.floor(Math.random() * count);
-  if (avoidIndex !== undefined && count > 1) {
-    // Step to the next one instead of re-rolling, so it can never land back on
-    // the same plate.
-    if (index === avoidIndex) index = (index + 1) % count;
-  }
-  return resolve(meal, index);
+export function planForDay(
+  meal: NamedMeal,
+  dayKey: string,
+  counts: Map<string, number>,
+  offset = 0,
+): MealIdea {
+  const list = IDEAS[meal];
+  if (list.length === 0) return { foods: [], names: [], index: 0, count: 0 };
+
+  const scored = list.map((_, i) => {
+    const idea = resolve(meal, i);
+    const eaten = idea.foods.reduce(
+      (sum, f) => sum + (counts.get(f.name) ?? 0),
+      0,
+    );
+    return { idea, eaten, order: hash(`${dayKey}#${i}`) };
+  });
+
+  scored.sort((a, b) => a.eaten - b.eaten || a.order - b.order);
+
+  const n = scored.length;
+  return scored[((offset % n) + n) % n].idea;
 }

@@ -34,18 +34,30 @@ export function greeting(slot: MealSlot): string {
 }
 
 /**
- * The meal AFTER the one happening now, which is what the "eat next" button
- * suggests. At breakfast it points to lunch; at lunch, dinner; in the evening or
- * late at night, tomorrow's breakfast.
+ * The meal the app presents right now as "your meal for today". It is the meal
+ * of the current time (breakfast in the morning, and so on). Late at night the
+ * day's meals are done, so it points to tomorrow's breakfast.
  */
-export function nextMeal(slot: MealSlot): NamedMeal {
-  switch (slot) {
-    case "breakfast":
-      return "lunch";
-    case "lunch":
-      return "dinner";
-    case "dinner":
-    case "late":
-      return "breakfast";
-  }
+export interface TodayMeal {
+  meal: NamedMeal;
+  when: "today" | "tomorrow";
+}
+
+export function todayMeal(slot: MealSlot = currentSlot()): TodayMeal {
+  if (slot === "late") return { meal: "breakfast", when: "tomorrow" };
+  return { meal: slot, when: "today" };
+}
+
+/** "Your breakfast for today", the authoritative heading on the meal card. */
+export function todayMealHeading(t: TodayMeal): string {
+  return `Your ${t.meal} for ${t.when}`;
+}
+
+/** A local-day key (YYYY-MM-DD in the browser's own timezone). Used to make the
+ * day's meal stable within a day but different from one day to the next. */
+export function localDayKey(d: Date = new Date()): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }

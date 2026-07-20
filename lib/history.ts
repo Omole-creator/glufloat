@@ -111,6 +111,39 @@ export async function monthChecks(): Promise<MealCheck[]> {
   }
 }
 
+/**
+ * How many times each food has been logged in the last 30 days (single checks,
+ * and each food inside a saved meal). The daily meal card uses this to lean AWAY
+ * from what someone already eats a lot, so the suggestion brings variety instead
+ * of handing back their usual plate.
+ */
+export async function loggedFoodCounts(): Promise<Map<string, number>> {
+  const counts = new Map<string, number>();
+  try {
+    const supabase = createClient();
+    const since = new Date();
+    since.setDate(since.getDate() - 30);
+    const { data } = await supabase
+      .from("meal_checks")
+      .select("kind,label")
+      .gte("checked_at", since.toISOString());
+    for (const r of data ?? []) {
+      const names =
+        r.kind === "single"
+          ? [r.label as string]
+          : String(r.label)
+              .split(",")
+              .map((s) => s.trim());
+      for (const n of names) {
+        if (n) counts.set(n, (counts.get(n) ?? 0) + 1);
+      }
+    }
+  } catch {
+    /* empty map on failure */
+  }
+  return counts;
+}
+
 export interface MonthStats {
   total: number; // checks this calendar month
   green: number;

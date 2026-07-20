@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Printer } from "lucide-react";
+import { Download } from "lucide-react";
+import { jsPDF } from "jspdf";
 import {
   monthStats,
   monthChecks,
@@ -10,6 +11,20 @@ import {
 } from "@/lib/history";
 import { monthReportMessage } from "@/lib/shareMessage";
 import ShareOnWhatsApp from "./ShareOnWhatsApp";
+
+// Glufloat brand colours (from app/globals.css), as RGB for jsPDF.
+const BRAND = [27, 95, 170] as const; // --blue
+const INK = [12, 42, 71] as const; // --ink
+const V = {
+  green: [46, 204, 113] as const,
+  yellow: [241, 196, 15] as const,
+  red: [231, 76, 60] as const,
+};
+const TINT = {
+  green: [223, 246, 233] as const,
+  yellow: [252, 246, 214] as const,
+  red: [250, 226, 222] as const,
+};
 
 const MEANING = {
   green: "Good to eat",
@@ -45,21 +60,107 @@ export default function MonthReport() {
     items.map((i) => ({ label: i.label, verdict: i.verdict })),
   );
 
-  // Print the record on its own, not the whole app screen. Same words as the
-  // WhatsApp message, so the doctor reads exactly what the person sent.
-  const print = () => {
-    const w = window.open("", "_blank", "width=600,height=800");
-    if (!w) return;
-    const safe = text
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;");
-    w.document.write(
-      `<title>My Glufloat food record</title><pre style="font-family: system-ui, sans-serif; font-size:15px; line-height:1.5; white-space:pre-wrap; padding:28px">${safe}</pre>`,
+  const MEANING_WORD = {
+    green: "Good to eat",
+    yellow: "Eat with care",
+    red: "Better to skip",
+  } as const;
+
+  // A clean, Glufloat-branded PDF the person can hand or send to their doctor.
+  const savePdf = () => {
+    const doc = new jsPDF();
+    const M = 14;
+    const W = 210;
+    const fill = (c: readonly [number, number, number]) =>
+      doc.setFillColor(c[0], c[1], c[2]);
+    const ink = (c: readonly [number, number, number]) =>
+      doc.setTextColor(c[0], c[1], c[2]);
+
+    // Brand header band.
+    fill(BRAND);
+    doc.rect(0, 0, W, 30, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(22);
+    doc.text("Glufloat", M, 15);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(11);
+    doc.text("Food record for the doctor", M, 23);
+
+    ink(INK);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(15);
+    doc.text("What I ate this month", M, 44);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.setTextColor(110);
+    doc.text(
+      `${stats.total} ${stats.total === 1 ? "meal" : "meals"} checked  ·  prepared ${new Date().toLocaleDateString(
+        "en-GB",
+        { day: "numeric", month: "long", year: "numeric" },
+      )}`,
+      M,
+      51,
     );
-    w.document.close();
-    w.focus();
-    w.print();
+
+    // Three colour count boxes.
+    const boxW = 58;
+    const gap = 6;
+    const boxY = 58;
+    const boxes: [keyof typeof V, number][] = [
+      ["green", stats.green],
+      ["yellow", stats.yellow],
+      ["red", stats.red],
+    ];
+    boxes.forEach(([k, n], i) => {
+      const x = M + i * (boxW + gap);
+      fill(TINT[k]);
+      doc.roundedRect(x, boxY, boxW, 22, 2, 2, "F");
+      fill(V[k]);
+      doc.rect(x, boxY, boxW, 2.5, "F"); // colour strip on top
+      ink(INK);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(20);
+      doc.text(String(n), x + 5, boxY + 13);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+      doc.setTextColor(90);
+      doc.text(MEANING_WORD[k], x + 5, boxY + 18);
+    });
+
+    // The food list.
+    let y = 92;
+    ink(INK);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.text("Every meal I checked", M, y);
+    y += 8;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    for (const it of items) {
+      if (y > 280) {
+        doc.addPage();
+        y = 20;
+      }
+      fill(V[it.verdict]);
+      doc.circle(M + 1.5, y - 1.4, 1.6, "F");
+      ink(INK);
+      doc.text(it.label.slice(0, 70), M + 6, y);
+      doc.setTextColor(140);
+      doc.text(MEANING_WORD[it.verdict], 150, y);
+      y += 7;
+    }
+
+    // Footer line.
+    doc.setFontSize(8);
+    doc.setTextColor(150);
+    doc.text(
+      "Made with Glufloat, which gives Nigerian foods a green, yellow or red rating for blood sugar.",
+      M,
+      290,
+    );
+
+    doc.save(`glufloat-food-record-${new Date().toISOString().slice(0, 10)}.pdf`);
   };
 
   const Tile = ({ n, label, dot }: { n: number; label: string; dot: string }) => (
@@ -105,10 +206,10 @@ export default function MonthReport() {
       <div className="mt-4 flex flex-wrap items-center gap-2">
         <ShareOnWhatsApp text={text} label="Send to my doctor on WhatsApp" />
         <button
-          onClick={print}
+          onClick={savePdf}
           className="inline-flex items-center gap-2 rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold text-ink-soft transition-colors hover:border-brand hover:text-ink"
         >
-          <Printer className="h-4 w-4" /> Print or save
+          <Download className="h-4 w-4" /> Save as PDF
         </button>
       </div>
     </div>

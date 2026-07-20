@@ -9,16 +9,14 @@ import DisclaimerGate from "@/components/DisclaimerGate";
 import FeedbackPopup from "@/components/FeedbackPopup";
 import SearchPanel from "@/components/SearchPanel";
 import MealBuilder from "@/components/MealBuilder";
-import RecentChecks from "@/components/RecentChecks";
 import HabitStreak from "@/components/HabitStreak";
 import VarietyNudge from "@/components/VarietyNudge";
 import MonthReport from "@/components/MonthReport";
-import NextMealSuggestion from "@/components/NextMealSuggestion";
+import TodaysMeal from "@/components/TodaysMeal";
 import PushOptIn from "@/components/PushOptIn";
 import ChatWithFounder from "@/components/ChatWithFounder";
 import { PAYSTACK_URL, pendingReference, clearPendingReference } from "@/lib/access";
 import { getAccess, signOut, type Access } from "@/lib/account";
-import { currentSlot, greeting } from "@/lib/mealtime";
 import type { Food } from "@/lib/types";
 
 export default function AppPage() {
@@ -31,14 +29,25 @@ export default function AppPage() {
   const [seedSearch, setSeedSearch] = useState<Food | null>(null);
   const [seedMeal, setSeedMeal] = useState<Food[] | null>(null);
 
+  // The check tools sit below the fold now, so bring them into view when a card
+  // above hands a food or a meal down to them.
+  const scrollToTools = () => {
+    setTimeout(() => {
+      document
+        .getElementById("check-yourself")
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
+  };
   const openInSearch = (food: Food) => {
     setSeedSearch(food);
     setTab("search");
+    scrollToTools();
   };
   const buildMeal = (foods: Food[]) => {
     // New array each time so the builder treats it as a fresh seed to load.
     setSeedMeal([...foods]);
     setTab("meal");
+    scrollToTools();
   };
 
   useEffect(() => {
@@ -162,57 +171,61 @@ export default function AppPage() {
               Sign out
             </button>
           </div>
-          <h1 className="mt-2 text-center font-display text-3xl font-bold text-ink sm:text-4xl">
-            {greeting(currentSlot())}
+          <h1 className="mx-auto mt-2 max-w-lg text-center font-display text-3xl font-bold leading-tight text-ink sm:text-4xl">
+            Eat the food you love, the right way.
           </h1>
-          <p className="mx-auto mt-3 max-w-md text-center font-display text-sm leading-relaxed text-ink-soft">
-            Never wonder if your next meal is right for your sugar. Check one
-            food, or your whole plate, and get one clear answer.
-          </p>
 
-          <RecentChecks onOpenFood={openInSearch} />
-          <HabitStreak />
+          {/* The app tells you what to eat today, first. */}
+          <div className="mt-8 space-y-6">
+            <TodaysMeal onBuild={buildMeal} />
+            <HabitStreak />
+            <VarietyNudge onOpenFood={openInSearch} />
+            <PushOptIn />
+          </div>
 
-          <div className="mt-8 flex justify-center">
-            <div className="inline-flex rounded-full border border-line bg-white p-1 shadow-sm">
-              <button
-                onClick={() => setTab("search")}
-                className={`rounded-full px-5 py-2.5 text-sm font-semibold transition-colors ${
-                  tab === "search"
-                    ? "bg-brand text-white"
-                    : "text-ink-soft hover:text-ink"
-                }`}
-              >
-                Search a food
-              </button>
-              <button
-                onClick={() => setTab("meal")}
-                className={`rounded-full px-5 py-2.5 text-sm font-semibold transition-colors ${
-                  tab === "meal"
-                    ? "bg-leaf text-white"
-                    : "text-ink-soft hover:text-ink"
-                }`}
-              >
-                Build a meal
-              </button>
+          {/* Then the tools to check anything yourself, lower down. */}
+          <div id="check-yourself" className="mt-12 scroll-mt-24">
+            <p className="text-center text-xs font-bold uppercase tracking-widest text-ink/40">
+              Or check any food or meal yourself
+            </p>
+            <div className="mt-4 flex justify-center">
+              <div className="inline-flex rounded-full border border-line bg-white p-1 shadow-sm">
+                <button
+                  onClick={() => setTab("search")}
+                  className={`rounded-full px-5 py-2.5 text-sm font-semibold transition-colors ${
+                    tab === "search"
+                      ? "bg-brand text-white"
+                      : "text-ink-soft hover:text-ink"
+                  }`}
+                >
+                  Search a food
+                </button>
+                <button
+                  onClick={() => setTab("meal")}
+                  className={`rounded-full px-5 py-2.5 text-sm font-semibold transition-colors ${
+                    tab === "meal"
+                      ? "bg-leaf text-white"
+                      : "text-ink-soft hover:text-ink"
+                  }`}
+                >
+                  Build a meal
+                </button>
+              </div>
+            </div>
+
+            <div className="mt-6">
+              {tab === "search" ? (
+                <SearchPanel
+                  initialFood={seedSearch}
+                  onBuildMeal={(food) => buildMeal([food])}
+                />
+              ) : (
+                <MealBuilder initialFoods={seedMeal} />
+              )}
             </div>
           </div>
 
-          <div className="mt-8">
-            {tab === "search" ? (
-              <SearchPanel
-                initialFood={seedSearch}
-                onBuildMeal={(food) => buildMeal([food])}
-              />
-            ) : (
-              <MealBuilder initialFoods={seedMeal} />
-            )}
-          </div>
-
-          <div className="mt-8 space-y-6">
-            <PushOptIn />
-            <NextMealSuggestion onBuild={buildMeal} />
-            <VarietyNudge onOpenFood={openInSearch} />
+          <div className="mt-10">
             <MonthReport />
           </div>
         </div>
