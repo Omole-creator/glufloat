@@ -24,13 +24,22 @@ export default async function UsersPage() {
   if (!authed) return <AdminLogin />;
 
   const admin = createAdminClient();
-  const [{ data: profiles }, { data: subs }] = await Promise.all([
-    admin
-      .from("profiles")
-      .select("id,name,email,user_type,trial_start,created_at")
-      .order("created_at", { ascending: false }),
-    admin.from("subscriptions").select("user_id,status,current_period_end"),
-  ]);
+  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const [{ data: profiles }, { data: subs }, { data: recentCheckRows }] =
+    await Promise.all([
+      admin
+        .from("profiles")
+        .select("id,name,email,phone,user_type,trial_start,created_at")
+        .order("created_at", { ascending: false }),
+      admin.from("subscriptions").select("user_id,status,current_period_end"),
+      // Who has actually used the app lately. This is the "did they come back?"
+      // signal that raw sign-up counts cannot give.
+      admin.from("meal_checks").select("user_id").gte("checked_at", weekAgo),
+    ]);
+
+  const activeThisWeek = new Set(
+    (recentCheckRows ?? []).map((r) => r.user_id),
+  ).size;
 
   const now = Date.now();
   const paying = new Set(
@@ -48,6 +57,7 @@ export default async function UsersPage() {
     id: p.id,
     name: p.name ?? "",
     email: p.email,
+    phone: p.phone ?? "",
     userType: isUserType(p.user_type) ? p.user_type : null,
     joined: p.created_at,
     trialStarted: !!p.trial_start,
@@ -97,6 +107,12 @@ export default async function UsersPage() {
             sub={pct(counts.caregiver)}
           />
         </div>
+
+        <p className="mt-4 rounded-xl bg-white px-4 py-3 text-sm text-ink-soft">
+          <strong className="font-display text-ink">{activeThisWeek}</strong>{" "}
+          {activeThisWeek === 1 ? "person" : "people"} checked their food in the
+          last 7 days. This is who came back, not just who signed up.
+        </p>
 
         {counts.none > 0 && (
           <p className="mt-4 rounded-xl bg-white px-4 py-3 text-sm text-ink-soft">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, AlertTriangle, X, Plus } from "lucide-react";
 import { searchFoods } from "@/lib/search";
 import { scoreMeal } from "@/lib/verdictEngine";
@@ -10,6 +10,7 @@ import { mealFrequency } from "@/lib/frequency";
 import { mealShareMessage } from "@/lib/shareMessage";
 import ShareOnWhatsApp from "./ShareOnWhatsApp";
 import { events } from "@/lib/analytics";
+import { saveCheck, deleteCheck } from "@/lib/history";
 
 const PORTIONS: { key: PortionSize; label: string }[] = [
   { key: "half", label: "Small" },
@@ -44,9 +45,23 @@ const VERDICT_UI = {
   },
 } as const;
 
-export default function MealBuilder() {
+export default function MealBuilder({
+  initialFoods = null,
+}: {
+  /** Preload the plate, e.g. from a single-food search or a suggested meal. */
+  initialFoods?: Food[] | null;
+} = {}) {
   const [query, setQuery] = useState("");
   const [items, setItems] = useState<MealItem[]>([]);
+
+  // Seed the plate from outside. A new array identity means a fresh seed action,
+  // so we replace what is there (the person chose to start from this meal).
+  useEffect(() => {
+    if (initialFoods && initialFoods.length > 0) {
+      setItems(initialFoods.map((f) => ({ food: f, portion: "normal" as const })));
+      setQuery("");
+    }
+  }, [initialFoods]);
 
   const results = useMemo(() => searchFoods(query, 6), [query]);
   const result = useMemo(() => scoreMeal(items), [items]);
@@ -56,6 +71,36 @@ export default function MealBuilder() {
     if (items.length > 0) events.mealBuilt(result.verdict);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [result.verdict, items.length]);
+
+  // Save the built meal to the person's history, so recent meals, the streak and
+  // the monthly record can read it. We wait until the meal has been still for a
+  // moment (so we do not write a row on every keystroke), and when a fuller
+  // version of the same meal is saved we delete the earlier half-built row, so a
+  // building session collapses into one record instead of one per food added.
+  const savedRef = useRef<{ id: number; ids: Set<string>; sig: string } | null>(
+    null,
+  );
+  useEffect(() => {
+    if (items.length === 0) return;
+    const ids = items.map((i) => i.food.id);
+    const sig = `${[...ids].sort().join("|")}#${result.verdict}`;
+    if (savedRef.current?.sig === sig) return; // nothing new to record
+    const timer = setTimeout(async () => {
+      const label = items.map((i) => i.food.name).join(", ");
+      const newId = await saveCheck("meal", label, result.verdict);
+      if (newId == null) return;
+      const prev = savedRef.current;
+      const idSet = new Set(ids);
+      // If the earlier saved meal is contained in this one, it was just a
+      // half-built step. Remove it so only the fuller meal stays.
+      if (prev && [...prev.ids].every((x) => idSet.has(x))) {
+        void deleteCheck(prev.id);
+      }
+      savedRef.current = { id: newId, ids: idSet, sig };
+    }, 3000);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items, result.verdict]);
 
   const add = (food: Food) => {
     if (items.some((i) => i.food.id === food.id)) return;

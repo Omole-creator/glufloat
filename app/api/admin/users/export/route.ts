@@ -51,7 +51,7 @@ export async function GET(request: Request) {
 
   const { data, error } = await createAdminClient()
     .from("profiles")
-    .select("name,email,user_type,created_at,trial_start")
+    .select("name,email,phone,user_type,created_at,trial_start")
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -61,11 +61,12 @@ export async function GET(request: Request) {
   const rows = (data ?? []).filter((p) => inGroup(p.user_type, group));
 
   const csv = [
-    ["Name", "Email", "What they are", "Joined", "Trial started"].join(","),
+    ["Name", "Email", "Phone", "What they are", "Joined", "Trial started"].join(","),
     ...rows.map((p) =>
       [
         csvCell(p.name),
         csvCell(p.email),
+        csvCell(p.phone),
         csvCell(typeLabel(p.user_type)),
         csvCell(day(p.created_at)),
         csvCell(day(p.trial_start)),

@@ -1,20 +1,42 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { ArrowRight } from "lucide-react";
 import { searchFoods } from "@/lib/search";
 import type { Food } from "@/lib/types";
 import VerdictCard from "./VerdictCard";
 import { events } from "@/lib/analytics";
+import { saveCheck } from "@/lib/history";
 
 // Access is gated upstream at /app, so this panel is always fully open here.
-export default function SearchPanel() {
+export default function SearchPanel({
+  initialFood = null,
+  onBuildMeal,
+}: {
+  /** When set (e.g. tapping a recent food), open straight to that food's card. */
+  initialFood?: Food | null;
+  /** "Add what you are eating it with": hand the food to the meal builder. */
+  onBuildMeal?: (food: Food) => void;
+} = {}) {
   const [query, setQuery] = useState("");
   const [picked, setPicked] = useState<Food | null>(null);
+
+  // Open to a food handed in from outside (a recent-meal chip), without saving a
+  // new check for it: it was already saved when first opened.
+  useEffect(() => {
+    if (initialFood) {
+      setPicked(initialFood);
+      setQuery("");
+    }
+  }, [initialFood]);
 
   const results = useMemo(() => searchFoods(query), [query]);
 
   const pick = (food: Food) => {
     events.foodChecked(food.name);
+    // Remember it, so the app can show recent meals and a day-streak. Best
+    // effort: a failed save never blocks the answer.
+    void saveCheck("single", food.name, food.baseVerdict);
     setPicked(food);
     setQuery("");
   };
@@ -78,7 +100,20 @@ export default function SearchPanel() {
         </p>
       )}
 
-      <div className="mt-4">{picked && <VerdictCard food={picked} />}</div>
+      {picked && (
+        <div className="mt-4">
+          <VerdictCard food={picked} />
+          {onBuildMeal && (
+            <button
+              onClick={() => onBuildMeal(picked)}
+              className="mt-3 flex w-full items-center justify-center gap-2 rounded-full border-2 border-leaf bg-mint px-5 py-3 text-sm font-bold text-leaf-deep transition-colors hover:bg-leaf hover:text-white"
+            >
+              Add what you are eating it with
+              <ArrowRight className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -9,15 +9,37 @@ import DisclaimerGate from "@/components/DisclaimerGate";
 import FeedbackPopup from "@/components/FeedbackPopup";
 import SearchPanel from "@/components/SearchPanel";
 import MealBuilder from "@/components/MealBuilder";
+import RecentChecks from "@/components/RecentChecks";
+import HabitStreak from "@/components/HabitStreak";
+import VarietyNudge from "@/components/VarietyNudge";
+import MonthReport from "@/components/MonthReport";
+import NextMealSuggestion from "@/components/NextMealSuggestion";
+import PushOptIn from "@/components/PushOptIn";
 import ChatWithFounder from "@/components/ChatWithFounder";
 import { PAYSTACK_URL, pendingReference, clearPendingReference } from "@/lib/access";
 import { getAccess, signOut, type Access } from "@/lib/account";
+import { currentSlot, greeting } from "@/lib/mealtime";
+import type { Food } from "@/lib/types";
 
 export default function AppPage() {
   const router = useRouter();
   const [tab, setTab] = useState<"search" | "meal">("search");
   const [access, setAccess] = useState<Access | null>(null);
   const [email, setEmail] = useState<string | null>(null);
+  // Seeds let one part of the app hand a food to another: a recent chip opens in
+  // search, and a suggested or single food starts a meal in the builder.
+  const [seedSearch, setSeedSearch] = useState<Food | null>(null);
+  const [seedMeal, setSeedMeal] = useState<Food[] | null>(null);
+
+  const openInSearch = (food: Food) => {
+    setSeedSearch(food);
+    setTab("search");
+  };
+  const buildMeal = (foods: Food[]) => {
+    // New array each time so the builder treats it as a fresh seed to load.
+    setSeedMeal([...foods]);
+    setTab("meal");
+  };
 
   useEffect(() => {
     /**
@@ -123,7 +145,7 @@ export default function AppPage() {
       <main className="flex-1 bg-mist pb-24 pt-28">
         <div className="mx-auto max-w-3xl px-4 sm:px-6">
           <p className="text-center text-xs font-bold uppercase tracking-widest text-brand">
-            The Glufloat app
+            Before you eat, ask Glufloat
           </p>
           <div className={`mx-auto mt-3 flex w-fit items-center gap-2 rounded-full px-4 py-1.5 text-sm font-bold ${badge.tone}`}>
             <Clock className="h-4 w-4" />
@@ -141,12 +163,15 @@ export default function AppPage() {
             </button>
           </div>
           <h1 className="mt-2 text-center font-display text-3xl font-bold text-ink sm:text-4xl">
-            Check your food before you eat it.
+            {greeting(currentSlot())}
           </h1>
           <p className="mx-auto mt-3 max-w-md text-center font-display text-sm leading-relaxed text-ink-soft">
-            Check one food, or add your whole meal and get one answer with the
-            fix.
+            Never wonder if your next meal is right for your sugar. Check one
+            food, or your whole plate, and get one clear answer.
           </p>
+
+          <RecentChecks onOpenFood={openInSearch} />
+          <HabitStreak />
 
           <div className="mt-8 flex justify-center">
             <div className="inline-flex rounded-full border border-line bg-white p-1 shadow-sm">
@@ -174,7 +199,21 @@ export default function AppPage() {
           </div>
 
           <div className="mt-8">
-            {tab === "search" ? <SearchPanel /> : <MealBuilder />}
+            {tab === "search" ? (
+              <SearchPanel
+                initialFood={seedSearch}
+                onBuildMeal={(food) => buildMeal([food])}
+              />
+            ) : (
+              <MealBuilder initialFoods={seedMeal} />
+            )}
+          </div>
+
+          <div className="mt-8 space-y-6">
+            <PushOptIn />
+            <NextMealSuggestion onBuild={buildMeal} />
+            <VarietyNudge onOpenFood={openInSearch} />
+            <MonthReport />
           </div>
         </div>
       </main>

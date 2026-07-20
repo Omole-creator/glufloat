@@ -14,6 +14,7 @@ export default function SignUpPage() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [userType, setUserType] = useState<UserType | "">("");
   const [showPw, setShowPw] = useState(false);
@@ -30,6 +31,13 @@ export default function SignUpPage() {
       setErr("Please tap which one you are.");
       return;
     }
+    // We ring or WhatsApp people to help them, so the number has to be real.
+    // Count only the digits, so spaces, +234 and 0 all pass.
+    const digits = phone.replace(/\D/g, "");
+    if (digits.length < 10) {
+      setErr("Please put a phone number we can reach you on.");
+      return;
+    }
     setBusy(true);
     setErr("");
     const supabase = createClient();
@@ -43,6 +51,7 @@ export default function SignUpPage() {
       options: {
         data: {
           name: name.trim(),
+          phone: phone.trim(),
           source_post: sourcePost(),
           partner_code: partnerCode(),
           user_type: userType,
@@ -91,6 +100,17 @@ export default function SignUpPage() {
               autoComplete="email"
               className="w-full rounded-xl border-2 border-line px-4 py-3 text-base text-ink outline-none transition-colors focus:border-brand"
               aria-label="Your email"
+            />
+            <input
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              required
+              type="tel"
+              inputMode="tel"
+              placeholder="Your phone number"
+              autoComplete="tel"
+              className="w-full rounded-xl border-2 border-line px-4 py-3 text-base text-ink outline-none transition-colors focus:border-brand"
+              aria-label="Your phone number"
             />
             <div className="relative">
               <input

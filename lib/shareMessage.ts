@@ -1,4 +1,4 @@
-import type { Food, MealItem, MealResult } from "./types";
+import type { Food, MealItem, MealResult, Verdict } from "./types";
 import { plainFrequency } from "./frequency";
 import { SITE_URL } from "./site";
 
@@ -47,6 +47,42 @@ export function foodShareMessage(food: Food): string {
 
   blocks.push(`Eat it with: ${food.pairingAdvice || "Nothing can make this one safe."}`);
   blocks.push(`How often: ${plainFrequency(food)}`);
+  blocks.push(CTA);
+
+  return blocks.join("\n\n");
+}
+
+/**
+ * The "what I ate this month" record a person sends their own doctor. Doctors in
+ * Nigeria see a patient briefly and rely on vague self-report; this turns the
+ * saved history into a plain, honest summary. It carries only the person's own
+ * food, and the colour meanings (never the colour word), same rule as the cards.
+ */
+export function monthReportMessage(
+  counts: { total: number; green: number; yellow: number; red: number },
+  items: { label: string; verdict: Verdict }[],
+): string {
+  const blocks: string[] = ["My food this month, from Glufloat."];
+
+  blocks.push(
+    [
+      `I checked ${counts.total} ${counts.total === 1 ? "meal" : "meals"} this month.`,
+      `Good to eat: ${counts.green}`,
+      `Eat with care: ${counts.yellow}`,
+      `Better to skip: ${counts.red}`,
+    ].join("\n"),
+  );
+
+  if (items.length > 0) {
+    // A long month can be a lot of lines; keep the message sendable.
+    const shown = items.slice(0, 40);
+    const lines = shown.map((i) => `- ${i.label} (${MEANING[i.verdict]})`);
+    if (items.length > shown.length) {
+      lines.push(`- and ${items.length - shown.length} more`);
+    }
+    blocks.push(["What I ate:", ...lines].join("\n"));
+  }
+
   blocks.push(CTA);
 
   return blocks.join("\n\n");

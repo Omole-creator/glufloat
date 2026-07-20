@@ -16,6 +16,7 @@ export type UserRow = {
   id: string;
   name: string;
   email: string;
+  phone: string;
   userType: UserType | null;
   joined: string;
   trialStarted: boolean;
@@ -42,7 +43,8 @@ export default function UsersPanel({
       if (!needle) return true;
       return (
         r.name.toLowerCase().includes(needle) ||
-        r.email.toLowerCase().includes(needle)
+        r.email.toLowerCase().includes(needle) ||
+        r.phone.toLowerCase().includes(needle)
       );
     });
   }, [rows, group, q]);
@@ -132,11 +134,12 @@ export default function UsersPanel({
         </p>
       ) : (
         <div className="mt-3 overflow-x-auto rounded-2xl border border-line bg-white">
-          <table className="w-full min-w-[52rem]">
+          <table className="w-full min-w-[60rem]">
             <thead className="border-b border-line bg-mist">
               <tr>
                 <th className={th}>Name</th>
                 <th className={th}>Email</th>
+                <th className={th}>Phone</th>
                 <th className={th}>What they are</th>
                 <th className={th}>Joined</th>
                 <th className={th}>Trial</th>
@@ -151,6 +154,15 @@ export default function UsersPanel({
                     <a href={`mailto:${r.email}`} className="text-brand hover:underline">
                       {r.email}
                     </a>
+                  </td>
+                  <td className={td}>
+                    {r.phone ? (
+                      <a href={`tel:${r.phone}`} className="text-brand hover:underline">
+                        {r.phone}
+                      </a>
+                    ) : (
+                      <span className="text-ink-soft">—</span>
+                    )}
                   </td>
                   <td className={td}>
                     <select
