@@ -9,13 +9,19 @@ import {
   enablePush,
 } from "@/lib/push";
 
-const DISMISS_KEY = "gf_push_dismissed";
+// The day (in the browser's local time) this device was last shown the offer.
+const LAST_SHOWN_KEY = "gf_push_lastshown";
+const todayKey = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+};
 
 /**
- * A gentle, one-time offer of a meal-time reminder. Not a permission popup on
- * open (that gets refused): a small card the person can accept or wave away. It
- * only appears when the phone can do push, a key is set, and they have not
- * already answered or dismissed it. The honest limits are stated in the copy.
+ * A gentle offer of a meal-time reminder, shown AT MOST ONCE A DAY until the
+ * person turns it on (founder rule). Once accepted, the browser's permission is
+ * "granted", so it never shows again. Once blocked, it also stops. If they just
+ * wave it away, it stays gone for the rest of the day and offers again tomorrow.
+ * Not a permission popup on open (that gets refused): a small card they choose.
  */
 export default function PushOptIn() {
   const [show, setShow] = useState(false);
@@ -25,25 +31,23 @@ export default function PushOptIn() {
 
   useEffect(() => {
     if (!pushSupported() || !pushConfigured()) return;
-    if (pushPermission() !== "default") return; // already granted or blocked
+    // "granted" = they accepted (never nag again); "denied" = blocked (do not
+    // nag). Only "default" (not asked yet) can be offered.
+    if (pushPermission() !== "default") return;
     try {
-      if (localStorage.getItem(DISMISS_KEY)) return;
+      if (localStorage.getItem(LAST_SHOWN_KEY) === todayKey()) return; // shown today already
+      localStorage.setItem(LAST_SHOWN_KEY, todayKey()); // remember we showed it today
     } catch {
-      /* ignore */
+      /* storage blocked: still show it this once */
     }
     setShow(true);
   }, []);
 
   if (!show) return null;
 
-  const dismiss = () => {
-    try {
-      localStorage.setItem(DISMISS_KEY, "1");
-    } catch {
-      /* ignore */
-    }
-    setShow(false);
-  };
+  // "Not now" just hides it. The once-a-day record above already stops it from
+  // coming back until tomorrow, so there is nothing else to write.
+  const dismiss = () => setShow(false);
 
   const turnOn = async () => {
     setBusy(true);
@@ -51,21 +55,11 @@ export default function PushOptIn() {
     const res = await enablePush();
     setBusy(false);
     if (res.ok) {
-      setDone(true);
-      try {
-        localStorage.setItem(DISMISS_KEY, "1");
-      } catch {
-        /* ignore */
-      }
+      setDone(true); // permission is now "granted"; it will never show again
       return;
     }
     if (res.reason === "denied") {
       setMsg("No problem. You can turn it on later in your phone settings.");
-      try {
-        localStorage.setItem(DISMISS_KEY, "1");
-      } catch {
-        /* ignore */
-      }
     } else {
       setMsg("This phone could not turn it on. The app will still remind you when you open it.");
     }
