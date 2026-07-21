@@ -10,9 +10,19 @@
 
 export type NamedMeal = "breakfast" | "lunch" | "dinner";
 
-/** Which meal the current local hour points to. */
+/**
+ * The hour of day in Nigeria (WAT, GMT+1), NOT the device's own timezone.
+ * Everyone here is in Nigeria, and a phone (or a server) set to another timezone
+ * must still get the right meal and greeting. WAT has no daylight saving, so a
+ * fixed +1 on UTC is always correct.
+ */
+function watHour(now: Date = new Date()): number {
+  return (now.getUTCHours() + 1) % 24;
+}
+
+/** Which meal the current Nigerian hour points to. */
 export function currentMeal(now: Date = new Date()): NamedMeal {
-  const h = now.getHours();
+  const h = watHour(now);
   if (h >= 4 && h <= 10) return "breakfast";
   if (h >= 11 && h <= 16) return "lunch";
   return "dinner"; // 17:00 through 03:59
@@ -23,9 +33,9 @@ export function mealHeading(meal: NamedMeal): string {
   return `Your ${meal} for today`;
 }
 
-/** "Good morning / afternoon / evening", by the local clock. */
+/** "Good morning / afternoon / evening", by the Nigerian clock (GMT+1). */
 export function timeGreeting(now: Date = new Date()): string {
-  const h = now.getHours();
+  const h = watHour(now);
   if (h >= 5 && h <= 11) return "Good morning";
   if (h >= 12 && h <= 16) return "Good afternoon";
   return "Good evening";
@@ -42,8 +52,10 @@ export function personalGreeting(name: string | null): string {
  * day's meal stable within a day but different from one day to the next.
  */
 export function localDayKey(d: Date = new Date()): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
+  // The Nigerian calendar day (GMT+1), so the meal changes at Nigerian midnight.
+  const wat = new Date(d.getTime() + 60 * 60 * 1000);
+  const y = wat.getUTCFullYear();
+  const m = String(wat.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(wat.getUTCDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
 }

@@ -3,11 +3,18 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { LogOut } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
+  const pathname = usePathname();
+  const router = useRouter();
+  // The app is already open on /app, so the top-right button is Sign out there,
+  // not "Open app".
+  const onApp = pathname === "/app";
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -18,6 +25,11 @@ export default function Navbar() {
       .then(({ data }) => setSignedIn(!!data.user));
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  const signOut = async () => {
+    await createClient().auth.signOut();
+    router.replace("/");
+  };
 
   return (
     <header
@@ -66,7 +78,14 @@ export default function Navbar() {
           </Link>
         </div>
 
-        {signedIn ? (
+        {signedIn && onApp ? (
+          <button
+            onClick={signOut}
+            className="inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold text-ink-soft shadow-sm transition-colors hover:border-verdict-red hover:text-verdict-red sm:px-5"
+          >
+            <LogOut className="h-4 w-4" /> Sign out
+          </button>
+        ) : signedIn ? (
           <Link
             href="/app"
             className="rounded-full bg-leaf px-4 py-2 text-sm font-semibold text-white shadow-[0_8px_20px_-8px_rgba(62,155,79,0.7)] transition-all hover:-translate-y-0.5 hover:bg-leaf-deep sm:px-5"

@@ -11,6 +11,7 @@ import {
 import { planForDay, type MealIdea } from "@/lib/nextMeal";
 import { loggedFoodCounts } from "@/lib/history";
 import type { Food } from "@/lib/types";
+import CollapsibleCard from "./CollapsibleCard";
 
 const MEAL_ICON = {
   breakfast: Sunrise,
@@ -34,8 +35,12 @@ function line(names: string[]): string {
  */
 export default function TodaysMeal({
   onBuild,
+  open,
+  onToggle,
 }: {
   onBuild: (foods: Food[]) => void;
+  open: boolean;
+  onToggle: () => void;
 }) {
   const [meal, setMeal] = useState<NamedMeal | null>(null);
   const [idea, setIdea] = useState<MealIdea | null>(null);
@@ -66,37 +71,41 @@ export default function TodaysMeal({
   };
 
   return (
-    <div className="overflow-hidden rounded-2xl border-2 border-brand/40 bg-white shadow-sm">
-      <div className="flex items-center gap-3 bg-gradient-to-r from-brand to-leaf px-5 py-4 text-white">
-        <Icon className="h-7 w-7 shrink-0" strokeWidth={2.2} />
-        <p className="font-display text-xl font-bold capitalize leading-tight">
-          {mealHeading(meal)}
-        </p>
-      </div>
-
-      <div className="p-5">
-        <p className="font-display text-2xl font-bold leading-snug text-ink">
-          {line(idea.names)}
-        </p>
-        <p className="mt-2 flex items-center gap-1.5 text-sm font-semibold text-leaf-deep">
-          <Check className="h-4 w-4" strokeWidth={3} /> All good for your sugar.
-        </p>
-
-        <div className="mt-4 flex flex-wrap gap-2">
-          <button
-            onClick={() => onBuild(idea.foods)}
-            className="flex items-center gap-2 rounded-full bg-leaf px-5 py-2.5 text-sm font-bold text-white transition-transform hover:scale-105"
-          >
-            Check this meal for full details <ArrowRight className="h-4 w-4" />
-          </button>
-          <button
-            onClick={another}
-            className="flex items-center gap-2 rounded-full border-2 border-line bg-white px-5 py-2.5 text-sm font-bold text-ink transition-colors hover:border-brand"
-          >
-            <RefreshCw className="h-4 w-4" /> Show me another food
-          </button>
+    <CollapsibleCard
+      open={open}
+      onToggle={onToggle}
+      headerClass="bg-leaf"
+      borderClass="border-leaf/40"
+      header={
+        <div className="flex items-center gap-3">
+          <Icon className="h-7 w-7 shrink-0" strokeWidth={2.2} />
+          <span className="font-display text-xl font-bold capitalize leading-tight">
+            {mealHeading(meal)}
+          </span>
         </div>
+      }
+    >
+      <p className="font-display text-2xl font-bold leading-snug text-ink">
+        {line(idea.names)}
+      </p>
+      <p className="mt-2 flex items-center gap-1.5 text-sm font-semibold text-leaf-deep">
+        <Check className="h-4 w-4" strokeWidth={3} /> All good for your sugar.
+      </p>
+
+      <div className="mt-4 flex flex-wrap gap-2">
+        <button
+          onClick={() => onBuild(idea.foods)}
+          className="flex items-center gap-2 rounded-full bg-leaf px-5 py-2.5 text-sm font-bold text-white transition-transform hover:scale-105"
+        >
+          Check this meal for full details <ArrowRight className="h-4 w-4" />
+        </button>
+        <button
+          onClick={another}
+          className="flex items-center gap-2 rounded-full border-2 border-line bg-white px-5 py-2.5 text-sm font-bold text-ink transition-colors hover:border-brand"
+        >
+          <RefreshCw className="h-4 w-4" /> Show me another food
+        </button>
       </div>
-    </div>
+    </CollapsibleCard>
   );
 }

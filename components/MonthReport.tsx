@@ -6,6 +6,7 @@ import { jsPDF } from "jspdf";
 import { monthChecks, deleteCheck, type MealCheck } from "@/lib/history";
 import { monthReportMessage } from "@/lib/shareMessage";
 import { sizedFoods } from "@/lib/mealSize";
+import CollapsibleCard from "./CollapsibleCard";
 
 // Glufloat brand colours (from app/globals.css), as RGB for jsPDF.
 const BRAND = [27, 95, 170] as const; // --blue
@@ -41,7 +42,13 @@ const DOT = {
  * size), then generates a Glufloat brand-coloured PDF and sends it straight to
  * the doctor on WhatsApp (the phone's share sheet attaches the real file).
  */
-export default function MonthReport() {
+export default function MonthReport({
+  open,
+  onToggle,
+}: {
+  open: boolean;
+  onToggle: () => void;
+}) {
   const [items, setItems] = useState<MealCheck[] | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -237,16 +244,26 @@ export default function MonthReport() {
   const monthYear = `${new Date().toLocaleDateString("en-US", { month: "short" })}, ${new Date().getFullYear()}`;
 
   return (
-    <div className="overflow-hidden rounded-2xl border-2 border-brand/40 bg-white shadow-sm">
-      <div className="bg-brand px-5 py-4 text-white">
-        <p className="font-display text-lg font-bold uppercase leading-tight tracking-wide">
-          Generate food report for your next doctor appointment here
-        </p>
-        <p className="mt-1.5 text-sm font-semibold text-white/85">
-          What you ate, {monthYear}
-        </p>
-      </div>
-      <div className="p-5">
+    <CollapsibleCard
+      open={open}
+      onToggle={onToggle}
+      headerClass="bg-brand"
+      borderClass="border-brand/40"
+      header={
+        open ? (
+          <div>
+            <p className="font-display text-lg font-bold capitalize leading-tight">
+              Generate food report for your next doctor appointment here
+            </p>
+            <p className="mt-1.5 text-sm font-semibold text-white/85">
+              What you ate, {monthYear}
+            </p>
+          </div>
+        ) : (
+          <span className="font-display text-xl font-bold">Doctor&apos;s Report</span>
+        )
+      }
+    >
       <p className="text-sm text-ink-soft">
         These are the meals you told us you ate. Send them to your doctor so they
         see how you have been eating, and how much. Tap the bin to remove one.
@@ -292,7 +309,6 @@ export default function MonthReport() {
           <Download className="h-4 w-4" /> Save the PDF
         </button>
       </div>
-      </div>
-    </div>
+    </CollapsibleCard>
   );
 }

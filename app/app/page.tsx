@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Clock, LogOut } from "lucide-react";
+import { Clock } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import DisclaimerGate from "@/components/DisclaimerGate";
@@ -14,10 +14,11 @@ import VarietyNudge from "@/components/VarietyNudge";
 import MonthReport from "@/components/MonthReport";
 import TodaysMeal from "@/components/TodaysMeal";
 import TypewriterHeadline from "@/components/TypewriterHeadline";
+import CollapsibleCard from "@/components/CollapsibleCard";
 import PushOptIn from "@/components/PushOptIn";
 import ChatWithFounder from "@/components/ChatWithFounder";
 import { PAYSTACK_URL, pendingReference, clearPendingReference } from "@/lib/access";
-import { getAccess, signOut, type Access } from "@/lib/account";
+import { getAccess, type Access } from "@/lib/account";
 import { personalGreeting } from "@/lib/mealtime";
 import type { Food } from "@/lib/types";
 
@@ -31,6 +32,12 @@ export default function AppPage() {
   // search, and a suggested or single food starts a meal in the builder.
   const [seedSearch, setSeedSearch] = useState<Food | null>(null);
   const [seedMeal, setSeedMeal] = useState<Food[] | null>(null);
+  // The home is an accordion: one card open at a time. Starts on today's meal.
+  const [openCard, setOpenCard] = useState<
+    "meal" | "variety" | "check" | "doctor" | null
+  >("meal");
+  const toggle = (id: "meal" | "variety" | "check" | "doctor") =>
+    setOpenCard((cur) => (cur === id ? null : id));
 
   // The check tools sit below the fold now, so bring them into view when a card
   // above hands a food or a meal down to them.
@@ -44,12 +51,14 @@ export default function AppPage() {
   const openInSearch = (food: Food) => {
     setSeedSearch(food);
     setTab("search");
+    setOpenCard("check");
     scrollToTools();
   };
   const buildMeal = (foods: Food[]) => {
     // New array each time so the builder treats it as a fresh seed to load.
     setSeedMeal([...foods]);
     setTab("meal");
+    setOpenCard("check");
     scrollToTools();
   };
 
@@ -157,20 +166,9 @@ export default function AppPage() {
 
       <main className="flex-1 bg-mist pb-24 pt-28">
         <div className="mx-auto max-w-3xl px-4 sm:px-6">
-          <div className="flex items-center justify-between gap-3">
-            <p className="font-display text-base font-bold text-ink sm:text-lg">
-              {personalGreeting(name)}
-            </p>
-            <button
-              onClick={async () => {
-                await signOut();
-                router.replace("/");
-              }}
-              className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-line bg-white px-3.5 py-1.5 text-xs font-bold text-ink-soft shadow-sm transition-colors hover:border-verdict-red hover:text-verdict-red"
-            >
-              <LogOut className="h-3.5 w-3.5" /> Sign out
-            </button>
-          </div>
+          <p className="font-display text-lg font-bold text-ink sm:text-xl">
+            {personalGreeting(name)}
+          </p>
           <div className={`mx-auto mt-4 flex w-fit items-center gap-2 rounded-full px-4 py-1.5 text-sm font-bold ${badge.tone}`}>
             <Clock className="h-4 w-4" />
             {badge.label}
@@ -180,58 +178,81 @@ export default function AppPage() {
             className="mx-auto mt-2 max-w-lg text-center font-display text-3xl font-bold leading-tight text-ink sm:text-4xl"
           />
 
-          {/* The app tells you what to eat today, first. */}
-          <div className="mt-8 space-y-6">
-            <TodaysMeal onBuild={buildMeal} />
+          {/* The home is an accordion of pronounced colour cards: today's meal
+              (green), variety (green), check-yourself (blue+green), doctor
+              (blue). One open at a time. */}
+          <div className="mt-8 space-y-4">
+            <TodaysMeal
+              onBuild={buildMeal}
+              open={openCard === "meal"}
+              onToggle={() => toggle("meal")}
+            />
+
+            <VarietyNudge
+              onOpenFood={openInSearch}
+              open={openCard === "variety"}
+              onToggle={() => toggle("variety")}
+            />
+
+            <div id="check-yourself" className="scroll-mt-24">
+              <CollapsibleCard
+                open={openCard === "check"}
+                onToggle={() => toggle("check")}
+                headerClass="bg-gradient-to-r from-brand to-leaf"
+                borderClass="border-brand/40"
+                header={
+                  <span className="font-display text-xl font-bold leading-tight">
+                    Check Any Food or Meal Yourself
+                  </span>
+                }
+              >
+                <div className="flex justify-center">
+                  <div className="inline-flex rounded-full border border-line bg-white p-1 shadow-sm">
+                    <button
+                      onClick={() => setTab("search")}
+                      className={`rounded-full px-5 py-2.5 text-sm font-semibold transition-colors ${
+                        tab === "search"
+                          ? "bg-brand text-white"
+                          : "text-ink-soft hover:text-ink"
+                      }`}
+                    >
+                      Search a food
+                    </button>
+                    <button
+                      onClick={() => setTab("meal")}
+                      className={`rounded-full px-5 py-2.5 text-sm font-semibold transition-colors ${
+                        tab === "meal"
+                          ? "bg-leaf text-white"
+                          : "text-ink-soft hover:text-ink"
+                      }`}
+                    >
+                      Build a meal
+                    </button>
+                  </div>
+                </div>
+
+                <div className="mt-6">
+                  {tab === "search" ? (
+                    <SearchPanel
+                      initialFood={seedSearch}
+                      onBuildMeal={(food) => buildMeal([food])}
+                    />
+                  ) : (
+                    <MealBuilder initialFoods={seedMeal} />
+                  )}
+                </div>
+              </CollapsibleCard>
+            </div>
+
+            <MonthReport
+              open={openCard === "doctor"}
+              onToggle={() => toggle("doctor")}
+            />
+          </div>
+
+          <div className="mt-6 space-y-4">
             <HabitStreak />
-            <VarietyNudge onOpenFood={openInSearch} />
             <PushOptIn />
-          </div>
-
-          {/* Then the tools to check anything yourself, lower down. */}
-          <div id="check-yourself" className="mt-12 scroll-mt-24">
-            <p className="text-center text-xs font-bold uppercase tracking-widest text-ink/40">
-              Or check any food or meal yourself
-            </p>
-            <div className="mt-4 flex justify-center">
-              <div className="inline-flex rounded-full border border-line bg-white p-1 shadow-sm">
-                <button
-                  onClick={() => setTab("search")}
-                  className={`rounded-full px-5 py-2.5 text-sm font-semibold transition-colors ${
-                    tab === "search"
-                      ? "bg-brand text-white"
-                      : "text-ink-soft hover:text-ink"
-                  }`}
-                >
-                  Search a food
-                </button>
-                <button
-                  onClick={() => setTab("meal")}
-                  className={`rounded-full px-5 py-2.5 text-sm font-semibold transition-colors ${
-                    tab === "meal"
-                      ? "bg-leaf text-white"
-                      : "text-ink-soft hover:text-ink"
-                  }`}
-                >
-                  Build a meal
-                </button>
-              </div>
-            </div>
-
-            <div className="mt-6">
-              {tab === "search" ? (
-                <SearchPanel
-                  initialFood={seedSearch}
-                  onBuildMeal={(food) => buildMeal([food])}
-                />
-              ) : (
-                <MealBuilder initialFoods={seedMeal} />
-              )}
-            </div>
-          </div>
-
-          <div className="mt-10">
-            <MonthReport />
           </div>
         </div>
       </main>
