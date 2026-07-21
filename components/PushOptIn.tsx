@@ -83,7 +83,7 @@ export default function PushOptIn() {
   }
 
   return (
-    <div className="relative rounded-2xl border border-line bg-white p-5 shadow-sm">
+    <div className="relative rounded-3xl bg-white p-5 shadow-[0_4px_24px_-12px_rgba(12,42,71,0.22)] ring-1 ring-ink/[0.04]">
       <button
         onClick={dismiss}
         aria-label="Close"

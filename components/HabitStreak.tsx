@@ -29,8 +29,8 @@ export default function HabitStreak() {
   if (lines.length === 0) return null;
 
   return (
-    <div className="mt-6 flex items-center gap-3 rounded-2xl border border-line bg-white px-4 py-3 shadow-sm">
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-verdict-green/15 text-leaf-deep">
+    <div className="flex items-center gap-3 rounded-2xl bg-white px-4 py-3.5 shadow-[0_4px_20px_-12px_rgba(12,42,71,0.2)] ring-1 ring-ink/[0.04]">
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-leaf/15 to-leaf/5 text-leaf-deep ring-1 ring-inset ring-leaf/15">
         <Flame className="h-5 w-5" />
       </span>
       <p className="text-sm font-semibold text-ink">{lines.join(" ")}</p>

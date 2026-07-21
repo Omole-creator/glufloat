@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Download, Trash2 } from "lucide-react";
+import { Download, Trash2, ClipboardList } from "lucide-react";
 import { jsPDF } from "jspdf";
 import { monthChecks, deleteCheck, type MealCheck } from "@/lib/history";
 import { monthReportMessage } from "@/lib/shareMessage";
@@ -57,14 +57,15 @@ export default function MonthReport({
     monthChecks().then(setItems);
   }, []);
 
-  // null = still loading; empty = nothing logged yet. Show nothing either way.
-  if (!items || items.length === 0) return null;
-
+  // The card ALWAYS shows (so people can always find it); an empty state stands
+  // in until they have logged a meal.
+  const list = items ?? [];
+  const hasData = list.length > 0;
   const counts = {
-    total: items.length,
-    green: items.filter((i) => i.verdict === "green").length,
-    yellow: items.filter((i) => i.verdict === "yellow").length,
-    red: items.filter((i) => i.verdict === "red").length,
+    total: list.length,
+    green: list.filter((i) => i.verdict === "green").length,
+    yellow: list.filter((i) => i.verdict === "yellow").length,
+    red: list.filter((i) => i.verdict === "red").length,
   };
 
   const remove = (id: number) => {
@@ -151,7 +152,7 @@ export default function MonthReport({
       }
     };
 
-    for (const it of items) {
+    for (const it of list) {
       nextPageIfNeeded(272);
       const foods = sizedFoods(it.label, it.kind);
 
@@ -219,7 +220,7 @@ export default function MonthReport({
       doc.save(fileName);
       const text = monthReportMessage(
         counts,
-        items.map((i) => ({ label: i.label, verdict: i.verdict, kind: i.kind })),
+        list.map((i) => ({ label: i.label, verdict: i.verdict, kind: i.kind })),
       );
       window.open(
         `https://wa.me/?text=${encodeURIComponent(text)}`,
@@ -234,9 +235,9 @@ export default function MonthReport({
   };
 
   const Tile = ({ n, label, dot }: { n: number; label: string; dot: string }) => (
-    <div className="flex-1 rounded-xl border border-line bg-mist px-3 py-2 text-center">
+    <div className="flex-1 rounded-2xl bg-mist/70 px-3 py-3 text-center ring-1 ring-ink/[0.04]">
       <p className="font-display text-2xl font-bold text-ink">{n}</p>
-      <p className="mt-0.5 flex items-center justify-center gap-1.5 text-xs font-semibold text-ink-soft">
+      <p className="mt-1 flex items-center justify-center gap-1.5 text-[11px] font-semibold text-ink-soft">
         <span className={`h-2 w-2 rounded-full ${dot}`} />
         {label}
       </p>
@@ -249,15 +250,15 @@ export default function MonthReport({
     <CollapsibleCard
       open={open}
       onToggle={onToggle}
-      headerClass="bg-brand"
-      borderClass="border-brand/40"
+      headerClass="bg-gradient-to-br from-brand to-brand-deep"
+      icon={<ClipboardList className="h-6 w-6" strokeWidth={2.2} />}
       header={
         open ? (
           <div>
-            <p className="font-display text-lg font-bold capitalize leading-tight">
+            <p className="font-display text-lg font-bold leading-snug">
               Generate food report for your next doctor appointment here
             </p>
-            <p className="mt-1.5 text-sm font-semibold text-white/85">
+            <p className="mt-1 text-sm font-semibold text-white/85">
               What you ate, {monthYear}
             </p>
           </div>
@@ -266,54 +267,75 @@ export default function MonthReport({
         )
       }
     >
-      <p className="text-sm text-ink-soft">
-        These are the meals you told us you ate. Send them to your doctor so they
-        see how you have been eating, and how much. Tap the bin to remove one.
-      </p>
+      {!hasData ? (
+        <div className="rounded-2xl bg-mist/70 px-4 py-8 text-center ring-1 ring-ink/[0.04]">
+          <p className="font-display text-base font-bold text-ink">
+            No meals saved yet
+          </p>
+          <p className="mx-auto mt-1.5 max-w-xs text-sm leading-relaxed text-ink-soft">
+            When you eat, open a food or your plate and tap{" "}
+            <span className="font-semibold text-leaf-deep">
+              &ldquo;I ate this&rdquo;
+            </span>
+            . It shows here, ready to send to your doctor.
+          </p>
+        </div>
+      ) : (
+        <>
+          <p className="text-sm text-ink-soft">
+            These are the meals you told us you ate. Send them to your doctor so
+            they see how you have been eating, and how much. Tap the bin to
+            remove one.
+          </p>
 
-      <div className="mt-4 flex gap-2">
-        <Tile n={counts.green} label={MEANING.green} dot={DOT.green} />
-        <Tile n={counts.yellow} label={MEANING.yellow} dot={DOT.yellow} />
-        <Tile n={counts.red} label={MEANING.red} dot={DOT.red} />
-      </div>
+          <div className="mt-4 flex gap-2.5">
+            <Tile n={counts.green} label={MEANING.green} dot={DOT.green} />
+            <Tile n={counts.yellow} label={MEANING.yellow} dot={DOT.yellow} />
+            <Tile n={counts.red} label={MEANING.red} dot={DOT.red} />
+          </div>
 
-      <ul className="mt-4 max-h-48 space-y-1.5 overflow-y-auto border-t border-line pt-3 text-sm">
-        {items.map((i) => (
-          <li key={i.id} className="flex items-center gap-2 text-ink">
-            <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${DOT[i.verdict]}`} />
-            <span className="flex-1 truncate">{i.label}</span>
+          <ul className="mt-4 max-h-48 space-y-0.5 overflow-y-auto border-t border-line pt-3 text-sm">
+            {list.map((i) => (
+              <li
+                key={i.id}
+                className="flex items-center gap-2.5 rounded-lg px-1 py-1.5 text-ink"
+              >
+                <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${DOT[i.verdict]}`} />
+                <span className="flex-1 truncate">{i.label}</span>
+                <button
+                  onClick={() => remove(i.id)}
+                  aria-label={`Remove ${i.label}`}
+                  className="shrink-0 rounded-full p-1 text-ink-soft/50 transition-colors hover:bg-verdict-red/10 hover:text-verdict-red"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </li>
+            ))}
+          </ul>
+
+          <div className="mt-4 flex flex-wrap items-center gap-2.5">
             <button
-              onClick={() => remove(i.id)}
-              aria-label={`Remove ${i.label}`}
-              className="shrink-0 text-ink-soft/50 transition-colors hover:text-verdict-red"
+              onClick={sendToDoctor}
+              disabled={busy}
+              className="inline-flex items-center gap-2 rounded-full bg-[#25D366] px-5 py-3 text-sm font-bold text-white shadow-[0_8px_20px_-8px_rgba(37,211,102,0.8)] transition-transform hover:-translate-y-0.5 disabled:opacity-60"
             >
-              <Trash2 className="h-4 w-4" />
+              <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4" aria-hidden>
+                <path d="M17.5 14.4c-.3-.2-1.7-.9-2-1-.3-.1-.5-.2-.7.1-.2.3-.7 1-.9 1.2-.2.2-.3.2-.6.1-.3-.2-1.2-.5-2.3-1.4-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.5.1-.6l.5-.5c.1-.2.2-.3.3-.5v-.5c-.1-.2-.7-1.6-.9-2.2-.3-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.2.2 2.1 3.2 5.1 4.5.7.3 1.3.5 1.7.6.7.2 1.4.2 1.9.1.6-.1 1.7-.7 2-1.4.2-.7.2-1.3.2-1.4-.1-.1-.3-.2-.6-.3M12 2A10 10 0 0 0 2 12c0 1.8.5 3.4 1.3 4.9L2 22l5.3-1.4A10 10 0 1 0 12 2m0 1.8a8.2 8.2 0 1 1-4.3 15.2l-.3-.2-3.1.8.8-3-.2-.3A8.2 8.2 0 0 1 12 3.8" />
+              </svg>
+              {busy ? "Preparing..." : "Send to my doctor on WhatsApp"}
             </button>
-          </li>
-        ))}
-      </ul>
-
-      <div className="mt-4 flex flex-wrap items-center gap-2">
-        <button
-          onClick={sendToDoctor}
-          disabled={busy}
-          className="inline-flex items-center gap-2 rounded-full bg-[#25D366] px-5 py-2.5 text-sm font-bold text-white transition-transform hover:scale-105 disabled:opacity-60"
-        >
-          <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4" aria-hidden>
-            <path d="M17.5 14.4c-.3-.2-1.7-.9-2-1-.3-.1-.5-.2-.7.1-.2.3-.7 1-.9 1.2-.2.2-.3.2-.6.1-.3-.2-1.2-.5-2.3-1.4-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.5.1-.6l.5-.5c.1-.2.2-.3.3-.5v-.5c-.1-.2-.7-1.6-.9-2.2-.3-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.2.2 2.1 3.2 5.1 4.5.7.3 1.3.5 1.7.6.7.2 1.4.2 1.9.1.6-.1 1.7-.7 2-1.4.2-.7.2-1.3.2-1.4-.1-.1-.3-.2-.6-.3M12 2A10 10 0 0 0 2 12c0 1.8.5 3.4 1.3 4.9L2 22l5.3-1.4A10 10 0 1 0 12 2m0 1.8a8.2 8.2 0 1 1-4.3 15.2l-.3-.2-3.1.8.8-3-.2-.3A8.2 8.2 0 0 1 12 3.8" />
-          </svg>
-          {busy ? "Preparing..." : "Send to my doctor on WhatsApp"}
-        </button>
-        <button
-          onClick={() => {
-            void trackUsage("doctor_report");
-            buildDoc().save(fileName);
-          }}
-          className="inline-flex items-center gap-2 rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold text-ink-soft transition-colors hover:border-brand hover:text-ink"
-        >
-          <Download className="h-4 w-4" /> Save the PDF
-        </button>
-      </div>
+            <button
+              onClick={() => {
+                void trackUsage("doctor_report");
+                buildDoc().save(fileName);
+              }}
+              className="inline-flex items-center gap-2 rounded-full border border-line bg-white px-4 py-3 text-sm font-semibold text-ink-soft transition-colors hover:border-brand hover:text-ink"
+            >
+              <Download className="h-4 w-4" /> Save the PDF
+            </button>
+          </div>
+        </>
+      )}
     </CollapsibleCard>
   );
 }

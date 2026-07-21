@@ -23,9 +23,9 @@ function watHour(now: Date = new Date()): number {
 /** Which meal the current Nigerian hour points to. */
 export function currentMeal(now: Date = new Date()): NamedMeal {
   const h = watHour(now);
-  if (h >= 4 && h <= 10) return "breakfast";
+  if (h >= 5 && h <= 10) return "breakfast";
   if (h >= 11 && h <= 16) return "lunch";
-  return "dinner"; // 17:00 through 03:59
+  return "dinner"; // 17:00 through 04:59
 }
 
 /** "Your breakfast for today", the authoritative heading on the meal card. */
@@ -33,11 +33,15 @@ export function mealHeading(meal: NamedMeal): string {
   return `Your ${meal} for today`;
 }
 
-/** "Good morning / afternoon / evening", by the Nigerian clock (GMT+1). */
+/**
+ * "Good morning / afternoon / evening". DERIVED from currentMeal so the greeting
+ * and the meal can never disagree (breakfast → morning, lunch → afternoon,
+ * dinner → evening).
+ */
 export function timeGreeting(now: Date = new Date()): string {
-  const h = watHour(now);
-  if (h >= 5 && h <= 11) return "Good morning";
-  if (h >= 12 && h <= 16) return "Good afternoon";
+  const meal = currentMeal(now);
+  if (meal === "breakfast") return "Good morning";
+  if (meal === "lunch") return "Good afternoon";
   return "Good evening";
 }
 

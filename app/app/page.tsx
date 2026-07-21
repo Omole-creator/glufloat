@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Clock } from "lucide-react";
+import { Clock, Search } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import DisclaimerGate from "@/components/DisclaimerGate";
@@ -165,14 +165,22 @@ export default function AppPage() {
         </div>
       )}
 
-      <main className="flex-1 bg-mist pb-24 pt-28">
-        <div className="mx-auto max-w-3xl px-4 sm:px-6">
-          <p className="font-display text-lg font-bold text-ink sm:text-xl">
-            {personalGreeting(name)}
-          </p>
-          <div className={`mx-auto mt-4 flex w-fit items-center gap-2 rounded-full px-4 py-1.5 text-sm font-bold ${badge.tone}`}>
-            <Clock className="h-4 w-4" />
-            {badge.label}
+      <main className="relative flex-1 overflow-hidden bg-gradient-to-b from-mint/50 via-mist to-mist pb-24 pt-28">
+        <div
+          className="pointer-events-none absolute inset-x-0 -top-24 mx-auto h-64 max-w-2xl bg-gradient-to-br from-brand/15 via-leaf/10 to-transparent blur-3xl"
+          aria-hidden
+        />
+        <div className="relative mx-auto max-w-3xl px-4 sm:px-6">
+          <div className="flex items-center justify-between gap-3">
+            <p className="font-display text-lg font-bold text-ink sm:text-xl">
+              {personalGreeting(name)}
+            </p>
+            <div
+              className={`flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold ${badge.tone}`}
+            >
+              <Clock className="h-3.5 w-3.5" />
+              {badge.label}
+            </div>
           </div>
           <TypewriterHeadline
             text="Eat the food you love, the right way."
@@ -199,10 +207,10 @@ export default function AppPage() {
               <CollapsibleCard
                 open={openCard === "check"}
                 onToggle={() => toggle("check")}
-                headerClass="bg-gradient-to-r from-brand to-leaf"
-                borderClass="border-brand/40"
+                headerClass="bg-gradient-to-br from-brand via-brand to-leaf"
+                icon={<Search className="h-6 w-6" strokeWidth={2.2} />}
                 header={
-                  <span className="font-display text-xl font-bold leading-tight">
+                  <span className="font-display text-xl font-bold leading-snug">
                     Or have a {currentMeal()} in mind? Seek guidance here.
                   </span>
                 }

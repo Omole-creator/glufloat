@@ -109,37 +109,39 @@ export default function TodaysMeal({
     <CollapsibleCard
       open={open}
       onToggle={onToggle}
-      headerClass="bg-leaf"
-      borderClass="border-leaf/40"
+      headerClass="bg-gradient-to-br from-leaf to-leaf-deep"
+      icon={<Icon className="h-6 w-6" strokeWidth={2.2} />}
       header={
-        <div className="flex items-center gap-3">
-          <Icon className="h-7 w-7 shrink-0" strokeWidth={2.2} />
-          <span className="font-display text-xl font-bold capitalize leading-tight">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-white/70">
+            Today&apos;s plate
+          </p>
+          <p className="font-display text-xl font-bold capitalize leading-tight">
             {mealHeading(meal)}
-          </span>
+          </p>
         </div>
       }
     >
       <p className="font-display text-2xl font-bold leading-snug text-ink">
         {line(idea.names)}
       </p>
-      <p className="mt-2 flex items-center gap-1.5 text-sm font-semibold text-leaf-deep">
-        <Check className="h-4 w-4" strokeWidth={3} /> All good for your sugar.
-      </p>
+      <span className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-verdict-green/10 px-3 py-1 text-sm font-semibold text-leaf-deep">
+        <Check className="h-4 w-4" strokeWidth={3} /> All good for your sugar
+      </span>
 
-      <div className="mt-4 flex flex-wrap gap-2">
+      <div className="mt-5 flex flex-wrap gap-2.5">
         <button
           onClick={() => {
             void trackUsage("check_this_meal");
             onBuild(idea.foods);
           }}
-          className="flex items-center gap-2 rounded-full bg-leaf px-5 py-2.5 text-sm font-bold text-white transition-transform hover:scale-105"
+          className="flex items-center gap-2 rounded-full bg-gradient-to-br from-leaf to-leaf-deep px-5 py-3 text-sm font-bold text-white shadow-[0_8px_20px_-8px_rgba(62,155,79,0.75)] transition-transform hover:-translate-y-0.5"
         >
           Check this meal for full details <ArrowRight className="h-4 w-4" />
         </button>
         <button
           onClick={another}
-          className="flex items-center gap-2 rounded-full border-2 border-line bg-white px-5 py-2.5 text-sm font-bold text-ink transition-colors hover:border-brand"
+          className="flex items-center gap-2 rounded-full border border-line bg-white px-5 py-3 text-sm font-bold text-ink transition-colors hover:border-leaf hover:text-leaf-deep"
         >
           <RefreshCw className="h-4 w-4" /> Show me another food
         </button>

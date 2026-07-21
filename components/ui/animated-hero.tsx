@@ -56,7 +56,9 @@ function Hero() {
         >
           Eat what you love.
           <br className="hidden sm:block" />{" "}
-          <span className="text-brand">Glufloat handles the rest.</span>
+          <span className="text-brand">
+            Glufloat handles the rest for your diabetes.
+          </span>
         </motion.h1>
 
         <motion.p

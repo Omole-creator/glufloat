@@ -45,15 +45,12 @@ export default function VarietyNudge({
     <CollapsibleCard
       open={open}
       onToggle={onToggle}
-      headerClass="bg-leaf"
-      borderClass="border-leaf/40"
+      headerClass="bg-gradient-to-br from-leaf-bright to-leaf-deep"
+      icon={<Sparkles className="h-6 w-6" strokeWidth={2.2} />}
       header={
-        <div className="flex items-center gap-3">
-          <Sparkles className="h-6 w-6 shrink-0" strokeWidth={2.2} />
-          <span className="font-display text-xl font-bold leading-tight">
-            Something New to Try
-          </span>
-        </div>
+        <span className="font-display text-xl font-bold leading-tight">
+          Something New to Try
+        </span>
       }
     >
       <p className="text-sm text-ink">
