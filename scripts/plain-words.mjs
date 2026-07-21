@@ -491,6 +491,7 @@ const BANNED = [
   /\bfreely\b/i,
   /\bunsweetened\b/i,
   /\bcarbs?\b/i,
+  /\bfillets?\b/i,
   // Mangling a word swap can leave behind, rather than a hard word.
   /-rich\b/i,
   /^[a-z]/,

@@ -51,7 +51,7 @@ const MEAT = {
   kidney: "Enough pieces to fill your palm (90g).",
   "dambu-nama": "Enough of the shredded meat to fill your palm (about 60g).",
   // Flat foods, where one palm-shaped piece is a real thing.
-  fish: "One fillet as wide as your palm (100g). That is about the size of a deck of cards.",
+  fish: "One piece of fish as wide as your palm (100g). That is about the size of a deck of cards.",
   "smoked-fish": "One piece as wide as your palm (about 90g).",
   liver: "One slice as wide as your palm (90g).",
   tofu: "One block as wide as your palm (about 90g).",
