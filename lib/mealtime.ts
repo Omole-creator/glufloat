@@ -23,6 +23,20 @@ export function mealHeading(meal: NamedMeal): string {
   return `Your ${meal} for today`;
 }
 
+/** "Good morning / afternoon / evening", by the local clock. */
+export function timeGreeting(now: Date = new Date()): string {
+  const h = now.getHours();
+  if (h >= 5 && h <= 11) return "Good morning";
+  if (h >= 12 && h <= 16) return "Good afternoon";
+  return "Good evening";
+}
+
+/** "Good afternoon, Ada" (or just "Good afternoon" when no name). */
+export function personalGreeting(name: string | null): string {
+  const first = (name ?? "").trim().split(/\s+/)[0];
+  return first ? `${timeGreeting()}, ${first}` : timeGreeting();
+}
+
 /**
  * A local-day key (YYYY-MM-DD in the browser's own timezone). Used to make the
  * day's meal stable within a day but different from one day to the next.

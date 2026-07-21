@@ -37,25 +37,31 @@ export default function VarietyNudge({
   if (!data) return null;
 
   return (
-    <div className="rounded-2xl border border-line bg-white p-5 shadow-sm">
-      <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-brand">
-        <Sparkles className="h-4 w-4" /> Something new to try
-      </p>
-      <p className="mt-1 text-sm text-ink">
-        You have had <strong className="font-semibold">{data.food.name}</strong>{" "}
-        a lot lately. These are just as safe, if you fancy a change.
-      </p>
-      <div className="mt-3 flex flex-wrap gap-2">
-        {data.swaps.map((f) => (
-          <button
-            key={f.id}
-            onClick={() => onOpenFood(f)}
-            className="flex items-center gap-2 rounded-full border border-line bg-white px-3 py-1.5 text-sm font-semibold text-ink transition-colors hover:border-brand"
-          >
-            <span className={`h-2.5 w-2.5 rounded-full ${DOT[f.baseVerdict]}`} />
-            {f.name}
-          </button>
-        ))}
+    <div className="overflow-hidden rounded-2xl border-2 border-leaf/40 bg-white shadow-sm">
+      <div className="flex items-center gap-3 bg-leaf px-5 py-4 text-white">
+        <Sparkles className="h-6 w-6 shrink-0" strokeWidth={2.2} />
+        <p className="font-display text-xl font-bold leading-tight">
+          Something New to Try
+        </p>
+      </div>
+      <div className="p-5">
+        <p className="text-sm text-ink">
+          You have had{" "}
+          <strong className="font-semibold">{data.food.name}</strong> a lot
+          lately. These are just as safe, if you fancy a change.
+        </p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {data.swaps.map((f) => (
+            <button
+              key={f.id}
+              onClick={() => onOpenFood(f)}
+              className="flex items-center gap-2 rounded-full border border-line bg-white px-3 py-1.5 text-sm font-semibold text-ink transition-colors hover:border-brand"
+            >
+              <span className={`h-2.5 w-2.5 rounded-full ${DOT[f.baseVerdict]}`} />
+              {f.name}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );

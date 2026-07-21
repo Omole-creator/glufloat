@@ -66,7 +66,7 @@ export default function TodaysMeal({
   };
 
   return (
-    <div className="overflow-hidden rounded-2xl border-2 border-brand/25 bg-white shadow-sm">
+    <div className="overflow-hidden rounded-2xl border-2 border-brand/40 bg-white shadow-sm">
       <div className="flex items-center gap-3 bg-gradient-to-r from-brand to-leaf px-5 py-4 text-white">
         <Icon className="h-7 w-7 shrink-0" strokeWidth={2.2} />
         <p className="font-display text-xl font-bold capitalize leading-tight">

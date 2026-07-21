@@ -27,22 +27,29 @@ function calendarDaysBetween(startMs: number, nowMs: number): number {
 
 export async function getAccess(): Promise<{
   email: string | null;
+  name: string | null;
   access: Access;
 }> {
   const supabase = createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { email: null, access: { status: "anon" } };
+  if (!user) return { email: null, name: null, access: { status: "anon" } };
 
   const [{ data: profile }, { data: sub }] = await Promise.all([
-    supabase.from("profiles").select("trial_start").eq("id", user.id).single(),
+    supabase
+      .from("profiles")
+      .select("name,trial_start")
+      .eq("id", user.id)
+      .single(),
     supabase
       .from("subscriptions")
       .select("status,current_period_end")
       .eq("user_id", user.id)
       .maybeSingle(),
   ]);
+
+  const name = (profile?.name ?? "").trim() || null;
 
   // Active subscription wins.
   if (
@@ -53,7 +60,11 @@ export async function getAccess(): Promise<{
     const end = new Date(sub.current_period_end).getTime();
     const daysLeft = Math.max(0, Math.ceil((end - Date.now()) / DAY_MS));
     if (daysLeft > 0)
-      return { email: user.email ?? null, access: { status: "subscribed", daysLeft } };
+      return {
+        email: user.email ?? null,
+        name,
+        access: { status: "subscribed", daysLeft },
+      };
   }
 
   // Trial.
@@ -62,12 +73,12 @@ export async function getAccess(): Promise<{
       TRIAL_DAYS -
       calendarDaysBetween(new Date(profile.trial_start).getTime(), Date.now());
     if (daysLeft > 0)
-      return { email: user.email ?? null, access: { status: "trial", daysLeft } };
-    return { email: user.email ?? null, access: { status: "expired" } };
+      return { email: user.email ?? null, name, access: { status: "trial", daysLeft } };
+    return { email: user.email ?? null, name, access: { status: "expired" } };
   }
 
   // Signed in but no trial yet and no subscription.
-  return { email: user.email ?? null, access: { status: "new" } };
+  return { email: user.email ?? null, name, access: { status: "new" } };
 }
 
 /** Stamp the trial start on the user's profile, only if it is not already set. */

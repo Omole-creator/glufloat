@@ -234,15 +234,20 @@ export default function MonthReport() {
     </div>
   );
 
+  const monthYear = `${new Date().toLocaleDateString("en-US", { month: "short" })}, ${new Date().getFullYear()}`;
+
   return (
-    <div className="rounded-2xl border border-line bg-white p-5 shadow-sm">
-      <p className="text-xs font-bold uppercase tracking-wider text-brand">
-        For your next doctor visit
-      </p>
-      <p className="mt-1 font-display text-lg font-bold text-ink">
-        What you ate this month
-      </p>
-      <p className="mt-1 text-sm text-ink-soft">
+    <div className="overflow-hidden rounded-2xl border-2 border-brand/40 bg-white shadow-sm">
+      <div className="bg-brand px-5 py-4 text-white">
+        <p className="font-display text-lg font-bold uppercase leading-tight tracking-wide">
+          Generate food report for your next doctor appointment here
+        </p>
+        <p className="mt-1.5 text-sm font-semibold text-white/85">
+          What you ate, {monthYear}
+        </p>
+      </div>
+      <div className="p-5">
+      <p className="text-sm text-ink-soft">
         These are the meals you told us you ate. Send them to your doctor so they
         see how you have been eating, and how much. Tap the bin to remove one.
       </p>
@@ -286,6 +291,7 @@ export default function MonthReport() {
         >
           <Download className="h-4 w-4" /> Save the PDF
         </button>
+      </div>
       </div>
     </div>
   );

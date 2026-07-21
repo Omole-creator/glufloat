@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Clock } from "lucide-react";
+import { Clock, LogOut } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import DisclaimerGate from "@/components/DisclaimerGate";
@@ -18,6 +18,7 @@ import PushOptIn from "@/components/PushOptIn";
 import ChatWithFounder from "@/components/ChatWithFounder";
 import { PAYSTACK_URL, pendingReference, clearPendingReference } from "@/lib/access";
 import { getAccess, signOut, type Access } from "@/lib/account";
+import { personalGreeting } from "@/lib/mealtime";
 import type { Food } from "@/lib/types";
 
 export default function AppPage() {
@@ -25,6 +26,7 @@ export default function AppPage() {
   const [tab, setTab] = useState<"search" | "meal">("search");
   const [access, setAccess] = useState<Access | null>(null);
   const [email, setEmail] = useState<string | null>(null);
+  const [name, setName] = useState<string | null>(null);
   // Seeds let one part of the app hand a food to another: a recent chip opens in
   // search, and a suggested or single food starts a meal in the builder.
   const [seedSearch, setSeedSearch] = useState<Food | null>(null);
@@ -75,8 +77,9 @@ export default function AppPage() {
 
     (async () => {
       await settlePendingPayment();
-      const { access, email } = await getAccess();
+      const { access, email, name } = await getAccess();
       setEmail(email);
+      setName(name);
       if (access.status === "anon") {
         router.replace("/signin");
       } else if (access.status === "new") {
@@ -154,23 +157,23 @@ export default function AppPage() {
 
       <main className="flex-1 bg-mist pb-24 pt-28">
         <div className="mx-auto max-w-3xl px-4 sm:px-6">
-          <p className="text-center text-xs font-bold uppercase tracking-widest text-brand">
-            Before you eat, ask Glufloat
-          </p>
-          <div className={`mx-auto mt-3 flex w-fit items-center gap-2 rounded-full px-4 py-1.5 text-sm font-bold ${badge.tone}`}>
-            <Clock className="h-4 w-4" />
-            {badge.label}
-          </div>
-          <div className="mt-2 text-center">
+          <div className="flex items-center justify-between gap-3">
+            <p className="font-display text-base font-bold text-ink sm:text-lg">
+              {personalGreeting(name)}
+            </p>
             <button
               onClick={async () => {
                 await signOut();
                 router.replace("/");
               }}
-              className="text-xs font-medium text-ink-soft/70 underline-offset-2 hover:text-ink hover:underline"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-line bg-white px-3.5 py-1.5 text-xs font-bold text-ink-soft shadow-sm transition-colors hover:border-verdict-red hover:text-verdict-red"
             >
-              Sign out
+              <LogOut className="h-3.5 w-3.5" /> Sign out
             </button>
+          </div>
+          <div className={`mx-auto mt-4 flex w-fit items-center gap-2 rounded-full px-4 py-1.5 text-sm font-bold ${badge.tone}`}>
+            <Clock className="h-4 w-4" />
+            {badge.label}
           </div>
           <TypewriterHeadline
             text="Eat the food you love, the right way."
