@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Check, Plus } from "lucide-react";
 import { searchFoods } from "@/lib/search";
 import type { Food } from "@/lib/types";
 import VerdictCard from "./VerdictCard";
@@ -20,12 +20,13 @@ export default function SearchPanel({
 } = {}) {
   const [query, setQuery] = useState("");
   const [picked, setPicked] = useState<Food | null>(null);
+  const [ate, setAte] = useState(false);
 
-  // Open to a food handed in from outside (a recent-meal chip), without saving a
-  // new check for it: it was already saved when first opened.
+  // Open to a food handed in from outside.
   useEffect(() => {
     if (initialFood) {
       setPicked(initialFood);
+      setAte(false);
       setQuery("");
     }
   }, [initialFood]);
@@ -34,11 +35,16 @@ export default function SearchPanel({
 
   const pick = (food: Food) => {
     events.foodChecked(food.name);
-    // Remember it, so the app can show recent meals and a day-streak. Best
-    // effort: a failed save never blocks the answer.
-    void saveCheck("single", food.name, food.baseVerdict);
+    // Checking a food is NOT eating it. Nothing is saved to the food record here;
+    // the person logs it only if they tap "I ate this" below.
     setPicked(food);
+    setAte(false);
     setQuery("");
+  };
+
+  const logEaten = (food: Food) => {
+    void saveCheck("single", food.name, food.baseVerdict);
+    setAte(true);
   };
 
   return (
@@ -103,15 +109,29 @@ export default function SearchPanel({
       {picked && (
         <div className="mt-4">
           <VerdictCard food={picked} />
-          {onBuildMeal && (
-            <button
-              onClick={() => onBuildMeal(picked)}
-              className="mt-3 flex w-full items-center justify-center gap-2 rounded-full border-2 border-leaf bg-mint px-5 py-3 text-sm font-bold text-leaf-deep transition-colors hover:bg-leaf hover:text-white"
-            >
-              Add what you are eating it with
-              <ArrowRight className="h-4 w-4" />
-            </button>
-          )}
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+            {ate ? (
+              <span className="flex flex-1 items-center justify-center gap-2 rounded-full border-2 border-verdict-green/50 bg-verdict-green/10 px-5 py-3 text-sm font-bold text-leaf-deep">
+                <Check className="h-4 w-4" strokeWidth={3} /> Added to your food
+              </span>
+            ) : (
+              <button
+                onClick={() => logEaten(picked)}
+                className="flex flex-1 items-center justify-center gap-2 rounded-full bg-leaf px-5 py-3 text-sm font-bold text-white transition-transform hover:scale-[1.02]"
+              >
+                <Plus className="h-4 w-4" strokeWidth={3} /> I ate this
+              </button>
+            )}
+            {onBuildMeal && (
+              <button
+                onClick={() => onBuildMeal(picked)}
+                className="flex flex-1 items-center justify-center gap-2 rounded-full border-2 border-leaf bg-mint px-5 py-3 text-sm font-bold text-leaf-deep transition-colors hover:bg-leaf hover:text-white"
+              >
+                Add what you are eating it with
+                <ArrowRight className="h-4 w-4" />
+              </button>
+            )}
+          </div>
         </div>
       )}
     </div>

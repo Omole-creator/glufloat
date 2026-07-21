@@ -3,11 +3,10 @@
 import { useEffect, useState } from "react";
 import { RefreshCw, ArrowRight, Sunrise, Sun, Moon, Check } from "lucide-react";
 import {
-  currentSlot,
-  todayMeal,
-  todayMealHeading,
+  currentMeal,
+  mealHeading,
   localDayKey,
-  type TodayMeal,
+  type NamedMeal,
 } from "@/lib/mealtime";
 import { planForDay, type MealIdea } from "@/lib/nextMeal";
 import { loggedFoodCounts } from "@/lib/history";
@@ -38,32 +37,32 @@ export default function TodaysMeal({
 }: {
   onBuild: (foods: Food[]) => void;
 }) {
-  const [t, setT] = useState<TodayMeal | null>(null);
+  const [meal, setMeal] = useState<NamedMeal | null>(null);
   const [idea, setIdea] = useState<MealIdea | null>(null);
   const [offset, setOffset] = useState(0);
   const [counts, setCounts] = useState<Map<string, number>>(new Map());
   const [dayKey, setDayKey] = useState("");
 
   useEffect(() => {
-    const tm = todayMeal(currentSlot());
+    const m = currentMeal();
     const dk = localDayKey();
-    setT(tm);
+    setMeal(m);
     setDayKey(dk);
     // Show something at once, then refine once the history has loaded.
-    setIdea(planForDay(tm.meal, dk, new Map(), 0));
+    setIdea(planForDay(m, dk, new Map(), 0));
     loggedFoodCounts().then((c) => {
       setCounts(c);
-      setIdea(planForDay(tm.meal, dk, c, 0));
+      setIdea(planForDay(m, dk, c, 0));
     });
   }, []);
 
-  if (!t || !idea || idea.foods.length === 0) return null;
+  if (!meal || !idea || idea.foods.length === 0) return null;
 
-  const Icon = MEAL_ICON[t.meal];
+  const Icon = MEAL_ICON[meal];
   const another = () => {
     const n = offset + 1;
     setOffset(n);
-    setIdea(planForDay(t.meal, dayKey, counts, n));
+    setIdea(planForDay(meal, dayKey, counts, n));
   };
 
   return (
@@ -71,7 +70,7 @@ export default function TodaysMeal({
       <div className="flex items-center gap-3 bg-gradient-to-r from-brand to-leaf px-5 py-4 text-white">
         <Icon className="h-7 w-7 shrink-0" strokeWidth={2.2} />
         <p className="font-display text-xl font-bold capitalize leading-tight">
-          {todayMealHeading(t)}
+          {mealHeading(meal)}
         </p>
       </div>
 
@@ -88,13 +87,13 @@ export default function TodaysMeal({
             onClick={() => onBuild(idea.foods)}
             className="flex items-center gap-2 rounded-full bg-leaf px-5 py-2.5 text-sm font-bold text-white transition-transform hover:scale-105"
           >
-            Check this meal <ArrowRight className="h-4 w-4" />
+            Check this meal for full details <ArrowRight className="h-4 w-4" />
           </button>
           <button
             onClick={another}
             className="flex items-center gap-2 rounded-full border-2 border-line bg-white px-5 py-2.5 text-sm font-bold text-ink transition-colors hover:border-brand"
           >
-            <RefreshCw className="h-4 w-4" /> Show me another
+            <RefreshCw className="h-4 w-4" /> Show me another food
           </button>
         </div>
       </div>

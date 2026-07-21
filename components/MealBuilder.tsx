@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Check, AlertTriangle, X, Plus } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Check, AlertTriangle, X, Plus, Utensils } from "lucide-react";
 import { searchFoods } from "@/lib/search";
 import { scoreMeal } from "@/lib/verdictEngine";
 import type { Food, MealItem, PortionSize } from "@/lib/types";
@@ -10,7 +10,7 @@ import { mealFrequency } from "@/lib/frequency";
 import { mealShareMessage } from "@/lib/shareMessage";
 import ShareOnWhatsApp from "./ShareOnWhatsApp";
 import { events } from "@/lib/analytics";
-import { saveCheck, deleteCheck } from "@/lib/history";
+import { saveCheck } from "@/lib/history";
 
 const PORTIONS: { key: PortionSize; label: string }[] = [
   { key: "half", label: "Small" },
@@ -72,35 +72,20 @@ export default function MealBuilder({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [result.verdict, items.length]);
 
-  // Save the built meal to the person's history, so recent meals, the streak and
-  // the monthly record can read it. We wait until the meal has been still for a
-  // moment (so we do not write a row on every keystroke), and when a fuller
-  // version of the same meal is saved we delete the earlier half-built row, so a
-  // building session collapses into one record instead of one per food added.
-  const savedRef = useRef<{ id: number; ids: Set<string>; sig: string } | null>(
-    null,
-  );
+  // Building a meal is NOT eating it, so nothing is saved automatically. The
+  // person logs the plate to their food record only by tapping "I ate this meal".
+  const [ate, setAte] = useState(false);
+  // Any change to the plate clears a previous "eaten" tick, so an edited meal can
+  // be logged again.
   useEffect(() => {
+    setAte(false);
+  }, [items]);
+  const logEaten = () => {
     if (items.length === 0) return;
-    const ids = items.map((i) => i.food.id);
-    const sig = `${[...ids].sort().join("|")}#${result.verdict}`;
-    if (savedRef.current?.sig === sig) return; // nothing new to record
-    const timer = setTimeout(async () => {
-      const label = items.map((i) => i.food.name).join(", ");
-      const newId = await saveCheck("meal", label, result.verdict);
-      if (newId == null) return;
-      const prev = savedRef.current;
-      const idSet = new Set(ids);
-      // If the earlier saved meal is contained in this one, it was just a
-      // half-built step. Remove it so only the fuller meal stays.
-      if (prev && [...prev.ids].every((x) => idSet.has(x))) {
-        void deleteCheck(prev.id);
-      }
-      savedRef.current = { id: newId, ids: idSet, sig };
-    }, 3000);
-    return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [items, result.verdict]);
+    const label = items.map((i) => i.food.name).join(", ");
+    void saveCheck("meal", label, result.verdict);
+    setAte(true);
+  };
 
   const add = (food: Food) => {
     if (items.some((i) => i.food.id === food.id)) return;
@@ -371,6 +356,24 @@ export default function MealBuilder({
 
             {showVerdict && (
               <div className="mt-4 border-t border-line pt-4">
+                {ate ? (
+                  <span className="flex w-full items-center justify-center gap-2 rounded-full border-2 border-verdict-green/50 bg-verdict-green/10 px-5 py-3 text-sm font-bold text-leaf-deep">
+                    <Check className="h-4 w-4" strokeWidth={3} /> Added to your
+                    food
+                  </span>
+                ) : (
+                  <button
+                    onClick={logEaten}
+                    className="flex w-full items-center justify-center gap-2 rounded-full bg-leaf px-5 py-3 text-sm font-bold text-white transition-transform hover:scale-[1.02]"
+                  >
+                    <Utensils className="h-4 w-4" /> I ate this meal
+                  </button>
+                )}
+              </div>
+            )}
+
+            {showVerdict && (
+              <div className="mt-3 border-t border-line pt-4">
                 <ShareOnWhatsApp text={mealShareMessage(items, result, often)} />
               </div>
             )}

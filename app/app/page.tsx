@@ -13,6 +13,7 @@ import HabitStreak from "@/components/HabitStreak";
 import VarietyNudge from "@/components/VarietyNudge";
 import MonthReport from "@/components/MonthReport";
 import TodaysMeal from "@/components/TodaysMeal";
+import TypewriterHeadline from "@/components/TypewriterHeadline";
 import PushOptIn from "@/components/PushOptIn";
 import ChatWithFounder from "@/components/ChatWithFounder";
 import { PAYSTACK_URL, pendingReference, clearPendingReference } from "@/lib/access";
@@ -171,9 +172,10 @@ export default function AppPage() {
               Sign out
             </button>
           </div>
-          <h1 className="mx-auto mt-2 max-w-lg text-center font-display text-3xl font-bold leading-tight text-ink sm:text-4xl">
-            Eat the food you love, the right way.
-          </h1>
+          <TypewriterHeadline
+            text="Eat the food you love, the right way."
+            className="mx-auto mt-2 max-w-lg text-center font-display text-3xl font-bold leading-tight text-ink sm:text-4xl"
+          />
 
           {/* The app tells you what to eat today, first. */}
           <div className="mt-8 space-y-6">

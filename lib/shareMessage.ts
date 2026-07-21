@@ -1,5 +1,6 @@
 import type { Food, MealItem, MealResult, Verdict } from "./types";
 import { plainFrequency } from "./frequency";
+import { sizedFoods } from "./mealSize";
 import { SITE_URL } from "./site";
 
 /**
@@ -60,7 +61,7 @@ export function foodShareMessage(food: Food): string {
  */
 export function monthReportMessage(
   counts: { total: number; green: number; yellow: number; red: number },
-  items: { label: string; verdict: Verdict }[],
+  items: { label: string; verdict: Verdict; kind: "single" | "meal" }[],
 ): string {
   const blocks: string[] = ["My food this month, from Glufloat."];
 
@@ -76,11 +77,27 @@ export function monthReportMessage(
   if (items.length > 0) {
     // A long month can be a lot of lines; keep the message sendable.
     const shown = items.slice(0, 40);
-    const lines = shown.map((i) => `- ${i.label} (${MEANING[i.verdict]})`);
+    const lines: string[] = [];
+    for (const i of shown) {
+      const foods = sizedFoods(i.label, i.kind);
+      if (i.kind === "single") {
+        // "- Eba, one fist-size ball (100g) (Good to eat)"
+        const size = foods[0]?.size;
+        lines.push(
+          `- ${i.label}${size ? `, ${size}` : ""} (${MEANING[i.verdict]})`,
+        );
+      } else {
+        // The meal, then each food with its size on its own line.
+        lines.push(`- ${i.label} (${MEANING[i.verdict]})`);
+        for (const f of foods) {
+          if (f.size) lines.push(`    ${f.name}: ${f.size}`);
+        }
+      }
+    }
     if (items.length > shown.length) {
       lines.push(`- and ${items.length - shown.length} more`);
     }
-    blocks.push(["What I ate:", ...lines].join("\n"));
+    blocks.push(["What I ate, and how much:", ...lines].join("\n"));
   }
 
   blocks.push(CTA);
