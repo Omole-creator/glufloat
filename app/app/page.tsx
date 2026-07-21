@@ -207,10 +207,10 @@ export default function AppPage() {
               <CollapsibleCard
                 open={openCard === "check"}
                 onToggle={() => toggle("check")}
-                headerClass="bg-gradient-to-br from-brand via-brand to-leaf"
+                tone="blue"
                 icon={<Search className="h-6 w-6" strokeWidth={2.2} />}
                 header={
-                  <span className="font-display text-xl font-bold leading-snug">
+                  <span className="font-display text-lg font-bold leading-snug text-ink">
                     Or have a {currentMeal()} in mind? Seek guidance here.
                   </span>
                 }

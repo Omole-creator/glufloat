@@ -65,8 +65,8 @@ function Hero() {
           variants={item}
           className="mt-5 max-w-xl text-balance font-display text-lg leading-relaxed text-ink-soft"
         >
-          Check any Nigerian food before you cook or buy it. In seconds you see
-          if it is safe for your sugar, and the simple way to make it better.
+          You no longer have to feel scared or guess if a meal is right for you.
+          Glufloat helps you know instantly, and eat with confidence.
         </motion.p>
 
         <motion.div variants={item} className="mt-8">

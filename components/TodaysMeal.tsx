@@ -109,14 +109,14 @@ export default function TodaysMeal({
     <CollapsibleCard
       open={open}
       onToggle={onToggle}
-      headerClass="bg-gradient-to-br from-leaf to-leaf-deep"
+      tone="green"
       icon={<Icon className="h-6 w-6" strokeWidth={2.2} />}
       header={
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-white/70">
-            Today&apos;s plate
+          <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-ink/40">
+            Today&apos;s food
           </p>
-          <p className="font-display text-xl font-bold capitalize leading-tight">
+          <p className="font-display text-xl font-bold capitalize leading-tight text-ink">
             {mealHeading(meal)}
           </p>
         </div>

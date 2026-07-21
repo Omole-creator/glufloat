@@ -250,20 +250,22 @@ export default function MonthReport({
     <CollapsibleCard
       open={open}
       onToggle={onToggle}
-      headerClass="bg-gradient-to-br from-brand to-brand-deep"
+      tone="blue"
       icon={<ClipboardList className="h-6 w-6" strokeWidth={2.2} />}
       header={
         open ? (
           <div>
-            <p className="font-display text-lg font-bold leading-snug">
+            <p className="font-display text-base font-bold leading-snug text-ink">
               Generate food report for your next doctor appointment here
             </p>
-            <p className="mt-1 text-sm font-semibold text-white/85">
+            <p className="mt-1 text-sm font-semibold text-ink-soft">
               What you ate, {monthYear}
             </p>
           </div>
         ) : (
-          <span className="font-display text-xl font-bold">Doctor&apos;s Report</span>
+          <span className="font-display text-xl font-bold text-ink">
+            Doctor&apos;s Report
+          </span>
         )
       }
     >
