@@ -16,10 +16,11 @@ import TodaysMeal from "@/components/TodaysMeal";
 import TypewriterHeadline from "@/components/TypewriterHeadline";
 import CollapsibleCard from "@/components/CollapsibleCard";
 import PushOptIn from "@/components/PushOptIn";
+import WhatsAppChannelCard from "@/components/WhatsAppChannelCard";
 import ChatWithFounder from "@/components/ChatWithFounder";
 import { PAYSTACK_URL, pendingReference, clearPendingReference } from "@/lib/access";
 import { getAccess, type Access } from "@/lib/account";
-import { personalGreeting } from "@/lib/mealtime";
+import { personalGreeting, currentMeal, checkBackMessage } from "@/lib/mealtime";
 import type { Food } from "@/lib/types";
 
 export default function AppPage() {
@@ -202,7 +203,7 @@ export default function AppPage() {
                 borderClass="border-brand/40"
                 header={
                   <span className="font-display text-xl font-bold leading-tight">
-                    Check Any Food or Meal Yourself
+                    Or have a {currentMeal()} in mind? Seek guidance here.
                   </span>
                 }
               >
@@ -241,6 +242,12 @@ export default function AppPage() {
                     <MealBuilder initialFoods={seedMeal} />
                   )}
                 </div>
+
+                {/* Ties the ritual to the next meal-time reminder. */}
+                <div className="mt-6 flex items-center gap-2.5 rounded-xl bg-mist px-4 py-3 text-sm font-semibold text-ink">
+                  <Clock className="h-4 w-4 shrink-0 text-brand" />
+                  {checkBackMessage()}
+                </div>
               </CollapsibleCard>
             </div>
 
@@ -253,6 +260,7 @@ export default function AppPage() {
           <div className="mt-6 space-y-4">
             <HabitStreak />
             <PushOptIn />
+            <WhatsAppChannelCard />
           </div>
         </div>
       </main>

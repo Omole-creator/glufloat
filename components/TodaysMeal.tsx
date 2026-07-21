@@ -10,6 +10,7 @@ import {
 } from "@/lib/mealtime";
 import { planForDay, type MealIdea } from "@/lib/nextMeal";
 import { loggedFoodCounts } from "@/lib/history";
+import { trackUsage } from "@/lib/usage";
 import type { Food } from "@/lib/types";
 import CollapsibleCard from "./CollapsibleCard";
 
@@ -18,6 +19,27 @@ const MEAL_ICON = {
   lunch: Sun,
   dinner: Moon,
 } as const;
+
+// Remember, per meal, which plate was last shown and on which day, so the next
+// day's plate is never a repeat. Lives on the device (localStorage).
+const SHOWN_KEY = "gf_meal_shown";
+type ShownMap = Record<string, { day: string; index: number }>;
+function readShown(meal: string): { day: string; index: number } | undefined {
+  try {
+    return (JSON.parse(localStorage.getItem(SHOWN_KEY) || "{}") as ShownMap)[meal];
+  } catch {
+    return undefined;
+  }
+}
+function writeShown(meal: string, day: string, index: number): void {
+  try {
+    const all = JSON.parse(localStorage.getItem(SHOWN_KEY) || "{}") as ShownMap;
+    all[meal] = { day, index };
+    localStorage.setItem(SHOWN_KEY, JSON.stringify(all));
+  } catch {
+    /* ignore */
+  }
+}
 
 /** Join clean food names into one plain line: "A, B and C". */
 function line(names: string[]): string {
@@ -53,11 +75,19 @@ export default function TodaysMeal({
     const dk = localDayKey();
     setMeal(m);
     setDayKey(dk);
-    // Show something at once, then refine once the history has loaded.
-    setIdea(planForDay(m, dk, new Map(), 0));
+    // Yesterday's plate for this meal (remembered on the device), so today's is
+    // never the same one. Only counts as "yesterday" if it was shown on a
+    // different day.
+    const prev = readShown(m);
+    const avoid = prev && prev.day !== dk ? prev.index : undefined;
+    const first = planForDay(m, dk, new Map(), 0, avoid);
+    setIdea(first);
+    writeShown(m, dk, first.index);
     loggedFoodCounts().then((c) => {
       setCounts(c);
-      setIdea(planForDay(m, dk, c, 0));
+      const withHistory = planForDay(m, dk, c, 0, avoid);
+      setIdea(withHistory);
+      writeShown(m, dk, withHistory.index);
     });
   }, []);
 
@@ -65,9 +95,14 @@ export default function TodaysMeal({
 
   const Icon = MEAL_ICON[meal];
   const another = () => {
+    void trackUsage("meal_reroll");
     const n = offset + 1;
     setOffset(n);
-    setIdea(planForDay(meal, dayKey, counts, n));
+    const prev = readShown(meal);
+    const avoid = prev && prev.day !== dayKey ? prev.index : undefined;
+    const next = planForDay(meal, dayKey, counts, n, avoid);
+    setIdea(next);
+    writeShown(meal, dayKey, next.index);
   };
 
   return (
@@ -94,7 +129,10 @@ export default function TodaysMeal({
 
       <div className="mt-4 flex flex-wrap gap-2">
         <button
-          onClick={() => onBuild(idea.foods)}
+          onClick={() => {
+            void trackUsage("check_this_meal");
+            onBuild(idea.foods);
+          }}
           className="flex items-center gap-2 rounded-full bg-leaf px-5 py-2.5 text-sm font-bold text-white transition-transform hover:scale-105"
         >
           Check this meal for full details <ArrowRight className="h-4 w-4" />

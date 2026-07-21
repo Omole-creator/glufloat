@@ -50,11 +50,38 @@ export default async function AdminPage({
   const year = period.y;
 
   const admin = createAdminClient();
-  const [{ data: profiles }, { data: subs }, { data: payments }] = await Promise.all([
+  const [
+    { data: profiles },
+    { data: subs },
+    { data: payments },
+    { data: usage },
+  ] = await Promise.all([
     admin.from("profiles").select("id,email,name,trial_start,created_at,user_type"),
     admin.from("subscriptions").select("user_id,status,current_period_end,amount"),
     admin.from("payments").select("user_id,email,amount,status,paid_at"),
+    admin.from("usage_events").select("event,user_id"),
   ]);
+
+  /**
+   * How people use the app: taps counted from usage_events. The average per
+   * person answers "do they press change-meal once, or many times?".
+   */
+  const U = usage ?? [];
+  const usageStat = (event: string) => {
+    const rows = U.filter((u) => u.event === event);
+    const users = new Set(rows.map((r) => r.user_id).filter(Boolean)).size;
+    return {
+      count: rows.length,
+      users,
+      avg: users ? rows.length / users : 0,
+    };
+  };
+  const uReroll = usageStat("meal_reroll");
+  const uSearch = usageStat("food_search");
+  const uLogged = usageStat("meal_logged");
+  const uReport = usageStat("doctor_report");
+  const uCheck = usageStat("check_this_meal");
+  const uChannel = usageStat("channel_join");
 
   const now = Date.now();
   const P = profiles ?? [];
@@ -254,6 +281,47 @@ export default async function AdminPage({
           <Tile label={`Revenue · ${period.label}`} value={naira(revenueRange)} sub={`${naira(revenue)} all time`} />
           <Tile label="Churn (all time)" value={`${churnRateOverall}%`} sub={`${churnedNow} lapsed`} />
           <Tile label="Total revenue" value={naira(revenue)} />
+        </div>
+
+        {/* How people actually use the app, not just whether they signed up. */}
+        <h2 className="mt-10 font-display text-lg font-bold text-ink">
+          How people use the app
+        </h2>
+        <p className="mt-1 text-sm text-ink-soft">
+          Taps inside the app. The average per person shows whether people press
+          once or many times.
+        </p>
+        <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <Tile
+            label="Change-meal taps"
+            value={uReroll.count.toLocaleString()}
+            sub={`avg ${uReroll.avg.toFixed(1)} per person · ${uReroll.users} people`}
+          />
+          <Tile
+            label="Food searches"
+            value={uSearch.count.toLocaleString()}
+            sub={`avg ${uSearch.avg.toFixed(1)} per person · ${uSearch.users} people`}
+          />
+          <Tile
+            label="Meals logged (I ate this)"
+            value={uLogged.count.toLocaleString()}
+            sub={`${uLogged.users} people`}
+          />
+          <Tile
+            label="Doctor reports made"
+            value={uReport.count.toLocaleString()}
+            sub={`${uReport.users} people · are they useful?`}
+          />
+          <Tile
+            label="Checked a suggested meal"
+            value={uCheck.count.toLocaleString()}
+            sub={`${uCheck.users} people`}
+          />
+          <Tile
+            label="WhatsApp channel joins"
+            value={uChannel.count.toLocaleString()}
+            sub={`${uChannel.users} people`}
+          />
         </div>
 
         {/*

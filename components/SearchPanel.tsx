@@ -7,6 +7,7 @@ import type { Food } from "@/lib/types";
 import VerdictCard from "./VerdictCard";
 import { events } from "@/lib/analytics";
 import { saveCheck } from "@/lib/history";
+import { trackUsage } from "@/lib/usage";
 
 // Access is gated upstream at /app, so this panel is always fully open here.
 export default function SearchPanel({
@@ -35,6 +36,7 @@ export default function SearchPanel({
 
   const pick = (food: Food) => {
     events.foodChecked(food.name);
+    void trackUsage("food_search");
     // Checking a food is NOT eating it. Nothing is saved to the food record here;
     // the person logs it only if they tap "I ate this" below.
     setPicked(food);
@@ -44,6 +46,7 @@ export default function SearchPanel({
 
   const logEaten = (food: Food) => {
     void saveCheck("single", food.name, food.baseVerdict);
+    void trackUsage("meal_logged");
     setAte(true);
   };
 

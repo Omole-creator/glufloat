@@ -48,6 +48,19 @@ export function personalGreeting(name: string | null): string {
 }
 
 /**
+ * The "come back later" nudge, tied to the meal-time notifications (Nigerian
+ * time): during breakfast it points to lunch at 12pm, during lunch to dinner at
+ * 5pm, and in the evening to breakfast in the morning. These times must match the
+ * push cron in supabase/push-schema notes.
+ */
+export function checkBackMessage(now: Date = new Date()): string {
+  const meal = currentMeal(now);
+  if (meal === "breakfast") return "Come back at 12pm to check your lunch.";
+  if (meal === "lunch") return "Come back at 5pm to check your dinner.";
+  return "Come back in the morning to check your breakfast.";
+}
+
+/**
  * A local-day key (YYYY-MM-DD in the browser's own timezone). Used to make the
  * day's meal stable within a day but different from one day to the next.
  */

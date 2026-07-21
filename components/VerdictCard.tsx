@@ -3,6 +3,7 @@ import { plainFrequency } from "@/lib/frequency";
 import { foodShareMessage } from "@/lib/shareMessage";
 import PortionVisual from "./PortionVisual";
 import ShareOnWhatsApp from "./ShareOnWhatsApp";
+import IntakeWarning from "./IntakeWarning";
 
 const STYLES = {
   green: {
@@ -32,6 +33,11 @@ export default function VerdictCard({ food }: { food: Food }) {
     <div
       className={`verdict-pop rounded-2xl border-2 ${s.ring} bg-white p-5 text-left shadow-[0_10px_30px_-14px_rgba(12,45,77,0.25)]`}
     >
+      {/* Warns before a rule is broken, e.g. a second fast-sugar food today. */}
+      <div className="mb-3 empty:mb-0">
+        <IntakeWarning key={food.id} verdict={food.baseVerdict} />
+      </div>
+
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 className="font-display text-lg font-semibold text-ink">
           {food.name}

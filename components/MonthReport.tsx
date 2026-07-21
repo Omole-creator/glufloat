@@ -6,6 +6,7 @@ import { jsPDF } from "jspdf";
 import { monthChecks, deleteCheck, type MealCheck } from "@/lib/history";
 import { monthReportMessage } from "@/lib/shareMessage";
 import { sizedFoods } from "@/lib/mealSize";
+import { trackUsage } from "@/lib/usage";
 import CollapsibleCard from "./CollapsibleCard";
 
 // Glufloat brand colours (from app/globals.css), as RGB for jsPDF.
@@ -197,6 +198,7 @@ export default function MonthReport({
   const sendToDoctor = async () => {
     if (busy) return;
     setBusy(true);
+    void trackUsage("doctor_report");
     try {
       const doc = buildDoc();
       const blob = doc.output("blob");
@@ -303,7 +305,10 @@ export default function MonthReport({
           {busy ? "Preparing..." : "Send to my doctor on WhatsApp"}
         </button>
         <button
-          onClick={() => buildDoc().save(fileName)}
+          onClick={() => {
+            void trackUsage("doctor_report");
+            buildDoc().save(fileName);
+          }}
           className="inline-flex items-center gap-2 rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold text-ink-soft transition-colors hover:border-brand hover:text-ink"
         >
           <Download className="h-4 w-4" /> Save the PDF

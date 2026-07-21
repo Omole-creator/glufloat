@@ -15,6 +15,10 @@ import { shortFoodName } from "./foodName";
  * Ids are the food ids in data/foods.json. If a food is ever renamed or removed,
  * getFood drops it and the rest of the plate still shows.
  */
+// Every idea must be a real Nigerian plate people actually eat together (founder
+// rule): a swallow with a soup and a protein, beans with a protein, or a light
+// pairing that truly goes together. No odd combinations (e.g. garden egg with
+// moi moi). All are all-green, so they always score green.
 const IDEAS: Record<NamedMeal, string[][]> = {
   breakfast: [
     ["oats", "plain-yogurt"],
@@ -24,39 +28,39 @@ const IDEAS: Record<NamedMeal, string[][]> = {
     ["oat-swallow", "vegetable-soup"],
     ["okpa", "tea-coffee"],
     ["eggs", "soy-milk"],
-    ["moi-moi", "garden-egg"],
+    ["moi-moi", "soy-milk"],
     ["oats", "groundnut"],
     ["beans-porridge", "eggs"],
-    ["ekuru", "fish"],
+    ["okpa", "soy-milk"],
     ["oat-swallow", "egusi-soup", "fish"],
   ],
   lunch: [
     ["oat-swallow", "egusi-soup", "fish"],
-    ["cooked-beans", "fish"],
     ["oat-swallow", "okra-soup", "chicken"],
-    ["beans-porridge", "garden-egg"],
-    ["oat-swallow", "vegetable-soup", "goat-meat"],
     ["oat-swallow", "efo-riro", "chicken"],
     ["oat-swallow", "edikang-ikong", "fish"],
     ["oat-swallow", "afang-soup", "fish"],
-    ["moi-moi", "garden-egg"],
-    ["cooked-beans", "chicken"],
+    ["oat-swallow", "vegetable-soup", "goat-meat"],
     ["oat-swallow", "bitterleaf-soup", "goat-meat"],
     ["oat-swallow", "ogbono-soup", "fish"],
+    ["cooked-beans", "fish"],
+    ["cooked-beans", "chicken"],
+    ["beans-porridge", "fish"],
+    ["oat-swallow", "white-soup", "fish"],
   ],
   dinner: [
     ["oat-swallow", "efo-riro", "chicken"],
     ["pepper-soup", "fish"],
-    ["moi-moi", "garden-egg"],
+    ["pepper-soup", "chicken"],
     ["oat-swallow", "vegetable-soup", "fish"],
     ["oat-swallow", "ogbono-soup", "fish"],
     ["oat-swallow", "white-soup", "fish"],
     ["oat-swallow", "egusi-soup", "goat-meat"],
-    ["cooked-beans", "fish"],
-    ["pepper-soup", "chicken"],
     ["oat-swallow", "okra-soup", "fish"],
     ["oat-swallow", "oha-soup", "goat-meat"],
+    ["cooked-beans", "fish"],
     ["beans-porridge", "fish"],
+    ["oat-swallow", "edikang-ikong", "chicken"],
   ],
 };
 
@@ -118,36 +122,57 @@ function hash(s: string): number {
   return h >>> 0;
 }
 
+/** The whole-number day (in WAT, since dayKey is already a Nigerian date). */
+function dayNumber(dayKey: string): number {
+  return Math.floor(Date.parse(`${dayKey}T00:00:00Z`) / 86_400_000);
+}
+
 /**
  * The meal to show for a given day.
  *
- * Two rules the founder set: it must **change every day**, and it must **learn
- * from what the person has been eating** (bring something other than their usual
- * plate). So each idea is scored by how often its foods appear in the person's
- * log (lower is fresher), and ties are broken by a per-day order, which is what
- * makes the choice stable within a day but different the next day. `offset`
- * steps to the next idea for a "show me another" tap.
+ * Founder rules, all enforced here:
+ *  - **It must change every day, and NEVER repeat day to day** ("avoid repeat at
+ *    all cost"). The ideas are put in a stable order (freshest first, see below),
+ *    then the DAY NUMBER steps one place along that order each day, so today and
+ *    tomorrow can never be the same plate. `avoidIndex` (yesterday's actual plate,
+ *    remembered on the device) is a second guard: if the step still lands on it,
+ *    we move one more.
+ *  - **It learns from what the person eats.** The stable order puts the ideas
+ *    whose foods appear LEAST in their log first, so their usual plates drift to
+ *    the back of the rotation.
+ *  - `offset` steps further for a "show me another food" tap.
  */
 export function planForDay(
   meal: NamedMeal,
   dayKey: string,
   counts: Map<string, number>,
   offset = 0,
+  avoidIndex?: number,
 ): MealIdea {
   const list = IDEAS[meal];
-  if (list.length === 0) return { foods: [], names: [], index: 0, count: 0 };
+  const n = list.length;
+  if (n === 0) return { foods: [], names: [], index: 0, count: 0 };
 
+  // Stable order: least-eaten first, ties broken by a fixed per-idea hash (NOT
+  // day-dependent, so the order only shifts when the person's eating changes).
   const scored = list.map((_, i) => {
     const idea = resolve(meal, i);
     const eaten = idea.foods.reduce(
       (sum, f) => sum + (counts.get(f.name) ?? 0),
       0,
     );
-    return { idea, eaten, order: hash(`${dayKey}#${i}`) };
+    return { idea, eaten, tie: hash(`${meal}#${i}`) };
   });
+  scored.sort((a, b) => a.eaten - b.eaten || a.tie - b.tie);
 
-  scored.sort((a, b) => a.eaten - b.eaten || a.order - b.order);
-
-  const n = scored.length;
-  return scored[((offset % n) + n) % n].idea;
+  // Step one place per day, so consecutive days are always different plates.
+  let pos = (((dayNumber(dayKey) + offset) % n) + n) % n;
+  if (avoidIndex !== undefined && n > 1) {
+    let guard = 0;
+    while (scored[pos].idea.index === avoidIndex && guard < n) {
+      pos = (pos + 1) % n;
+      guard += 1;
+    }
+  }
+  return scored[pos].idea;
 }

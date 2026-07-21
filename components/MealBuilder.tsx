@@ -9,8 +9,10 @@ import { PortionMini } from "./PortionVisual";
 import { mealFrequency } from "@/lib/frequency";
 import { mealShareMessage } from "@/lib/shareMessage";
 import ShareOnWhatsApp from "./ShareOnWhatsApp";
+import IntakeWarning from "./IntakeWarning";
 import { events } from "@/lib/analytics";
 import { saveCheck } from "@/lib/history";
+import { trackUsage } from "@/lib/usage";
 
 const PORTIONS: { key: PortionSize; label: string }[] = [
   { key: "half", label: "Small" },
@@ -217,6 +219,16 @@ export default function MealBuilder({
           </div>
 
           <div className="p-6">
+            {/* Warns before a rule is broken, e.g. a second fast-sugar meal today. */}
+            <div className="mb-4 empty:mb-0">
+              {showVerdict && (
+                <IntakeWarning
+                  key={items.map((i) => i.food.id).join()}
+                  verdict={result.verdict}
+                />
+              )}
+            </div>
+
             <p className="text-base font-semibold text-ink">
               {result.headline}
             </p>

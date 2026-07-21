@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
 import { motion, type Variants } from "framer-motion";
 import Link from "next/link";
 import { ArrowRight, ShieldCheck } from "lucide-react";
@@ -20,39 +19,6 @@ const item: Variants = {
     transition: { duration: 0.65, ease: [0.22, 1, 0.36, 1] },
   },
 };
-
-function RotatingWord() {
-  const words = useMemo(() => ["a food", "a meal", "a snack"], []);
-  const [i, setI] = useState(0);
-
-  useEffect(() => {
-    const t = setTimeout(
-      () => setI((n) => (n === words.length - 1 ? 0 : n + 1)),
-      1900,
-    );
-    return () => clearTimeout(t);
-  }, [i, words]);
-
-  return (
-    <span className="relative inline-grid overflow-hidden pb-[0.08em] align-bottom text-leaf-deep">
-      {words.map((w, idx) => (
-        <motion.span
-          key={w}
-          className="col-start-1 row-start-1 whitespace-nowrap"
-          initial={false}
-          animate={
-            i === idx
-              ? { y: "0%", opacity: 1 }
-              : { y: i > idx ? "-115%" : "115%", opacity: 0 }
-          }
-          transition={{ type: "spring", stiffness: 60, damping: 13 }}
-        >
-          {w}
-        </motion.span>
-      ))}
-    </span>
-  );
-}
 
 function Hero() {
   return (
@@ -86,11 +52,11 @@ function Hero() {
 
         <motion.h1
           variants={item}
-          className="mt-6 font-display text-[1.9rem] font-bold leading-[1.12] tracking-tight text-ink sm:text-4xl lg:text-[2.9rem]"
+          className="mt-6 font-display text-[2.1rem] font-bold leading-[1.12] tracking-tight text-ink sm:text-5xl lg:text-[3.1rem]"
         >
-          Know if <RotatingWord /> is right for your diabetes,
+          Eat what you love.
           <br className="hidden sm:block" />{" "}
-          <span className="text-brand">before you eat it.</span>
+          <span className="text-brand">Glufloat handles the rest.</span>
         </motion.h1>
 
         <motion.p
