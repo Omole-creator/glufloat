@@ -1,5 +1,6 @@
 import type { Food } from "@/lib/types";
 import { portionVisual, type PortionKey } from "@/lib/portionVisual";
+import { cleanFoodName } from "@/lib/foodName";
 
 const BLUE = "#1b5faa";
 const GREEN = "#3e9b4f";
@@ -230,7 +231,7 @@ export function PortionMini({ food }: { food: Food }) {
         </span>
       </span>
       <div className="min-w-0 text-xs">
-        <p className="font-semibold text-ink">{food.name}</p>
+        <p className="font-semibold text-ink">{cleanFoodName(food.name)}</p>
         <p className="text-ink-soft">{food.portionGuidance}</p>
       </div>
     </div>

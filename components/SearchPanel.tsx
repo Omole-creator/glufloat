@@ -8,6 +8,7 @@ import VerdictCard from "./VerdictCard";
 import { events } from "@/lib/analytics";
 import { saveCheck } from "@/lib/history";
 import { trackUsage } from "@/lib/usage";
+import { cleanFoodName } from "@/lib/foodName";
 
 // Access is gated upstream at /app, so this panel is always fully open here.
 export default function SearchPanel({
@@ -86,7 +87,7 @@ export default function SearchPanel({
                 onClick={() => pick(f)}
                 className="flex w-full items-center justify-between px-5 py-3 text-left text-sm transition-colors hover:bg-mist"
               >
-                <span className="font-medium text-ink">{f.name}</span>
+                <span className="font-medium text-ink">{cleanFoodName(f.name)}</span>
                 <span
                   className={`h-3 w-3 shrink-0 rounded-full ${
                     f.baseVerdict === "green"

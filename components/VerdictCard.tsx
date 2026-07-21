@@ -1,5 +1,6 @@
 import type { Food } from "@/lib/types";
 import { plainFrequency } from "@/lib/frequency";
+import { cleanFoodName } from "@/lib/foodName";
 import { foodShareMessage } from "@/lib/shareMessage";
 import PortionVisual from "./PortionVisual";
 import ShareOnWhatsApp from "./ShareOnWhatsApp";
@@ -40,7 +41,7 @@ export default function VerdictCard({ food }: { food: Food }) {
 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 className="font-display text-lg font-semibold text-ink">
-          {food.name}
+          {cleanFoodName(food.name)}
         </h3>
         <span
           className={`rounded-full px-3 py-1 text-xs font-bold tracking-wide ${s.chip}`}

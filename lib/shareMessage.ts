@@ -1,6 +1,7 @@
 import type { Food, MealItem, MealResult, Verdict } from "./types";
 import { plainFrequency } from "./frequency";
 import { sizedFoods } from "./mealSize";
+import { cleanFoodName, displayLabel } from "./foodName";
 import { SITE_URL } from "./site";
 
 /**
@@ -32,7 +33,9 @@ const CTA = `Check your own food free: ${SITE_URL}`;
 
 /** One food, mirroring VerdictCard field for field. */
 export function foodShareMessage(food: Food): string {
-  const blocks: string[] = [`${food.name}. ${MEANING[food.baseVerdict]}.`];
+  const blocks: string[] = [
+    `${cleanFoodName(food.name)}. ${MEANING[food.baseVerdict]}.`,
+  ];
 
   if (food.logicNote) blocks.push(food.logicNote);
   if (food.healthNote) blocks.push(`Please note: ${food.healthNote}`);
@@ -80,15 +83,16 @@ export function monthReportMessage(
     const lines: string[] = [];
     for (const i of shown) {
       const foods = sizedFoods(i.label, i.kind);
+      const shown = displayLabel(i.label);
       if (i.kind === "single") {
-        // "- Eba, one fist-size ball (100g) (Good to eat)"
+        // "- Plain Oats, half a cup (Good to eat)"
         const size = foods[0]?.size;
         lines.push(
-          `- ${i.label}${size ? `, ${size}` : ""} (${MEANING[i.verdict]})`,
+          `- ${shown}${size ? `, ${size}` : ""} (${MEANING[i.verdict]})`,
         );
       } else {
         // The meal, then each food with its size on its own line.
-        lines.push(`- ${i.label} (${MEANING[i.verdict]})`);
+        lines.push(`- ${shown} (${MEANING[i.verdict]})`);
         for (const f of foods) {
           if (f.size) lines.push(`    ${f.name}: ${f.size}`);
         }
@@ -140,7 +144,9 @@ export function mealShareMessage(
   for (const n of medicineNotes) blocks.push(`If you take medicine: ${n}`);
 
   if (items.length > 0) {
-    const lines = items.map((i) => `${i.food.name}: ${i.food.portionGuidance}`);
+    const lines = items.map(
+      (i) => `${cleanFoodName(i.food.name)}: ${i.food.portionGuidance}`,
+    );
     blocks.push(["How much of each to eat:", ...lines].join("\n"));
   }
 

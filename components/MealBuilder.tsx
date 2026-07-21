@@ -13,6 +13,7 @@ import IntakeWarning from "./IntakeWarning";
 import { events } from "@/lib/analytics";
 import { saveCheck } from "@/lib/history";
 import { trackUsage } from "@/lib/usage";
+import { cleanFoodName } from "@/lib/foodName";
 
 const PORTIONS: { key: PortionSize; label: string }[] = [
   { key: "half", label: "Small" },
@@ -124,7 +125,7 @@ export default function MealBuilder({
                   onClick={() => add(f)}
                   className="flex w-full items-center justify-between px-5 py-3 text-left text-sm transition-colors hover:bg-mint"
                 >
-                  <span className="font-medium text-ink">{f.name}</span>
+                  <span className="font-medium text-ink">{cleanFoodName(f.name)}</span>
                   <span className="flex items-center gap-1 text-xs font-bold text-leaf">
                     <Plus className="h-3.5 w-3.5" /> Add
                   </span>
@@ -148,7 +149,7 @@ export default function MealBuilder({
             >
               <span className={`h-3 w-3 shrink-0 rounded-full ${DOT[i.food.baseVerdict]}`} />
               <span className="min-w-0 flex-1 text-sm font-semibold text-ink">
-                {i.food.name}
+                {cleanFoodName(i.food.name)}
               </span>
 
               {i.food.role === "starch" && (

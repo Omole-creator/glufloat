@@ -404,10 +404,11 @@ export default function Home() {
 
                 <ul className="mx-auto mt-6 max-w-sm space-y-3 text-left text-ink">
                   {[
-                    "Check as many foods as you want, all 1,400+ of them",
-                    "Build a full meal and get the fix that makes it green",
-                    "See the safe size, what to eat it with, and how often",
-                    "Works on any phone, right away",
+                    "Check any food, all 1,400+ of them",
+                    "A safe meal to eat, picked for you every day",
+                    "Build your plate and watch it turn green",
+                    "Keep a record of your meals for your doctor",
+                    "A gentle reminder before each meal",
                     "Stop any time. It is easy",
                   ].map((b) => (
                     <li key={b} className="flex gap-3">

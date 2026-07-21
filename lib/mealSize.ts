@@ -1,4 +1,5 @@
 import { FOODS } from "./search";
+import { cleanFoodName } from "./foodName";
 
 /**
  * Break a saved check into its foods, each with its portion size, so the doctor
@@ -27,6 +28,6 @@ export function sizedFoods(
           .filter(Boolean);
   return names.map((name) => {
     const f = FOODS.find((x) => x.name === name);
-    return { name, size: f?.portionGuidance ?? "" };
+    return { name: cleanFoodName(name), size: f?.portionGuidance ?? "" };
   });
 }

@@ -1,7 +1,7 @@
 import { getFood } from "./search";
 import type { Food } from "./types";
 import type { NamedMeal } from "./mealtime";
-import { shortFoodName } from "./foodName";
+import { cleanFoodName } from "./foodName";
 
 /**
  * Safe meal ideas to suggest for the next meal.
@@ -72,32 +72,6 @@ export interface MealIdea {
   count: number;
 }
 
-/**
- * Clean, natural names for the daily meal card ONLY. The full food name (with
- * its brackets and options) still rules everywhere the detail matters, but on a
- * "here is your dinner" card "Oats (plain)" reads as clutter, so it becomes
- * "Plain Oats". This is cosmetic: it never changes the food, its size, its
- * verdict, or which foods are combined. Anything not listed falls back to
- * shortFoodName (which already drops "Titus / Mackerel" option lists).
- */
-const DISPLAY: Record<string, string> = {
-  oats: "Plain Oats",
-  "oat-swallow": "Oat Swallow",
-  "plain-yogurt": "Plain Yogurt",
-  "tea-coffee": "Sugar-free Tea or Coffee",
-  eggs: "Boiled Eggs",
-  avocado: "Avocado",
-  "vegetable-soup": "Vegetable Soup",
-  "okra-soup": "Okra Soup",
-  "moi-moi": "Moi Moi",
-  okpa: "Okpa",
-  "soy-milk": "Soy Milk",
-  ekuru: "Ekuru",
-  groundnut: "Groundnut",
-  "bitterleaf-soup": "Bitterleaf Soup",
-  "white-soup": "White Soup",
-};
-
 function resolve(meal: NamedMeal, index: number): MealIdea {
   const list = IDEAS[meal];
   const ids = list[index] ?? list[0];
@@ -106,7 +80,7 @@ function resolve(meal: NamedMeal, index: number): MealIdea {
     .filter((f): f is Food => Boolean(f));
   return {
     foods,
-    names: foods.map((f) => DISPLAY[f.id] ?? shortFoodName(f.name)),
+    names: foods.map((f) => cleanFoodName(f.name)),
     index,
     count: list.length,
   };

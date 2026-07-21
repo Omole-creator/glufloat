@@ -7,6 +7,7 @@ import { monthChecks, deleteCheck, type MealCheck } from "@/lib/history";
 import { monthReportMessage } from "@/lib/shareMessage";
 import { sizedFoods } from "@/lib/mealSize";
 import { trackUsage } from "@/lib/usage";
+import { displayLabel } from "@/lib/foodName";
 import CollapsibleCard from "./CollapsibleCard";
 
 // Glufloat brand colours (from app/globals.css), as RGB for jsPDF.
@@ -161,7 +162,8 @@ export default function MonthReport({
       ink(INK);
       doc.setFont("helvetica", "bold");
       doc.setFontSize(10);
-      doc.text(doc.splitTextToSize(it.label, 120)[0] ?? it.label, M + 6, y);
+      const cleanLabel = displayLabel(it.label);
+      doc.text(doc.splitTextToSize(cleanLabel, 120)[0] ?? cleanLabel, M + 6, y);
       doc.setFont("helvetica", "normal");
       doc.setTextColor(140);
       doc.setFontSize(9);
@@ -303,7 +305,7 @@ export default function MonthReport({
                 className="flex items-center gap-2.5 rounded-lg px-1 py-1.5 text-ink"
               >
                 <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${DOT[i.verdict]}`} />
-                <span className="flex-1 truncate">{i.label}</span>
+                <span className="flex-1 truncate">{displayLabel(i.label)}</span>
                 <button
                   onClick={() => remove(i.id)}
                   aria-label={`Remove ${i.label}`}
