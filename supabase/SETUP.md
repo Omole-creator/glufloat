@@ -62,7 +62,7 @@ node -e "console.log(require('web-push').generateVAPIDKeys())"
 | `VAPID_PRIVATE_KEY` | the private key from step a | **no — server only** |
 | `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | the **same value** as the public key | yes (public) |
 | `PUSH_CRON_SECRET` | a long random string you choose | **no — server only** |
-| `VAPID_SUBJECT` | `mailto:hello@glufloat.com` | **no — server only** |
+| `VAPID_SUBJECT` | `mailto:glufloat@gmail.com` (a real mailbox) | **no — server only** |
 
 **c. Schedule three sends a day.** Use a free scheduler that can POST a URL
 (cron-job.org, or Supabase `pg_cron` + `pg_net`). **Not Vercel Hobby cron**,

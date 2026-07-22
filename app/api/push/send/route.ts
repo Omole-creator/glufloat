@@ -61,7 +61,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Push is not configured" }, { status: 500 });
   }
   webpush.setVapidDetails(
-    process.env.VAPID_SUBJECT || "mailto:hello@glufloat.com",
+    // A real mailbox: this is who the push services contact if a send goes
+    // wrong, so it must not be an address nobody reads.
+    process.env.VAPID_SUBJECT || "mailto:glufloat@gmail.com",
     publicKey,
     privateKey,
   );
