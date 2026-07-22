@@ -137,7 +137,7 @@ export function HeroLanding({
                 <Link
                   key={cta.text}
                   href={cta.href}
-                  className="group inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-leaf to-leaf-bright px-8 py-4 text-base font-bold text-white shadow-[0_16px_34px_-12px_rgba(70,184,94,0.85)] transition-all hover:-translate-y-1 hover:shadow-[0_22px_44px_-12px_rgba(70,184,94,0.95)]"
+                  className="group inline-flex items-center gap-2 rounded-full bg-leaf px-8 py-4 text-base font-bold text-white shadow-[0_16px_34px_-12px_rgba(70,184,94,0.85)] transition-all hover:-translate-y-1 hover:bg-leaf-deep hover:shadow-[0_22px_44px_-12px_rgba(70,184,94,0.95)]"
                 >
                   {cta.text}
                   <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />

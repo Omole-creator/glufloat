@@ -125,7 +125,7 @@ await check("membership badge shows for a subscriber", async () =>
 await check("today's meal leads the page", async () =>
   visible(page.getByRole("button", { name: "View details" })),
 );
-await page.getByRole("button", { name: "Search a food" }).click();
+await page.getByRole("button", { name: "Search any food" }).click();
 await page.waitForTimeout(400);
 await page.getByLabel("Search a food").fill("eba");
 // Names shown to a user go through cleanFoodName, which reads a slash as "or".

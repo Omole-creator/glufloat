@@ -94,7 +94,6 @@ export default function Home() {
             href: "/trial",
             variant: "primary",
           },
-          { text: "See how it works", href: "#how", variant: "secondary" },
         ]}
         reassurance="3 days free. You do not need a card. After that it is N1,500 a month, and you can stop any time."
         media={
@@ -216,23 +215,32 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ============ TRY IT (sign-up CTA) ============ */}
-      <section id="demo" className="relative overflow-hidden bg-mist py-20 sm:py-24">
-        <div className="dots absolute inset-0 opacity-40" aria-hidden />
+      {/* ============ TRY IT (sign-up CTA) ============
+          A second full brand-blue section, so the page is not one coloured hero
+          on a white page. Same canvas as the hero, same rule: white type, and
+          green only on the button. */}
+      <section
+        id="demo"
+        className="relative overflow-hidden bg-gradient-to-b from-[#0d3568] via-[#14538f] to-[#1b5faa] py-20 sm:py-24"
+      >
+        <div className="dots-light absolute inset-0 opacity-40" aria-hidden />
+        <div className="grain absolute inset-0" aria-hidden />
         <div className="relative mx-auto max-w-2xl px-4 sm:px-6">
           <Reveal className="text-center">
-            <Label>Try it free</Label>
-            <h2 className="mt-4 font-display text-3xl font-bold text-ink sm:text-4xl">
+            <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-sm font-semibold text-white ring-1 ring-inset ring-white/25">
+              Try it free
+            </span>
+            <h2 className="mt-4 font-display text-3xl font-bold text-white sm:text-4xl">
               Ready to check your first food?
             </h2>
-            <p className="mx-auto mt-4 max-w-md font-display text-lg leading-relaxed text-ink-soft">
+            <p className="mx-auto mt-4 max-w-md font-display text-lg leading-relaxed text-white/75">
               Make a free account, then check any food you eat for the next 3
               days. No card needed.
             </p>
           </Reveal>
 
           <Reveal delay={150} className="mt-8">
-            <div className="mx-auto flex max-w-md flex-col items-center rounded-3xl border border-line bg-white p-8 shadow-[0_20px_50px_-28px_rgba(12,42,71,0.35)]">
+            <div className="mx-auto flex max-w-md flex-col items-center rounded-3xl bg-white p-8 shadow-[0_30px_60px_-24px_rgba(6,26,50,0.6)]">
               <ul className="mb-7 grid w-full gap-3 text-left text-ink sm:grid-cols-2">
                 {[
                   "No card needed",
@@ -251,7 +259,7 @@ export default function Home() {
 
               <Link
                 href="/trial"
-                className="group flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-brand to-leaf px-8 py-4 text-base font-bold text-white shadow-[0_14px_30px_-10px_rgba(27,95,170,0.7)] transition-all hover:-translate-y-1"
+                className="group flex w-full items-center justify-center gap-2 rounded-full bg-leaf px-8 py-4 text-base font-bold text-white shadow-[0_14px_30px_-10px_rgba(62,155,79,0.6)] hover:bg-leaf-deep transition-all hover:-translate-y-1"
               >
                 Start my 3-day free trial
                 <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
@@ -330,7 +338,9 @@ export default function Home() {
       </section>
 
       {/* ============ TRUST BAND (dynamic, coloured) ============ */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-brand via-brand-bright to-leaf py-16 text-white">
+      {/* Solid brand blue. It used to fade blue into green, which is the kind of
+          two-colour blend the founder ruled out: it is one colour or the other. */}
+      <section className="relative overflow-hidden bg-brand py-16 text-white">
         <div className="grain absolute inset-0" aria-hidden />
         <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
           <Reveal className="text-center">
@@ -394,7 +404,7 @@ export default function Home() {
               </p>
               <Link
                 href="/trial"
-                className="group mt-7 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-brand to-leaf px-7 py-4 text-base font-bold text-white shadow-[0_14px_30px_-10px_rgba(27,95,170,0.7)] transition-all hover:-translate-y-1"
+                className="group mt-7 inline-flex items-center gap-2 rounded-full bg-leaf px-7 py-4 text-base font-bold text-white shadow-[0_14px_30px_-10px_rgba(62,155,79,0.6)] hover:bg-leaf-deep transition-all hover:-translate-y-1"
               >
                 Start my 3-day free trial
                 <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
@@ -420,7 +430,7 @@ export default function Home() {
 
           <Reveal delay={150}>
             <div className="mx-auto mt-12 max-w-lg overflow-hidden rounded-3xl border-2 border-brand/20 bg-white shadow-[0_30px_60px_-25px_rgba(27,95,170,0.45)]">
-              <div className="bg-gradient-to-r from-brand to-leaf px-8 py-5 text-center">
+              <div className="bg-brand px-8 py-5 text-center">
                 <p className="text-sm font-bold uppercase tracking-widest text-white">
                   Glufloat membership
                 </p>
@@ -429,14 +439,15 @@ export default function Home() {
                 <p className="text-base font-semibold text-leaf-deep">
                   Your first 3 days are free. You do not need a card.
                 </p>
+                {/* The price, and nothing else. The founder cut the "a month
+                    after that" tail and the "about N50 a day" line: one number,
+                    said once. */}
                 <p className="mt-3 font-display text-5xl font-bold text-ink">
                   N1,500
                   <span className="text-lg font-medium text-ink-soft">
-                    {" "}
-                    a month after that
+                    /month
                   </span>
                 </p>
-                <p className="mt-1 text-ink-soft">That is about N50 a day.</p>
 
                 <ul className="mx-auto mt-6 max-w-sm space-y-3 text-left text-ink">
                   {[
@@ -458,7 +469,7 @@ export default function Home() {
 
                 <Link
                   href="/trial"
-                  className="group mt-8 flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-brand to-leaf px-8 py-4 text-base font-bold text-white shadow-[0_14px_30px_-10px_rgba(27,95,170,0.7)] transition-all hover:-translate-y-1"
+                  className="group mt-8 flex items-center justify-center gap-2 rounded-full bg-leaf px-8 py-4 text-base font-bold text-white shadow-[0_14px_30px_-10px_rgba(62,155,79,0.6)] hover:bg-leaf-deep transition-all hover:-translate-y-1"
                 >
                   Start my 3-day free trial
                   <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />

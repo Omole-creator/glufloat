@@ -64,10 +64,10 @@ function line(names: string[]): string {
   return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
 }
 
-const READY = {
-  breakfast: "Breakfast is ready",
-  lunch: "Lunch is ready",
-  dinner: "Dinner is ready",
+const HEADING = {
+  breakfast: "Today's breakfast",
+  lunch: "Today's lunch",
+  dinner: "Today's dinner",
 } as const;
 
 /**
@@ -148,29 +148,41 @@ export default function TodaysMeal({ onBuild }: { onBuild: (foods: Food[]) => vo
   };
 
   return (
-    <section className="overflow-hidden rounded-3xl bg-white shadow-[0_10px_40px_-16px_rgba(12,42,71,0.28)] ring-1 ring-leaf/10">
-      <div className="bg-leaf/[0.05] px-5 py-5 sm:px-7 sm:py-7">
+    /* Brand blue, the same canvas as the landing hero, because this card IS the
+       hero of /app: it is the answer the person opened the app for, and a white
+       card among white cards did not say so. Green is spent on the one action,
+       exactly as it is on the landing page. */
+    <section className="relative isolate overflow-hidden rounded-3xl bg-gradient-to-b from-[#0d3568] via-[#14538f] to-[#1b5faa] shadow-[0_18px_50px_-18px_rgba(12,42,71,0.55)]">
+      <div
+        className="dots-light pointer-events-none absolute inset-x-0 top-0 h-40 opacity-40"
+        aria-hidden
+      />
+      <div
+        className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-white/10 blur-3xl"
+        aria-hidden
+      />
+      <div className="relative px-5 py-6 sm:px-7 sm:py-7">
         <div className="flex items-center gap-3.5">
-          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-leaf/10 text-leaf-deep ring-1 ring-inset ring-leaf/15">
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/15 text-white ring-1 ring-inset ring-white/25">
             <Icon className="h-6 w-6" strokeWidth={2.2} />
           </span>
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-ink/40">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-white/55">
               Today&apos;s food
             </p>
-            <p className="font-display text-xl font-bold leading-tight text-ink">
-              {READY[meal]}
+            <p className="font-display text-xl font-bold leading-tight text-white">
+              {HEADING[meal]}
             </p>
           </div>
         </div>
 
-        <p className="mt-5 font-display text-3xl font-bold leading-snug text-ink sm:text-4xl">
+        <p className="mt-5 font-display text-3xl font-bold leading-snug text-white sm:text-4xl">
           {line(idea.names)}
         </p>
 
-        <span className="mt-4 inline-flex items-center gap-2 rounded-full bg-verdict-green/10 px-3.5 py-1.5 text-sm font-semibold text-leaf-deep">
-          <Check className="h-4 w-4" strokeWidth={3} /> Good to eat
-          <span className="text-leaf-deep/40">·</span> Picked for you
+        <span className="mt-4 inline-flex items-center gap-2 rounded-full bg-white/15 px-3.5 py-1.5 text-sm font-semibold text-white ring-1 ring-inset ring-white/20">
+          <Check className="h-4 w-4 text-verdict-green" strokeWidth={3} /> Good to eat
+          <span className="text-white/40">·</span> Picked for you
         </span>
 
         <div className="mt-6 flex flex-wrap gap-2.5">
@@ -179,13 +191,13 @@ export default function TodaysMeal({ onBuild }: { onBuild: (foods: Food[]) => vo
               void trackUsage("check_this_meal");
               onBuild(idea.foods);
             }}
-            className="flex items-center gap-2 rounded-full bg-gradient-to-br from-leaf to-leaf-deep px-6 py-3.5 text-sm font-bold text-white shadow-[0_10px_24px_-8px_rgba(62,155,79,0.75)] transition-transform hover:-translate-y-0.5"
+            className="flex items-center gap-2 rounded-full bg-leaf px-6 py-3.5 text-sm font-bold text-white shadow-[0_10px_24px_-8px_rgba(62,155,79,0.75)] transition-all hover:-translate-y-0.5 hover:bg-leaf-deep"
           >
             View details <ArrowRight className="h-4 w-4" />
           </button>
           <button
             onClick={another}
-            className="flex items-center gap-2 rounded-full border border-line bg-white px-5 py-3.5 text-sm font-bold text-ink transition-colors hover:border-leaf hover:text-leaf-deep"
+            className="flex items-center gap-2 rounded-full bg-white/10 px-5 py-3.5 text-sm font-bold text-white ring-1 ring-inset ring-white/25 transition-colors hover:bg-white/20"
           >
             <RefreshCw className="h-4 w-4" /> Try another meal
           </button>

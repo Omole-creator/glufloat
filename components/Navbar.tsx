@@ -185,7 +185,7 @@ export default function Navbar() {
                 <Link
                   href="/trial"
                   onClick={() => setMenuOpen(false)}
-                  className="block rounded-full bg-gradient-to-r from-brand to-leaf px-5 py-3.5 text-center text-base font-bold text-white"
+                  className="block rounded-full bg-leaf px-5 py-3.5 text-center text-base font-bold text-white"
                 >
                   Start my 3-day free trial
                 </Link>

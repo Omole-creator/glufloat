@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Eye, Target } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Reveal from "@/components/Reveal";
@@ -41,6 +41,43 @@ export default function AboutPage() {
                 their blood sugar with confidence through easy-to-understand
                 tools, education, and technology.
               </p>
+            </Reveal>
+          </div>
+        </section>
+
+        {/* Mission and vision. A brand-blue band, so the page is not one long
+            white scroll and these two lines carry the weight they should. */}
+        <section className="relative overflow-hidden bg-gradient-to-b from-[#0d3568] via-[#14538f] to-[#1b5faa] py-16 sm:py-20">
+          <div className="dots-light absolute inset-0 opacity-40" aria-hidden />
+          <div className="grain absolute inset-0" aria-hidden />
+          <div className="relative mx-auto grid max-w-5xl gap-6 px-4 sm:px-6 md:grid-cols-2">
+            <Reveal>
+              <div className="h-full rounded-3xl bg-white/10 p-7 ring-1 ring-inset ring-white/20 backdrop-blur-sm">
+                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15 text-white ring-1 ring-inset ring-white/25">
+                  <Target className="h-6 w-6" strokeWidth={2.2} />
+                </span>
+                <h2 className="mt-4 font-display text-xl font-bold text-white">
+                  Our mission
+                </h2>
+                <p className="mt-2 text-lg leading-relaxed text-white/80">
+                  To help people living with diabetes eat with confidence, every
+                  single day.
+                </p>
+              </div>
+            </Reveal>
+            <Reveal delay={120}>
+              <div className="h-full rounded-3xl bg-white/10 p-7 ring-1 ring-inset ring-white/20 backdrop-blur-sm">
+                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15 text-white ring-1 ring-inset ring-white/25">
+                  <Eye className="h-6 w-6" strokeWidth={2.2} />
+                </span>
+                <h2 className="mt-4 font-display text-xl font-bold text-white">
+                  Our vision
+                </h2>
+                <p className="mt-2 text-lg leading-relaxed text-white/80">
+                  To become the world&apos;s most trusted nutrition companion for
+                  people living with diabetes.
+                </p>
+              </div>
             </Reveal>
           </div>
         </section>
@@ -91,7 +128,7 @@ export default function AboutPage() {
               </h2>
               <Link
                 href="/trial"
-                className="group mt-6 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-brand to-leaf px-7 py-4 text-base font-bold text-white shadow-[0_14px_30px_-10px_rgba(27,95,170,0.7)] transition-all hover:-translate-y-1"
+                className="group mt-6 inline-flex items-center gap-2 rounded-full bg-leaf px-7 py-4 text-base font-bold text-white shadow-[0_14px_30px_-10px_rgba(62,155,79,0.6)] hover:bg-leaf-deep transition-all hover:-translate-y-1"
               >
                 Start my 3-day free trial
                 <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />

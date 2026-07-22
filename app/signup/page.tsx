@@ -156,7 +156,7 @@ export default function SignUpPage() {
             <button
               type="submit"
               disabled={busy}
-              className="w-full rounded-full bg-gradient-to-r from-brand to-leaf px-6 py-3.5 text-sm font-bold text-white shadow-[0_10px_24px_-10px_rgba(27,95,170,0.8)] transition-all hover:-translate-y-0.5 disabled:opacity-60"
+              className="w-full rounded-full bg-leaf px-6 py-3.5 text-sm font-bold text-white shadow-[0_10px_24px_-10px_rgba(62,155,79,0.7)] hover:bg-leaf-deep transition-all hover:-translate-y-0.5 disabled:opacity-60"
             >
               {busy ? "Creating your account..." : "Create account and start"}
             </button>

@@ -20,12 +20,20 @@ function watHour(now: Date = new Date()): number {
   return (now.getUTCHours() + 1) % 24;
 }
 
-/** Which meal the current Nigerian hour points to. */
+/**
+ * Which meal the current Nigerian hour points to.
+ *
+ * The day breaks at midnight, the same place `localDayKey` breaks it. The small
+ * hours used to belong to DINNER (the band ran 17:00 straight through to 04:59),
+ * so somebody opening the app at 3am was greeted with "Good evening" and handed
+ * a dinner plate, on a day that had already rolled over. Nobody wants dinner at
+ * 3am; the next meal they will actually eat is breakfast. Founder's call.
+ */
 export function currentMeal(now: Date = new Date()): NamedMeal {
   const h = watHour(now);
-  if (h >= 5 && h <= 10) return "breakfast";
-  if (h >= 11 && h <= 16) return "lunch";
-  return "dinner"; // 17:00 through 04:59
+  if (h <= 10) return "breakfast"; // 00:00 through 10:59
+  if (h <= 16) return "lunch"; // 11:00 through 16:59
+  return "dinner"; // 17:00 through 23:59
 }
 
 /** "Your breakfast for today", the authoritative heading on the meal card. */

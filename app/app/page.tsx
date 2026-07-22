@@ -263,7 +263,7 @@ export default function AppPage() {
             <div className="grid grid-cols-3 gap-2 sm:gap-3">
               <DoorCard
                 icon={<Search className="h-5 w-5" strokeWidth={2.2} />}
-                title="Search a food"
+                title="Search any food"
                 text="Check any food you have in mind"
                 tone="blue"
                 active={openCard === "check" && tab === "search"}
