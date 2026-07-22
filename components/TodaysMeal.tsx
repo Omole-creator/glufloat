@@ -8,7 +8,7 @@ import {
   type NamedMeal,
 } from "@/lib/mealtime";
 import { planForDay, type MealIdea } from "@/lib/nextMeal";
-import { loggedFoodCounts } from "@/lib/history";
+import { loggedFoodCounts, likedFoodCounts } from "@/lib/history";
 import { trackUsage } from "@/lib/usage";
 import type { Food } from "@/lib/types";
 
@@ -50,11 +50,54 @@ function writeShown(meal: string, day: string, index: number): void {
   }
 }
 
-/** The plates shown on the days BEFORE this one, which today must not repeat. */
+// The plates this person pressed past with "Try another meal". A skip is the
+// clearest thing they ever tell us about a plate, so we stop offering it. Kept
+// to the last few, per meal, on the device: a food somebody did not want in
+// March should not be locked out for ever.
+const SKIPPED_KEY = "gf_meal_skipped";
+const REMEMBER_SKIPS = 10;
+// Never avoid so many that there is nothing left to choose from. The shortest
+// list (breakfast) has 20 plates.
+const MAX_AVOID = 12;
+
+function readSkipped(meal: string): number[] {
+  try {
+    const all = JSON.parse(localStorage.getItem(SKIPPED_KEY) || "{}") as Record<
+      string,
+      number[]
+    >;
+    return Array.isArray(all[meal]) ? all[meal] : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeSkipped(meal: string, index: number): void {
+  try {
+    const all = JSON.parse(localStorage.getItem(SKIPPED_KEY) || "{}") as Record<
+      string,
+      number[]
+    >;
+    const list = readSkipped(meal).filter((i) => i !== index);
+    list.push(index);
+    all[meal] = list.slice(-REMEMBER_SKIPS);
+    localStorage.setItem(SKIPPED_KEY, JSON.stringify(all));
+  } catch {
+    /* ignore */
+  }
+}
+
+/**
+ * The plates not to land on: the ones shown on the days BEFORE this one (so the
+ * meal never repeats day to day), plus the ones this person skipped.
+ */
 function toAvoid(meal: string, today: string): number[] {
-  return readShown(meal)
+  const shown = readShown(meal)
     .filter((s) => s.day !== today)
     .map((s) => s.index);
+  const seen = new Set<number>(shown);
+  for (const i of readSkipped(meal)) seen.add(i);
+  return [...seen].slice(0, MAX_AVOID);
 }
 
 /** Join clean food names into one plain line: "A, B and C". */
@@ -86,21 +129,26 @@ export default function TodaysMeal({ onBuild }: { onBuild: (foods: Food[]) => vo
   const [idea, setIdea] = useState<MealIdea | null>(null);
   const [offset, setOffset] = useState(0);
   const [counts, setCounts] = useState<Map<string, number>>(new Map());
+  const [liked, setLiked] = useState<Map<string, number>>(new Map());
   const [dayKey, setDayKey] = useState("");
   // Kept in refs as well so the clock timer below can read the latest values
   // without being torn down and rebuilt on every change.
   const countsRef = useRef<Map<string, number>>(new Map());
+  const likedRef = useRef<Map<string, number>>(new Map());
   const nowRef = useRef<{ meal: NamedMeal | null; day: string }>({
     meal: null,
     day: "",
   });
 
-  const plan = useCallback((m: NamedMeal, dk: string, c: Map<string, number>) => {
-    const next = planForDay(m, dk, c, 0, toAvoid(m, dk));
-    setIdea(next);
-    setOffset(0);
-    writeShown(m, dk, next.index);
-  }, []);
+  const plan = useCallback(
+    (m: NamedMeal, dk: string, c: Map<string, number>, l: Map<string, number>) => {
+      const next = planForDay(m, dk, c, 0, toAvoid(m, dk), l);
+      setIdea(next);
+      setOffset(0);
+      writeShown(m, dk, next.index);
+    },
+    [],
+  );
 
   useEffect(() => {
     const m = currentMeal();
@@ -108,11 +156,15 @@ export default function TodaysMeal({ onBuild }: { onBuild: (foods: Food[]) => vo
     nowRef.current = { meal: m, day: dk };
     setMeal(m);
     setDayKey(dk);
-    plan(m, dk, new Map());
-    loggedFoodCounts().then((c) => {
+    plan(m, dk, new Map(), new Map());
+    // What they eat, and what they eat that is good for them. Two small reads,
+    // then one re-plan, so the card is on screen before either lands.
+    Promise.all([loggedFoodCounts(), likedFoodCounts()]).then(([c, l]) => {
       countsRef.current = c;
+      likedRef.current = l;
       setCounts(c);
-      plan(m, dk, c);
+      setLiked(l);
+      plan(m, dk, c, l);
     });
   }, [plan]);
 
@@ -130,7 +182,7 @@ export default function TodaysMeal({ onBuild }: { onBuild: (foods: Food[]) => vo
       nowRef.current = { meal: m, day: dk };
       setMeal(m);
       setDayKey(dk);
-      plan(m, dk, countsRef.current);
+      plan(m, dk, countsRef.current, likedRef.current);
     }, 60_000);
     return () => clearInterval(id);
   }, [plan]);
@@ -140,9 +192,12 @@ export default function TodaysMeal({ onBuild }: { onBuild: (foods: Food[]) => vo
   const Icon = MEAL_ICON[meal];
   const another = () => {
     void trackUsage("meal_reroll");
+    // They are walking away from this plate. Remember it, so it is not the one
+    // we hand them tomorrow.
+    writeSkipped(meal, idea.index);
     const n = offset + 1;
     setOffset(n);
-    const next = planForDay(meal, dayKey, counts, n, toAvoid(meal, dayKey));
+    const next = planForDay(meal, dayKey, counts, n, toAvoid(meal, dayKey), liked);
     setIdea(next);
     writeShown(meal, dayKey, next.index);
   };

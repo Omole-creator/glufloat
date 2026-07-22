@@ -42,6 +42,60 @@ Project → **Settings → Environment Variables** (Production + Preview):
 The three server-only keys must **never** have the `NEXT_PUBLIC_` prefix, so
 they stay on the server and out of the browser bundle.
 
+## 4. Meal-time reminders (web push)
+
+The reminder is the trigger that brings people back, so this is the step that
+turns the habit layer on. Until `NEXT_PUBLIC_VAPID_PUBLIC_KEY` is set, the
+opt-in card never even appears, and nothing is ever sent.
+
+**a. Make the keys, once.** From `glufloat-web/`:
+
+```bash
+node -e "console.log(require('web-push').generateVAPIDKeys())"
+```
+
+**b. Add five variables** to `.env.local` and to Vercel (Production + Preview):
+
+| Name | Value | Exposed to browser? |
+|---|---|---|
+| `VAPID_PUBLIC_KEY` | the public key from step a | **no — server only** |
+| `VAPID_PRIVATE_KEY` | the private key from step a | **no — server only** |
+| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | the **same value** as the public key | yes (public) |
+| `PUSH_CRON_SECRET` | a long random string you choose | **no — server only** |
+| `VAPID_SUBJECT` | `mailto:hello@glufloat.com` | **no — server only** |
+
+**c. Schedule three sends a day.** Use a free scheduler that can POST a URL
+(cron-job.org, or Supabase `pg_cron` + `pg_net`). **Not Vercel Hobby cron**,
+which only runs once a day.
+
+Three jobs, all POSTing `https://www.glufloat.com/api/push/send` with the header
+`x-cron-secret: <PUSH_CRON_SECRET>` and an empty body:
+
+| Job | UTC (what the scheduler wants) | Nigerian time | What it says |
+|---|---|---|---|
+| breakfast | `0 6 * * *` | 07:00 WAT | "Your breakfast is ready." |
+| lunch | `0 11 * * *` | 12:00 WAT | "Your lunch is ready." |
+| dinner | `0 16 * * *` | 17:00 WAT | "Your dinner is ready." |
+
+The words are **not** set in the scheduler. The route works out which meal it is
+from the Nigerian clock and picks the wording itself (`MEAL_PUSH` in
+`app/api/push/send/route.ts`). The three times must stay in step with
+`checkBackMessage()` in `lib/mealtime.ts`, which promises the person those very
+times inside the app.
+
+**d. Check it.** A correct call answers with JSON naming the meal and how many
+devices were reached, and a wrong secret answers 401:
+
+```bash
+curl -X POST "https://www.glufloat.com/api/push/send" -H "x-cron-secret: <secret>"
+# {"meal":"lunch","total":1,"sent":1,"removed":0}
+```
+
+Two honest limits, and they are already said in the opt-in copy: an iPhone must
+have Glufloat added to the home screen first, and some older Android phones
+suppress push. That is why the in-app greeting is the baseline and push is the
+extra nudge.
+
 ## What I build once the above is in place
 - Supabase client (browser + server) and session middleware.
 - `/signup` (name, email, password) and `/signin` (email, password); no email

@@ -9,7 +9,10 @@
 create table if not exists public.usage_events (
   id          bigint generated always as identity primary key,
   user_id     uuid default auth.uid() references auth.users (id) on delete set null,
-  event       text not null,      -- 'meal_reroll' | 'food_search' | 'meal_logged' | 'doctor_report' | 'channel_join' | 'check_this_meal'
+  -- 'app_open' | 'meal_reroll' | 'food_search' | 'meal_logged' | 'doctor_report'
+  -- | 'channel_join' | 'check_this_meal'. Free text on purpose: the list lives in
+  -- lib/usage.ts (UsageEvent) and a new one needs no migration.
+  event       text not null,
   created_at  timestamptz not null default now()
 );
 

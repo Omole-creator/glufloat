@@ -69,11 +69,13 @@ export default function ExportButton({ data }: { data: ExportData }) {
 
     y += 6;
     doc.setFontSize(12);
-    doc.text("Retention & churn, month on month", 14, y);
+    // Subscriptions staying alive. NOT people coming back to the app, which is
+    // the separate "Do they come back?" block on screen.
+    doc.text("Subscriptions: churn month on month", 14, y);
     y += 8;
     doc.setFontSize(9);
-    const cols = [16, 55, 80, 108, 135, 165];
-    const head = ["Month", "New", "Churned", "Active", "Churn %", "Retention %"];
+    const cols = [16, 52, 76, 102, 128, 158];
+    const head = ["Month", "New", "Churned", "Active", "Churn %", "Sub. retention %"];
     head.forEach((h, i) => doc.text(h, cols[i], y));
     y += 5;
     doc.setDrawColor(200);

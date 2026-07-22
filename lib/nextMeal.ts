@@ -230,8 +230,18 @@ function stride(n: number): number {
  *    lands on one of them, we move on.
  *  - **It learns from what the person eats.** The stable order puts the ideas
  *    whose foods appear LEAST in their log first, so their usual plates drift to
- *    the back of the rotation.
+ *    the back of the rotation. `liked` (foods they logged that came out GREEN)
+ *    pulls a plate slightly back forward, so variety does not mean handing
+ *    somebody food they have shown they do not want.
  *  - `offset` steps further for a "try another meal" tap.
+ *  - `avoidIndexes` are plates not to land on: the last few days' plates, and
+ *    the ones this person just pressed past. Both come from the device.
+ *
+ * Note what is NOT here: neither signal reshuffles the order from one day to the
+ * next. `counts` and `liked` only move when the person logs a meal, and a skip
+ * is handled as an avoid rather than a re-score. If either changed the order
+ * daily, the stride could walk onto yesterday's plate, and the no-repeat rule is
+ * the one that must not break.
  */
 export function planForDay(
   meal: NamedMeal,
@@ -239,6 +249,7 @@ export function planForDay(
   counts: Map<string, number>,
   offset = 0,
   avoidIndexes: number[] = [],
+  liked: Map<string, number> = new Map(),
 ): MealIdea {
   const list = IDEAS[meal];
   const n = list.length;
@@ -246,10 +257,16 @@ export function planForDay(
 
   // Stable order: least-eaten first, ties broken by a fixed per-idea hash (NOT
   // day-dependent, so the order only shifts when the person's eating changes).
+  // A food they logged as green counts for a little less, so a plate they like
+  // and that is good for them does not drift all the way to the back.
+  const LIKED_DISCOUNT = 0.5;
   const scored = list.map((_, i) => {
     const idea = resolve(meal, i);
     const eaten = idea.foods.reduce(
-      (sum, f) => sum + (counts.get(f.name) ?? 0),
+      (sum, f) =>
+        sum +
+        (counts.get(f.name) ?? 0) -
+        LIKED_DISCOUNT * (liked.get(f.name) ?? 0),
       0,
     );
     return { idea, eaten, tie: hash(`${meal}#${i}`) };

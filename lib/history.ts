@@ -137,15 +137,32 @@ export async function monthChecks(): Promise<MealCheck[]> {
  * of handing back their usual plate.
  */
 export async function loggedFoodCounts(): Promise<Map<string, number>> {
+  return foodCounts();
+}
+
+/**
+ * The same count, but only over meals the app marked GREEN.
+ *
+ * These are the foods a person eats AND that are good for them, so the daily
+ * meal can lean gently towards them. It is a small nudge on top of the variety
+ * rule, never a replacement for it: the plate must still change every day.
+ */
+export async function likedFoodCounts(): Promise<Map<string, number>> {
+  return foodCounts("green");
+}
+
+async function foodCounts(verdict?: Verdict): Promise<Map<string, number>> {
   const counts = new Map<string, number>();
   try {
     const supabase = createClient();
     const since = new Date();
     since.setDate(since.getDate() - 30);
-    const { data } = await supabase
+    let q = supabase
       .from("meal_checks")
       .select("kind,label")
       .gte("checked_at", since.toISOString());
+    if (verdict) q = q.eq("verdict", verdict);
+    const { data } = await q;
     for (const r of data ?? []) {
       const names =
         r.kind === "single"
@@ -172,6 +189,9 @@ export interface MonthStats {
   streakDays: number; // days in a row up to today with at least one check
   /** The food checked most often in the last 7 days (2 or more times), if any. */
   topRepeat: { label: string; count: number } | null;
+  /** Last calendar month, so the app can show a person they are improving. */
+  prevTotal: number;
+  prevGreen: number;
 }
 
 /** A local-day key (YYYY-MM-DD in the browser's own timezone). */
@@ -183,9 +203,14 @@ function dayKey(d: Date): string {
 }
 
 /**
- * This-month totals and the current day-streak. One query pulls the last ~60
- * days and everything is worked out on the device, so the streak follows the
- * person's own local days (a check just before midnight counts for that day).
+ * This-month totals, LAST month's totals, and the current day-streak. One query
+ * pulls the last ~70 days and everything is worked out on the device, so the
+ * streak follows the person's own local days (a check just before midnight
+ * counts for that day).
+ *
+ * 70 days, not 60: on the last day of a long month, the first day of the month
+ * before it is 61 days back, and last month has to be WHOLE for the comparison
+ * line to be honest.
  */
 export async function monthStats(): Promise<MonthStats> {
   const empty: MonthStats = {
@@ -196,11 +221,13 @@ export async function monthStats(): Promise<MonthStats> {
     distinctFoods: 0,
     streakDays: 0,
     topRepeat: null,
+    prevTotal: 0,
+    prevGreen: 0,
   };
   try {
     const supabase = createClient();
     const since = new Date();
-    since.setDate(since.getDate() - 60);
+    since.setDate(since.getDate() - 70);
     const { data } = await supabase
       .from("meal_checks")
       .select("kind,label,verdict,checked_at")
@@ -213,6 +240,10 @@ export async function monthStats(): Promise<MonthStats> {
     const now = new Date();
     const monthY = now.getFullYear();
     const monthM = now.getMonth();
+    // The month before this one, which may be in the previous year.
+    const prev = new Date(monthY, monthM - 1, 1);
+    const prevY = prev.getFullYear();
+    const prevM = prev.getMonth();
 
     const stats = { ...empty };
     const monthFoods = new Set<string>();
@@ -231,6 +262,9 @@ export async function monthStats(): Promise<MonthStats> {
         else if (r.verdict === "yellow") stats.yellow += 1;
         else if (r.verdict === "red") stats.red += 1;
         monthFoods.add((r.label as string).toLowerCase());
+      } else if (when.getFullYear() === prevY && when.getMonth() === prevM) {
+        stats.prevTotal += 1;
+        if (r.verdict === "green") stats.prevGreen += 1;
       }
 
       if (r.kind === "single" && when >= weekAgo) {

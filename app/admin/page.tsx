@@ -59,7 +59,7 @@ export default async function AdminPage({
     admin.from("profiles").select("id,email,name,trial_start,created_at,user_type"),
     admin.from("subscriptions").select("user_id,status,current_period_end,amount"),
     admin.from("payments").select("user_id,email,amount,status,paid_at"),
-    admin.from("usage_events").select("event,user_id"),
+    admin.from("usage_events").select("event,user_id,created_at"),
   ]);
 
   /**
@@ -82,6 +82,7 @@ export default async function AdminPage({
   const uReport = usageStat("doctor_report");
   const uCheck = usageStat("check_this_meal");
   const uChannel = usageStat("channel_join");
+  const uOpen = usageStat("app_open");
 
   const now = Date.now();
   const P = profiles ?? [];
@@ -89,6 +90,66 @@ export default async function AdminPage({
   const Y = (payments ?? []).filter((p) => p.status === "success");
   const profById = new Map(P.map((p) => [p.id, p]));
   const profByEmail = new Map(P.map((p) => [p.email.toLowerCase(), p]));
+
+  /**
+   * Do they come back?
+   *
+   * This is the habit question, and it is NOT the retention in the month-on-month
+   * table below, which is about subscriptions staying alive. This one asks
+   * whether a person who signed up was still using the app a day, a week and a
+   * month later.
+   *
+   * Day N counts a person if they did ANYTHING in the app (any usage_event) on
+   * the Nth day after they signed up. Only people who signed up long enough ago
+   * to have HAD that day are counted, so a person who joined yesterday can never
+   * drag D30 down.
+   */
+  const usageByUser = new Map<string, number[]>();
+  for (const u of U) {
+    if (!u.user_id || !u.created_at) continue;
+    const list = usageByUser.get(u.user_id as string) ?? [];
+    list.push(new Date(u.created_at as string).getTime());
+    usageByUser.set(u.user_id as string, list);
+  }
+
+  const cohort = P.filter((p) => p.created_at && inPeriod(p.created_at, period));
+  const retentionDay = (n: number) => {
+    const eligible = cohort.filter(
+      (p) => now - new Date(p.created_at).getTime() >= (n + 1) * DAY_MS,
+    );
+    const came = eligible.filter((p) => {
+      const start = new Date(p.created_at).getTime();
+      return (usageByUser.get(p.id) ?? []).some(
+        (t) => Math.floor((t - start) / DAY_MS) === n,
+      );
+    });
+    return {
+      eligible: eligible.length,
+      came: came.length,
+      pct: eligible.length ? Math.round((came.length / eligible.length) * 100) : null,
+    };
+  };
+  const d1 = retentionDay(1);
+  const d7 = retentionDay(7);
+  const d30 = retentionDay(30);
+
+  /**
+   * Opens per active day: how many times somebody who opened the app that day
+   * opened it. Three meals a day is the goal, so this is the number that says
+   * whether checking before eating has become the habit. An open is counted at
+   * most once every half hour (see trackAppOpen), so a reload is not a visit.
+   */
+  const openDays = new Set<string>();
+  let openCount = 0;
+  for (const u of U) {
+    if (u.event !== "app_open" || !u.created_at) continue;
+    if (!inPeriod(u.created_at as string, period)) continue;
+    openCount += 1;
+    // The Nigerian day, like everything else the app counts.
+    const wat = new Date(new Date(u.created_at as string).getTime() + 60 * 60 * 1000);
+    openDays.add(`${u.user_id ?? "?"}#${wat.toISOString().slice(0, 10)}`);
+  }
+  const opensPerDay = openDays.size ? openCount / openDays.size : 0;
 
   const isLive = (s: (typeof S)[number]) =>
     (s.status === "active" || s.status === "non-renewing") &&
@@ -325,6 +386,47 @@ export default async function AdminPage({
         </div>
 
         {/*
+          Did it become a habit? The tiles above say people tapped things. These
+          say whether they came BACK, which is the only proof a daily companion
+          is what we built and not a thing you look up once.
+        */}
+        <h2 className="mt-10 font-display text-lg font-bold text-ink">
+          Do they come back? &middot; signed up in {period.label}
+        </h2>
+        <p className="mt-1 text-sm text-ink-soft">
+          Of the people who signed up in this window, how many were still using
+          the app a day, a week and a month later. Only people who signed up long
+          enough ago to have had that day are counted.
+        </p>
+        <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <Tile
+            label="Back the next day"
+            value={d1.pct === null ? "—" : `${d1.pct}%`}
+            sub={`${d1.came} of ${d1.eligible} people`}
+          />
+          <Tile
+            label="Back after a week"
+            value={d7.pct === null ? "—" : `${d7.pct}%`}
+            sub={`${d7.came} of ${d7.eligible} people`}
+          />
+          <Tile
+            label="Back after a month"
+            value={d30.pct === null ? "—" : `${d30.pct}%`}
+            sub={`${d30.came} of ${d30.eligible} people`}
+          />
+          <Tile
+            label="Opens per day"
+            value={openDays.size ? opensPerDay.toFixed(1) : "—"}
+            sub={`${openCount.toLocaleString()} opens · three a day is the goal`}
+          />
+        </div>
+        <p className="mt-2 text-xs text-ink-soft">
+          A dash means nobody has been signed up long enough yet, which is not the
+          same as nobody coming back. A phone and a laptop are two devices but one
+          person here, because this counts the account, not the browser.
+        </p>
+
+        {/*
           The same numbers again, but split by who the person is.
 
           This is the point of the whole thing. A health worker signing up to look
@@ -401,7 +503,7 @@ export default async function AdminPage({
         {/* month on month */}
         <div className="mt-10 flex flex-wrap items-center justify-between gap-3">
           <h2 className="font-display text-lg font-bold text-ink">
-            Retention &amp; churn, month on month &middot; {year}
+            Subscriptions: churn month on month &middot; {year}
           </h2>
         </div>
         <div className="mt-3 overflow-x-auto rounded-2xl border border-line bg-white">
@@ -413,7 +515,9 @@ export default async function AdminPage({
                 <th className="px-4 py-3">Churned</th>
                 <th className="px-4 py-3">Active (end)</th>
                 <th className="px-4 py-3">Churn %</th>
-                <th className="px-4 py-3">Retention %</th>
+                {/* Subscriptions still alive, NOT people coming back. The habit
+                    numbers are in "Do they come back?" above. */}
+                <th className="px-4 py-3">Subscription retention %</th>
               </tr>
             </thead>
             <tbody>

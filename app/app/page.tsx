@@ -20,6 +20,7 @@ import WhatsAppChannelCard from "@/components/WhatsAppChannelCard";
 import ChatWithFounder from "@/components/ChatWithFounder";
 import { PAYSTACK_URL, pendingReference, clearPendingReference } from "@/lib/access";
 import { getAccess, type Access } from "@/lib/account";
+import { trackAppOpen } from "@/lib/usage";
 import { personalGreeting, currentMeal, checkBackMessage } from "@/lib/mealtime";
 import type { Food } from "@/lib/types";
 
@@ -159,6 +160,9 @@ export default function AppPage() {
         router.replace("/trial");
       } else {
         setAccess(access);
+        // A real open, by somebody who got in. Counted at most once every half
+        // hour, so a reload is not a second visit.
+        trackAppOpen();
       }
     })();
   }, [router]);

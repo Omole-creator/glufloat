@@ -127,6 +127,78 @@ for (const meal of MEALS) {
   }
 }
 
+// 9. The same 30 days again, but for a real person: one who eats a lot of the
+//    same thing (counts), has logged some of it green (liked), and keeps
+//    skipping plates. The personal signals must not be able to break the
+//    no-repeat rule, which is the one rule that must never bend.
+const HEAVY = new Map<string, number>([
+  ["Oat Swallow", 12],
+  ["Egusi Soup", 9],
+  ["Cooked Beans", 7],
+  ["Eggs (boiled)", 6],
+  ["Oats (plain)", 5],
+]);
+const LIKED = new Map<string, number>([
+  ["Egusi Soup", 4],
+  ["Fish (Titus / Mackerel / Sardine)", 3],
+  ["Moi Moi", 2],
+]);
+const REMEMBER_SKIPS = 10; // mirrors components/TodaysMeal.tsx
+const MAX_AVOID = 12; // ditto
+
+for (const meal of MEALS) {
+  const shown: number[] = [];
+  const skipped: number[] = [];
+  const times = new Map<number, number>();
+  for (let d = 0; d < 30; d++) {
+    const dayKey = new Date(Date.parse("2026-07-21T00:00:00Z") + d * DAY_MS)
+      .toISOString()
+      .slice(0, 10);
+    // What the device really passes: the last 3 days' plates, then the skips.
+    const avoid = [...new Set([...shown.slice(-3), ...skipped])].slice(0, MAX_AVOID);
+    const idea = planForDay(meal, dayKey, HEAVY, 0, avoid, LIKED);
+    if (shown.length && idea.index === shown[shown.length - 1]) {
+      fail(`${meal}: same plate two days running with real signals, day ${d + 1}`);
+    }
+    shown.push(idea.index);
+    times.set(idea.index, (times.get(idea.index) ?? 0) + 1);
+    // Every third day they press "try another meal" once and move on.
+    if (d % 3 === 0) {
+      skipped.push(idea.index);
+      while (skipped.length > REMEMBER_SKIPS) skipped.shift();
+    }
+  }
+  /**
+   * Three, not two, and that is arithmetic rather than a loosened rule.
+   * Breakfast has 20 plates, so 30 days already means ten of them come round
+   * twice; every skip then takes another plate out of circulation, and what is
+   * left must come round more often. Skipping is the person telling us to stop
+   * offering something, so this is the behaviour working. The rule that must
+   * NOT bend is the one above: never the same plate two days running.
+   */
+  for (const [index, n] of times) {
+    if (n > 3) {
+      fail(`${meal}: plate ${index} shown ${n} times in 30 days with real signals`);
+    }
+  }
+}
+
+// 10. Six taps of "try another meal" in one sitting, with each skipped plate
+//     being remembered as the person goes, still give six different plates.
+for (const meal of MEALS) {
+  const seen = new Set<number>();
+  const skipped: number[] = [];
+  for (let offset = 0; offset < 6; offset++) {
+    const avoid = [...new Set(skipped)].slice(0, MAX_AVOID);
+    const idea = planForDay(meal, "2026-07-21", HEAVY, offset, avoid, LIKED);
+    if (seen.has(idea.index)) {
+      fail(`${meal}: tap ${offset + 1} of "try another meal" repeats a plate`);
+    }
+    seen.add(idea.index);
+    skipped.push(idea.index);
+  }
+}
+
 if (problems.length) {
   console.error(`\n${problems.length} problem(s):\n`);
   problems.forEach((p) => console.error("  " + p));

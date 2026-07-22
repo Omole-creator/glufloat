@@ -65,8 +65,9 @@ export function personalGreeting(name: string | null): string {
  * 5pm, and in the evening to breakfast at 7am.
  *
  * These three times ARE the push cron (07:00 / 12:00 / 17:00 WAT = 06:00 /
- * 11:00 / 16:00 UTC, see app/api/push/send/route.ts). Change one and you must
- * change the other, or the app promises a reminder that never arrives.
+ * 11:00 / 16:00 UTC, see MEAL_PUSH in app/api/push/send/route.ts, which sends
+ * the words, and supabase/SETUP.md, which holds the schedule). Change one and
+ * you must change all three, or the app promises a reminder that never arrives.
  */
 export function checkBackMessage(now: Date = new Date()): string {
   const meal = currentMeal(now);
