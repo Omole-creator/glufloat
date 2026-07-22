@@ -166,14 +166,11 @@ export default function TodaysMeal({ onBuild }: { onBuild: (foods: Food[]) => vo
           <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/15 text-white ring-1 ring-inset ring-white/25">
             <Icon className="h-6 w-6" strokeWidth={2.2} />
           </span>
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-white/55">
-              Today&apos;s food
-            </p>
-            <p className="font-display text-xl font-bold leading-tight text-white">
-              {HEADING[meal]}
-            </p>
-          </div>
+          {/* One heading only. The "Today's food" eyebrow said the same thing
+              twice over "Today's breakfast" right under it. */}
+          <p className="font-display text-xl font-bold leading-tight text-white sm:text-2xl">
+            {HEADING[meal]}
+          </p>
         </div>
 
         <p className="mt-5 font-display text-3xl font-bold leading-snug text-white sm:text-4xl">

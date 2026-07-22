@@ -15,6 +15,7 @@ import Reveal from "@/components/Reveal";
 import TrafficLight from "@/components/TrafficLight";
 import FAQ from "@/components/FAQ";
 import { HeroLanding } from "@/components/ui/hero-1";
+import FeatureCards, { type Feature } from "@/components/ui/feature-cards";
 import HeroDemo from "@/components/ui/hero-demo";
 import { Testimonials } from "@/components/ui/testimonial-v2";
 import CountUp from "@/components/CountUp";
@@ -47,24 +48,25 @@ const DOT = {
 
 // What the app hands you. NOT the food method itself: the size, the pairing and
 // the frequency are experienced inside /app, never taught for free out here.
-const WHAT_YOU_GET = [
+const ICON = "h-6 w-6";
+const WHAT_YOU_GET: Feature[] = [
   {
-    icon: UtensilsCrossed,
+    icon: <UtensilsCrossed className={ICON} strokeWidth={2.2} />,
     title: "Get Meal Recommendations",
     text: "Personalized breakfast, lunch, and dinner suggestions based on your health profile.",
-    tint: "bg-mint text-leaf-deep",
+    tone: "green",
   },
   {
-    icon: Search,
+    icon: <Search className={ICON} strokeWidth={2.2} />,
     title: "Search & Build Your Own Meals",
     text: "Look up any meal, see if it's right for you, and create meals your way.",
-    tint: "bg-mist text-brand",
+    tone: "blue",
   },
   {
-    icon: FileText,
+    icon: <FileText className={ICON} strokeWidth={2.2} />,
     title: "Share with Your Doctor",
     text: "Generate a comprehensive food report to support better conversations during appointments.",
-    tint: "bg-mist text-brand",
+    tone: "green",
   },
 ];
 
@@ -144,26 +146,22 @@ export default function Home() {
               <TrafficLight size="lg" active="cycle" />
             </Reveal>
 
-            <div className="grid gap-5 sm:grid-cols-3">
-              {WHAT_YOU_GET.map((f, i) => (
-                <Reveal key={f.title} delay={i * 120}>
-                  <div className="lift h-full rounded-2xl border border-line bg-white p-6">
-                    <span
-                      className={`flex h-12 w-12 items-center justify-center rounded-2xl ${f.tint}`}
-                    >
-                      <f.icon className="h-6 w-6" strokeWidth={2.2} />
-                    </span>
-                    <h3 className="mt-4 font-display text-lg font-semibold text-ink">
-                      {f.title}
-                    </h3>
-                    <p className="mt-2 leading-relaxed text-ink-soft">
-                      {f.text}
-                    </p>
-                  </div>
-                </Reveal>
-              ))}
-            </div>
+            <FeatureCards features={WHAT_YOU_GET} />
           </div>
+
+          {/* The picture that closes the three cards: this is what the whole
+              thing is for. Sits directly under "Share with Your Doctor". */}
+          <Reveal delay={120}>
+            <div className="mt-12 overflow-hidden rounded-3xl shadow-[0_28px_60px_-28px_rgba(12,42,71,0.5)]">
+              <Image
+                src="/img/family-meal.jpg"
+                alt="An older couple laughing together over a meal of grilled chicken, brown rice, fish and vegetables"
+                width={1400}
+                height={980}
+                className="h-auto w-full object-cover"
+              />
+            </div>
+          </Reveal>
 
           {/* the fix, made plain */}
           <Reveal delay={100}>
@@ -290,11 +288,11 @@ export default function Home() {
 
               <div className="relative mt-8 overflow-hidden rounded-3xl">
                 <Image
-                  src="/img/jollof.jpg"
-                  alt="Jollof rice with fish and pepper on the side"
-                  width={800}
-                  height={533}
-                  className="h-56 w-full object-cover transition-transform duration-700 hover:scale-105"
+                  src="/img/nigerian-table.jpg"
+                  alt="A woman smiling behind a full Nigerian table: jollof rice, efo riro, swallow, fried plantain and stew"
+                  width={1000}
+                  height={700}
+                  className="h-72 w-full object-cover transition-transform duration-700 hover:scale-105"
                 />
               </div>
             </Reveal>
@@ -383,8 +381,8 @@ export default function Home() {
             <Reveal direction="left" className="mx-auto">
               <div className="overflow-hidden rounded-3xl shadow-[0_24px_50px_-20px_rgba(12,42,71,0.4)]">
                 <Image
-                  src="/img/joy-kitchen.jpg"
-                  alt="A woman laughing happily in her kitchen, surrounded by food"
+                  src="/img/kitchen-joy.jpg"
+                  alt="A woman smiling in her kitchen over a bowl of salad, with fish, vegetables and fruit on the counter"
                   width={760}
                   height={720}
                   className="h-[24rem] w-full max-w-sm object-cover object-center"
