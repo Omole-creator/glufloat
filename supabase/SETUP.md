@@ -83,6 +83,33 @@ from the Nigerian clock and picks the wording itself (`MEAL_PUSH` in
 `checkBackMessage()` in `lib/mealtime.ts`, which promises the person those very
 times inside the app.
 
+**Three timezone traps, all of which bit during the first set-up.** The founder's
+machine is on US Pacific while every user is in Nigeria, so anything that
+auto-detects a timezone is 7 or 8 hours out:
+
+1. **The scheduler auto-detects YOUR timezone, not your users'.** cron-job.org
+   read the browser and set the account to US Pacific.
+2. **The account timezone and the JOB timezone are two different settings.**
+   Changing the account to `Africa/Lagos` left the existing job on UTC, so a job
+   reading "7:00 AM" in the edit screen was really 7:00 UTC, i.e. 8am in Lagos
+   and an hour late. Setting the account is not enough.
+3. **The job list and the edit screen print different timezones** (the list uses
+   the browser, the edit screen the job), so the two screens disagree and neither
+   is lying.
+
+Because of 2 and 3, **do not trust a time you read on the schedule screen.**
+Verify from the job list's "Next execution" instead, which is the same moment
+expressed in your own timezone. From US Pacific, correct looks like:
+
+| Job | Next execution, seen from US Pacific | Wrong (job still on UTC) |
+|---|---|---|
+| breakfast | 11:00 PM | 12:00 AM |
+| lunch | 4:00 AM | 5:00 AM |
+| dinner | 9:00 AM | 10:00 AM |
+
+The app itself is immune to all of this: `watHour()` fixes Nigeria at UTC+1 and
+never reads the device clock. Only outside tools need watching.
+
 **d. Check it.** A correct call answers with JSON naming the meal and how many
 devices were reached, and a wrong secret answers 401:
 
@@ -95,6 +122,22 @@ Two honest limits, and they are already said in the opt-in copy: an iPhone must
 have Glufloat added to the home screen first, and some older Android phones
 suppress push. That is why the in-app greeting is the baseline and push is the
 extra nudge.
+
+**e. Never rotate the keys once devices have subscribed.** A VAPID keypair is
+what a browser's push service checks a send against, so replacing it silently
+orphans every existing subscription: the rows stay in `push_subscriptions`, the
+sends fail, and nobody is told. Rotating cost nothing on 2026-07-22 only because
+the table held **0 rows**. Check that count before ever changing them again:
+
+```sql
+select count(*) from push_subscriptions;
+```
+
+**A NEXT_PUBLIC_ value is baked in at BUILD time, not read at run time.** Setting
+it on Vercel does nothing until the next deploy. To prove a deploy really carries
+it, load `/app` signed in and search the JavaScript it fetches for the key: it
+lives in a lazily-loaded chunk, so it is NOT in the initial HTML and NOT in the
+first chunks the page references. Looking only there gives a false negative.
 
 ## What I build once the above is in place
 - Supabase client (browser + server) and session middleware.
