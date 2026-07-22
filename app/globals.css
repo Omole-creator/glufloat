@@ -220,6 +220,13 @@ body {
   background-image: radial-gradient(rgba(27, 95, 170, 0.14) 1px, transparent 1px);
   background-size: 18px 18px;
 }
+/* The same grid, for a dark brand-blue background (the hero). Blue dots on blue
+   are invisible, so this one is white. */
+.dots-light {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.18) 1px, transparent 1px);
+  background-size: 18px 18px;
+  mask-image: linear-gradient(to bottom, black, transparent);
+}
 .grain::after {
   content: "";
   position: absolute;

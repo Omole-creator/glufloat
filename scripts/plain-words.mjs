@@ -214,8 +214,13 @@ const PAIRING = {
   "coconut-bread": "Eat it with an egg, beans, or moi moi. Never bread on its own.",
   "dan-wake": "One teaspoon of oil and a pinch of pepper. Add plenty of vegetables.",
   "sweet-corn": "Mix two tablespoons into a vegetable salad or sauce, with fish, chicken, or an egg.",
+  // The tail of this line MUST stay in step with NEW_REMINDER in
+  // clear-instructions.mjs. It held the old vague "the swallow you pick matters
+  // as much as the soup" long after that pass replaced it everywhere else, so
+  // running this script silently undid the named-swallow ranking on this one
+  // food. Same drift as the NOTES constants in health-notes.mjs.
   "tomato-stew":
-    "It already has fish, chicken, or meat. Eat with half a cup of rice (130g), or a fist-size ball of swallow (100g). Remember, the swallow you pick matters as much as the soup.",
+    "It already has fish, chicken, or meat. Eat with half a cup of rice (130g), or a fist-size ball of swallow (100g). The swallow matters too. Oat swallow raises sugar the least, and eba, fufu, pounded yam and semovita raise it the most.",
   ayamase: "It already has assorted meat. Eat with half a cup of ofada rice (130g).",
   "pepper-sauce":
     "Use with half a cup of rice, or two pieces of yam or plantain, plus fish or meat.",
@@ -555,6 +560,41 @@ for (const f of foods) {
       !/salad/.test(p)
     ) {
       leftovers.push(`${f.id}.pairingAdvice: nobody adds vegetables to ${f.category} -> ${f.pairingAdvice}`);
+    }
+    /**
+     * The same mistake, one category over. A bean cake, a fried snack or a
+     * handful of nuts does not get a vegetable or a salad put next to it here.
+     * Akara said "Pair it with vegetables instead" and shipped that way, so
+     * this is now a rule and not a memory.
+     *
+     * The allowlist is dishes that really are cooked or served with vegetables
+     * in them. Add to it only when you can picture the plate.
+     */
+    const VEG_IS_REAL = new Set([
+      "abacha", // African salad: garden egg and ugba are in the dish
+      "dan-wake", // served with oil, pepper and vegetables mixed through
+      "fio-fio", // pigeon pea pottage is cooked with ugu
+      "baked-beans",
+      "potato-salad",
+      "sweet-corn",
+      "masa",
+      "shawarma",
+      "nigerian-salad",
+      "coleslaw",
+      "tuna-salad",
+      "chickpeas",
+      "lentils",
+      "tofu",
+    ]);
+    const VEG_SUSPECT = new Set(["legume", "snack", "nut"]);
+    if (
+      VEG_SUSPECT.has(f.category) &&
+      !VEG_IS_REAL.has(f.id) &&
+      /\bvegetable|\bsalad/.test(p)
+    ) {
+      leftovers.push(
+        `${f.id}.pairingAdvice: a ${f.category} paired with vegetables or salad. Picture the real plate -> ${f.pairingAdvice}`,
+      );
     }
   }
 }

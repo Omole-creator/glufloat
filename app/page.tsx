@@ -1,12 +1,21 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Check, X } from "lucide-react";
+import {
+  ArrowRight,
+  Check,
+  FileText,
+  Search,
+  ShieldCheck,
+  UtensilsCrossed,
+  X,
+} from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Reveal from "@/components/Reveal";
 import TrafficLight from "@/components/TrafficLight";
 import FAQ from "@/components/FAQ";
-import { Hero } from "@/components/ui/animated-hero";
+import { HeroLanding } from "@/components/ui/hero-1";
+import HeroDemo from "@/components/ui/hero-demo";
 import { Testimonials } from "@/components/ui/testimonial-v2";
 import CountUp from "@/components/CountUp";
 
@@ -36,6 +45,29 @@ const DOT = {
   red: "bg-verdict-red",
 } as const;
 
+// What the app hands you. NOT the food method itself: the size, the pairing and
+// the frequency are experienced inside /app, never taught for free out here.
+const WHAT_YOU_GET = [
+  {
+    icon: UtensilsCrossed,
+    title: "Get Meal Recommendations",
+    text: "Personalized breakfast, lunch, and dinner suggestions based on your health profile.",
+    tint: "bg-mint text-leaf-deep",
+  },
+  {
+    icon: Search,
+    title: "Search & Build Your Own Meals",
+    text: "Look up any meal, see if it's right for you, and create meals your way.",
+    tint: "bg-mist text-brand",
+  },
+  {
+    icon: FileText,
+    title: "Share with Your Doctor",
+    text: "Generate a comprehensive food report to support better conversations during appointments.",
+    tint: "bg-mist text-brand",
+  },
+];
+
 function Label({ children }: { children: React.ReactNode }) {
   return (
     <span className="inline-flex items-center gap-2 rounded-full bg-leaf/10 px-3 py-1 text-sm font-semibold text-leaf-deep">
@@ -49,7 +81,33 @@ export default function Home() {
     <>
       <Navbar />
 
-      <Hero />
+      <HeroLanding
+        title="Defy Diabetes. Enjoy Food Again."
+        description="Get personalized meal recommendations, search any food you're craving, or build your own meals. GluFloat keeps track of everything and generates food reports for your doctor."
+        announcementBanner={{
+          text: "Reviewed by 6 registered dietitians",
+          icon: <ShieldCheck className="h-4 w-4 text-leaf-bright" />,
+        }}
+        callToActions={[
+          {
+            text: "Start my 3-day free trial",
+            href: "/trial",
+            variant: "primary",
+          },
+          { text: "See how it works", href: "#how", variant: "secondary" },
+        ]}
+        reassurance="3 days free. You do not need a card. After that it is N1,500 a month, and you can stop any time."
+        media={
+          <>
+            <HeroDemo />
+            {/* Hidden on a phone: at that width the demo fills the screen and
+                the floating light sits on top of the card it is decorating. */}
+            <div className="float-slow absolute -left-4 top-10 hidden rounded-2xl bg-white p-2.5 shadow-[0_18px_40px_-14px_rgba(6,26,50,0.6)] ring-1 ring-white/40 sm:block">
+              <TrafficLight size="sm" active="cycle" />
+            </div>
+          </>
+        }
+      />
 
       {/* food marquee */}
       <div className="marquee overflow-hidden border-y border-line bg-white py-3">
@@ -88,45 +146,23 @@ export default function Home() {
             </Reveal>
 
             <div className="grid gap-5 sm:grid-cols-3">
-              <Reveal delay={0}>
-                <div className="lift h-full rounded-2xl border border-line bg-mist p-6">
-                  <p className="font-display text-4xl font-bold text-brand">1</p>
-                  <h3 className="mt-2 font-display text-lg font-semibold text-ink">
-                    How much to eat
-                  </h3>
-                  <p className="mt-2 leading-relaxed text-ink-soft">
-                    You see the right amount for you, shown as something you can
-                    picture, like the size of your fist or a cup. There is no
-                    weighing and no guessing.
-                  </p>
-                </div>
-              </Reveal>
-              <Reveal delay={120}>
-                <div className="lift h-full rounded-2xl border border-line bg-mint p-6">
-                  <p className="font-display text-4xl font-bold text-leaf">2</p>
-                  <h3 className="mt-2 font-display text-lg font-semibold text-ink">
-                    What to eat it with
-                  </h3>
-                  <p className="mt-2 leading-relaxed text-ink-soft">
-                    You see what to put on the plate with it so the whole meal
-                    works for your sugar. Glufloat tells you, so you do not have
-                    to know it yourself.
-                  </p>
-                </div>
-              </Reveal>
-              <Reveal delay={240}>
-                <div className="lift h-full rounded-2xl border border-line bg-mist p-6">
-                  <p className="font-display text-4xl font-bold text-brand">3</p>
-                  <h3 className="mt-2 font-display text-lg font-semibold text-ink">
-                    How often to eat it
-                  </h3>
-                  <p className="mt-2 leading-relaxed text-ink-soft">
-                    Some food is fine every day, and some is best now and then.
-                    Glufloat tells you which is which for each food, so you can
-                    plan your week with a clear mind.
-                  </p>
-                </div>
-              </Reveal>
+              {WHAT_YOU_GET.map((f, i) => (
+                <Reveal key={f.title} delay={i * 120}>
+                  <div className="lift h-full rounded-2xl border border-line bg-white p-6">
+                    <span
+                      className={`flex h-12 w-12 items-center justify-center rounded-2xl ${f.tint}`}
+                    >
+                      <f.icon className="h-6 w-6" strokeWidth={2.2} />
+                    </span>
+                    <h3 className="mt-4 font-display text-lg font-semibold text-ink">
+                      {f.title}
+                    </h3>
+                    <p className="mt-2 leading-relaxed text-ink-soft">
+                      {f.text}
+                    </p>
+                  </div>
+                </Reveal>
+              ))}
             </div>
           </div>
 

@@ -54,14 +54,17 @@ export function personalGreeting(name: string | null): string {
 /**
  * The "come back later" nudge, tied to the meal-time notifications (Nigerian
  * time): during breakfast it points to lunch at 12pm, during lunch to dinner at
- * 5pm, and in the evening to breakfast in the morning. These times must match the
- * push cron in supabase/push-schema notes.
+ * 5pm, and in the evening to breakfast at 7am.
+ *
+ * These three times ARE the push cron (07:00 / 12:00 / 17:00 WAT = 06:00 /
+ * 11:00 / 16:00 UTC, see app/api/push/send/route.ts). Change one and you must
+ * change the other, or the app promises a reminder that never arrives.
  */
 export function checkBackMessage(now: Date = new Date()): string {
   const meal = currentMeal(now);
   if (meal === "breakfast") return "Come back at 12pm to check your lunch.";
   if (meal === "lunch") return "Come back at 5pm to check your dinner.";
-  return "Come back in the morning to check your breakfast.";
+  return "Come back at 7am to check your breakfast.";
 }
 
 /**

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { AlertTriangle } from "lucide-react";
 import { getIntake, intakeWarning, type Intake } from "@/lib/intake";
+import { INTAKE_CHANGED } from "@/lib/history";
 import type { Verdict } from "@/lib/types";
 
 /**
@@ -14,7 +15,14 @@ export default function IntakeWarning({ verdict }: { verdict: Verdict }) {
   const [intake, setIntake] = useState<Intake | null>(null);
 
   useEffect(() => {
-    getIntake().then(setIntake);
+    const read = () => {
+      getIntake().then(setIntake);
+    };
+    read();
+    // Re-read the moment they log a meal, so the second fast-sugar food of the
+    // day is warned about straight away and not after a reload.
+    window.addEventListener(INTAKE_CHANGED, read);
+    return () => window.removeEventListener(INTAKE_CHANGED, read);
   }, []);
 
   if (!intake) return null;

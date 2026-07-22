@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import { Sparkles } from "lucide-react";
 import { monthStats } from "@/lib/history";
 import { swapsByName } from "@/lib/variety";
+import { cleanFoodName } from "@/lib/foodName";
 import type { Food } from "@/lib/types";
-import CollapsibleCard from "./CollapsibleCard";
 
 const DOT = {
   green: "bg-verdict-green",
@@ -15,18 +15,16 @@ const DOT = {
 
 /**
  * When someone leans on the same food again and again, gently open their world a
- * little: safe foods in the same group they might enjoy for a change. This is
- * value a one-off lookup cannot give, and it does not run dry once they have
- * learned their own rotation.
+ * little: safe foods in the same group they might enjoy for a change.
+ *
+ * It is a quiet strip under today's meal, not a card of its own. It is a nudge
+ * about a food they already like, so it must never look like a peer of the "what
+ * should I eat now" answer, which is the reason they opened the app.
  */
 export default function VarietyNudge({
   onOpenFood,
-  open,
-  onToggle,
 }: {
   onOpenFood: (food: Food) => void;
-  open: boolean;
-  onToggle: () => void;
 }) {
   const [data, setData] = useState<{ food: Food; swaps: Food[] } | null>(null);
 
@@ -42,20 +40,16 @@ export default function VarietyNudge({
   if (!data) return null;
 
   return (
-    <CollapsibleCard
-      open={open}
-      onToggle={onToggle}
-      tone="green"
-      icon={<Sparkles className="h-6 w-6" strokeWidth={2.2} />}
-      header={
-        <span className="font-display text-xl font-bold leading-tight text-ink">
-          Something New to Try
+    <div className="rounded-2xl bg-white px-4 py-3.5 shadow-[0_4px_20px_-12px_rgba(12,42,71,0.2)] ring-1 ring-ink/[0.04]">
+      <p className="flex items-center gap-2 text-sm text-ink">
+        <Sparkles className="h-4 w-4 shrink-0 text-leaf-deep" />
+        <span>
+          You have had{" "}
+          <strong className="font-semibold">
+            {cleanFoodName(data.food.name)}
+          </strong>{" "}
+          a lot lately. These are just as safe, if you fancy a change.
         </span>
-      }
-    >
-      <p className="text-sm text-ink">
-        You have had <strong className="font-semibold">{data.food.name}</strong> a
-        lot lately. These are just as safe, if you fancy a change.
       </p>
       <div className="mt-3 flex flex-wrap gap-2">
         {data.swaps.map((f) => (
@@ -65,10 +59,10 @@ export default function VarietyNudge({
             className="flex items-center gap-2 rounded-full border border-line bg-white px-3 py-1.5 text-sm font-semibold text-ink transition-colors hover:border-brand"
           >
             <span className={`h-2.5 w-2.5 rounded-full ${DOT[f.baseVerdict]}`} />
-            {f.name}
+            {cleanFoodName(f.name)}
           </button>
         ))}
       </div>
-    </CollapsibleCard>
+    </div>
   );
 }

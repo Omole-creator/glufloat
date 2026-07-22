@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Clock, Search } from "lucide-react";
+import { Blocks, ClipboardList, Clock, Search } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import DisclaimerGate from "@/components/DisclaimerGate";
@@ -23,6 +23,61 @@ import { getAccess, type Access } from "@/lib/account";
 import { personalGreeting, currentMeal, checkBackMessage } from "@/lib/mealtime";
 import type { Food } from "@/lib/types";
 
+/**
+ * One of the three doors under today's meal. They are deliberately the same
+ * size as each other and smaller than the meal card above: searching, building
+ * and the doctor's report are what you do when the answer we gave you is not
+ * the one you wanted, or when it is time to see the doctor.
+ */
+function DoorCard({
+  icon,
+  title,
+  text,
+  tone,
+  active,
+  onClick,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  text: string;
+  tone: "blue" | "green";
+  active: boolean;
+  onClick: () => void;
+}) {
+  const chip =
+    tone === "green"
+      ? "bg-leaf/10 text-leaf-deep ring-leaf/15"
+      : "bg-brand/10 text-brand ring-brand/15";
+  return (
+    <button
+      onClick={onClick}
+      aria-pressed={active}
+      className={`flex h-full flex-col items-start gap-2 rounded-2xl bg-white p-3 text-left shadow-[0_4px_20px_-12px_rgba(12,42,71,0.2)] ring-1 transition-all hover:-translate-y-0.5 hover:shadow-[0_10px_28px_-14px_rgba(12,42,71,0.28)] sm:gap-2.5 sm:p-4 ${
+        active
+          ? tone === "green"
+            ? "ring-2 ring-leaf/40"
+            : "ring-2 ring-brand/40"
+          : "ring-ink/[0.05]"
+      }`}
+    >
+      <span
+        className={`flex h-10 w-10 items-center justify-center rounded-xl ring-1 ring-inset ${chip}`}
+      >
+        {icon}
+      </span>
+      <span className="font-display text-sm font-bold leading-tight text-ink sm:text-base">
+        {title}
+      </span>
+      {/* The one line of explanation is a nicety, not the label. On a phone the
+          three doors sit side by side and it would squeeze them off the first
+          screen, which is the meal's. */}
+      <span className="hidden text-sm leading-snug text-ink-soft sm:block">
+        {text}
+      </span>
+    </button>
+  );
+}
+
 export default function AppPage() {
   const router = useRouter();
   const [tab, setTab] = useState<"search" | "meal">("search");
@@ -33,11 +88,14 @@ export default function AppPage() {
   // search, and a suggested or single food starts a meal in the builder.
   const [seedSearch, setSeedSearch] = useState<Food | null>(null);
   const [seedMeal, setSeedMeal] = useState<Food[] | null>(null);
-  // The home is an accordion: one card open at a time. Starts on today's meal.
-  const [openCard, setOpenCard] = useState<
-    "meal" | "variety" | "check" | "doctor" | null
-  >("meal");
-  const toggle = (id: "meal" | "variety" | "check" | "doctor") =>
+  /**
+   * The home is arranged around the journey, not the features. Today's meal is
+   * the first screen and is always open; the tools and the doctor's report are
+   * escape routes under it, and only one of those two is open at a time. They
+   * both start CLOSED, so nothing competes with the meal.
+   */
+  const [openCard, setOpenCard] = useState<"check" | "doctor" | null>(null);
+  const toggle = (id: "check" | "doctor") =>
     setOpenCard((cur) => (cur === id ? null : id));
 
   // The check tools sit below the fold now, so bring them into view when a card
@@ -52,6 +110,11 @@ export default function AppPage() {
   const openInSearch = (food: Food) => {
     setSeedSearch(food);
     setTab("search");
+    setOpenCard("check");
+    scrollToTools();
+  };
+  const openTools = (which: "search" | "meal") => {
+    setTab(which);
     setOpenCard("check");
     scrollToTools();
   };
@@ -182,65 +245,82 @@ export default function AppPage() {
               {badge.label}
             </div>
           </div>
+          {/* The founder's fixed line. It stays, but it is now one quiet line
+              above the meal instead of a headline competing with it. */}
           <TypewriterHeadline
             text="Eat the food you love, the right way."
-            className="mx-auto mt-2 max-w-lg text-center font-display text-3xl font-bold leading-tight text-ink sm:text-4xl"
+            className="mt-1 font-display text-base font-semibold leading-tight text-ink-soft sm:text-lg"
           />
 
-          {/* The home is an accordion of pronounced colour cards: today's meal
-              (green), variety (green), check-yourself (blue+green), doctor
-              (blue). One open at a time. */}
-          <div className="mt-8 space-y-4">
-            <TodaysMeal
-              onBuild={buildMeal}
-              open={openCard === "meal"}
-              onToggle={() => toggle("meal")}
-            />
+          {/* Level 1: the answer they came for, owning the first screen. */}
+          <div className="mt-6 space-y-4">
+            <TodaysMeal onBuild={buildMeal} />
 
-            <VarietyNudge
-              onOpenFood={openInSearch}
-              open={openCard === "variety"}
-              onToggle={() => toggle("variety")}
-            />
+            <VarietyNudge onOpenFood={openInSearch} />
 
+            {/* Level 2: the escape routes. Three equal doors, none of them
+                shouting over the meal above. */}
+            <div className="grid grid-cols-3 gap-2 sm:gap-3">
+              <DoorCard
+                icon={<Search className="h-5 w-5" strokeWidth={2.2} />}
+                title="Search a food"
+                text="Check any food you have in mind"
+                tone="blue"
+                active={openCard === "check" && tab === "search"}
+                onClick={() => openTools("search")}
+              />
+              <DoorCard
+                icon={<Blocks className="h-5 w-5" strokeWidth={2.2} />}
+                title="Build a meal"
+                text="Put your whole plate together"
+                tone="green"
+                active={openCard === "check" && tab === "meal"}
+                onClick={() => openTools("meal")}
+              />
+              <DoorCard
+                icon={<ClipboardList className="h-5 w-5" strokeWidth={2.2} />}
+                title="Doctor's report"
+                text="What you ate, ready to send"
+                tone="blue"
+                active={openCard === "doctor"}
+                onClick={() => {
+                  toggle("doctor");
+                  setTimeout(() => {
+                    document
+                      .getElementById("doctor-report")
+                      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+                  }, 50);
+                }}
+              />
+            </div>
+
+            {/* Level 3: whichever door they opened. */}
             <div id="check-yourself" className="scroll-mt-24">
               <CollapsibleCard
                 open={openCard === "check"}
                 onToggle={() => toggle("check")}
-                tone="blue"
-                icon={<Search className="h-6 w-6" strokeWidth={2.2} />}
+                tone={tab === "meal" ? "green" : "blue"}
+                icon={
+                  tab === "meal" ? (
+                    <Blocks className="h-6 w-6" strokeWidth={2.2} />
+                  ) : (
+                    <Search className="h-6 w-6" strokeWidth={2.2} />
+                  )
+                }
                 header={
                   <span className="font-display text-lg font-bold leading-snug text-ink">
-                    Or have a {currentMeal()} in mind? Seek guidance here.
+                    {openCard === "check"
+                      ? tab === "meal"
+                        ? "Build your plate"
+                        : "Check a food"
+                      : `Or have a ${currentMeal()} in mind? Seek guidance here.`}
                   </span>
                 }
               >
-                <div className="flex justify-center">
-                  <div className="inline-flex rounded-full border border-line bg-white p-1 shadow-sm">
-                    <button
-                      onClick={() => setTab("search")}
-                      className={`rounded-full px-5 py-2.5 text-sm font-semibold transition-colors ${
-                        tab === "search"
-                          ? "bg-brand text-white"
-                          : "text-ink-soft hover:text-ink"
-                      }`}
-                    >
-                      Search a food
-                    </button>
-                    <button
-                      onClick={() => setTab("meal")}
-                      className={`rounded-full px-5 py-2.5 text-sm font-semibold transition-colors ${
-                        tab === "meal"
-                          ? "bg-leaf text-white"
-                          : "text-ink-soft hover:text-ink"
-                      }`}
-                    >
-                      Build a meal
-                    </button>
-                  </div>
-                </div>
-
-                <div className="mt-6">
+                {/* No tool toggle in here any more. The two cards above ARE the
+                    toggle, and having both meant two buttons with the same name
+                    doing the same job. */}
+                <div className="mt-2">
                   {tab === "search" ? (
                     <SearchPanel
                       initialFood={seedSearch}
@@ -259,13 +339,15 @@ export default function AppPage() {
               </CollapsibleCard>
             </div>
 
-            <MonthReport
-              open={openCard === "doctor"}
-              onToggle={() => toggle("doctor")}
-            />
+            <div id="doctor-report" className="scroll-mt-24">
+              <MonthReport
+                open={openCard === "doctor"}
+                onToggle={() => toggle("doctor")}
+              />
+            </div>
           </div>
 
-          <div className="mt-6 space-y-4">
+          <div className="mt-6 space-y-3">
             <HabitStreak />
             <PushOptIn />
             <WhatsAppChannelCard />

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Download, Trash2, ClipboardList } from "lucide-react";
 import { jsPDF } from "jspdf";
 import { monthChecks, deleteCheck, type MealCheck } from "@/lib/history";
+import { groupByWeek } from "@/lib/weeks";
 import { monthReportMessage } from "@/lib/shareMessage";
 import { sizedFoods } from "@/lib/mealSize";
 import { trackUsage } from "@/lib/usage";
@@ -62,12 +63,15 @@ export default function MonthReport({
   // in until they have logged a meal.
   const list = items ?? [];
   const hasData = list.length > 0;
-  const counts = {
-    total: list.length,
-    green: list.filter((i) => i.verdict === "green").length,
-    yellow: list.filter((i) => i.verdict === "yellow").length,
-    red: list.filter((i) => i.verdict === "red").length,
-  };
+  const tally = (items: MealCheck[]) => ({
+    total: items.length,
+    green: items.filter((i) => i.verdict === "green").length,
+    yellow: items.filter((i) => i.verdict === "yellow").length,
+    red: items.filter((i) => i.verdict === "red").length,
+  });
+  const counts = tally(list);
+  // A doctor reads a month as weeks. Monday to Sunday, newest week first.
+  const weeks = groupByWeek(list, (i) => i.checkedAt);
 
   const remove = (id: number) => {
     setItems((cur) => (cur ? cur.filter((i) => i.id !== id) : cur));
@@ -143,7 +147,7 @@ export default function MonthReport({
     ink(INK);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(12);
-    doc.text("Every meal I ate, with the size", M, y);
+    doc.text("Every meal I ate, week by week, with the size", M, y);
     y += 9;
 
     const nextPageIfNeeded = (limit: number) => {
@@ -153,35 +157,57 @@ export default function MonthReport({
       }
     };
 
-    for (const it of list) {
-      nextPageIfNeeded(272);
-      const foods = sizedFoods(it.label, it.kind);
-
-      fill(V[it.verdict]);
-      doc.circle(M + 1.5, y - 1.4, 1.6, "F");
-      ink(INK);
+    for (const week of weeks) {
+      const wc = tally(week.items);
+      nextPageIfNeeded(265);
+      // The week band, so the doctor can see one week against the next.
+      fill([235, 242, 250]);
+      doc.roundedRect(M - 2, y - 5, 182, 9, 1.5, 1.5, "F");
+      ink(BRAND);
       doc.setFont("helvetica", "bold");
       doc.setFontSize(10);
-      const cleanLabel = displayLabel(it.label);
-      doc.text(doc.splitTextToSize(cleanLabel, 120)[0] ?? cleanLabel, M + 6, y);
+      doc.text(week.label, M + 1, y + 1);
       doc.setFont("helvetica", "normal");
-      doc.setTextColor(140);
-      doc.setFontSize(9);
-      doc.text(MEANING[it.verdict], 165, y);
-      y += 6;
-
-      doc.setFontSize(9);
+      doc.setFontSize(8);
       doc.setTextColor(90);
-      for (const f of foods) {
-        if (!f.size) continue;
-        const label = it.kind === "single" ? f.size : `${f.name}: ${f.size}`;
-        for (const wrapped of doc.splitTextToSize(label, 168) as string[]) {
-          nextPageIfNeeded(285);
-          doc.text(wrapped, M + 8, y);
-          y += 5;
+      doc.text(
+        `${wc.total} ${wc.total === 1 ? "meal" : "meals"}  ·  ${wc.green} good  ·  ${wc.yellow} with care  ·  ${wc.red} to skip`,
+        M + 60,
+        y + 1,
+      );
+      y += 12;
+
+      for (const it of week.items) {
+        nextPageIfNeeded(272);
+        const foods = sizedFoods(it.label, it.kind);
+
+        fill(V[it.verdict]);
+        doc.circle(M + 1.5, y - 1.4, 1.6, "F");
+        ink(INK);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(10);
+        const cleanLabel = displayLabel(it.label);
+        doc.text(doc.splitTextToSize(cleanLabel, 120)[0] ?? cleanLabel, M + 6, y);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(140);
+        doc.setFontSize(9);
+        doc.text(MEANING[it.verdict], 165, y);
+        y += 6;
+
+        doc.setFontSize(9);
+        doc.setTextColor(90);
+        for (const f of foods) {
+          if (!f.size) continue;
+          const label = it.kind === "single" ? f.size : `${f.name}: ${f.size}`;
+          for (const wrapped of doc.splitTextToSize(label, 168) as string[]) {
+            nextPageIfNeeded(285);
+            doc.text(wrapped, M + 8, y);
+            y += 5;
+          }
         }
+        y += 3;
       }
-      y += 3;
+      y += 4;
     }
 
     doc.setFontSize(8);
@@ -222,7 +248,12 @@ export default function MonthReport({
       doc.save(fileName);
       const text = monthReportMessage(
         counts,
-        list.map((i) => ({ label: i.label, verdict: i.verdict, kind: i.kind })),
+        list.map((i) => ({
+          label: i.label,
+          verdict: i.verdict,
+          kind: i.kind,
+          checkedAt: i.checkedAt,
+        })),
       );
       window.open(
         `https://wa.me/?text=${encodeURIComponent(text)}`,
@@ -265,8 +296,11 @@ export default function MonthReport({
             </p>
           </div>
         ) : (
+          // Not "Doctor's Report": the card that opens this one is called that,
+          // and two buttons with the same name doing the same job is a trap for
+          // anyone using a screen reader (and for the QA suite).
           <span className="font-display text-xl font-bold text-ink">
-            Doctor&apos;s Report
+            What you ate this month
           </span>
         )
       }
@@ -298,24 +332,45 @@ export default function MonthReport({
             <Tile n={counts.red} label={MEANING.red} dot={DOT.red} />
           </div>
 
-          <ul className="mt-4 max-h-48 space-y-0.5 overflow-y-auto border-t border-line pt-3 text-sm">
-            {list.map((i) => (
-              <li
-                key={i.id}
-                className="flex items-center gap-2.5 rounded-lg px-1 py-1.5 text-ink"
-              >
-                <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${DOT[i.verdict]}`} />
-                <span className="flex-1 truncate">{displayLabel(i.label)}</span>
-                <button
-                  onClick={() => remove(i.id)}
-                  aria-label={`Remove ${i.label}`}
-                  className="shrink-0 rounded-full p-1 text-ink-soft/50 transition-colors hover:bg-verdict-red/10 hover:text-verdict-red"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </li>
-            ))}
-          </ul>
+          <div className="mt-4 max-h-64 space-y-4 overflow-y-auto border-t border-line pt-3 text-sm">
+            {weeks.map((w) => {
+              const wc = tally(w.items);
+              return (
+                <div key={w.key}>
+                  <div className="flex items-baseline justify-between gap-2">
+                    <p className="font-display text-sm font-bold text-brand">
+                      {w.label}
+                    </p>
+                    <p className="text-xs font-semibold text-ink-soft">
+                      {wc.green} good, {wc.yellow} with care, {wc.red} to skip
+                    </p>
+                  </div>
+                  <ul className="mt-1 space-y-0.5">
+                    {w.items.map((i) => (
+                      <li
+                        key={i.id}
+                        className="flex items-center gap-2.5 rounded-lg px-1 py-1.5 text-ink"
+                      >
+                        <span
+                          className={`h-2.5 w-2.5 shrink-0 rounded-full ${DOT[i.verdict]}`}
+                        />
+                        <span className="flex-1 truncate">
+                          {displayLabel(i.label)}
+                        </span>
+                        <button
+                          onClick={() => remove(i.id)}
+                          aria-label={`Remove ${i.label}`}
+                          className="shrink-0 rounded-full p-1 text-ink-soft/50 transition-colors hover:bg-verdict-red/10 hover:text-verdict-red"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            })}
+          </div>
 
           <div className="mt-4 flex flex-wrap items-center gap-2.5">
             <button

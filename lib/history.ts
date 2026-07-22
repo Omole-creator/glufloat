@@ -15,6 +15,20 @@ import type { Verdict } from "./types";
 
 export type CheckKind = "single" | "meal";
 
+/**
+ * Fired whenever the eaten-log changes, so anything reading it back (the
+ * how-often warning) can refresh without a page reload.
+ */
+export const INTAKE_CHANGED = "glufloat:intake-changed";
+
+export function notifyIntakeChanged(): void {
+  try {
+    window.dispatchEvent(new Event(INTAKE_CHANGED));
+  } catch {
+    /* no window (server) or blocked; nothing depends on it */
+  }
+}
+
 export interface MealCheck {
   id: number;
   kind: CheckKind;
@@ -48,6 +62,11 @@ export async function saveCheck(
       .insert({ kind, label, verdict })
       .select("id")
       .single();
+    // What a person has eaten has just changed, and the how-often warning is
+    // read from it. Without this, someone who logs a fast-sugar food and then
+    // checks a second one in the same sitting is told nothing until they
+    // reload, which is exactly the moment the warning is for.
+    notifyIntakeChanged();
     return (data?.id as number) ?? null;
   } catch {
     /* never break the app over a log write */

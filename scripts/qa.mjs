@@ -120,8 +120,17 @@ await check("membership badge shows for a subscriber", async () =>
 );
 
 // ---- 4. search: eba -> yellow ----------------------------------------------
+// The /app home now leads with today's meal, and the tools sit behind three
+// cards under it, so search has to be opened before it can be typed into.
+await check("today's meal leads the page", async () =>
+  visible(page.getByRole("button", { name: "View details" })),
+);
+await page.getByRole("button", { name: "Search a food" }).click();
+await page.waitForTimeout(400);
 await page.getByLabel("Search a food").fill("eba");
-await page.getByText("Garri / Eba (cassava swallow)").click();
+// Names shown to a user go through cleanFoodName, which reads a slash as "or".
+// The stored name is still "Garri / Eba (cassava swallow)"; the screen is not.
+await page.getByText("Garri or Eba (cassava swallow)").first().click();
 await page.waitForTimeout(400);
 await check("eba verdict yellow", async () =>
   visible(page.getByText("Yellow. Eat with care.")),
@@ -148,8 +157,12 @@ await page.waitForTimeout(400);
 await check("small size turns meal green", async () =>
   visible(page.getByText("This food is good. Enjoy it.")),
 );
+// Scoped to the meal answer: today's meal card at the top of the page also
+// carries a "Good to eat" pill, and an unscoped locator matches both.
 await check("green answer word is obvious", async () =>
-  visible(page.getByText("Good to eat", { exact: true })),
+  visible(
+    page.locator("main").getByText("Good to eat", { exact: true }).last(),
+  ),
 );
 
 // The meal builder answers "how often", the way a single food card does. The

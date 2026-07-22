@@ -18,8 +18,12 @@ import type { Verdict } from "./types";
 export const WEEKLY_CAP = { green: 15, yellow: 3 } as const;
 export const MONTHLY_CAP = { red: 1 } as const;
 
+/** More than this many fast-sugar foods in one week is worth saying out loud. */
+export const WEEKLY_RED_LIMIT = 3;
+
 export interface Intake {
   redToday: number;
+  redThisWeek: number;
   redThisMonth: number;
   yellowThisWeek: number;
   greenThisWeek: number;
@@ -27,6 +31,7 @@ export interface Intake {
 
 const EMPTY: Intake = {
   redToday: 0,
+  redThisWeek: 0,
   redThisMonth: 0,
   yellowThisWeek: 0,
   greenThisWeek: 0,
@@ -68,6 +73,7 @@ export async function getIntake(): Promise<Intake> {
       const isThisWeek = ms >= weekAgo;
       if (r.verdict === "red") {
         if (isToday) out.redToday += 1;
+        if (isThisWeek) out.redThisWeek += 1;
         if (isThisMonth) out.redThisMonth += 1;
       } else if (r.verdict === "yellow") {
         if (isThisWeek) out.yellowThisWeek += 1;
@@ -103,6 +109,22 @@ export function intakeWarning(
         level: "red",
         title: "Careful: two fast-sugar foods in one day",
         text: "You already ate a food that raises your sugar fast today. Eating another one today can push your sugar too high. Best to skip it.",
+      };
+    }
+    /**
+     * The founder's second in-house rule: more than 3 in a week is too many.
+     *
+     * With the monthly cap at 1 this is usually reached through the same-day
+     * rule above first, so it rarely fires on its own today. It is written out
+     * anyway, because the monthly number is one of the ones still waiting on a
+     * dietitian's signature (docs/EVIDENCE.md §8). If that number loosens, this
+     * rule has to already be here, not remembered later.
+     */
+    if (intake.redThisWeek >= WEEKLY_RED_LIMIT) {
+      return {
+        level: "red",
+        title: `That is ${intake.redThisWeek} fast-sugar foods this week`,
+        text: "Foods that raise your sugar fast are best kept to about once a month. You have had several this week already, so another one now can keep your sugar high. Best to skip it.",
       };
     }
     if (intake.redThisMonth >= MONTHLY_CAP.red) {

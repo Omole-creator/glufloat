@@ -9,11 +9,22 @@ export const dynamic = "force-dynamic";
 /**
  * Send the meal-time reminder to every subscribed device.
  *
- * This is called by a cron three times a day (breakfast, lunch, dinner, in
- * Nigerian time) with the shared secret. It is NOT public: without the secret it
- * refuses. The money-free trigger is any scheduler that can POST a URL, e.g.
- * Supabase pg_cron or cron-job.org; Vercel's own cron on the free plan only runs
- * once a day, so it is not used for the three daily sends.
+ * This is called by a cron three times a day with the shared secret. It is NOT
+ * public: without the secret it refuses. The money-free trigger is any scheduler
+ * that can POST a URL, e.g. Supabase pg_cron or cron-job.org; Vercel's own cron
+ * on the free plan only runs once a day, so it is not used for the three daily
+ * sends.
+ *
+ * The three times, in Nigerian time (WAT, GMT+1), and the words to post with
+ * each. These must stay in step with checkBackMessage() in lib/mealtime.ts,
+ * which tells the person when to come back:
+ *
+ *   07:00 WAT = 06:00 UTC   "Good morning. Your breakfast is ready."
+ *                           "Open Glufloat to see what to eat this morning."
+ *   12:00 WAT = 11:00 UTC   "Your lunch is ready."
+ *                           "Open Glufloat to see what to eat this afternoon."
+ *   17:00 WAT = 16:00 UTC   "Your dinner is ready."
+ *                           "Open Glufloat to see what to eat this evening."
  *
  * A subscription the push service reports as gone (404 / 410) is deleted, so the
  * table does not fill with dead devices.

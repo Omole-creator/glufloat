@@ -215,6 +215,39 @@ const DIETICIAN_PAIRING = {
     "In cooking. Onions, turmeric, garlic, and local spices give the same taste with no salt.",
 };
 
+/**
+ * Pairings that told people to eat a food a way nobody here eats it.
+ *
+ * The founder rule is that a pairing must be food this audience actually eats,
+ * cooked the way they cook it, and that a pairing nobody would make is worse
+ * than no pairing at all. The worst of these was akara: the card said "Pair it
+ * with vegetables instead", and nobody in Nigeria eats bean cakes with
+ * vegetables. It is the same mistake as efo riro on beans, peanut butter on
+ * celery, and vegetables on bread.
+ *
+ * The honest answer for akara is not to invent a partner for it. It is eaten
+ * with pap or with bread, both of those push sugar up fast, so the advice is to
+ * eat the akara by itself.
+ *
+ * This script runs LAST, which is why the corrections live here. Beniseed stays
+ * with soup, because beniseed soup is real.
+ */
+const REAL_PAIRINGS = {
+  akara:
+    "Akara is eaten with pap or bread. Both push your sugar up fast. Eat the akara on its own, with tea with no sugar.",
+  ojojo: "Pepper sauce. Eat it as a snack and not as a whole meal.",
+  "scotch-egg":
+    "Eat it on its own. Do not add bread or a sweet drink to it.",
+  "french-fries":
+    "If you eat it, have grilled chicken or fish with it. Drink water and not a soft drink.",
+  "mixed-nuts": "Eat them on their own as a snack.",
+  seeds: "Sprinkle them on your oats or on plain yogurt with no sugar.",
+  "sesame-seed":
+    "Stir it into soups and stews. Beniseed soup is made with it in many homes.",
+  "moi-moi": "Eat it on its own. It also goes with tea with no sugar.",
+  chickpeas: "In stews and soups, with vegetables.",
+};
+
 const foods = JSON.parse(readFileSync(FILE, "utf8"));
 const byId = new Map(foods.map((f) => [f.id, f]));
 
@@ -227,7 +260,7 @@ for (const [id, text] of Object.entries({ ...MEAT, ...COOKED, ...DIETICIAN_PORTI
   f.portionGuidance = text;
 }
 
-for (const [id, text] of Object.entries(DIETICIAN_PAIRING)) {
+for (const [id, text] of Object.entries({ ...DIETICIAN_PAIRING, ...REAL_PAIRINGS })) {
   const f = byId.get(id);
   if (!f) {
     console.error(`no such food: ${id}`);
