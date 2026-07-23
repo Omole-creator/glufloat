@@ -10,6 +10,7 @@ import {
   X,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
+import SocialProofTicker from "@/components/SocialProofTicker";
 import Footer from "@/components/Footer";
 import Reveal from "@/components/Reveal";
 import TrafficLight from "@/components/TrafficLight";
@@ -81,6 +82,7 @@ function Label({ children }: { children: React.ReactNode }) {
 export default function Home() {
   return (
     <>
+      <SocialProofTicker />
       <Navbar />
 
       <HeroLanding

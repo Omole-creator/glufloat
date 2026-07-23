@@ -77,7 +77,7 @@ export function HeroLanding({
 }: HeroLandingProps) {
   return (
     <section
-      className={`relative isolate overflow-hidden bg-gradient-to-b from-[#0d3568] via-[#14538f] to-[#1b5faa] pb-20 pt-28 sm:pt-32 ${
+      className={`relative isolate overflow-hidden bg-gradient-to-b from-[#0d3568] via-[#14538f] to-[#1b5faa] pb-20 pt-36 sm:pt-40 ${
         className || ""
       }`}
     >

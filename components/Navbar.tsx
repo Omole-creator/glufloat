@@ -27,6 +27,10 @@ export default function Navbar() {
   // The app is already open on /app, so the top-right button is Sign out there,
   // not "Open app".
   const onApp = pathname === "/app";
+  // The social-proof ticker sits above the bar on the home page and /app, so the
+  // fixed navbar drops by its height (h-8) there. Every other page has no ticker,
+  // so the bar stays flush at the top.
+  const offsetTop = pathname === "/" || onApp ? "top-8" : "top-0";
   // The landing hero is a solid deep blue, so at the top of the home page the
   // bar sits ON that blue and has to be white to be readable. Once it scrolls
   // away from the hero the normal white bar with dark text takes over.
@@ -74,7 +78,7 @@ export default function Navbar() {
 
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
+      className={`fixed inset-x-0 ${offsetTop} z-50 transition-all duration-300 ${
         scrolled
           ? "bg-white/85 shadow-[0_8px_30px_-16px_rgba(12,45,77,0.35)] backdrop-blur-md"
           : "bg-transparent"

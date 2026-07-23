@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Blocks, ClipboardList, Clock, Search } from "lucide-react";
 import Navbar from "@/components/Navbar";
+import SocialProofTicker from "@/components/SocialProofTicker";
 import Footer from "@/components/Footer";
 import DisclaimerGate from "@/components/DisclaimerGate";
 import FeedbackPopup from "@/components/FeedbackPopup";
@@ -179,8 +180,9 @@ export default function AppPage() {
   if (access.status === "expired") {
     return (
       <>
+        <SocialProofTicker />
         <Navbar />
-        <main className="flex flex-1 items-center justify-center bg-mist px-4 pb-24 pt-28">
+        <main className="flex flex-1 items-center justify-center bg-mist px-4 pb-24 pt-36">
           <div className="w-full max-w-md rounded-2xl border border-line bg-white p-8 text-center shadow-[0_16px_40px_-18px_rgba(12,45,77,0.35)]">
             <h1 className="font-display text-2xl font-bold text-ink">
               Your free trial is over.
@@ -219,12 +221,13 @@ export default function AppPage() {
 
   return (
     <>
+      <SocialProofTicker />
       <Navbar />
       <DisclaimerGate />
       <FeedbackPopup />
 
       {renewSoon && (
-        <div className="fixed inset-x-0 top-16 z-40 bg-verdict-yellow/95 px-4 py-2.5 text-center text-sm font-semibold text-ink shadow-md">
+        <div className="fixed inset-x-0 top-24 z-40 bg-verdict-yellow/95 px-4 py-2.5 text-center text-sm font-semibold text-ink shadow-md">
           Your month ends in {access.daysLeft} {access.daysLeft === 1 ? "day" : "days"}.{" "}
           <a href={payUrl} className="underline hover:text-brand-deep">
             Renew for N1,500 to keep Glufloat.
@@ -232,7 +235,7 @@ export default function AppPage() {
         </div>
       )}
 
-      <main className="relative flex-1 overflow-hidden bg-gradient-to-b from-mint/50 via-mist to-mist pb-24 pt-28">
+      <main className="relative flex-1 overflow-hidden bg-gradient-to-b from-mint/50 via-mist to-mist pb-24 pt-36">
         <div
           className="pointer-events-none absolute inset-x-0 -top-24 mx-auto h-64 max-w-2xl bg-gradient-to-br from-brand/15 via-leaf/10 to-transparent blur-3xl"
           aria-hidden
