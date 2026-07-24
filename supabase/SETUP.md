@@ -123,6 +123,20 @@ have Glufloat added to the home screen first, and some older Android phones
 suppress push. That is why the in-app greeting is the baseline and push is the
 extra nudge.
 
+**A third limit, and the reason the send is set up the way it is.** The 7am
+reminder used to land at about 11am on an Android phone, every day, while lunch
+and dinner were always on time. Nothing was wrong with the cron: the message
+still said "Your breakfast is ready", which only happens when the route really
+did run in the morning. The phone was the delay. Chrome delivers through FCM,
+which holds an ordinary-urgency message while the handset is dozing overnight and
+hands it over when it is next picked up. The route now sends **high urgency**
+with a **four-hour life**, so the reminder may wake a sleeping phone and can
+never be shown after its own meal has passed (`MEAL_PUSH_OPTIONS` in
+`app/api/push/send/route.ts`). Even so, a phone in battery saver, or one of the
+Android skins that force-stop background apps (Tecno, Infinix, Xiaomi, Oppo), can
+still hold it — and it is now **dropped rather than shown late**, on purpose.
+"Your breakfast is ready" arriving at lunchtime is worse than silence.
+
 **e. Never rotate the keys once devices have subscribed.** A VAPID keypair is
 what a browser's push service checks a send against, so replacing it silently
 orphans every existing subscription: the rows stay in `push_subscriptions`, the

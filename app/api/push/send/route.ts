@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import webpush from "web-push";
+import type { RequestOptions } from "web-push";
 import { createAdminClient } from "@/lib/supabase/server";
 import { currentMeal, type NamedMeal } from "@/lib/mealtime";
 
@@ -46,6 +47,39 @@ const MEAL_PUSH: Record<NamedMeal, { title: string; body: string }> = {
     body: "Open Glufloat to see what to eat this evening.",
   },
 };
+
+/**
+ * How the reminder travels. These three fields are the fix for a real bug, and
+ * none of them is decoration: without them the 7am breakfast reminder landed on
+ * an Android phone at about 11am, every single day, while lunch and dinner were
+ * always on time.
+ *
+ * `urgency: "high"` is the one that matters. The Web Push default is `normal`,
+ * and Chrome delivers through FCM, which deliberately HOLDS a normal-urgency
+ * message while the handset is dozing and flushes it at the next real wake. At
+ * midday and 5pm the phone is already in someone's hand, so the batching never
+ * showed; at 7am the phone had been idle on a table all night, so breakfast sat
+ * queued until it was picked up. High urgency is what allows the send to wake it.
+ *
+ * `TTL` is four hours, because **a meal reminder must never outlive its meal.**
+ * Breakfast is sent at 07:00 WAT and its band ends at 10:59 (see currentMeal in
+ * lib/mealtime.ts), so four hours is exactly its useful life, and it also keeps
+ * lunch (12:00, ends 16:59) and dinner (17:00, ends 23:59) inside their own
+ * bands. web-push otherwise defaults to FOUR WEEKS, which is why the late
+ * breakfast was always delivered eventually instead of being dropped. A phone
+ * that is offline all morning now gets nothing, on purpose: "Your breakfast is
+ * ready" arriving at lunchtime is worse than silence.
+ *
+ * `topic` matches the `tag` the service worker already uses (public/sw.js), so
+ * a reminder still pending when the next one is sent is REPLACED rather than
+ * stacked. Belt and braces behind the TTL.
+ */
+const MEAL_PUSH_OPTIONS = {
+  urgency: "high",
+  TTL: 4 * 60 * 60,
+  topic: "glufloat-mealtime",
+} as const satisfies RequestOptions;
+
 export async function POST(request: Request) {
   const secret = process.env.PUSH_CRON_SECRET;
   const given =
@@ -100,6 +134,7 @@ export async function POST(request: Request) {
             keys: { p256dh: s.p256dh as string, auth: s.auth as string },
           },
           payload,
+          MEAL_PUSH_OPTIONS,
         );
         sent += 1;
       } catch (e: unknown) {
