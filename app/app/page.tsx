@@ -14,6 +14,8 @@ import HabitStreak from "@/components/HabitStreak";
 import VarietyNudge from "@/components/VarietyNudge";
 import MonthReport from "@/components/MonthReport";
 import TodaysMeal from "@/components/TodaysMeal";
+import LogReading from "@/components/LogReading";
+import ReadingNudge from "@/components/ReadingNudge";
 import TypewriterHeadline from "@/components/TypewriterHeadline";
 import CollapsibleCard from "@/components/CollapsibleCard";
 import PushOptIn from "@/components/PushOptIn";
@@ -262,6 +264,15 @@ export default function AppPage() {
           {/* Level 1: the answer they came for, owning the first screen. */}
           <div className="mt-6 space-y-4">
             <TodaysMeal onBuild={buildMeal} />
+
+            {/* Straight under the answer, because a reading is the one thing
+                only this person can tell us, and the app can say nothing about
+                their own body until they do. */}
+            <LogReading />
+
+            {/* Where to spend the next strip. Sits with the reading box because
+                it is about the same scarce thing. */}
+            <ReadingNudge />
 
             <VarietyNudge onOpenFood={openInSearch} />
 

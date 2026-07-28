@@ -119,6 +119,51 @@ await check("membership badge shows for a subscriber", async () =>
   visible(page.getByText("Membership: active", { exact: true })),
 );
 
+// ---- 3b. the sugar reading box ---------------------------------------------
+// Only the client-side half is exercised here: the box opens, the unit is read
+// off the size of the number, and a far-out reading brings the referral line.
+// The SAVE is deliberately not driven, because it writes a real row to the real
+// account and needs supabase/glucose-schema.sql to have been run. Prove that by
+// hand, and delete the row after.
+await page.getByRole("button", { name: /I tested my sugar/ }).click();
+await page.waitForTimeout(300);
+const readingBox = page.getByLabel("Type the number your meter showed");
+await check("the sugar test box opens", async () => visible(readingBox));
+
+// 6.5 can only be mmol; the echo has to say the number back BOTH ways so a
+// wrong guess at the unit is visible while it can still be fixed.
+await readingBox.fill("6.5");
+await check("a small number reads as mmol and is converted", async () =>
+  visible(
+    page.getByText("Got it. 6.5 mmol/L, the same as 117 mg/dL.", { exact: true }),
+  ),
+);
+// 140 is above the meter's mmol ceiling, so it can only be mg/dL.
+await readingBox.fill("140");
+await check("a large number reads as mg/dL", async () =>
+  visible(
+    page.getByText("Got it. 140 mg/dL, the same as 7.8 mmol/L.", { exact: true }),
+  ),
+);
+// The referral names no condition, prints no cut-off and prescribes nothing.
+await readingBox.fill("450");
+await check("a far-out reading brings the referral line", async () =>
+  visible(
+    page.getByText(
+      "Please tell your doctor or nurse about this test today. Glufloat only helps with food.",
+      { exact: true },
+    ),
+  ),
+);
+await check("an ordinary reading brings no referral line", async () => {
+  await readingBox.fill("140");
+  await page.waitForTimeout(250);
+  return (await page.getByText("Glufloat only helps with food.").count()) === 0;
+});
+await page.screenshot({ path: `${OUT}/app-reading-box.png` });
+await page.getByRole("button", { name: "Close the sugar test box" }).click();
+await page.waitForTimeout(300);
+
 // ---- 4. search: eba -> yellow ----------------------------------------------
 // The /app home now leads with today's meal, and the tools sit behind three
 // cards under it, so search has to be opened before it can be typed into.

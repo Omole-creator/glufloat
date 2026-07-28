@@ -1,14 +1,26 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Download, Trash2, ClipboardList } from "lucide-react";
+import { Download, Droplet, Trash2, ClipboardList } from "lucide-react";
 import { jsPDF } from "jspdf";
-import { monthChecks, deleteCheck, type MealCheck } from "@/lib/history";
+import {
+  INTAKE_CHANGED,
+  monthChecks,
+  deleteCheck,
+  type CheckedMeal,
+} from "@/lib/history";
 import { groupByWeek } from "@/lib/weeks";
 import { monthReportMessage } from "@/lib/shareMessage";
 import { sizedFoods } from "@/lib/mealSize";
 import { trackUsage } from "@/lib/usage";
 import { displayLabel } from "@/lib/foodName";
+import { type Reading, formatBoth, gapLabel, readingWhen } from "@/lib/glucose";
+import {
+  READINGS_CHANGED,
+  askForReading,
+  deleteReading,
+  looseMonthReadings,
+} from "@/lib/glucoseLog";
 import CollapsibleCard from "./CollapsibleCard";
 
 // Glufloat brand colours (from app/globals.css), as RGB for jsPDF.
@@ -52,18 +64,45 @@ export default function MonthReport({
   open: boolean;
   onToggle: () => void;
 }) {
-  const [items, setItems] = useState<MealCheck[] | null>(null);
+  const [items, setItems] = useState<CheckedMeal[] | null>(null);
+  const [loose, setLoose] = useState<Reading[]>([]);
   const [busy, setBusy] = useState(false);
 
+  /**
+   * Re-read whenever the record changes, not only on mount.
+   *
+   * This card mounts once with the page and used to fetch once, so ANYTHING
+   * logged afterwards was invisible until a reload. Somebody who tapped "I ate
+   * this" and then opened the report was told they had saved nothing, and
+   * somebody who had just saved a reading was shown a meal with no reading on it.
+   * Both read as "it did not work".
+   *
+   * INTAKE_CHANGED fires from saveCheck (a meal), READINGS_CHANGED from
+   * saveReading and deleteReading.
+   */
   useEffect(() => {
-    monthChecks().then(setItems);
+    const load = () => {
+      void monthChecks().then(setItems);
+      void looseMonthReadings().then(setLoose);
+    };
+    load();
+    window.addEventListener(READINGS_CHANGED, load);
+    window.addEventListener(INTAKE_CHANGED, load);
+    return () => {
+      window.removeEventListener(READINGS_CHANGED, load);
+      window.removeEventListener(INTAKE_CHANGED, load);
+    };
   }, []);
 
   // The card ALWAYS shows (so people can always find it); an empty state stands
   // in until they have logged a meal.
   const list = items ?? [];
-  const hasData = list.length > 0;
-  const tally = (items: MealCheck[]) => ({
+  // A reading on its own is a report too. Somebody who tests first thing in the
+  // morning and logs nothing else still has something worth handing over.
+  const hasData = list.length > 0 || loose.length > 0;
+  const anyReadings =
+    loose.length > 0 || list.some((i) => i.readings.length > 0);
+  const tally = (items: CheckedMeal[]) => ({
     total: items.length,
     green: items.filter((i) => i.verdict === "green").length,
     yellow: items.filter((i) => i.verdict === "yellow").length,
@@ -77,6 +116,42 @@ export default function MonthReport({
     setItems((cur) => (cur ? cur.filter((i) => i.id !== id) : cur));
     void deleteCheck(id);
   };
+
+  /**
+   * Remove one reading.
+   *
+   * A number typed wrong has to be removable, and this is the only place it can
+   * be done. Someone meaning 6.5 who types 65 has put a wrong figure on a record
+   * a doctor will read, and it also drags their own usual number about, which is
+   * what the pattern line compares against. A meal can be deleted, so a reading
+   * must be too.
+   */
+  const removeReading = (id: number) => {
+    setItems((cur) =>
+      cur
+        ? cur.map((i) => ({
+            ...i,
+            readings: i.readings.filter((r) => r.id !== id),
+          }))
+        : cur,
+    );
+    setLoose((cur) => cur.filter((r) => r.id !== id));
+    void deleteReading(id);
+  };
+
+  /** One bin, used on an attached reading and on a loose one. */
+  const ReadingBin = ({ r }: { r: Reading }) => (
+    <button
+      onClick={() => removeReading(r.id)}
+      // Named by its own value and moment, so no two bins on the page share an
+      // accessible name (a real problem for a screen reader, and it fails
+      // Playwright's strict mode).
+      aria-label={`Remove the ${formatBoth(r.mgdl)} sugar test, ${readingWhen(r.takenAt)}`}
+      className="shrink-0 rounded-full p-0.5 text-ink-soft/50 transition-colors hover:bg-verdict-red/10 hover:text-verdict-red"
+    >
+      <Trash2 className="h-3.5 w-3.5" />
+    </button>
+  );
 
   const fileName = `glufloat-food-record-${new Date().toISOString().slice(0, 10)}.pdf`;
 
@@ -104,7 +179,13 @@ export default function MonthReport({
     ink(INK);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(15);
-    doc.text("What I ate this month, and how much", M, 44);
+    doc.text(
+      anyReadings
+        ? "What I ate this month, and what my sugar was"
+        : "What I ate this month, and how much",
+      M,
+      44,
+    );
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
     doc.setTextColor(110);
@@ -147,7 +228,13 @@ export default function MonthReport({
     ink(INK);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(12);
-    doc.text("Every meal I ate, week by week, with the size", M, y);
+    doc.text(
+      anyReadings
+        ? "Every meal I ate, week by week, with the size and my sugar tests"
+        : "Every meal I ate, week by week, with the size",
+      M,
+      y,
+    );
     y += 9;
 
     const nextPageIfNeeded = (limit: number) => {
@@ -205,7 +292,53 @@ export default function MonthReport({
             y += 5;
           }
         }
+
+        // The person's own reading after this meal, in both units, with how long
+        // after they tested. This is the line the doctor came for: it is the only
+        // thing on the page that came from the patient's own body rather than
+        // from us. Deliberately NOT graded, coloured or commented on. The number
+        // and the timing, and the doctor reads it.
+        for (const r of it.readings) {
+          nextPageIfNeeded(285);
+          const gap = gapLabel(it.checkedAt, r.takenAt);
+          const line = `Sugar test: ${formatBoth(r.mgdl)}${gap ? `, ${gap}` : ""}`;
+          ink(BRAND);
+          doc.setFont("helvetica", "bold");
+          doc.text(line, M + 8, y);
+          doc.setFont("helvetica", "normal");
+          doc.setTextColor(90);
+          y += 5;
+        }
         y += 3;
+      }
+      y += 4;
+    }
+
+    // Readings with no meal beside them. Their own block, in the same shape as a
+    // week band, so they are plainly on the record and not hidden.
+    if (loose.length > 0) {
+      nextPageIfNeeded(255);
+      fill([235, 242, 250]);
+      doc.roundedRect(M - 2, y - 5, 182, 9, 1.5, 1.5, "F");
+      ink(BRAND);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.text("My other sugar tests", M + 1, y + 1);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+      doc.setTextColor(90);
+      doc.text("Not after a meal", M + 60, y + 1);
+      y += 12;
+      doc.setFontSize(9);
+      for (const r of loose) {
+        nextPageIfNeeded(285);
+        ink(BRAND);
+        doc.setFont("helvetica", "bold");
+        doc.text(formatBoth(r.mgdl), M + 6, y);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(110);
+        doc.text(readingWhen(r.takenAt), 150, y);
+        y += 5.5;
       }
       y += 4;
     }
@@ -253,7 +386,9 @@ export default function MonthReport({
           verdict: i.verdict,
           kind: i.kind,
           checkedAt: i.checkedAt,
+          readings: i.readings,
         })),
+        loose,
       );
       window.open(
         `https://wa.me/?text=${encodeURIComponent(text)}`,
@@ -321,9 +456,20 @@ export default function MonthReport({
       ) : (
         <>
           <p className="text-sm text-ink-soft">
-            These are the meals you told us you ate. Send them to your doctor so
-            they see how you have been eating, and how much. Tap the bin to
-            remove one.
+            {anyReadings ? (
+              <>
+                These are the meals you told us you ate, with your own sugar
+                tests beside them. Send them to your doctor so they see how you
+                have been eating, and what your sugar did. Tap the bin to remove
+                one.
+              </>
+            ) : (
+              <>
+                These are the meals you told us you ate. Send them to your doctor
+                so they see how you have been eating, and how much. You can add a
+                sugar test to any meal below. Tap the bin to remove one.
+              </>
+            )}
           </p>
 
           <div className="mt-4 flex gap-2.5">
@@ -347,29 +493,97 @@ export default function MonthReport({
                   </div>
                   <ul className="mt-1 space-y-0.5">
                     {w.items.map((i) => (
-                      <li
-                        key={i.id}
-                        className="flex items-center gap-2.5 rounded-lg px-1 py-1.5 text-ink"
-                      >
-                        <span
-                          className={`h-2.5 w-2.5 shrink-0 rounded-full ${DOT[i.verdict]}`}
-                        />
-                        <span className="flex-1 truncate">
-                          {displayLabel(i.label)}
-                        </span>
-                        <button
-                          onClick={() => remove(i.id)}
-                          aria-label={`Remove ${i.label}`}
-                          className="shrink-0 rounded-full p-1 text-ink-soft/50 transition-colors hover:bg-verdict-red/10 hover:text-verdict-red"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+                      <li key={i.id} className="rounded-lg px-1 py-1.5 text-ink">
+                        <div className="flex items-center gap-2.5">
+                          <span
+                            className={`h-2.5 w-2.5 shrink-0 rounded-full ${DOT[i.verdict]}`}
+                          />
+                          <span className="flex-1 truncate">
+                            {displayLabel(i.label)}
+                          </span>
+                          <button
+                            onClick={() => remove(i.id)}
+                            aria-label={`Remove ${i.label}`}
+                            className="shrink-0 rounded-full p-1 text-ink-soft/50 transition-colors hover:bg-verdict-red/10 hover:text-verdict-red"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                        {/* Their own number, said plainly, with no verdict on it. */}
+                        {i.readings.map((r) => {
+                          const gap = gapLabel(i.checkedAt, r.takenAt);
+                          return (
+                            <p
+                              key={r.id}
+                              className="ml-5 mt-0.5 flex items-center gap-1.5 text-xs font-semibold text-brand"
+                            >
+                              <Droplet className="h-3 w-3 shrink-0" />
+                              {formatBoth(r.mgdl)}
+                              {gap && (
+                                <span className="font-normal text-ink-soft">
+                                  {gap}
+                                </span>
+                              )}
+                              <ReadingBin r={r} />
+                            </p>
+                          );
+                        })}
+                        {i.readings.length === 0 && (
+                          <button
+                            onClick={() =>
+                              askForReading({
+                                id: i.id,
+                                label: i.label,
+                                checkedAt: i.checkedAt,
+                              })
+                            }
+                            // One of these per meal, so the name has to say WHICH
+                            // meal. Two controls sharing an accessible name is
+                            // useless to a screen reader and fails Playwright's
+                            // strict mode, exactly like the bin above.
+                            aria-label={`Add your sugar test for ${i.label}`}
+                            className="ml-5 mt-0.5 text-xs font-semibold text-ink-soft underline decoration-line underline-offset-2 transition-colors hover:text-brand"
+                          >
+                            Add your sugar test
+                          </button>
+                        )}
                       </li>
                     ))}
                   </ul>
                 </div>
               );
             })}
+
+            {/* Readings that follow no meal. On the record in their own right,
+                because for somebody who tests first thing in the morning these
+                may be all they have. */}
+            {loose.length > 0 && (
+              <div>
+                <div className="flex items-baseline justify-between gap-2">
+                  <p className="font-display text-sm font-bold text-brand">
+                    My other sugar tests
+                  </p>
+                  <p className="text-xs font-semibold text-ink-soft">
+                    Not after a meal
+                  </p>
+                </div>
+                <ul className="mt-1 space-y-0.5">
+                  {loose.map((r) => (
+                    <li
+                      key={r.id}
+                      className="flex items-center gap-2 px-1 py-1.5 text-xs font-semibold text-brand"
+                    >
+                      <Droplet className="h-3 w-3 shrink-0" />
+                      {formatBoth(r.mgdl)}
+                      <span className="ml-auto font-normal text-ink-soft">
+                        {readingWhen(r.takenAt)}
+                      </span>
+                      <ReadingBin r={r} />
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
 
           <div className="mt-4 flex flex-wrap items-center gap-2.5">

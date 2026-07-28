@@ -3,6 +3,7 @@ import { plainFrequency } from "./frequency";
 import { sizedFoods } from "./mealSize";
 import { cleanFoodName, displayLabel } from "./foodName";
 import { groupByWeek } from "./weeks";
+import { type Reading, formatBoth, gapLabel, readingWhen } from "./glucose";
 import { SITE_URL } from "./site";
 
 /**
@@ -70,7 +71,9 @@ export function monthReportMessage(
     verdict: Verdict;
     kind: "single" | "meal";
     checkedAt: string;
+    readings: Reading[];
   }[],
+  loose: Reading[] = [],
 ): string {
   const blocks: string[] = ["My food this month, from Glufloat."];
 
@@ -106,6 +109,15 @@ export function monthReportMessage(
             if (f.size) lines.push(`    ${f.name}: ${f.size}`);
           }
         }
+        // Their own reading after this meal. Both units, the gap when it means
+        // something, and no comment on the number. Same as the screen and the
+        // PDF, which is the rule: all three tell the doctor one story.
+        for (const r of i.readings) {
+          const gap = gapLabel(i.checkedAt, r.takenAt);
+          lines.push(
+            `    Sugar test: ${formatBoth(r.mgdl)}${gap ? `, ${gap}` : ""}`,
+          );
+        }
       }
       lines.push("");
     }
@@ -114,6 +126,19 @@ export function monthReportMessage(
     }
     blocks.push(
       ["What I ate week by week, and how much:", ...lines].join("\n").trimEnd(),
+    );
+  }
+
+  // Readings that follow no meal, so a person who tests first thing in the
+  // morning still has something to send.
+  if (loose.length > 0) {
+    blocks.push(
+      [
+        "My other sugar tests, not after a meal:",
+        ...loose
+          .slice(0, 40)
+          .map((r) => `- ${formatBoth(r.mgdl)}, ${readingWhen(r.takenAt)}`),
+      ].join("\n"),
     );
   }
 

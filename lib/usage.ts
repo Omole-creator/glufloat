@@ -14,7 +14,8 @@ export type UsageEvent =
   | "meal_logged" // tapped "I ate this" / "I ate this meal"
   | "doctor_report" // made or sent the doctor report
   | "channel_join" // tapped the WhatsApp channel link
-  | "check_this_meal"; // tapped "check this meal for full details"
+  | "check_this_meal" // tapped "check this meal for full details"
+  | "reading_logged"; // saved a blood sugar reading
 
 export async function trackUsage(event: UsageEvent): Promise<void> {
   try {

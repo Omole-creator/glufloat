@@ -8,6 +8,7 @@ import ExportButton, { type ExportData } from "./ExportButton";
 import PeriodPicker from "@/components/PeriodPicker";
 import { inPeriod, parsePeriod, type PeriodParams } from "@/lib/period";
 import { GROUPS, groupLabel, inGroup, type Group } from "@/lib/userType";
+import { readingHealth, readingVerdict } from "@/lib/glucosePattern";
 
 export const dynamic = "force-dynamic";
 
@@ -61,6 +62,41 @@ export default async function AdminPage({
     admin.from("payments").select("user_id,email,amount,status,paid_at"),
     admin.from("usage_events").select("event,user_id,created_at"),
   ]);
+
+  /**
+   * Sugar tests: is the feature actually working?
+   *
+   * One query, and it only returns readings, each with the meal it followed, so
+   * it never pulls the whole eaten-log. The maths lives in lib/glucosePattern.ts
+   * and reads the SAME thresholds the app itself uses, so this block can never
+   * promise a warning the app will not give.
+   *
+   * If glucose-schema.sql has not been run, this errors and the block shows the
+   * "nobody yet" state instead of breaking the dashboard.
+   */
+  const { data: readingRows } = await admin
+    .from("glucose_readings")
+    .select("user_id,meal_check_id,meal_checks(kind,label)");
+  const health = readingHealth(
+    (readingRows ?? []).map((r) => {
+      const meal = r.meal_checks as { kind?: string; label?: string } | null;
+      return {
+        userId: String(r.user_id),
+        mealCheckId: (r.meal_check_id as number | null) ?? null,
+        kind: (meal?.kind as "single" | "meal" | undefined) ?? null,
+        label: meal?.label ?? null,
+      };
+    }),
+  );
+  // How much of the eaten-log carries a test, which is what the doctor sees.
+  const { count: mealsTotal } = await admin
+    .from("meal_checks")
+    .select("id", { count: "exact", head: true });
+  const mealsWithTest = new Set(
+    (readingRows ?? [])
+      .map((r) => r.meal_check_id)
+      .filter((id): id is number => id !== null),
+  ).size;
 
   /**
    * How people use the app: taps counted from usage_events. The average per
@@ -368,6 +404,13 @@ export default async function AdminPage({
             value={uLogged.count.toLocaleString()}
             sub={`${uLogged.users} people`}
           />
+          {/* No sugar-test tile here on purpose. It would count TAPS, while the
+              block lower down counts the tests that actually exist, and the two
+              disagree the moment somebody deletes a wrong number: one tile would
+              say four saved while the block said nobody. Two numbers for one
+              thing is worse than one number. The "reading_logged" tap is still
+              recorded, so a run of taps with no rows behind them would show
+              saving is failing. */}
           <Tile
             label="Doctor reports made"
             value={uReport.count.toLocaleString()}
@@ -382,6 +425,74 @@ export default async function AdminPage({
             label="WhatsApp channel joins"
             value={uChannel.count.toLocaleString()}
             sub={`${uChannel.users} people`}
+          />
+        </div>
+
+        {/*
+          Sugar tests: the one block that says whether the newest feature works.
+
+          Deliberately NOT filtered by the period, like "owed now" on the partner
+          screen. "Can this person be warned yet" is a state, not something that
+          happened in a month, and filtering it by date would report fewer people
+          than really qualify.
+        */}
+        <h2 className="mt-10 font-display text-lg font-bold text-ink">
+          Your sugar test readings &middot; is it working?
+        </h2>
+        <p className="mt-1 max-w-2xl rounded-2xl border border-brand/20 bg-brand/5 px-4 py-3 text-sm font-semibold text-ink">
+          {readingVerdict(health)}
+        </p>
+        <p className="mt-2 text-sm text-ink-soft">
+          Counted from the saved tests themselves, not from taps, so a number
+          somebody typed wrong and then removed does not sit here forever. Not
+          filtered by the date window above: whether a person has enough tests is
+          true today or it is not.
+        </p>
+        <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {/* THE number. Below it the warning half of the feature is silent for
+              everybody, however healthy the other tiles look. */}
+          <Tile
+            label="People the app can warn"
+            value={health.ready.toLocaleString()}
+            sub="enough tests for a pattern · watch this one"
+          />
+          {/* Breadth, not volume. One keen person logging forty makes the total
+              look healthy while nobody else has touched it. */}
+          <Tile
+            label="People saving tests"
+            value={health.people.toLocaleString()}
+            sub={`${health.total.toLocaleString()} tests in all`}
+          />
+          <Tile
+            label="Came back for a second"
+            value={health.repeat.toLocaleString()}
+            sub="one test is curiosity, two is a habit"
+          />
+          <Tile
+            label="Middle person's tests"
+            value={health.median.toLocaleString()}
+            sub="the median, which one keen user cannot lift"
+          />
+          {/* Says whether the meal link is being used or people mostly test
+              first thing in the morning. Either is fine; this tells you which. */}
+          <Tile
+            label="Tests next to a meal"
+            value={
+              health.total
+                ? `${Math.round((health.attached / health.total) * 100)}%`
+                : "0%"
+            }
+            sub={`${health.attached} next to a meal · ${health.loose} on their own`}
+          />
+          {/* How much of the doctor report actually carries a number. */}
+          <Tile
+            label="Meals with a test"
+            value={
+              mealsTotal
+                ? `${Math.round((mealsWithTest / mealsTotal) * 100)}%`
+                : "0%"
+            }
+            sub={`${mealsWithTest} of ${(mealsTotal ?? 0).toLocaleString()} saved meals`}
           />
         </div>
 

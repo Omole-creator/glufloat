@@ -1,6 +1,7 @@
 "use client";
 
 import { createClient } from "@/lib/supabase/client";
+import type { Reading } from "./glucose";
 import type { Verdict } from "./types";
 
 /**
@@ -35,6 +36,19 @@ export interface MealCheck {
   label: string;
   verdict: Verdict;
   checkedAt: string; // ISO
+}
+
+/**
+ * A logged meal with the blood sugar readings that hang off it
+ * (glucose_readings, see lib/glucose.ts).
+ *
+ * A separate type on purpose. Most reads here do not want readings and should
+ * not pretend to: an empty `readings` on a row that never fetched them would be
+ * indistinguishable from a meal nobody tested after, and that difference is the
+ * whole point of the doctor report.
+ */
+export interface CheckedMeal extends MealCheck {
+  readings: Reading[];
 }
 
 /**
@@ -105,29 +119,88 @@ export async function recentChecks(limit = 8): Promise<MealCheck[]> {
 }
 
 /**
- * Every check from the current calendar month, newest first. This is the raw
+ * Every check from the current calendar month, newest first, each one carrying
+ * whatever blood sugar readings the person attached to it. This is the raw
  * material for the "what I ate this month" record a person shows their doctor.
+ *
+ * The readings come back in the SAME query, through the foreign key, so the
+ * report is still one round trip. Only this read joins them: the counting reads
+ * below keep their narrow column lists, because a streak and a food count do not
+ * care about a number and should not pay to fetch it.
  */
-export async function monthChecks(): Promise<MealCheck[]> {
+export async function monthChecks(): Promise<CheckedMeal[]> {
+  const now = new Date();
+  return checkedSince(new Date(now.getFullYear(), now.getMonth(), 1));
+}
+
+/**
+ * The same rows over a wider window, for the recall and pattern lines on a food
+ * card. Those need more than a calendar month: on the 2nd of the month, one month
+ * of history is two days, and the card would go quiet for everybody at the start
+ * of every month.
+ */
+export async function checkedMeals(days = 90): Promise<CheckedMeal[]> {
+  const since = new Date();
+  since.setDate(since.getDate() - days);
+  return checkedSince(since);
+}
+
+async function checkedSince(since: Date): Promise<CheckedMeal[]> {
+  const from = since.toISOString();
+  const shape = (rows: unknown[]): CheckedMeal[] =>
+    rows.map((r) => {
+      const row = r as Record<string, unknown>;
+      return {
+        id: row.id as number,
+        kind: row.kind as CheckKind,
+        label: row.label as string,
+        verdict: row.verdict as Verdict,
+        checkedAt: row.checked_at as string,
+        readings: readingsOf(row.glucose_readings),
+      };
+    });
   try {
-    const now = new Date();
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
     const supabase = createClient();
-    const { data } = await supabase
+    // The joined form first. Note the select string cannot be a variable: the
+    // Supabase types parse it as a literal, and a variable fails to type check.
+    const joined = await supabase
+      .from("meal_checks")
+      .select(
+        "id,kind,label,verdict,checked_at,glucose_readings(id,meal_check_id,value_raw,unit,mgdl,taken_at)",
+      )
+      .gte("checked_at", from)
+      .order("checked_at", { ascending: false });
+    if (!joined.error) return shape(joined.data ?? []);
+
+    // Then the plain one. A push IS a release here, so the code can reach a
+    // database where glucose-schema.sql has not been run yet: the join above
+    // would fail, and without this fallback the doctor report would tell
+    // everybody with months of history that they have saved no meals. Losing the
+    // readings for a few minutes is fine. Losing the record is not.
+    const plain = await supabase
       .from("meal_checks")
       .select("id,kind,label,verdict,checked_at")
-      .gte("checked_at", monthStart.toISOString())
+      .gte("checked_at", from)
       .order("checked_at", { ascending: false });
-    return (data ?? []).map((r) => ({
-      id: r.id as number,
-      kind: r.kind as CheckKind,
-      label: r.label as string,
-      verdict: r.verdict as Verdict,
-      checkedAt: r.checked_at as string,
-    }));
+    return plain.error ? [] : shape(plain.data ?? []);
   } catch {
     return [];
   }
+}
+
+/** The joined reading rows, oldest first so "last time" really is the last one. */
+function readingsOf(joined: unknown): Reading[] {
+  if (!Array.isArray(joined)) return [];
+  return joined
+    .map((r) => ({
+      id: r.id as number,
+      mealCheckId: (r.meal_check_id as number | null) ?? null,
+      valueRaw: Number(r.value_raw),
+      unit: r.unit as Reading["unit"],
+      mgdl: Number(r.mgdl),
+      takenAt: r.taken_at as string,
+    }))
+    .sort((a, b) => a.takenAt.localeCompare(b.takenAt));
 }
 
 /**

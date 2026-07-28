@@ -10,6 +10,7 @@ import { mealFrequency } from "@/lib/frequency";
 import { mealShareMessage } from "@/lib/shareMessage";
 import ShareOnWhatsApp from "./ShareOnWhatsApp";
 import IntakeWarning from "./IntakeWarning";
+import ReadingRecall from "./ReadingRecall";
 import { events } from "@/lib/analytics";
 import { saveCheck } from "@/lib/history";
 import { trackUsage } from "@/lib/usage";
@@ -233,6 +234,18 @@ export default function MealBuilder({
             <p className="text-base font-semibold text-ink">
               {result.headline}
             </p>
+
+            {/* What this person's own meter said the last time they ate one of
+                these. No "make this meal better" button here: they are already
+                in the builder, and the plate in front of them is the lever. */}
+            {showVerdict && (
+              <div className="mt-3 empty:mt-0">
+                <ReadingRecall
+                  key={items.map((i) => i.food.id).join()}
+                  foods={items.map((i) => i.food)}
+                />
+              </div>
+            )}
 
             {result.breakdown.length > 0 && (
               <ul className="mt-4 space-y-1.5 border-t border-line pt-4 text-sm leading-relaxed text-ink-soft">

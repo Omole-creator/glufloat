@@ -8,6 +8,31 @@ keys are in Vercel, the app code (which I'm building) takes over.
 1. In your Supabase project → **SQL Editor** → paste and run `schema.sql`
    (this file's neighbour). It creates the `profiles`, `subscriptions`, and
    `payments` tables, security rules, and the auto-profile trigger.
+1. Then run the rest, **in this order**, because each one builds on the last:
+
+   | # | File | What it adds |
+   |---|---|---|
+   | 2 | `blog-schema.sql` | `posts`, and the public `blog` storage bucket |
+   | 3 | `blog-analytics.sql` | `post_events`, and `profiles.source_post` |
+   | 4 | `partners-schema.sql` | the partner programme and its commission trigger |
+   | 5 | `user-type-schema.sql` | `profiles.user_type` |
+   | 6 | `phone-schema.sql` | `profiles.phone`, and the **current** `handle_new_user` |
+   | 7 | `meal-history-schema.sql` | `meal_checks`, a person's own eaten-log |
+   | 8 | `push-schema.sql` | `push_subscriptions`, for the meal-time reminders |
+   | 9 | `usage-schema.sql` | `usage_events`, the taps behind `/admin` |
+   | 10 | `glucose-schema.sql` | `glucose_readings`, `profiles.health_data_consent_at`, and a missing delete rule on `meal_checks` |
+
+   Two things worth knowing about that order. **Five of these files each contain
+   their own `create or replace function public.handle_new_user()`**, and the last
+   one to run wins, so `phone-schema.sql` must come after `schema.sql`,
+   `blog-analytics.sql`, `partners-schema.sql` and `user-type-schema.sql`. Run
+   them out of order and new sign-ups quietly stop getting a phone number, with
+   no error anywhere.
+
+   And `glucose-schema.sql` must run after `meal-history-schema.sql`, because it
+   points at `meal_checks` and repairs it: the original file created a select rule
+   and an insert rule and **no delete rule**, so the bin in the doctor report was
+   quietly failing and the meal came back next time the card was opened.
 2. **Authentication → Providers → Email**: enable it, and **turn OFF
    "Confirm email"** (so no confirmation email is sent — your requirement).
 3. **Project Settings → API**: copy these three values for step 3 below:

@@ -5,6 +5,7 @@ import { foodShareMessage } from "@/lib/shareMessage";
 import PortionVisual from "./PortionVisual";
 import ShareOnWhatsApp from "./ShareOnWhatsApp";
 import IntakeWarning from "./IntakeWarning";
+import ReadingRecall from "./ReadingRecall";
 
 const STYLES = {
   green: {
@@ -27,7 +28,14 @@ const STYLES = {
   },
 } as const;
 
-export default function VerdictCard({ food }: { food: Food }) {
+export default function VerdictCard({
+  food,
+  onFix,
+}: {
+  food: Food;
+  /** Opens the meal builder with this food in it, for the readings note below. */
+  onFix?: () => void;
+}) {
   const s = STYLES[food.baseVerdict];
 
   return (
@@ -53,6 +61,13 @@ export default function VerdictCard({ food }: { food: Food }) {
       <p className="mt-3 text-sm leading-relaxed text-ink-soft">
         {food.logicNote}
       </p>
+
+      {/* What happened to THIS person the last time they ate it. Straight under
+          the verdict, because their own body outranks anything we can say in
+          general. */}
+      <div className="mt-3 empty:mt-0">
+        <ReadingRecall key={food.id} foods={[food]} onFix={onFix} />
+      </div>
 
       {food.healthNote && (
         <div className="mt-3 rounded-xl border border-verdict-red/40 bg-verdict-red/10 p-3">

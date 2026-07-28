@@ -112,7 +112,10 @@ export default function SearchPanel({
 
       {picked && (
         <div className="mt-4">
-          <VerdictCard food={picked} />
+          <VerdictCard
+            food={picked}
+            onFix={onBuildMeal ? () => onBuildMeal(picked) : undefined}
+          />
           <div className="mt-3 flex flex-col gap-2 sm:flex-row">
             {ate ? (
               <span className="flex flex-1 items-center justify-center gap-2 rounded-full border-2 border-verdict-green/50 bg-verdict-green/10 px-5 py-3 text-sm font-bold text-leaf-deep">
