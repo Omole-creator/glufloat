@@ -541,13 +541,18 @@ export default function MonthReport({
                             // meal. Two controls sharing an accessible name is
                             // useless to a screen reader and fails Playwright's
                             // strict mode, exactly like the bin above.
-                            aria-label={`Add your sugar test for ${i.label}`}
+                            aria-label={`Add your sugar test for ${i.label} if any`}
                             // A bordered pill with a plus, not an underlined
                             // link. As a link nobody saw it as something to tap.
+                            //
+                            // "if any" is doing real work: a person who tests
+                            // twice a week will see this on most of their meals,
+                            // and without those two words a row per meal reads
+                            // like a list of things they failed to do.
                             className="ml-5 mt-1 inline-flex items-center gap-1.5 rounded-full border-2 border-brand/30 bg-white px-3 py-1 text-xs font-bold text-brand transition-colors hover:border-brand hover:bg-brand/5"
                           >
                             <Plus className="h-3.5 w-3.5" strokeWidth={3} />
-                            Add your sugar test
+                            Add your sugar test if any
                           </button>
                         )}
                       </li>
