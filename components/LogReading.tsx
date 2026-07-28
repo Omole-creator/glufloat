@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check, Droplet, X } from "lucide-react";
+import { Check, ChevronRight, Droplet, X } from "lucide-react";
 import {
   BAD_NUMBER,
   type ParsedReading,
@@ -147,22 +147,26 @@ export default function LogReading() {
     setSaved(parsed);
   };
 
+  // Closed: a filled green button, not a white card. As a card it read as a
+  // heading and people did not know it could be tapped. Green is the action
+  // colour everywhere else in here ("I ate this"), and the arrow says it opens.
   if (!open) {
     return (
       <button
         id="log-reading"
         onClick={() => setOpen(true)}
-        className="flex w-full scroll-mt-24 items-center gap-3 rounded-2xl bg-white px-4 py-3.5 text-left shadow-[0_4px_20px_-12px_rgba(12,42,71,0.2)] ring-1 ring-ink/[0.04] transition-colors hover:ring-brand/30"
+        className="flex w-full scroll-mt-24 items-center gap-3 rounded-2xl bg-leaf px-4 py-4 text-left text-white shadow-[0_8px_20px_-8px_rgba(46,204,113,0.55)] transition-transform hover:-translate-y-0.5"
       >
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand/10">
-          <Droplet className="h-4.5 w-4.5 text-brand" />
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/20">
+          <Droplet className="h-4.5 w-4.5" />
         </span>
-        <span className="text-sm font-semibold text-ink">
-          I tested my sugar
-          <span className="block text-xs font-normal text-ink-soft">
-            Save the number next to your food, ready for your doctor
+        <span className="flex-1">
+          <span className="block text-[15px] font-bold">I tested my sugar</span>
+          <span className="block text-xs font-medium text-white/80">
+            Tap to save the number, ready for your doctor
           </span>
         </span>
+        <ChevronRight className="h-5 w-5 shrink-0 text-white/80" strokeWidth={2.5} />
       </button>
     );
   }
@@ -239,15 +243,14 @@ export default function LogReading() {
         }}
         inputMode="decimal"
         autoComplete="off"
-        placeholder="6.5 or 140"
         className="mt-2 w-full rounded-2xl border-2 border-line bg-white px-4 py-3 text-lg font-semibold text-ink outline-none transition-colors focus:border-brand"
       />
-      <p className="mt-2 text-sm text-ink-soft">
-        {/* Both units, so a wrong guess is visible while they can still fix it. */}
-        {parsed
-          ? echoLine(parsed)
-          : "Whatever your meter says. You do not need to know which kind it is."}
-      </p>
+      {/* Both units, so a wrong guess at the unit is visible while they can
+          still fix it. Nothing is said before they type: the label above already
+          tells them what to do, and a second line only crowds it. */}
+      {parsed && (
+        <p className="mt-2 text-sm text-ink-soft">{echoLine(parsed)}</p>
+      )}
       {problem && (
         <p className="mt-2 text-sm font-semibold text-verdict-red">{problem}</p>
       )}
@@ -261,7 +264,7 @@ export default function LogReading() {
       {meals.length > 0 && (
         <>
           <p className="mt-5 font-display text-base font-semibold text-ink">
-            Which meal was this after?
+            Which meal gave you this number after 2 or more hours?
           </p>
           <div className="mt-2 flex flex-col gap-2">
             {meals.map((m) => (
@@ -291,9 +294,9 @@ export default function LogReading() {
                   : "border-line bg-white text-ink hover:border-brand/40"
               }`}
             >
-              Not after a meal
+              None of these meals
               <span className="block text-xs font-normal text-ink-soft">
-                First thing in the morning, or any other time
+                It is my first test today
               </span>
             </button>
           </div>

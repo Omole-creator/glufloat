@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Download, Droplet, Trash2, ClipboardList } from "lucide-react";
+import { Download, Droplet, Plus, Trash2, ClipboardList } from "lucide-react";
 import { jsPDF } from "jspdf";
 import {
   INTAKE_CHANGED,
@@ -542,8 +542,11 @@ export default function MonthReport({
                             // useless to a screen reader and fails Playwright's
                             // strict mode, exactly like the bin above.
                             aria-label={`Add your sugar test for ${i.label}`}
-                            className="ml-5 mt-0.5 text-xs font-semibold text-ink-soft underline decoration-line underline-offset-2 transition-colors hover:text-brand"
+                            // A bordered pill with a plus, not an underlined
+                            // link. As a link nobody saw it as something to tap.
+                            className="ml-5 mt-1 inline-flex items-center gap-1.5 rounded-full border-2 border-brand/30 bg-white px-3 py-1 text-xs font-bold text-brand transition-colors hover:border-brand hover:bg-brand/5"
                           >
+                            <Plus className="h-3.5 w-3.5" strokeWidth={3} />
                             Add your sugar test
                           </button>
                         )}

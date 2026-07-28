@@ -251,15 +251,14 @@ export function readingHealth(rows: ReadingRow[]): ReadingHealth {
  */
 export function readingVerdict(h: ReadingHealth): string {
   if (h.people === 0) {
-    return "Nobody has saved a sugar test yet. Until somebody does, the app can only say what a food does to people in general.";
+    return "Nobody has saved a sugar test yet. Until somebody does, the app can only say what a food does to people in general, never what it does to them.";
   }
   if (h.ready === 0) {
     const who = h.people === 1 ? "1 person is" : `${h.people} people are`;
-    return `${who} saving sugar tests, but nobody has enough yet for the app to warn them about a meal. That takes ${MIN_FOOD_READINGS} tests after the same food and ${MIN_ALL_READINGS} tests in all.`;
+    return `${who} saving sugar tests. Nobody has enough yet, so the app cannot show anyone how their own sugar behaved after a meal. That takes ${MIN_FOOD_READINGS} tests after the same food and ${MIN_ALL_READINGS} tests in all.`;
   }
-  const n =
-    h.ready === 1 ? "1 person now has" : `${h.ready} people now have`;
-  return `${n} enough sugar tests for the app to warn them about a meal that went badly. This is the number to watch.`;
+  const n = h.ready === 1 ? "1 person now has" : `${h.ready} people now have`;
+  return `${n} enough sugar tests for the app to show them how their own sugar behaved after a meal. This is the number to watch.`;
 }
 
 /**

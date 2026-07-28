@@ -437,56 +437,56 @@ export default async function AdminPage({
           than really qualify.
         */}
         <h2 className="mt-10 font-display text-lg font-bold text-ink">
-          Your sugar test readings &middot; is it working?
+          Are people saving sugar tests?
         </h2>
         <p className="mt-1 max-w-2xl rounded-2xl border border-brand/20 bg-brand/5 px-4 py-3 text-sm font-semibold text-ink">
           {readingVerdict(health)}
         </p>
-        <p className="mt-2 text-sm text-ink-soft">
-          Counted from the saved tests themselves, not from taps, so a number
-          somebody typed wrong and then removed does not sit here forever. Not
-          filtered by the date window above: whether a person has enough tests is
-          true today or it is not.
+        <p className="mt-2 max-w-2xl text-sm text-ink-soft">
+          These count the tests people have really saved, not button taps, so a
+          number typed wrong and then deleted does not stay here. The date picker
+          above does not change them: either a person has enough tests today or
+          they do not.
         </p>
         <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {/* THE number. Below it the warning half of the feature is silent for
-              everybody, however healthy the other tiles look. */}
+          {/* THE number. At zero, the part of the app that speaks up on its own
+              has never spoken to anybody, however healthy the other tiles look. */}
           <Tile
-            label="People the app can warn"
+            label="People with enough tests"
             value={health.ready.toLocaleString()}
-            sub="enough tests for a pattern · watch this one"
+            sub="the app can show them their own pattern · watch this one"
           />
-          {/* Breadth, not volume. One keen person logging forty makes the total
+          {/* Breadth, not volume. One keen person saving forty makes the total
               look healthy while nobody else has touched it. */}
           <Tile
-            label="People saving tests"
+            label="People using it"
             value={health.people.toLocaleString()}
-            sub={`${health.total.toLocaleString()} tests in all`}
+            sub={`${health.total.toLocaleString()} sugar tests saved in all`}
           />
           <Tile
-            label="Came back for a second"
+            label="Saved more than one test"
             value={health.repeat.toLocaleString()}
             sub="one test is curiosity, two is a habit"
           />
           <Tile
-            label="Middle person's tests"
+            label="Tests per person"
             value={health.median.toLocaleString()}
-            sub="the median, which one keen user cannot lift"
+            sub="the middle person, so one heavy user cannot lift it"
           />
-          {/* Says whether the meal link is being used or people mostly test
+          {/* Says whether people are linking tests to food, or mostly testing
               first thing in the morning. Either is fine; this tells you which. */}
           <Tile
-            label="Tests next to a meal"
+            label="Tests with a meal"
             value={
               health.total
                 ? `${Math.round((health.attached / health.total) * 100)}%`
                 : "0%"
             }
-            sub={`${health.attached} next to a meal · ${health.loose} on their own`}
+            sub={`${health.attached} with a meal · ${health.loose} with none`}
           />
           {/* How much of the doctor report actually carries a number. */}
           <Tile
-            label="Meals with a test"
+            label="Saved meals with a test"
             value={
               mealsTotal
                 ? `${Math.round((mealsWithTest / mealsTotal) * 100)}%`

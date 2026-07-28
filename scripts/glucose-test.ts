@@ -420,7 +420,11 @@ const row = (userId: string, label: string | null, kind: "single" | "meal" | nul
     row("a", "White Rice"),
   ]);
   t("two after one food plus five in all IS ready", h.ready === 1, String(h.ready));
-  t("and the verdict says the app can warn them", readingVerdict(h).includes("app to warn them"), readingVerdict(h));
+  t(
+    "and the verdict says the app can now show them",
+    readingVerdict(h).includes("show them how their own sugar behaved"),
+    readingVerdict(h),
+  );
   t("one person reads as has, not have", readingVerdict(h).startsWith("1 person now has"), readingVerdict(h));
 }
 {
