@@ -28,6 +28,8 @@ import {
 } from "../lib/glucose";
 import {
   ABOVE_USUAL_MGDL,
+  HIGH_AVERAGE_MGDL,
+  averageLine,
   foodPattern,
   personalUsual,
   readingHealth,
@@ -372,6 +374,56 @@ console.log("\n-- readings reach the doctor --");
   );
   t("no readings means no reading lines", !text.includes("Sugar test"), text);
   t("and no empty block", !text.includes("not after a meal"), text);
+}
+
+// ---------------------------------------------------------------------------
+// Their own average, which catches the person both other mechanisms miss: the
+// one who is consistently high. dangerLine only fires above 300 and they may
+// never cross it; foodPattern compares them with their own usual, and their
+// usual IS high, so it stays silent too.
+// ---------------------------------------------------------------------------
+
+console.log("\n-- their own average --");
+const NOW = Date.UTC(2026, 6, 28, 12, 0);
+const ago = (days: number) => new Date(NOW - days * 24 * 60 * 60 * 1000).toISOString();
+const many = (n: number, mgdl: number, days = 1) =>
+  Array.from({ length: n }, (_, i) => r(mgdl, { id: i + 1, takenAt: ago(days) }));
+
+t("nine tests are too few", averageLine(many(9, 260), "mgdl", NOW) === null);
+t("ten are enough", averageLine(many(10, 260), "mgdl", NOW) !== null);
+t(
+  `an average under ${HIGH_AVERAGE_MGDL} says nothing`,
+  averageLine(many(12, HIGH_AVERAGE_MGDL - 1), "mgdl", NOW) === null,
+);
+t(
+  "at the line it speaks",
+  averageLine(many(12, HIGH_AVERAGE_MGDL), "mgdl", NOW) !== null,
+);
+t(
+  "tests older than a month do not count",
+  averageLine(many(12, 260, 40), "mgdl", NOW) === null,
+);
+{
+  // The exact person this exists for: never above 300, so dangerLine is silent,
+  // and their usual is 260, so foodPattern is silent.
+  const rows = many(12, 260);
+  t("none of these would trip the referral", rows.every((x) => dangerLine(x.mgdl) === null));
+  const usual = personalUsual(rows)!;
+  t("and their usual is high, so the pattern stays quiet", foodPattern("Eba", [260, 260], usual) === null);
+  const line = averageLine(rows, "mgdl", NOW)!;
+  t("but the average line speaks", line !== null);
+  t("it gives their own number", line.text.includes("260 mg/dL"), line.text);
+  t("and how many tests it is from", line.text.includes("12 sugar tests"), line.text);
+  t("and sends them to a doctor", line.text.includes("doctor"), line.text);
+  for (const w of ["high", "too", "normal", "danger", "bad", "control", "avoid", "should"]) {
+    t(`never says "${w}"`, !line.text.toLowerCase().includes(w), line.text);
+  }
+  t("no em dash", !line.text.includes("—"));
+  t(
+    "said in their own unit",
+    averageLine(rows, "mmol", NOW)!.text.includes("mmol/L"),
+    averageLine(rows, "mmol", NOW)!.text,
+  );
 }
 
 // ---------------------------------------------------------------------------

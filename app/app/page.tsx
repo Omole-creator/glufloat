@@ -270,9 +270,19 @@ export default function AppPage() {
                 their own body until they do. */}
             <LogReading />
 
-            {/* Where to spend the next strip. Sits with the reading box because
-                it is about the same scarce thing. */}
-            <ReadingNudge />
+            {/* Their own average when it is high, else where to spend the next
+                strip. Sits with the sugar test button because it is about the
+                same scarce thing. */}
+            <ReadingNudge
+              onOpenReport={() => {
+                if (openCard !== "doctor") toggle("doctor");
+                setTimeout(() => {
+                  document
+                    .getElementById("doctor-report")
+                    ?.scrollIntoView({ behavior: "smooth", block: "start" });
+                }, 50);
+              }}
+            />
 
             <VarietyNudge onOpenFood={openInSearch} />
 

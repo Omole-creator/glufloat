@@ -156,6 +156,50 @@ export function foodPattern(
   return { values: shown, mean, usual, text };
 }
 
+/** Tests needed in a month before an average of them means anything. */
+export const MIN_AVERAGE_READINGS = 10;
+/** Above this, their own average is worth putting in front of a doctor. */
+export const HIGH_AVERAGE_MGDL = 200;
+const MONTH_MS = 30 * 24 * 60 * 60 * 1000;
+
+/**
+ * "Your tests came to 260 on average this month. Show your doctor."
+ *
+ * This closes a real hole between the other two things that speak up, and the
+ * person it catches is the one in most trouble:
+ *
+ *   - `dangerLine` is ABSOLUTE and high. Somebody sitting at 260 every day never
+ *     crosses 300, so it never fires for them.
+ *   - `foodPattern` is RELATIVE to their own usual. If their usual IS 260, then
+ *     nothing is above usual and it stays silent too. Being consistently high
+ *     makes a person invisible to it.
+ *
+ * So this one looks at the average itself. It states their own number and sends
+ * them to a doctor, and like everything else here it grades nothing, names no
+ * condition and gives no advice. Ten tests before it will speak, and the caller
+ * shows it at most once a month, so it can never become nagging.
+ */
+export function averageLine(
+  readings: Reading[],
+  unit: GlucoseUnit = "mgdl",
+  now: number = Date.now(),
+): { mgdl: number; count: number; text: string } | null {
+  const recent = readings.filter((r) => {
+    const t = new Date(r.takenAt).getTime();
+    return Number.isFinite(t) && now - t <= MONTH_MS;
+  });
+  if (recent.length < MIN_AVERAGE_READINGS) return null;
+  const mgdl = Math.round(
+    recent.reduce((t, r) => t + r.mgdl, 0) / recent.length,
+  );
+  if (mgdl < HIGH_AVERAGE_MGDL) return null;
+  return {
+    mgdl,
+    count: recent.length,
+    text: `Your ${recent.length} sugar tests this month came to ${formatIn(mgdl, unit)} on average. Show this to your doctor.`,
+  };
+}
+
 /** One reading as the admin dashboard reads it, across every account. */
 export interface ReadingRow {
   userId: string;
