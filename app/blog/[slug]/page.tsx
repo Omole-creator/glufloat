@@ -2,13 +2,14 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowRight, CalendarDays, Clock } from "lucide-react";
+import { CalendarDays, Clock } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import BlogTracker, { CtaTracker } from "@/components/BlogTracker";
 import PostToc from "@/components/PostToc";
 import ReadingProgress from "@/components/ReadingProgress";
 import ShareButtons from "@/components/ShareButtons";
+import TrialCta from "@/components/TrialCta";
 import { getPostBySlug, getPublishedPosts, longDate, relatedTo } from "@/lib/blog";
 import { extractHeadings, readingMinutes, renderMarkdown } from "@/lib/markdown";
 import { abs, SITE_NAME } from "@/lib/site";
@@ -279,13 +280,10 @@ export default async function PostPage({ params }: Props) {
                   discover simple changes that can turn it into a better choice.
                 </p>
                 <CtaTracker slug={post.slug}>
-                  <Link
-                    href="/trial"
+                  <TrialCta
                     className="group mt-6 inline-flex items-center gap-2 rounded-full bg-white px-7 py-3.5 font-display font-bold text-brand transition-transform hover:scale-105"
-                  >
-                    Start my 3-day free trial
-                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                  </Link>
+                    arrowClassName="h-4 w-4 transition-transform group-hover:translate-x-1"
+                  />
                 </CtaTracker>
                 <p className="mt-4 text-sm text-white/80">
                   Free for 3 days. No card required.

@@ -1,7 +1,5 @@
 import Image from "next/image";
-import Link from "next/link";
 import {
-  ArrowRight,
   Check,
   FileText,
   Search,
@@ -20,6 +18,7 @@ import FeatureCards, { type Feature } from "@/components/ui/feature-cards";
 import HeroDemo from "@/components/ui/hero-demo";
 import { Testimonials } from "@/components/ui/testimonial-v2";
 import CountUp from "@/components/CountUp";
+import TrialCta from "@/components/TrialCta";
 
 const MARQUEE_FOODS: { name: string; v: "green" | "yellow" | "red" }[] = [
   { name: "Egusi soup", v: "green" },
@@ -92,13 +91,9 @@ export default function Home() {
           text: "Reviewed by 6 registered dietitians",
           icon: <ShieldCheck className="h-4 w-4 text-leaf-bright" />,
         }}
-        callToActions={[
-          {
-            text: "Start my 3-day free trial",
-            href: "/trial",
-            variant: "primary",
-          },
-        ]}
+        ctaSlot={
+          <TrialCta className="group inline-flex items-center gap-2 rounded-full bg-leaf px-8 py-4 text-base font-bold text-white shadow-[0_16px_34px_-12px_rgba(70,184,94,0.85)] transition-all hover:-translate-y-1 hover:bg-leaf-deep hover:shadow-[0_22px_44px_-12px_rgba(70,184,94,0.95)]" />
+        }
         reassurance="3 days free. You do not need a card. After that it is N1,500 a month, and you can stop any time."
         media={
           <>
@@ -257,13 +252,7 @@ export default function Home() {
                 ))}
               </ul>
 
-              <Link
-                href="/trial"
-                className="group flex w-full items-center justify-center gap-2 rounded-full bg-leaf px-8 py-4 text-base font-bold text-white shadow-[0_14px_30px_-10px_rgba(62,155,79,0.6)] hover:bg-leaf-deep transition-all hover:-translate-y-1"
-              >
-                Start my 3-day free trial
-                <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
-              </Link>
+              <TrialCta className="group flex w-full items-center justify-center gap-2 rounded-full bg-leaf px-8 py-4 text-base font-bold text-white shadow-[0_14px_30px_-10px_rgba(62,155,79,0.6)] hover:bg-leaf-deep transition-all hover:-translate-y-1" />
               <p className="mt-3 text-center text-sm text-ink-soft">
                 You sign up first, then check any food you eat.
               </p>
@@ -402,13 +391,7 @@ export default function Home() {
                 way, and feel good after every meal. No more guessing, no more
                 worry, just your food and your peace of mind.
               </p>
-              <Link
-                href="/trial"
-                className="group mt-7 inline-flex items-center gap-2 rounded-full bg-leaf px-7 py-4 text-base font-bold text-white shadow-[0_14px_30px_-10px_rgba(62,155,79,0.6)] hover:bg-leaf-deep transition-all hover:-translate-y-1"
-              >
-                Start my 3-day free trial
-                <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
-              </Link>
+              <TrialCta className="group mt-7 inline-flex items-center gap-2 rounded-full bg-leaf px-7 py-4 text-base font-bold text-white shadow-[0_14px_30px_-10px_rgba(62,155,79,0.6)] hover:bg-leaf-deep transition-all hover:-translate-y-1" />
             </Reveal>
           </div>
         </div>
@@ -467,13 +450,7 @@ export default function Home() {
                   ))}
                 </ul>
 
-                <Link
-                  href="/trial"
-                  className="group mt-8 flex items-center justify-center gap-2 rounded-full bg-leaf px-8 py-4 text-base font-bold text-white shadow-[0_14px_30px_-10px_rgba(62,155,79,0.6)] hover:bg-leaf-deep transition-all hover:-translate-y-1"
-                >
-                  Start my 3-day free trial
-                  <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
-                </Link>
+                <TrialCta className="group mt-8 flex items-center justify-center gap-2 rounded-full bg-leaf px-8 py-4 text-base font-bold text-white shadow-[0_14px_30px_-10px_rgba(62,155,79,0.6)] hover:bg-leaf-deep transition-all hover:-translate-y-1" />
                 <p className="mt-3 text-sm text-ink-soft">
                   Nothing is taken from you during the free trial.
                 </p>
@@ -512,13 +489,7 @@ export default function Home() {
               eat. Knowing takes ten seconds and a meal you feel good about. The
               first 3 days are free, so you risk nothing.
             </p>
-            <Link
-              href="/trial"
-              className="group mt-8 inline-flex items-center gap-2 rounded-full bg-leaf px-8 py-4 text-base font-bold text-white shadow-[0_14px_30px_-10px_rgba(62,155,79,0.6)] transition-all hover:-translate-y-1 hover:bg-leaf-deep"
-            >
-              Start my 3-day free trial
-              <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
-            </Link>
+            <TrialCta className="group mt-8 inline-flex items-center gap-2 rounded-full bg-leaf px-8 py-4 text-base font-bold text-white shadow-[0_14px_30px_-10px_rgba(62,155,79,0.6)] transition-all hover:-translate-y-1 hover:bg-leaf-deep" />
             <p className="mt-4 text-sm text-white/60">
               3 days free, no card. Then N1,500 a month. Stop any time.
             </p>

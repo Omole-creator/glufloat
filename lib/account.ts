@@ -14,7 +14,10 @@ export type Access =
   | { status: "new" } // signed in, never started a trial, no subscription
   | { status: "trial"; daysLeft: number }
   | { status: "subscribed"; daysLeft: number }
-  | { status: "expired" }; // trial ended, no active subscription
+  // Trial ended, no active subscription. `lapsed` means they have paid before, so
+  // this is a renewal and not a first sale. The screen has to say "your month is
+  // over", never "your free trial is over", to somebody who paid us last month.
+  | { status: "expired"; lapsed: boolean };
 
 /** Whole calendar days between two moments in local time (same day = 0). */
 function calendarDaysBetween(startMs: number, nowMs: number): number {
@@ -74,7 +77,13 @@ export async function getAccess(): Promise<{
       calendarDaysBetween(new Date(profile.trial_start).getTime(), Date.now());
     if (daysLeft > 0)
       return { email: user.email ?? null, name, access: { status: "trial", daysLeft } };
-    return { email: user.email ?? null, name, access: { status: "expired" } };
+    // A subscriptions row at all means they have paid us before. It is already
+    // fetched above, so knowing this costs no extra query.
+    return {
+      email: user.email ?? null,
+      name,
+      access: { status: "expired", lapsed: !!sub },
+    };
   }
 
   // Signed in but no trial yet and no subscription.

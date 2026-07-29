@@ -186,8 +186,10 @@ export default function AppPage() {
         <Navbar />
         <main className="flex flex-1 items-center justify-center bg-mist px-4 pb-24 pt-36">
           <div className="w-full max-w-md rounded-2xl border border-line bg-white p-8 text-center shadow-[0_16px_40px_-18px_rgba(12,45,77,0.35)]">
+            {/* Somebody who paid us last month must never be told their free trial
+                is over. `lapsed` is how getAccess tells the two apart. */}
             <h1 className="font-display text-2xl font-bold text-ink">
-              Your free trial is over.
+              {access.lapsed ? "Your month is over." : "Your free trial is over."}
             </h1>
             <p className="mt-2 text-sm leading-relaxed text-ink-soft">
               Keep every answer and the full Meal Builder for N1,500 a month,
@@ -197,7 +199,9 @@ export default function AppPage() {
               href={payUrl}
               className="mt-6 inline-block w-full rounded-full bg-brand px-6 py-3.5 text-sm font-bold text-white transition-colors hover:bg-brand-deep"
             >
-              Subscribe for N1,500 / month
+              {access.lapsed
+                ? "Renew for N1,500 / month"
+                : "Subscribe for N1,500 / month"}
             </a>
           </div>
         </main>
@@ -220,6 +224,9 @@ export default function AppPage() {
           tone: "bg-brand/10 text-brand-deep",
         };
   const renewSoon = access.status === "subscribed" && access.daysLeft <= 5;
+  // A trial used to run out with no warning at all: a green day count, then a locked
+  // door on day 4. daysLeft is 3 on the start day, so 1 is the last day.
+  const trialEnding = access.status === "trial" && access.daysLeft <= 1;
 
   return (
     <>
@@ -233,6 +240,16 @@ export default function AppPage() {
           Your month ends in {access.daysLeft} {access.daysLeft === 1 ? "day" : "days"}.{" "}
           <a href={payUrl} className="underline hover:text-brand-deep">
             Renew for N1,500 to keep Glufloat.
+          </a>
+        </div>
+      )}
+
+      {/* The two banners cannot both show: one is trial, the other subscribed. */}
+      {trialEnding && (
+        <div className="fixed inset-x-0 top-24 z-40 bg-verdict-yellow/95 px-4 py-2.5 text-center text-sm font-semibold text-ink shadow-md">
+          Your free trial ends tomorrow.{" "}
+          <a href={payUrl} className="underline hover:text-brand-deep">
+            Subscribe for N1,500 to keep Glufloat.
           </a>
         </div>
       )}

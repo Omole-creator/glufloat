@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import Link from "next/link";
-import { ArrowRight, Eye, Target } from "lucide-react";
+import { Eye, Target } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Reveal from "@/components/Reveal";
+import TrialCta from "@/components/TrialCta";
 
 export const metadata: Metadata = {
   title: "About Us | Glufloat",
@@ -126,13 +126,7 @@ export default function AboutPage() {
               <h2 className="font-display text-2xl font-bold text-ink sm:text-3xl">
                 Ready to know your food?
               </h2>
-              <Link
-                href="/trial"
-                className="group mt-6 inline-flex items-center gap-2 rounded-full bg-leaf px-7 py-4 text-base font-bold text-white shadow-[0_14px_30px_-10px_rgba(62,155,79,0.6)] hover:bg-leaf-deep transition-all hover:-translate-y-1"
-              >
-                Start my 3-day free trial
-                <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
-              </Link>
+              <TrialCta className="group mt-6 inline-flex items-center gap-2 rounded-full bg-leaf px-7 py-4 text-base font-bold text-white shadow-[0_14px_30px_-10px_rgba(62,155,79,0.6)] hover:bg-leaf-deep transition-all hover:-translate-y-1" />
             </Reveal>
           </div>
         </section>

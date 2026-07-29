@@ -37,6 +37,12 @@ export interface HeroLandingProps {
   description: string;
   announcementBanner?: AnnouncementBanner;
   callToActions?: CallToAction[];
+  /**
+   * A ready-made button, used instead of `callToActions` when the label depends on
+   * who is reading (see components/TrialCta.tsx). It has to arrive already rendered:
+   * app/page.tsx is a server component and cannot hand a client component across.
+   */
+  ctaSlot?: ReactNode;
   /** The small print under the buttons. */
   reassurance?: string;
   /** The product picture (the looping demo device). */
@@ -70,6 +76,7 @@ export function HeroLanding({
   description,
   announcementBanner,
   callToActions,
+  ctaSlot,
   reassurance,
   media,
   titleSize = "large",
@@ -127,12 +134,13 @@ export function HeroLanding({
           {description}
         </motion.p>
 
-        {callToActions && callToActions.length > 0 && (
+        {(ctaSlot || (callToActions && callToActions.length > 0)) && (
           <motion.div
             variants={item}
             className="mt-9 flex flex-col items-center gap-4 sm:flex-row sm:gap-5"
           >
-            {callToActions.map((cta) =>
+            {ctaSlot}
+            {callToActions?.map((cta) =>
               cta.variant === "primary" ? (
                 <Link
                   key={cta.text}
