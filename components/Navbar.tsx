@@ -59,21 +59,29 @@ export default function Navbar() {
   };
 
   // Only a visitor with no account gets buttons up here. Everybody else opens the
-  // menu. Note the two labels: this pill says "Sign up" while the one inside the
-  // sheet says "Start my 3-day free trial", so no two controls ever share a name.
+  // menu.
+  //
+  // On a phone there is room for ONE, and it is Log in, not Sign up: somebody
+  // coming back already has an account and wants the way in, right where their
+  // thumb is. Somebody new is served by the trial button in the hero and by the
+  // big pill in the menu, both of which name the offer properly. So this is a
+  // single Log in link that wears a pill on a phone and plain text on a desktop
+  // (one element, two looks) rather than two elements sharing a name.
   const actionButtons = menuOnly ? null : (
     <>
       <Link
         href="/signin"
-        className={`hidden text-sm font-semibold transition-colors md:block ${
-          onDark ? "text-white/80 hover:text-white" : "text-ink-soft hover:text-brand"
+        className={`rounded-full px-4 py-2 text-sm font-semibold text-white shadow-[0_8px_20px_-8px_rgba(27,95,170,0.7)] transition-all hover:-translate-y-0.5 md:rounded-none md:px-0 md:py-0 md:shadow-none md:hover:translate-y-0 ${
+          onDark
+            ? "bg-leaf hover:bg-leaf-deep md:bg-transparent md:text-white/80 md:hover:bg-transparent md:hover:text-white"
+            : "bg-brand hover:bg-brand-deep md:bg-transparent md:text-ink-soft md:hover:bg-transparent md:hover:text-brand"
         }`}
       >
         Log in
       </Link>
       <Link
         href="/signup"
-        className={`rounded-full px-4 py-2 text-sm font-semibold text-white shadow-[0_8px_20px_-8px_rgba(27,95,170,0.7)] transition-all hover:-translate-y-0.5 sm:px-5 ${
+        className={`hidden rounded-full px-4 py-2 text-sm font-semibold text-white shadow-[0_8px_20px_-8px_rgba(27,95,170,0.7)] transition-all hover:-translate-y-0.5 sm:px-5 md:block ${
           onDark ? "bg-leaf hover:bg-leaf-deep" : "bg-brand hover:bg-brand-deep"
         }`}
       >
@@ -195,15 +203,8 @@ export default function Navbar() {
               ))}
             </div>
             <div className="space-y-3 pt-6">
-              {!menuOnly && (
-                <Link
-                  href="/signin"
-                  onClick={() => setMenuOpen(false)}
-                  className="-mx-3 block rounded-xl px-3 py-3 text-center text-base font-semibold text-ink transition-colors hover:bg-mist"
-                >
-                  Log in
-                </Link>
-              )}
+              {/* Log in is not repeated here: it already sits in the bar at every
+                  width, and two controls with one name break strict mode. */}
               {/* "Open app" is pointless when the app is already open. The expired
                   pill still shows on /app, because paying is the one thing left. */}
               {!(onApp && sheetAction.href === "/app" && !isLocked) && (
@@ -215,9 +216,10 @@ export default function Navbar() {
                   {sheetAction.label}
                 </Link>
               )}
-              {/* Signing out lives here now, because on /app the bar is only the
-                  wordmark and this button. */}
-              {onApp && (
+              {/* Signing out lives here on EVERY page, not only /app: signed in,
+                  the bar is just the wordmark and this menu, so this is the one
+                  place it can be found from anywhere on the site. */}
+              {menuOnly && (
                 <button
                   type="button"
                   onClick={signOut}
