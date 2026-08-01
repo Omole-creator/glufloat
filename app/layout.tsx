@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Inter } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
-import GoogleAnalytics from "@/components/GoogleAnalytics";
 import GoogleTagManager, {
   GoogleTagManagerNoScript,
 } from "@/components/GoogleTagManager";
@@ -96,7 +95,6 @@ export default function RootLayout({
         />
         {children}
         <Analytics />
-        <GoogleAnalytics />
         <GoogleTagManager />
       </body>
     </html>

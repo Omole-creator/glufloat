@@ -12,11 +12,12 @@ import Script from "next/script";
  * through on every preview, and scripts/qa.mjs drives the whole site 14 times
  * per run.
  *
- * WARNING: GA4 (G-JN5PD0B50Z) is already on the page as its own gtag.js tag
- * from GoogleAnalytics.tsx. Do NOT also add a GA4 Configuration tag for that
- * same ID inside this container, or every page view is counted twice and the
- * traffic numbers are silently doubled. GA4 lives in ONE place: either the
- * direct tag or the container, never both.
+ * THIS CONTAINER IS THE ONLY HOME FOR GA4. Measurement ID G-JN5PD0B50Z was
+ * briefly on the page as its own gtag.js tag (components/GoogleAnalytics.tsx,
+ * see git history) and that file was deleted on purpose. Running both would
+ * fire every page view twice: nothing errors, nothing fails, the traffic
+ * numbers are simply worth half what they say, forever. So GA4 is configured
+ * INSIDE the container, and no gtag.js snippet goes back into this layout.
  */
 const GTM_ID = "GTM-N4W2D2W4";
 
