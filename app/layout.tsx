@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { Geist, Inter } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
+import GoogleTagManager, {
+  GoogleTagManagerNoScript,
+} from "@/components/GoogleTagManager";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL, abs } from "@/lib/site";
 import "./globals.css";
 
@@ -85,6 +88,8 @@ export default function RootLayout({
       className={`${display.variable} ${body.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        {/* Google requires this immediately after the opening <body> tag. */}
+        <GoogleTagManagerNoScript />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(orgLd) }}
@@ -92,6 +97,7 @@ export default function RootLayout({
         {children}
         <Analytics />
         <GoogleAnalytics />
+        <GoogleTagManager />
       </body>
     </html>
   );
