@@ -77,7 +77,7 @@ export default function SignUpPage() {
             Start your free trial
           </h1>
           <p className="mt-2 text-center text-sm leading-relaxed text-ink-soft">
-            Make a quick account so your 3 days, and your food, stay yours on any
+            Make a quick account so your 7 days, and your food, stay yours on any
             phone. No card needed.
           </p>
 

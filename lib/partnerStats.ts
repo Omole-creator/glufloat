@@ -1,6 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/server";
 import type { Partner } from "@/lib/partners";
 import { inPeriod, type Period } from "@/lib/period";
+import { TRIAL_DAYS } from "@/lib/trial";
 
 /**
  * The numbers behind the Partner Dashboard. Server-only (service-role key).
@@ -138,7 +139,9 @@ export async function getReferredUsers(partnerId: string): Promise<ReferredUser[
     earnedOf.set(c.user_id, (earnedOf.get(c.user_id) ?? 0) + c.amount);
   }
 
-  const TRIAL_DAYS = 3;
+  // TRIAL_DAYS is imported, never re-typed. It was hardcoded here, so changing
+  // the trial length in the app left a partner's report calling somebody
+  // "expired" while the app was still letting them in.
   const DAY = 24 * 60 * 60 * 1000;
 
   return profiles.map((p) => {

@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: "Glufloat | Know if a food is right for your diabetes, before you eat it",
   description:
-    "Check any Nigerian food or your whole meal. Glufloat gives you a clear green, yellow, or red answer, plus the simple fix that makes it safe for your sugar. 3 days free, then N1,500 a month.",
+    "Check any Nigerian food or your whole meal. Glufloat gives you a clear green, yellow, or red answer, plus the simple fix that makes it safe for your sugar. 7 days free, then N1,500 a month.",
   alternates: { canonical: "/" },
   icons: {
     icon: "/icon.png",

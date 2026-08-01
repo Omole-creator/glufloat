@@ -11,7 +11,7 @@ import { createAdminClient } from "@/lib/supabase/server";
  *   clicked  they clicked the free-trial button
  *   signedUp they made an account, and THIS post is the one that first brought
  *            them to Glufloat
- *   trials   of those, how many started the 3 days
+ *   trials   of those, how many started the 7 days
  *   paid     of those, how many are paying now
  *
  * `paid` is the only number that matters in the end, and it is the one a page-

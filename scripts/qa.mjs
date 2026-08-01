@@ -5,7 +5,7 @@
 // a dedicated QA user before it can reach /app. That user needs QA_EMAIL and
 // QA_PASSWORD in .env.local, and a `subscriptions` row with status 'active' and
 // a far-future current_period_end, so its access never lapses. A trial would
-// expire after 3 days and the suite would start failing on its own.
+// expire after 7 days and the suite would start failing on its own.
 //
 // Assertions here match exact user-facing strings. If you change a verdict
 // headline, a button label, or the disclaimer wording, update this file too.

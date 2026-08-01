@@ -28,7 +28,7 @@ export function clearAccessCache(): void {
   cached = null;
 }
 
-// A signed-in member should not see "Start my 3-day free trial" flash on screen
+// A signed-in member should not see "Start my 7-day free trial" flash on screen
 // before the account answers. This remembers only that somebody was signed in on this
 // device, so the first paint can be the member button.
 //

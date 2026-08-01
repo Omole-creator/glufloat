@@ -10,7 +10,7 @@ export default function TermsPage() {
     <LegalShell
       eyebrow="The serious part"
       title="Terms of Use"
-      updated="Last updated: 2 July 2026. These terms are between you and GluFloat (&quot;we&quot;, &quot;us&quot;)."
+      updated="Last updated: 1 August 2026. These terms are between you and GluFloat (&quot;we&quot;, &quot;us&quot;)."
     >
       <p>
         By subscribing or using the app, you agree to these terms. If you do
@@ -41,7 +41,7 @@ export default function TermsPage() {
       <h2>3. Trial, subscription, and payment</h2>
       <ul>
         <li>
-          New users get a 3-day free trial with full access on their device.
+          New users get a 7-day free trial with full access on their device.
           No payment details are collected for the trial, and nothing is
           charged during it.
         </li>

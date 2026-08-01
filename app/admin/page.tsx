@@ -9,6 +9,7 @@ import PeriodPicker from "@/components/PeriodPicker";
 import { inPeriod, parsePeriod, type PeriodParams } from "@/lib/period";
 import { GROUPS, groupLabel, inGroup, type Group } from "@/lib/userType";
 import { readingHealth, readingVerdict } from "@/lib/glucosePattern";
+import { TRIAL_DAYS } from "@/lib/trial";
 
 export const dynamic = "force-dynamic";
 
@@ -371,7 +372,7 @@ export default async function AdminPage({
 
         <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Tile label={`Signups · ${period.label}`} value={signupsInRange.toLocaleString()} sub={`${signups} all time`} />
-          <Tile label="Active trials" value={P.filter((p) => p.trial_start && (now - new Date(p.trial_start).getTime()) / DAY_MS < 3).length.toLocaleString()} sub={`${trialsStarted} started ever`} />
+          <Tile label="Active trials" value={P.filter((p) => p.trial_start && (now - new Date(p.trial_start).getTime()) / DAY_MS < TRIAL_DAYS).length.toLocaleString()} sub={`${trialsStarted} started ever`} />
           <Tile label="Trial → paid" value={`${conversion}%`} sub={`${everSubscribed} converted`} />
           <Tile label="Active subscribers" value={activeSubs.toLocaleString()} sub="paying right now" />
           <Tile label="MRR" value={naira(mrr)} sub="active subs × N1,500" />

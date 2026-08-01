@@ -8,7 +8,7 @@ import { getAccess, startTrial } from "@/lib/account";
 import { events } from "@/lib/analytics";
 
 /**
- * The trial "gate": you must have an account to start the 3-day trial. New
+ * The trial "gate": you must have an account to start the 7-day trial. New
  * accounts get their trial stamped here, then land in the app. Anonymous
  * visitors are sent to sign up first.
  */

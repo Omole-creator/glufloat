@@ -8,80 +8,37 @@ the fix that turns a plate green.
 
 **Live:** https://glufloat.vercel.app
 
-## How access works (MVP)
+## How access works
 
-- Visitors get **3 free checks** (tracked in their browser), then the paywall.
-- The **7-day free trial** runs on the visitor's device: tapping "Start my
-  free trial" (the `/trial` page) unlocks everything for 7 days. No card is
-  collected, because Nestuge does not support pre-subscription trials.
-- When the trial ends, the paywall points to **Nestuge** for the
-  N1,500/month subscription: https://nestuge.com/glufloat
-- After payment, Nestuge should send buyers to the unlock link so access
-  opens on their device immediately:
+Access is an **account** fact, not a device fact. The free-check allowance,
+the shared unlock codes and the on-device trial described in older versions of
+this file are all gone, along with Nestuge.
 
-```
-https://glufloat.vercel.app/unlock?code=GLU-GREEN-2026
-```
+- Signing up creates a `profiles` row. `/app` is all-or-nothing: a visitor who
+  is not signed in goes to `/signin`, and a signed-in person who has not
+  started a trial goes to `/trial`.
+- `/trial` stamps `profiles.trial_start` once. That gives a **7-day free
+  trial**, no card. The length lives in `lib/trial.ts` (`TRIAL_DAYS`) and
+  nowhere else; the database stores only the start moment, so the days left are
+  worked out fresh on every read.
+- Days left count by **calendar day**, not by 24 hours: the start day shows 7,
+  the next local day 6, and the trial is over on the eighth day. The app warns
+  on the last day.
+- Payment is a one-time N1,500 page on **Paystack**, which sends the buyer back
+  to `/unlock`. That claims the reference against the signed-in account and
+  writes a `subscriptions` row good for 30 days. `/api/paystack/webhook` is the
+  backup path. An active subscription is checked **before** the trial, so a
+  paying member whose trial lapsed is never locked out.
 
-Accepted codes live in `lib/access.ts` (`ACCESS_CODES`). Change them there
-and redeploy whenever you rotate codes. Put the current code (or the full
-unlock link) in your Nestuge product's post-purchase delivery message.
+`lib/account.ts` (`getAccess`) is the single answer to "what may this person
+see": `anon | new | trial | subscribed | expired`.
 
-> Note: this is link-based MVP gating on the buyer's device, not per-user
-> accounts. Real auth + server-side subscription checks are the Phase 2
-> upgrade (see the technical SPEC).
+## How you see people using it
 
-## After payment: nav + renewal reminder
-
-Once a buyer unlocks with their code, `hasAccess` becomes true on their
-device. From then on:
-
-- The navbar hides "Start free trial" and shows "Open app" instead.
-- The unlock date is saved (`gf_access_date`). As the 30-day month runs out
-  (5 days before, and after it ends), a yellow banner appears in the app
-  asking them to renew, linking to Nestuge. Entering a code again resets the
-  month. The app does not hard-lock at day 30, because Nestuge's recurring
-  billing may auto-charge and keep them active; the banner is a nudge.
-
-## How the 7-day trial is tracked (no sign-up)
-
-When someone taps "Start my free week", the browser saves the start date in
-`localStorage` (`gf_trial_start`). Every visit, the app checks that date and
-computes days left. After 7 days the app locks to the paywall on that device.
-
-**Honest limit:** because there is no sign-up, this lives on the device. If a
-user clears their browser data, opens a private window, or switches phones,
-they can start a fresh week. Most ordinary users never do this, so it is a
-fine MVP tradeoff. To make the trial impossible to bypass you need identity
-(the lightest version is one email field at trial start) plus a small backend
-that records the trial per person. That is the Phase 2 upgrade.
-
-## How you see people using it (no sign-up)
-
-The site sends anonymous **usage events** to Vercel Analytics (see
-`lib/analytics.ts`): `trial_started`, `food_checked`, `meal_built`,
-`paywall_hit`, `access_unlocked`. Open your Vercel project's Analytics tab to
-see how many trials started, how many foods were checked, and how many people
-hit the paywall during the free week. It counts actions, not names.
-
-## Nestuge checklist (one-time setup)
-
-1. Create the Glufloat product on Nestuge as a N1,500 / month subscription
-   (the free week is handled by the site itself, before checkout).
-2. In the product's post-purchase delivery message, tell the buyer exactly
-   how to get in. Use wording like:
-
-   > Thank you for joining Glufloat. To open the app, go to
-   > https://glufloat.vercel.app/unlock and enter this code: GLU-GREEN-2026
-   > (or just tap this link, which opens it for you:
-   > https://glufloat.vercel.app/unlock?code=GLU-GREEN-2026 )
-
-3. That is it. Trial CTAs point to /trial; subscribe CTAs point to
-   nestuge.com/glufloat.
-
-The code is the same for everyone in this MVP (it is a shared unlock, not a
-per-person key). When you want to retire or rotate it, edit `ACCESS_CODES`
-in `lib/access.ts`, redeploy, and update the Nestuge message.
+Anonymous **usage events** go to Vercel Analytics (see `lib/analytics.ts`):
+`trial_started`, `food_checked`, `meal_built`, `paywall_hit`,
+`access_unlocked`. `/admin` has the real numbers behind them: signups, active
+trials, trial-to-paid, MRR, churn and cohort retention.
 
 ## Development
 

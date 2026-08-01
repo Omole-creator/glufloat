@@ -6,7 +6,7 @@ import { useAccess } from "@/lib/useAccess";
 
 // The call to action on every public page, said the right way to whoever is reading.
 //
-// A paying member used to read "Start my 3-day free trial" six times on the home page.
+// A paying member used to read "Start my 7-day free trial" six times on the home page.
 // This is a small client island on purpose: app/page.tsx stays a server component and
 // stays pre-rendered, which is what the whole SEO side of the site depends on.
 
@@ -30,7 +30,7 @@ export default function TrialCta({
       ? { label: "Open my app", href: "/app" }
       : access.status === "expired"
         ? { label: "Subscribe for N1,500 a month", href: "/app" }
-        : { label: "Start my 3-day free trial", href: "/trial" };
+        : { label: "Start my 7-day free trial", href: "/trial" };
 
   return (
     <Link href={href} className={className}>

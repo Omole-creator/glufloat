@@ -9,7 +9,7 @@ const FAQS: { q: string; a: string }[] = [
   },
   {
     q: "How does the free trial work?",
-    a: "Tap the free trial button and the whole app opens for you for 3 days. You do not give a card, and nothing is taken from you. If you do not like it, just stop. Simple as that.",
+    a: "Tap the free trial button and the whole app opens for you for 7 days. You do not give a card, and nothing is taken from you. If you do not like it, just stop. Simple as that.",
   },
   {
     q: "What happens when my free trial ends?",

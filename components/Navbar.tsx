@@ -96,7 +96,7 @@ export default function Navbar() {
       ? { label: "Open app", href: "/app" }
       : access.status === "expired"
         ? { label: "Subscribe for N1,500 a month", href: "/app" }
-        : { label: "Start my 3-day free trial", href: "/trial" };
+        : { label: "Start my 7-day free trial", href: "/trial" };
 
   return (
     <header

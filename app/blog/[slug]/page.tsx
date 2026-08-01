@@ -286,7 +286,7 @@ export default async function PostPage({ params }: Props) {
                   />
                 </CtaTracker>
                 <p className="mt-4 text-sm text-white/80">
-                  Free for 3 days. No card required.
+                  Free for 7 days. No card required.
                 </p>
               </div>
             </div>

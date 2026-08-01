@@ -1,12 +1,16 @@
 "use client";
 
 import { createClient } from "@/lib/supabase/client";
+import { TRIAL_DAYS } from "@/lib/trial";
 
 // Account-based access (replaces the old localStorage gating). A user's access
-// is: an active 3-day trial (profiles.trial_start) OR an active subscription
+// is: an active 7-day trial (profiles.trial_start) OR an active subscription
 // (subscriptions, written by the Paystack webhook).
 
-export const TRIAL_DAYS = 3;
+// The length itself lives in `lib/trial.ts` (no "use client"), because the
+// server screens need it too. Re-exported here so every existing import of
+// TRIAL_DAYS from this file keeps working.
+export { TRIAL_DAYS };
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 export type Access =

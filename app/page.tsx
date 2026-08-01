@@ -94,7 +94,7 @@ export default function Home() {
         ctaSlot={
           <TrialCta className="group inline-flex items-center gap-2 rounded-full bg-leaf px-8 py-4 text-base font-bold text-white shadow-[0_16px_34px_-12px_rgba(70,184,94,0.85)] transition-all hover:-translate-y-1 hover:bg-leaf-deep hover:shadow-[0_22px_44px_-12px_rgba(70,184,94,0.95)]" />
         }
-        reassurance="3 days free. You do not need a card. After that it is N1,500 a month, and you can stop any time."
+        reassurance="7 days free. You do not need a card. After that it is N1,500 a month, and you can stop any time."
         media={
           <>
             <HeroDemo />
@@ -229,7 +229,7 @@ export default function Home() {
               Ready to check your first food?
             </h2>
             <p className="mx-auto mt-4 max-w-md font-display text-lg leading-relaxed text-white/75">
-              Make a free account, then check any food you eat for the next 3
+              Make a free account, then check any food you eat for the next 7
               days. No card needed.
             </p>
           </Reveal>
@@ -239,7 +239,7 @@ export default function Home() {
               <ul className="mb-7 grid w-full gap-3 text-left text-ink sm:grid-cols-2">
                 {[
                   "No card needed",
-                  "Free for 3 days",
+                  "Free for 7 days",
                   "Stop any time",
                   "Checked by 6 dietitians",
                 ].map((b) => (
@@ -407,7 +407,7 @@ export default function Home() {
             </h2>
             <p className="mx-auto mt-4 max-w-xl font-display text-lg leading-relaxed text-ink-soft">
               One visit to the clinic costs more than a whole year of Glufloat.
-              Start free for 3 days and see for yourself.
+              Start free for 7 days and see for yourself.
             </p>
           </Reveal>
 
@@ -420,7 +420,7 @@ export default function Home() {
               </div>
               <div className="p-8 text-center">
                 <p className="text-base font-semibold text-leaf-deep">
-                  Your first 3 days are free. You do not need a card.
+                  Your first 7 days are free. You do not need a card.
                 </p>
                 {/* The price, and nothing else. The founder cut the "a month
                     after that" tail and the "about N50 a day" line: one number,
@@ -487,11 +487,11 @@ export default function Home() {
             <p className="mx-auto mt-6 max-w-xl font-display text-lg leading-relaxed text-white/75">
               Guessing means the same worry, and the same high sugar after you
               eat. Knowing takes ten seconds and a meal you feel good about. The
-              first 3 days are free, so you risk nothing.
+              first 7 days are free, so you risk nothing.
             </p>
             <TrialCta className="group mt-8 inline-flex items-center gap-2 rounded-full bg-leaf px-8 py-4 text-base font-bold text-white shadow-[0_14px_30px_-10px_rgba(62,155,79,0.6)] transition-all hover:-translate-y-1 hover:bg-leaf-deep" />
             <p className="mt-4 text-sm text-white/60">
-              3 days free, no card. Then N1,500 a month. Stop any time.
+              7 days free, no card. Then N1,500 a month. Stop any time.
             </p>
           </Reveal>
         </div>

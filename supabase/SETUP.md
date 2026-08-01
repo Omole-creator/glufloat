@@ -183,7 +183,7 @@ first chunks the page references. Looking only there gives a false negative.
 - `/signup` (name, email, password) and `/signin` (email, password); no email
   confirmation.
 - Gate: browsing is free, but tapping **Start my free trial** requires sign-in,
-  and the 3-day trial + subscription state move from `localStorage` to the
+  and the 7-day trial + subscription state move from `localStorage` to the
   user's record.
 - `/api/paystack/webhook` — verifies Paystack events, updates `subscriptions`
   and `payments`.

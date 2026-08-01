@@ -225,7 +225,8 @@ export default function AppPage() {
         };
   const renewSoon = access.status === "subscribed" && access.daysLeft <= 5;
   // A trial used to run out with no warning at all: a green day count, then a locked
-  // door on day 4. daysLeft is 3 on the start day, so 1 is the last day.
+  // door the next morning. daysLeft is TRIAL_DAYS on the start day, so 1 is the last
+  // day whatever the length.
   const trialEnding = access.status === "trial" && access.daysLeft <= 1;
 
   return (
