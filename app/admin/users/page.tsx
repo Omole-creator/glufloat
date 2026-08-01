@@ -5,6 +5,7 @@ import AdminLogin from "../AdminLogin";
 import AdminShell from "../AdminShell";
 import UsersPanel, { type UserRow } from "./UsersPanel";
 import { isUserType } from "@/lib/userType";
+import { normalizePhone, repeatedPhones } from "@/lib/phone";
 
 export const dynamic = "force-dynamic";
 
@@ -53,6 +54,20 @@ export default async function UsersPage() {
       .map((s) => s.user_id),
   );
 
+  /**
+   * Numbers that turn up on more than one account.
+   *
+   * Email is already one-per-account: Supabase refuses a second sign-up on the
+   * same address. A phone is not, and it cannot safely be made so, because a
+   * caregiver and the person they care for really do share one handset here. So
+   * the repeat is shown rather than blocked. What it is really watching for is
+   * one person taking a fresh free week with me+1@, me+2@ and the same phone.
+   *
+   * Counted on the NORMALISED number, so +234 and 0 forms group together even
+   * on accounts made before sign-up started storing one shape.
+   */
+  const repeats = repeatedPhones(profiles ?? []);
+
   const rows: UserRow[] = (profiles ?? []).map((p) => ({
     id: p.id,
     name: p.name ?? "",
@@ -62,7 +77,10 @@ export default async function UsersPage() {
     joined: p.created_at,
     trialStarted: !!p.trial_start,
     paying: paying.has(p.id),
+    sharesPhone: repeats.get(normalizePhone(p.phone)) ?? 0,
   }));
+
+  const onSharedNumbers = rows.filter((r) => r.sharesPhone > 1).length;
 
   const counts = {
     all: rows.length,
@@ -113,6 +131,18 @@ export default async function UsersPage() {
           {activeThisWeek === 1 ? "person" : "people"} checked their food in the
           last 7 days. This is who came back, not just who signed up.
         </p>
+
+        {onSharedNumbers > 0 && (
+          <p className="mt-4 rounded-xl bg-white px-4 py-3 text-sm text-ink-soft">
+            <strong className="font-display text-ink">{onSharedNumbers}</strong>{" "}
+            {onSharedNumbers === 1 ? "account uses" : "accounts use"} a phone
+            number that another account also uses. They are marked{" "}
+            <strong className="text-ink">same number</strong> in the list below.
+            This is not proof of anything: a husband and wife, or a nurse and her
+            patient, share one handset. What to look for is one number with
+            several accounts that each started a free week and none that paid.
+          </p>
+        )}
 
         {counts.none > 0 && (
           <p className="mt-4 rounded-xl bg-white px-4 py-3 text-sm text-ink-soft">

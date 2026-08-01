@@ -11,6 +11,7 @@ import {
   type Group,
   type UserType,
 } from "@/lib/userType";
+import { normalizePhone } from "@/lib/phone";
 
 export type UserRow = {
   id: string;
@@ -21,6 +22,8 @@ export type UserRow = {
   joined: string;
   trialStarted: boolean;
   paying: boolean;
+  /** How many accounts share this phone number. 0 or 1 means nothing to say. */
+  sharesPhone: number;
 };
 
 export default function UsersPanel({
@@ -38,13 +41,17 @@ export default function UsersPanel({
 
   const shown = useMemo(() => {
     const needle = q.trim().toLowerCase();
+    // Typing +234 813... must find the person stored as 0813..., and the other
+    // way round. Only used when the search box holds digits.
+    const digits = normalizePhone(needle);
     return rows.filter((r) => {
       if (!inGroup(r.userType, group)) return false;
       if (!needle) return true;
       return (
         r.name.toLowerCase().includes(needle) ||
         r.email.toLowerCase().includes(needle) ||
-        r.phone.toLowerCase().includes(needle)
+        r.phone.toLowerCase().includes(needle) ||
+        (!!digits && normalizePhone(r.phone).includes(digits))
       );
     });
   }, [rows, group, q]);
@@ -112,8 +119,8 @@ export default function UsersPanel({
       <input
         value={q}
         onChange={(e) => setQ(e.target.value)}
-        placeholder="Search by name or email"
-        aria-label="Search by name or email"
+        placeholder="Search by name, email or phone"
+        aria-label="Search by name, email or phone"
         className="mt-4 w-full max-w-md rounded-xl border-2 border-line bg-white px-4 py-2.5 text-ink outline-none transition-colors focus:border-brand"
       />
 
@@ -157,9 +164,23 @@ export default function UsersPanel({
                   </td>
                   <td className={td}>
                     {r.phone ? (
-                      <a href={`tel:${r.phone}`} className="text-brand hover:underline">
-                        {r.phone}
-                      </a>
+                      <>
+                        <a href={`tel:${r.phone}`} className="text-brand hover:underline">
+                          {r.phone}
+                        </a>
+                        {/* A shared handset is normal here, so this is a note,
+                            not an accusation. It is only worth a look when the
+                            accounts on one number all took a free week and none
+                            of them paid. */}
+                        {r.sharesPhone > 1 && (
+                          <span
+                            title={`${r.sharesPhone} accounts use this number`}
+                            className="ml-2 whitespace-nowrap rounded-full bg-v-yellow/25 px-2 py-0.5 text-xs font-bold text-ink"
+                          >
+                            same number ×{r.sharesPhone}
+                          </span>
+                        )}
+                      </>
                     ) : (
                       <span className="text-ink-soft">—</span>
                     )}

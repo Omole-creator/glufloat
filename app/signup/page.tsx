@@ -9,6 +9,7 @@ import Footer from "@/components/Footer";
 import { createClient } from "@/lib/supabase/client";
 import { partnerCode, sourcePost } from "@/lib/attribution";
 import { SIGNUP_CHOICES, type UserType } from "@/lib/userType";
+import { normalizePhone } from "@/lib/phone";
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -51,7 +52,10 @@ export default function SignUpPage() {
       options: {
         data: {
           name: name.trim(),
-          phone: phone.trim(),
+          // Stored in one shape (08132097317), never as typed. Four ways of
+          // writing one number are four different strings, and then the same
+          // handset can hold any number of accounts without it ever showing.
+          phone: normalizePhone(phone),
           source_post: sourcePost(),
           partner_code: partnerCode(),
           user_type: userType,

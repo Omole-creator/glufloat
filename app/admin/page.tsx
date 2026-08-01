@@ -77,24 +77,44 @@ export default async function AdminPage({
    */
   const { data: readingRows } = await admin
     .from("glucose_readings")
-    .select("user_id,meal_check_id,meal_checks(kind,label)");
-  const health = readingHealth(
-    (readingRows ?? []).map((r) => {
-      const meal = r.meal_checks as { kind?: string; label?: string } | null;
-      return {
-        userId: String(r.user_id),
-        mealCheckId: (r.meal_check_id as number | null) ?? null,
-        kind: (meal?.kind as "single" | "meal" | undefined) ?? null,
-        label: meal?.label ?? null,
-      };
-    }),
+    .select("user_id,meal_check_id,taken_at,meal_checks(kind,label)");
+
+  type ReadingRowFromDb = NonNullable<typeof readingRows>[number];
+  const toReading = (r: ReadingRowFromDb) => {
+    const meal = r.meal_checks as { kind?: string; label?: string } | null;
+    return {
+      userId: String(r.user_id),
+      mealCheckId: (r.meal_check_id as number | null) ?? null,
+      kind: (meal?.kind as "single" | "meal" | undefined) ?? null,
+      label: meal?.label ?? null,
+    };
+  };
+
+  const allReadings = readingRows ?? [];
+  const periodReadings = allReadings.filter((r) =>
+    inPeriod(r.taken_at as string, period),
   );
+  /**
+   * TWO healths, and the difference is the point.
+   *
+   * `health` follows the date picker, so "how many tests were saved in July" is
+   * finally answerable. `healthAll` ignores it, because "has this person got
+   * enough tests for the app to speak to them?" is a state, not something that
+   * happened inside a window: inside a single day nobody has five tests, and a
+   * period-filtered `ready` would read 0 and say the feature is dead when it is
+   * not. The one tile that must stay honest reads from `healthAll`.
+   */
+  const health = readingHealth(periodReadings.map(toReading));
+  const healthAll = readingHealth(allReadings.map(toReading));
+
   // How much of the eaten-log carries a test, which is what the doctor sees.
-  const { count: mealsTotal } = await admin
-    .from("meal_checks")
-    .select("id", { count: "exact", head: true });
+  // Both halves are counted over the same window, or the percentage is nonsense.
+  let mealsQuery = admin.from("meal_checks").select("id", { count: "exact", head: true });
+  if (period.from) mealsQuery = mealsQuery.gte("checked_at", period.from.toISOString());
+  if (period.to) mealsQuery = mealsQuery.lt("checked_at", period.to.toISOString());
+  const { count: mealsTotal } = await mealsQuery;
   const mealsWithTest = new Set(
-    (readingRows ?? [])
+    periodReadings
       .map((r) => r.meal_check_id)
       .filter((id): id is number => id !== null),
   ).size;
@@ -102,10 +122,16 @@ export default async function AdminPage({
   /**
    * How people use the app: taps counted from usage_events. The average per
    * person answers "do they press change-meal once, or many times?".
+   *
+   * These follow the date picker at the top of the page, like everything else
+   * on the screen. `U` stays unfiltered because the retention maths below needs
+   * every event a person ever sent, whatever window is on screen: day 30 for
+   * somebody who signed up in June is in July.
    */
   const U = usage ?? [];
+  const UP = U.filter((u) => inPeriod(u.created_at as string, period));
   const usageStat = (event: string) => {
-    const rows = U.filter((u) => u.event === event);
+    const rows = UP.filter((u) => u.event === event);
     const users = new Set(rows.map((r) => r.user_id).filter(Boolean)).size;
     return {
       count: rows.length,
@@ -383,11 +409,13 @@ export default async function AdminPage({
 
         {/* How people actually use the app, not just whether they signed up. */}
         <h2 className="mt-10 font-display text-lg font-bold text-ink">
-          How people use the app
+          How people use the app &middot; {period.label}
         </h2>
         <p className="mt-1 text-sm text-ink-soft">
-          Taps inside the app. The average per person shows whether people press
-          once or many times.
+          Taps inside the app, in the window you picked at the top. The average
+          per person shows whether people press once or many times. Pick{" "}
+          <strong className="text-ink">All time</strong> up there for the totals
+          since launch.
         </p>
         <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <Tile
@@ -432,29 +460,33 @@ export default async function AdminPage({
         {/*
           Sugar tests: the one block that says whether the newest feature works.
 
-          Deliberately NOT filtered by the period, like "owed now" on the partner
-          screen. "Can this person be warned yet" is a state, not something that
-          happened in a month, and filtering it by date would report fewer people
-          than really qualify.
+          The tiles follow the date picker, so "how many tests were saved in
+          July" can be asked. ONE does not, and must not: "people with enough
+          tests" is a state, not something that happened inside a window. Inside
+          a single day nobody has five tests, so a filtered version would read
+          zero and say the feature is dead when it is not. Same reasoning as
+          "owed now" on the partner screen.
         */}
         <h2 className="mt-10 font-display text-lg font-bold text-ink">
-          Are people saving sugar tests?
+          Are people saving sugar tests? &middot; {period.label}
         </h2>
         <p className="mt-1 max-w-2xl rounded-2xl border border-brand/20 bg-brand/5 px-4 py-3 text-sm font-semibold text-ink">
-          {readingVerdict(health)}
+          {readingVerdict(healthAll)}
         </p>
         <p className="mt-2 max-w-2xl text-sm text-ink-soft">
           These count the tests people have really saved, not button taps, so a
-          number typed wrong and then deleted does not stay here. The date picker
-          above does not change them: either a person has enough tests today or
-          they do not.
+          number typed wrong and then deleted does not stay here. They follow the
+          window you picked at the top, except the first tile, which is marked
+          all time: whether somebody has enough tests is true today or it is not,
+          and no window changes it.
         </p>
         <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {/* THE number. At zero, the part of the app that speaks up on its own
-              has never spoken to anybody, however healthy the other tiles look. */}
+          {/* THE number, and the one that ignores the picker. At zero, the part
+              of the app that speaks up on its own has never spoken to anybody,
+              however healthy the other tiles look. */}
           <Tile
-            label="People with enough tests"
-            value={health.ready.toLocaleString()}
+            label="People with enough tests · all time"
+            value={healthAll.ready.toLocaleString()}
             sub="the app can show them their own pattern · watch this one"
           />
           {/* Breadth, not volume. One keen person saving forty makes the total
@@ -462,7 +494,7 @@ export default async function AdminPage({
           <Tile
             label="People using it"
             value={health.people.toLocaleString()}
-            sub={`${health.total.toLocaleString()} sugar tests saved in all`}
+            sub={`${health.total.toLocaleString()} sugar tests saved · ${healthAll.total.toLocaleString()} all time`}
           />
           <Tile
             label="Saved more than one test"
@@ -493,7 +525,7 @@ export default async function AdminPage({
                 ? `${Math.round((mealsWithTest / mealsTotal) * 100)}%`
                 : "0%"
             }
-            sub={`${mealsWithTest} of ${(mealsTotal ?? 0).toLocaleString()} saved meals`}
+            sub={`${mealsWithTest} of ${(mealsTotal ?? 0).toLocaleString()} meals saved in ${period.label.toLowerCase()}`}
           />
         </div>
 
