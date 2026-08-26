@@ -74,7 +74,9 @@ export function useAccess(): AccessState {
     // It is replaced a moment later by whatever the account actually says.
     if (readHint()) {
       setState((s) =>
-        s.ready ? s : { ...s, access: { status: "subscribed", daysLeft: 30 } },
+        // "basic" here is only ever a placeholder for the instant before the
+        // real account answer lands — never guess a higher tier while waiting.
+        s.ready ? s : { ...s, access: { status: "subscribed", daysLeft: 30, tier: "basic" } },
       );
     }
 

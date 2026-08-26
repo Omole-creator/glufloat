@@ -21,6 +21,8 @@ keys are in Vercel, the app code (which I'm building) takes over.
    | 8 | `push-schema.sql` | `push_subscriptions`, for the meal-time reminders |
    | 9 | `usage-schema.sql` | `usage_events`, the taps behind `/admin` |
    | 10 | `glucose-schema.sql` | `glucose_readings`, `profiles.health_data_consent_at`, and a missing delete rule on `meal_checks` |
+   | 11 | `personalization-schema.sql` | `profiles.goals/.activity_level/.meal_pattern`, and `subscriptions.tier` (basic \| plus \| dietitian) |
+   | 12 | `dietitian-schema.sql` | `inhouse_dietitians`, `dietitian_assignments`, and the atomic `assign_dietitian()` round-robin — must run AFTER #11, since it checks `subscriptions.tier` |
 
    Two things worth knowing about that order. **Five of these files each contain
    their own `create or replace function public.handle_new_user()`**, and the last
@@ -47,10 +49,19 @@ keys are in Vercel, the app code (which I'm building) takes over.
    `https://glufloat.vercel.app/api/paystack/webhook`
    (this is the endpoint I'm building — it verifies each payment and updates the
    subscriber's record, which is what stops URL sharing and powers churn/MRR).
-3. On your **Payment Page** (paystack.shop/pay/glufloat), keep the ₦1,500 plan.
-   We pass the signed-in user's email so the webhook can match payment → user.
-   (The old redirect-to-`/unlock?code=` trick is no longer needed once accounts
-   are live.)
+3. On your **Payment Page** (paystack.shop/pay/glufloat-monthly), keep the
+   ₦1,500 plan. We pass the signed-in user's email so the webhook can match
+   payment → user. (The old redirect-to-`/unlock?code=` trick is no longer
+   needed once accounts are live.)
+4. **Two more hosted one-time payment pages, for Plus and Dietitian**: create
+   `paystack.shop/pay/glufloat-plus` at a fixed ₦2,500, and
+   `paystack.shop/pay/glufloat-dietitian` at a fixed ₦4,500 — same setup as
+   the existing ₦1,500 page (one-time charge, not a subscription/plan page,
+   for the Transfer/USSD reason above). The exact slugs must match
+   `PAYSTACK_URLS` in `lib/access.ts`, and the exact kobo amounts (150000 /
+   250000 / 450000) must match `TIER_AMOUNTS` in `lib/pricing.ts` — the
+   webhook tells the three tiers apart ONLY by the amount charged, so a
+   mismatch here silently grants the wrong tier.
 
 ## 3. Vercel environment variables
 

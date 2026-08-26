@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { tierForAmount } from "@/lib/pricing";
+import { upsertSubscription } from "@/lib/subscriptionWrite";
 
 export const dynamic = "force-dynamic";
 
@@ -94,17 +96,15 @@ export async function POST(request: Request) {
     { onConflict: "reference" },
   );
 
-  await admin.from("subscriptions").upsert(
-    {
-      user_id: user.id,
-      status: "active",
-      current_period_end: new Date(Date.now() + MONTH_MS).toISOString(),
-      amount: tx.amount,
-      paystack_customer_code: tx.customer?.customer_code ?? null,
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: "user_id" },
-  );
+  await upsertSubscription(admin, {
+    user_id: user.id,
+    status: "active",
+    current_period_end: new Date(Date.now() + MONTH_MS).toISOString(),
+    amount: tx.amount,
+    tier: tierForAmount(tx.amount),
+    paystack_customer_code: tx.customer?.customer_code ?? null,
+    updated_at: new Date().toISOString(),
+  });
 
   return NextResponse.json({ ok: true });
 }

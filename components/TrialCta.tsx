@@ -29,7 +29,11 @@ export default function TrialCta({
     access.status === "trial" || access.status === "subscribed"
       ? { label: "Open my app", href: "/app" }
       : access.status === "expired"
-        ? { label: "Subscribe for N1,500 a month", href: "/app" }
+        ? // Three tiers now exist at three prices, so the choice happens on the
+          // one screen that actually shows them (/app's expired screen) rather
+          // than naming a single price here. Still never straight to Paystack:
+          // /app stays the single paywall.
+          { label: "Choose a plan to continue", href: "/app" }
         : { label: "Start my 7-day free trial", href: "/trial" };
 
   return (

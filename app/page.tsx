@@ -17,8 +17,51 @@ import { HeroLanding } from "@/components/ui/hero-1";
 import FeatureCards, { type Feature } from "@/components/ui/feature-cards";
 import HeroDemo from "@/components/ui/hero-demo";
 import { Testimonials } from "@/components/ui/testimonial-v2";
+import { Pricing, type PricingPlan } from "@/components/ui/pricing";
 import CountUp from "@/components/CountUp";
 import TrialCta from "@/components/TrialCta";
+
+const PLANS: PricingPlan[] = [
+  {
+    tier: "basic",
+    name: "GluFloat",
+    price: "N1,500",
+    isPopular: false,
+    description: "7 days free. You do not need a card. Stop any time.",
+    features: [
+      "Check any food, all 1,400+ of them",
+      "A safe meal to eat, picked for you every day",
+      "Build your plate and watch it turn green",
+      "Keep a record of your meals for your doctor",
+      "A gentle reminder before each meal",
+    ],
+  },
+  {
+    tier: "plus",
+    name: "GluFloat Plus",
+    price: "N2,500",
+    isPopular: true,
+    description: "Everything in GluFloat, and meals picked around you.",
+    features: [
+      "Everything in GluFloat",
+      "Tell it your goal: lose weight, gain weight, or build muscle",
+      "Meals matched to how active you are",
+      "Only shown the meals you actually eat in a day",
+    ],
+  },
+  {
+    tier: "dietitian",
+    name: "GluFloat + Dietitian",
+    price: "N4,500",
+    isPopular: false,
+    description: "Everything in Plus, and a real person to ask.",
+    features: [
+      "Everything in GluFloat Plus",
+      "WhatsApp chat with your own in-house dietitian",
+      "A real, independent, licensed professional",
+    ],
+  },
+];
 
 const MARQUEE_FOODS: { name: string; v: "green" | "yellow" | "red" }[] = [
   { name: "Egusi soup", v: "green" },
@@ -399,63 +442,18 @@ export default function Home() {
 
       {/* ============ PRICING ============ */}
       <section id="pricing" className="bg-white py-20 sm:py-24">
-        <div className="mx-auto max-w-4xl px-4 sm:px-6">
-          <Reveal className="text-center">
-            <Label>Price</Label>
-            <h2 className="mt-4 font-display text-3xl font-bold text-ink sm:text-4xl">
-              Less than N50 a day.
-            </h2>
-            <p className="mx-auto mt-4 max-w-xl font-display text-lg leading-relaxed text-ink-soft">
-              One visit to the clinic costs more than a whole year of Glufloat.
-              Start free for 7 days and see for yourself.
-            </p>
+        <div className="mx-auto max-w-5xl px-4 sm:px-6">
+          <Reveal>
+            <Pricing
+              plans={PLANS}
+              title="Plans and pricing"
+              description="7 days free on every plan. You do not need a card. Stop any time."
+            />
           </Reveal>
-
-          <Reveal delay={150}>
-            <div className="mx-auto mt-12 max-w-lg overflow-hidden rounded-3xl border-2 border-brand/20 bg-white shadow-[0_30px_60px_-25px_rgba(27,95,170,0.45)]">
-              <div className="bg-brand px-8 py-5 text-center">
-                <p className="text-sm font-bold uppercase tracking-widest text-white">
-                  Glufloat membership
-                </p>
-              </div>
-              <div className="p-8 text-center">
-                <p className="text-base font-semibold text-leaf-deep">
-                  Your first 7 days are free. You do not need a card.
-                </p>
-                {/* The price, and nothing else. The founder cut the "a month
-                    after that" tail and the "about N50 a day" line: one number,
-                    said once. */}
-                <p className="mt-3 font-display text-5xl font-bold text-ink">
-                  N1,500
-                  <span className="text-lg font-medium text-ink-soft">
-                    /month
-                  </span>
-                </p>
-
-                <ul className="mx-auto mt-6 max-w-sm space-y-3 text-left text-ink">
-                  {[
-                    "Check any food, all 1,400+ of them",
-                    "A safe meal to eat, picked for you every day",
-                    "Build your plate and watch it turn green",
-                    "Keep a record of your meals for your doctor",
-                    "A gentle reminder before each meal",
-                    "Stop any time. It is easy",
-                  ].map((b) => (
-                    <li key={b} className="flex gap-3">
-                      <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-verdict-green/15">
-                        <Check className="h-3 w-3 text-leaf-deep" />
-                      </span>
-                      {b}
-                    </li>
-                  ))}
-                </ul>
-
-                <TrialCta className="group mt-8 flex items-center justify-center gap-2 rounded-full bg-leaf px-8 py-4 text-base font-bold text-white shadow-[0_14px_30px_-10px_rgba(62,155,79,0.6)] hover:bg-leaf-deep transition-all hover:-translate-y-1" />
-                <p className="mt-3 text-sm text-ink-soft">
-                  Nothing is taken from you during the free trial.
-                </p>
-              </div>
-            </div>
+          <Reveal delay={150} className="mt-8 text-center">
+            <p className="text-sm text-ink-soft">
+              One visit to the clinic costs more than a whole year of Glufloat.
+            </p>
           </Reveal>
         </div>
       </section>

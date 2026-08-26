@@ -21,8 +21,15 @@ import CollapsibleCard from "@/components/CollapsibleCard";
 import PushOptIn from "@/components/PushOptIn";
 import WhatsAppChannelCard from "@/components/WhatsAppChannelCard";
 import ChatWithFounder from "@/components/ChatWithFounder";
-import { PAYSTACK_URL, pendingReference, clearPendingReference } from "@/lib/access";
-import { getAccess, type Access } from "@/lib/account";
+import ChatWithDietitian from "@/components/ChatWithDietitian";
+import PersonalizationSettings from "@/components/PersonalizationSettings";
+import { PAYSTACK_URLS, pendingReference, clearPendingReference } from "@/lib/access";
+import {
+  getAccess,
+  canUseGoalPersonalization,
+  canUseDietitianChat,
+  type Access,
+} from "@/lib/account";
 import { trackAppOpen } from "@/lib/usage";
 import { personalGreeting, currentMeal, checkBackMessage } from "@/lib/mealtime";
 import type { Food } from "@/lib/types";
@@ -174,12 +181,21 @@ export default function AppPage() {
 
   // Prefill the buyer's account email on Paystack so the webhook can match the
   // payment to this account.
-  const payUrl = email
-    ? `${PAYSTACK_URL}?email=${encodeURIComponent(email)}`
-    : PAYSTACK_URL;
+  const withEmail = (url: string) =>
+    email ? `${url}?email=${encodeURIComponent(email)}` : url;
 
-  // Trial ended and no active subscription.
+  // Trial ended and no active subscription. This is the SINGLE paywall — the
+  // landing page never links straight to Paystack, it always lands here.
   if (access.status === "expired") {
+    const TIER_COPY: { tier: "basic" | "plus" | "dietitian"; price: string; blurb: string }[] = [
+      { tier: "basic", price: "N1,500", blurb: "Every answer and the full Meal Builder" },
+      { tier: "plus", price: "N2,500", blurb: "Basic, plus meals picked around your goal" },
+      { tier: "dietitian", price: "N4,500", blurb: "Plus, plus WhatsApp chat with a real dietitian" },
+    ];
+    // A renewal is highlighted at the SAME tier they last paid for, never a
+    // silent downgrade to Basic pricing. Someone who never paid starts at
+    // Basic, same as before.
+    const currentTier = access.previousTier ?? "basic";
     return (
       <>
         <SocialProofTicker />
@@ -192,17 +208,33 @@ export default function AppPage() {
               {access.lapsed ? "Your month is over." : "Your free trial is over."}
             </h1>
             <p className="mt-2 text-sm leading-relaxed text-ink-soft">
-              Keep every answer and the full Meal Builder for N1,500 a month,
-              about N50 a day. Cancel any time.
+              Choose a plan to keep Glufloat. Cancel any time.
             </p>
-            <a
-              href={payUrl}
-              className="mt-6 inline-block w-full rounded-full bg-brand px-6 py-3.5 text-sm font-bold text-white transition-colors hover:bg-brand-deep"
-            >
-              {access.lapsed
-                ? "Renew for N1,500 / month"
-                : "Subscribe for N1,500 / month"}
-            </a>
+            <div className="mt-6 space-y-3">
+              {TIER_COPY.map((t) => (
+                <a
+                  key={t.tier}
+                  href={withEmail(PAYSTACK_URLS[t.tier])}
+                  className={`block rounded-2xl border p-4 text-left transition-colors ${
+                    t.tier === currentTier
+                      ? "border-brand bg-brand/5"
+                      : "border-line hover:border-brand/40"
+                  }`}
+                >
+                  <span className="flex items-center justify-between">
+                    <span className="font-display text-sm font-bold text-ink">
+                      {t.price} / month
+                    </span>
+                    {t.tier === currentTier && (
+                      <span className="rounded-full bg-brand px-2.5 py-0.5 text-xs font-bold text-white">
+                        {access.lapsed ? "Renew" : "Your plan"}
+                      </span>
+                    )}
+                  </span>
+                  <span className="mt-1 block text-sm text-ink-soft">{t.blurb}</span>
+                </a>
+              ))}
+            </div>
           </div>
         </main>
         <Footer />
@@ -228,6 +260,11 @@ export default function AppPage() {
   // door the next morning. daysLeft is TRIAL_DAYS on the start day, so 1 is the last
   // day whatever the length.
   const trialEnding = access.status === "trial" && access.daysLeft <= 1;
+  const renewPriceLabel =
+    access.status === "subscribed"
+      ? { basic: "N1,500", plus: "N2,500", dietitian: "N4,500" }[access.tier]
+      : "";
+  const renewUrl = access.status === "subscribed" ? withEmail(PAYSTACK_URLS[access.tier]) : "";
 
   return (
     <>
@@ -239,18 +276,20 @@ export default function AppPage() {
       {renewSoon && (
         <div className="fixed inset-x-0 top-24 z-40 bg-verdict-yellow/95 px-4 py-2.5 text-center text-sm font-semibold text-ink shadow-md">
           Your month ends in {access.daysLeft} {access.daysLeft === 1 ? "day" : "days"}.{" "}
-          <a href={payUrl} className="underline hover:text-brand-deep">
-            Renew for N1,500 to keep Glufloat.
+          <a href={renewUrl} className="underline hover:text-brand-deep">
+            Renew for {renewPriceLabel} to keep Glufloat.
           </a>
         </div>
       )}
 
-      {/* The two banners cannot both show: one is trial, the other subscribed. */}
+      {/* The two banners cannot both show: one is trial, the other subscribed.
+          Trial previewed goal-based personalization across all 3 plans, so the
+          banner sends them to compare plans rather than assuming one tier. */}
       {trialEnding && (
         <div className="fixed inset-x-0 top-24 z-40 bg-verdict-yellow/95 px-4 py-2.5 text-center text-sm font-semibold text-ink shadow-md">
           Your free trial ends tomorrow.{" "}
-          <a href={payUrl} className="underline hover:text-brand-deep">
-            Subscribe for N1,500 to keep Glufloat.
+          <a href="/#pricing" className="underline hover:text-brand-deep">
+            Choose a plan to keep Glufloat.
           </a>
         </div>
       )}
@@ -281,7 +320,12 @@ export default function AppPage() {
 
           {/* Level 1: the answer they came for, owning the first screen. */}
           <div className="mt-6 space-y-4">
-            <TodaysMeal onBuild={buildMeal} />
+            <TodaysMeal onBuild={buildMeal} personalize={canUseGoalPersonalization(access)} />
+
+            {/* Meal pattern is free on every tier; goal/activity chips only
+                appear for someone who can actually use them (Plus, Dietitian,
+                or previewing in trial) — a Basic user never sees a dead field. */}
+            <PersonalizationSettings showGoals={canUseGoalPersonalization(access)} />
 
             {/* Straight under the answer, because a reading is the one thing
                 only this person can tell us, and the app can say nothing about
@@ -394,6 +438,9 @@ export default function AppPage() {
           </div>
 
           <div className="mt-6 space-y-3">
+            {/* Dietitian tier only, never during trial — canUseDietitianChat
+                is false for every trial Access value by construction. */}
+            {canUseDietitianChat(access) && <ChatWithDietitian />}
             <HabitStreak />
             <PushOptIn />
             <WhatsAppChannelCard />

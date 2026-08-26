@@ -11,6 +11,19 @@ import { planForDay, type MealIdea } from "@/lib/nextMeal";
 import { loggedFoodCounts, likedFoodCounts } from "@/lib/history";
 import { trackUsage } from "@/lib/usage";
 import type { Food } from "@/lib/types";
+import { nextEatenMeal } from "@/lib/mealPattern";
+import {
+  readPersonalizationProfile,
+  PERSONALIZATION_CHANGED,
+  type PersonalizationProfile,
+} from "@/lib/personalizationProfile";
+import { biasVector, type PlateAxes } from "@/lib/personalization";
+
+const NO_PROFILE: PersonalizationProfile = {
+  goals: [],
+  activityLevel: null,
+  mealPattern: ["breakfast", "lunch", "dinner"],
+};
 
 const MEAL_ICON = {
   breakfast: Sunrise,
@@ -124,7 +137,14 @@ const HEADING = {
  * Names are kept plain here, so a card never reads "Titus / Mackerel / Tilapia";
  * the full detail is on the food's own card in the builder.
  */
-export default function TodaysMeal({ onBuild }: { onBuild: (foods: Food[]) => void }) {
+export default function TodaysMeal({
+  onBuild,
+  personalize = false,
+}: {
+  onBuild: (foods: Food[]) => void;
+  /** canUseGoalPersonalization(access) — trial previews it, Basic never sees it. */
+  personalize?: boolean;
+}) {
   const [meal, setMeal] = useState<NamedMeal | null>(null);
   const [idea, setIdea] = useState<MealIdea | null>(null);
   const [offset, setOffset] = useState(0);
@@ -135,14 +155,35 @@ export default function TodaysMeal({ onBuild }: { onBuild: (foods: Food[]) => vo
   // without being torn down and rebuilt on every change.
   const countsRef = useRef<Map<string, number>>(new Map());
   const likedRef = useRef<Map<string, number>>(new Map());
+  // Meal pattern (which meals this person eats) is free on every tier, so it
+  // is fetched regardless of `personalize`; the goal/activity vector below is
+  // only ever computed when `personalize` is true.
+  const profileRef = useRef<PersonalizationProfile>(NO_PROFILE);
   const nowRef = useRef<{ meal: NamedMeal | null; day: string }>({
     meal: null,
     day: "",
   });
 
+  const bias = useCallback(
+    (): PlateAxes | null =>
+      personalize
+        ? biasVector({
+            goals: profileRef.current.goals,
+            activityLevel: profileRef.current.activityLevel,
+          })
+        : null,
+    [personalize],
+  );
+
   const plan = useCallback(
-    (m: NamedMeal, dk: string, c: Map<string, number>, l: Map<string, number>) => {
-      const next = planForDay(m, dk, c, 0, toAvoid(m, dk), l);
+    (
+      m: NamedMeal,
+      dk: string,
+      c: Map<string, number>,
+      l: Map<string, number>,
+      b: PlateAxes | null,
+    ) => {
+      const next = planForDay(m, dk, c, 0, toAvoid(m, dk), l, b);
       setIdea(next);
       setOffset(0);
       writeShown(m, dk, next.index);
@@ -151,22 +192,33 @@ export default function TodaysMeal({ onBuild }: { onBuild: (foods: Food[]) => vo
   );
 
   useEffect(() => {
-    const m = currentMeal();
+    // Pattern not loaded yet: default is all three meals, so this reproduces
+    // today's behaviour exactly until the real profile arrives below.
+    const raw = currentMeal();
     const dk = localDayKey();
-    nowRef.current = { meal: m, day: dk };
-    setMeal(m);
+    nowRef.current = { meal: raw, day: dk };
+    setMeal(raw);
     setDayKey(dk);
-    plan(m, dk, new Map(), new Map());
-    // What they eat, and what they eat that is good for them. Two small reads,
-    // then one re-plan, so the card is on screen before either lands.
-    Promise.all([loggedFoodCounts(), likedFoodCounts()]).then(([c, l]) => {
-      countsRef.current = c;
-      likedRef.current = l;
-      setCounts(c);
-      setLiked(l);
-      plan(m, dk, c, l);
-    });
-  }, [plan]);
+    plan(raw, dk, new Map(), new Map(), null);
+    // What they eat, what they eat that is good for them, and their
+    // meal/goal/activity settings. Three small reads, then one re-plan, so the
+    // card is on screen before any of them land.
+    Promise.all([loggedFoodCounts(), likedFoodCounts(), readPersonalizationProfile()]).then(
+      ([c, l, profile]) => {
+        countsRef.current = c;
+        likedRef.current = l;
+        profileRef.current = profile;
+        setCounts(c);
+        setLiked(l);
+        const resolved = nextEatenMeal(profile.mealPattern, currentMeal());
+        const dk2 = localDayKey();
+        nowRef.current = { meal: resolved, day: dk2 };
+        setMeal(resolved);
+        setDayKey(dk2);
+        plan(resolved, dk2, c, l, bias());
+      },
+    );
+  }, [plan, bias]);
 
   /**
    * The meal must follow the clock, not the page load. A phone left open on the
@@ -175,17 +227,37 @@ export default function TodaysMeal({ onBuild }: { onBuild: (foods: Food[]) => vo
    */
   useEffect(() => {
     const id = setInterval(() => {
-      const m = currentMeal();
+      const raw = currentMeal();
       const dk = localDayKey();
+      const resolved = nextEatenMeal(profileRef.current.mealPattern, raw);
       const was = nowRef.current;
-      if (was.meal === null || (m === was.meal && dk === was.day)) return;
-      nowRef.current = { meal: m, day: dk };
-      setMeal(m);
+      if (was.meal === null || (resolved === was.meal && dk === was.day)) return;
+      nowRef.current = { meal: resolved, day: dk };
+      setMeal(resolved);
       setDayKey(dk);
-      plan(m, dk, countsRef.current, likedRef.current);
+      plan(resolved, dk, countsRef.current, likedRef.current, bias());
     }, 60_000);
     return () => clearInterval(id);
-  }, [plan]);
+  }, [plan, bias]);
+
+  // Saving a new goal/activity/meal-pattern in PersonalizationSettings should
+  // reshape today's meal immediately, not after a reload — same pattern as
+  // INTAKE_CHANGED elsewhere in the app.
+  useEffect(() => {
+    function onChanged() {
+      readPersonalizationProfile().then((profile) => {
+        profileRef.current = profile;
+        const cur = nowRef.current;
+        if (cur.meal === null) return;
+        const resolved = nextEatenMeal(profile.mealPattern, cur.meal);
+        nowRef.current = { meal: resolved, day: cur.day };
+        setMeal(resolved);
+        plan(resolved, cur.day, countsRef.current, likedRef.current, bias());
+      });
+    }
+    window.addEventListener(PERSONALIZATION_CHANGED, onChanged);
+    return () => window.removeEventListener(PERSONALIZATION_CHANGED, onChanged);
+  }, [plan, bias]);
 
   if (!meal || !idea || idea.foods.length === 0) return null;
 
@@ -197,7 +269,7 @@ export default function TodaysMeal({ onBuild }: { onBuild: (foods: Food[]) => vo
     writeSkipped(meal, idea.index);
     const n = offset + 1;
     setOffset(n);
-    const next = planForDay(meal, dayKey, counts, n, toAvoid(meal, dayKey), liked);
+    const next = planForDay(meal, dayKey, counts, n, toAvoid(meal, dayKey), liked, bias());
     setIdea(next);
     writeShown(meal, dayKey, next.index);
   };

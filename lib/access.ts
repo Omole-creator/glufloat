@@ -10,14 +10,29 @@
  * a per-device preference and has nothing to do with access.
  */
 
+import type { Tier } from "@/lib/pricing";
+
 /**
- * A one-time payment page, not a subscription page. Paystack cannot offer Pay
+ * One-time payment pages, not subscription pages. Paystack cannot offer Pay
  * with Transfer or Pay with USSD on a recurring plan (neither channel can be
  * charged again automatically), so a subscription page only ever showed card.
- * The webhook grants 30 days per `charge.success`, so nothing depended on
+ * The webhook grants 30 days per `charge.success`, so nothing depends on
  * Paystack's own recurring billing.
+ *
+ * Three tiers, three FIXED-amount hosted pages — each page's amount is what
+ * lib/pricing.ts's tierForAmount() reads to tell them apart, so these two
+ * files must always agree with what is actually configured in the Paystack
+ * dashboard. `plus` and `dietitian` are placeholders until those two pages
+ * are created there (see the plan's Paystack checkpoint).
  */
-export const PAYSTACK_URL = "https://paystack.shop/pay/glufloat-monthly";
+export const PAYSTACK_URLS: Record<Tier, string> = {
+  basic: "https://paystack.shop/pay/glufloat-monthly",
+  plus: "https://paystack.shop/pay/glufloat-plus",
+  dietitian: "https://paystack.shop/pay/glufloat-dietitian",
+};
+
+/** Kept for any code that has not moved to PAYSTACK_URLS yet. Same value as basic. */
+export const PAYSTACK_URL = PAYSTACK_URLS.basic;
 
 const K_DISCLAIMER = "gf_disclaimer_ok";
 /**

@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { createAdminClient } from "@/lib/supabase/server";
+import { tierForAmount } from "@/lib/pricing";
+import { upsertSubscription } from "@/lib/subscriptionWrite";
 
 export const dynamic = "force-dynamic";
 
@@ -64,34 +66,30 @@ export async function POST(request: Request) {
       { onConflict: "reference" },
     );
     if (uid) {
-      await admin.from("subscriptions").upsert(
-        {
-          user_id: uid,
-          status: "active",
-          current_period_end: new Date(Date.now() + MONTH_MS).toISOString(),
-          amount: data.amount,
-          paystack_customer_code: data.customer?.customer_code ?? null,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: "user_id" },
-      );
+      await upsertSubscription(admin, {
+        user_id: uid,
+        status: "active",
+        current_period_end: new Date(Date.now() + MONTH_MS).toISOString(),
+        amount: data.amount,
+        tier: tierForAmount(data.amount),
+        paystack_customer_code: data.customer?.customer_code ?? null,
+        updated_at: new Date().toISOString(),
+      });
     }
   } else if (type === "subscription.create") {
     const uid = await payerUserId();
     if (uid) {
-      await admin.from("subscriptions").upsert(
-        {
-          user_id: uid,
-          status: "active",
-          current_period_end:
-            data.next_payment_date || new Date(Date.now() + MONTH_MS).toISOString(),
-          amount: data.amount ?? null,
-          paystack_customer_code: data.customer?.customer_code ?? null,
-          paystack_sub_code: data.subscription_code ?? null,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: "user_id" },
-      );
+      await upsertSubscription(admin, {
+        user_id: uid,
+        status: "active",
+        current_period_end:
+          data.next_payment_date || new Date(Date.now() + MONTH_MS).toISOString(),
+        amount: data.amount ?? null,
+        tier: tierForAmount(data.amount),
+        paystack_customer_code: data.customer?.customer_code ?? null,
+        paystack_sub_code: data.subscription_code ?? null,
+        updated_at: new Date().toISOString(),
+      });
     }
   } else if (type === "subscription.disable" || type === "subscription.not_renew") {
     const uid = await payerUserId();

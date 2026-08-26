@@ -2,6 +2,7 @@ import { getFood } from "./search";
 import type { Food } from "./types";
 import type { NamedMeal } from "./mealtime";
 import { cleanFoodName } from "./foodName";
+import { biasScore, type PlateAxes } from "./personalization";
 
 /**
  * Safe meal ideas to suggest for the meal happening right now.
@@ -242,6 +243,14 @@ function stride(n: number): number {
  * is handled as an avoid rather than a re-score. If either changed the order
  * daily, the stride could walk onto yesterday's plate, and the no-repeat rule is
  * the one that must not break.
+ *
+ * `bias` (Plus/Dietitian tier, and previewed during the 7-day trial) is an
+ * optional GOAL/ACTIVITY tiebreak on top of the same stable order — see
+ * lib/personalization.ts. It never changes which plates are eligible (every
+ * idea here is already GREEN by construction) and it never touches the
+ * no-repeat stride below; it only nudges the ORDER a little further, the same
+ * way `liked` already does. Omitting it (the default) reproduces today's
+ * behaviour exactly.
  */
 export function planForDay(
   meal: NamedMeal,
@@ -250,6 +259,7 @@ export function planForDay(
   offset = 0,
   avoidIndexes: number[] = [],
   liked: Map<string, number> = new Map(),
+  bias: PlateAxes | null = null,
 ): MealIdea {
   const list = IDEAS[meal];
   const n = list.length;
@@ -258,8 +268,11 @@ export function planForDay(
   // Stable order: least-eaten first, ties broken by a fixed per-idea hash (NOT
   // day-dependent, so the order only shifts when the person's eating changes).
   // A food they logged as green counts for a little less, so a plate they like
-  // and that is good for them does not drift all the way to the back.
+  // and that is good for them does not drift all the way to the back. A goal
+  // bias, when present, nudges the same score by a bounded amount — enough to
+  // matter, never enough to override the day's stride or the avoid list.
   const LIKED_DISCOUNT = 0.5;
+  const GOAL_BIAS_WEIGHT = 2;
   const scored = list.map((_, i) => {
     const idea = resolve(meal, i);
     const eaten = idea.foods.reduce(
@@ -269,7 +282,8 @@ export function planForDay(
         LIKED_DISCOUNT * (liked.get(f.name) ?? 0),
       0,
     );
-    return { idea, eaten, tie: hash(`${meal}#${i}`) };
+    const goalAdjust = bias ? GOAL_BIAS_WEIGHT * biasScore(idea.foods, bias) : 0;
+    return { idea, eaten: eaten + goalAdjust, tie: hash(`${meal}#${i}`) };
   });
   scored.sort((a, b) => a.eaten - b.eaten || a.tie - b.tie);
 
