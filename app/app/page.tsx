@@ -20,10 +20,10 @@ import TypewriterHeadline from "@/components/TypewriterHeadline";
 import CollapsibleCard from "@/components/CollapsibleCard";
 import PushOptIn from "@/components/PushOptIn";
 import WhatsAppChannelCard from "@/components/WhatsAppChannelCard";
-import ChatWithFounder from "@/components/ChatWithFounder";
 import ChatWithDietitian from "@/components/ChatWithDietitian";
 import PersonalizationSettings from "@/components/PersonalizationSettings";
 import { PAYSTACK_URLS, pendingReference, clearPendingReference } from "@/lib/access";
+import { TIER_LABEL } from "@/lib/pricing";
 import {
   getAccess,
   canUseGoalPersonalization,
@@ -190,7 +190,7 @@ export default function AppPage() {
     const TIER_COPY: { tier: "basic" | "plus" | "dietitian"; price: string; blurb: string }[] = [
       { tier: "basic", price: "N1,500", blurb: "Every answer and the full Meal Builder" },
       { tier: "plus", price: "N2,500", blurb: "Basic, plus meals picked around your goal" },
-      { tier: "dietitian", price: "N4,500", blurb: "Plus, plus WhatsApp chat with a real dietitian" },
+      { tier: "dietitian", price: "N4,500", blurb: "Plus, and a dietitian in your corner" },
     ];
     // A renewal is highlighted at the SAME tier they last paid for, never a
     // silent downgrade to Basic pricing. Someone who never paid starts at
@@ -223,7 +223,7 @@ export default function AppPage() {
                 >
                   <span className="flex items-center justify-between">
                     <span className="font-display text-sm font-bold text-ink">
-                      {t.price} / month
+                      {TIER_LABEL[t.tier]} — {t.price} / month
                     </span>
                     {t.tier === currentTier && (
                       <span className="rounded-full bg-brand px-2.5 py-0.5 text-xs font-bold text-white">
@@ -245,14 +245,17 @@ export default function AppPage() {
   // anon/new are redirected in the effect; only trial/subscribed render here.
   if (access.status !== "trial" && access.status !== "subscribed") return null;
 
+  // The badge names the actual plan a subscriber is on, not just "Membership"
+  // — someone paying for Plus or Premium should see that reflected, not a
+  // generic label that reads the same for every tier.
   const badge =
     access.status === "trial"
       ? { label: `Free trial: ${access.daysLeft} ${access.daysLeft === 1 ? "day" : "days"} left`, tone: "bg-verdict-green/15 text-leaf-deep" }
       : {
           label:
             access.daysLeft > 366
-              ? "Membership: active"
-              : `Membership: ${access.daysLeft} ${access.daysLeft === 1 ? "day" : "days"} left`,
+              ? `${TIER_LABEL[access.tier]}: active`
+              : `${TIER_LABEL[access.tier]}: ${access.daysLeft} ${access.daysLeft === 1 ? "day" : "days"} left`,
           tone: "bg-brand/10 text-brand-deep",
         };
   const renewSoon = access.status === "subscribed" && access.daysLeft <= 5;
@@ -322,8 +325,15 @@ export default function AppPage() {
           <div className="mt-6 space-y-4">
             <TodaysMeal onBuild={buildMeal} personalize={canUseGoalPersonalization(access)} />
 
+            {/* Premium's flagship perk sits right under the meal, not buried
+                near the bottom of the page — someone paying extra for it
+                should never have to hunt for where to use it. Dietitian tier
+                only, never during trial (canUseDietitianChat is false for
+                every trial Access value by construction). */}
+            {canUseDietitianChat(access) && <ChatWithDietitian />}
+
             {/* Meal pattern is free on every tier; goal/activity chips only
-                appear for someone who can actually use them (Plus, Dietitian,
+                appear for someone who can actually use them (Plus, Premium,
                 or previewing in trial) — a Basic user never sees a dead field. */}
             <PersonalizationSettings showGoals={canUseGoalPersonalization(access)} />
 
@@ -438,17 +448,12 @@ export default function AppPage() {
           </div>
 
           <div className="mt-6 space-y-3">
-            {/* Dietitian tier only, never during trial — canUseDietitianChat
-                is false for every trial Access value by construction. */}
-            {canUseDietitianChat(access) && <ChatWithDietitian />}
             <HabitStreak />
             <PushOptIn />
             <WhatsAppChannelCard />
           </div>
         </div>
       </main>
-
-      <ChatWithFounder />
 
       <Footer />
     </>

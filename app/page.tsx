@@ -31,7 +31,7 @@ const PLANS: PricingPlan[] = [
     features: [
       "Check any food, all 1,400+ of them",
       "A safe meal to eat, picked for you every day",
-      "Build your plate and watch it turn green",
+      "Put together a whole meal and see if it works for you",
       "Keep a record of your meals for your doctor",
       "A gentle reminder before each meal",
     ],
@@ -44,21 +44,21 @@ const PLANS: PricingPlan[] = [
     description: "Everything in GluFloat, and meals picked around you.",
     features: [
       "Everything in GluFloat",
-      "Tell it your goal: lose weight, gain weight, or build muscle",
-      "Meals matched to how active you are",
-      "Only shown the meals you actually eat in a day",
+      "Meals shaped around your goal, whatever it is",
+      "Meals that match how active you are",
+      "Skips any meal you do not eat, like lunch if you only eat twice a day",
     ],
   },
   {
     tier: "dietitian",
-    name: "GluFloat + Dietitian",
+    name: "GluFloat Premium",
     price: "N4,500",
     isPopular: false,
-    description: "Everything in Plus, and a real person to ask.",
+    description: "Everything in Plus, and a dietitian in your corner.",
     features: [
       "Everything in GluFloat Plus",
-      "WhatsApp chat with your own in-house dietitian",
-      "A real, independent, licensed professional",
+      "Direct, personal access to your own dietitian",
+      "Someone who knows Nigerian food inside out",
     ],
   },
 ];

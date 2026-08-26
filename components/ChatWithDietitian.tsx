@@ -46,7 +46,7 @@ export default function ChatWithDietitian() {
           Chat with your dietitian
         </span>
         <span className="block text-sm text-ink-soft">
-          A real, independent dietitian, on WhatsApp
+          Opens WhatsApp, straight to your own dietitian
         </span>
       </span>
     </a>

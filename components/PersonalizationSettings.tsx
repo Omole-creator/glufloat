@@ -75,11 +75,14 @@ export default function PersonalizationSettings({ showGoals }: { showGoals: bool
   const toggleGoal = (g: Goal) =>
     setGoals((cur) => (cur.includes(g) ? cur.filter((x) => x !== g) : [...cur, g]));
 
+  // Free choice of any combination, including all 3 or just 1. An empty
+  // selection is not blocked here — normalizeMealPattern (lib/mealPattern.ts)
+  // already treats "nothing set" as "eats all 3", so there is nothing unsafe
+  // about letting someone freely toggle every chip. The earlier version
+  // silently refused the last remaining chip to avoid an empty state, which
+  // just looked like the third meal did not respond to a click.
   const toggleMeal = (m: NamedMeal) =>
-    setMealPattern((cur) => {
-      const next = cur.includes(m) ? cur.filter((x) => x !== m) : [...cur, m];
-      return next.length > 0 ? next : cur; // never let it go empty
-    });
+    setMealPattern((cur) => (cur.includes(m) ? cur.filter((x) => x !== m) : [...cur, m]));
 
   const save = async () => {
     setSaved(false);

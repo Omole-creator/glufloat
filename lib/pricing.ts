@@ -38,8 +38,10 @@ export function tierForAmount(amountKobo: number | null | undefined): Tier {
   return "basic";
 }
 
+// Display names only. The stored enum value stays "dietitian" (it is already
+// live in the database) — only what a person READS changed to "Premium".
 export const TIER_LABEL: Record<Tier, string> = {
   basic: "GluFloat",
   plus: "GluFloat Plus",
-  dietitian: "GluFloat + Dietitian",
+  dietitian: "GluFloat Premium",
 };

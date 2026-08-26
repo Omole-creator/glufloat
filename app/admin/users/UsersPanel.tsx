@@ -38,6 +38,12 @@ export default function UsersPanel({
   const [q, setQ] = useState("");
   const [savingId, setSavingId] = useState("");
   const [error, setError] = useState("");
+  // The row currently being edited, and its in-progress values. Only one row
+  // at a time, so a half-edited name is never left ambiguous about which
+  // account it belongs to.
+  const [editingId, setEditingId] = useState("");
+  const [draft, setDraft] = useState({ name: "", email: "", phone: "" });
+  const [deletingId, setDeletingId] = useState("");
 
   const shown = useMemo(() => {
     const needle = q.trim().toLowerCase();
@@ -72,6 +78,62 @@ export default function UsersPanel({
     setSavingId("");
     if (!res.ok) {
       setError(json.error ?? "Could not change it. Try again.");
+      return;
+    }
+    router.refresh();
+  }
+
+  function startEdit(r: UserRow) {
+    setEditingId(r.id);
+    setDraft({ name: r.name, email: r.email, phone: r.phone });
+    setError("");
+  }
+
+  function cancelEdit() {
+    setEditingId("");
+  }
+
+  /** Saves name, email, and phone together — whatever changed. */
+  async function saveEdit(id: string) {
+    setSavingId(id);
+    setError("");
+    const res = await fetch("/api/admin/users", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, name: draft.name, email: draft.email, phone: draft.phone }),
+    });
+    const json = await res.json().catch(() => ({}));
+    setSavingId("");
+    if (!res.ok) {
+      setError(json.error ?? "Could not save it. Try again.");
+      return;
+    }
+    setEditingId("");
+    router.refresh();
+  }
+
+  /**
+   * Deletes the real login, not just the row on screen — irreversible, so a
+   * plain browser confirm is the friction between one misclick and a gone
+   * account. The name and email are put in the prompt on purpose, so
+   * whoever clicks has to actually read who they are removing.
+   */
+  async function deleteUser(r: UserRow) {
+    const sure = window.confirm(
+      `Delete ${r.name || r.email} (${r.email}) for good?\n\nThis removes their login and everything tied to it. It cannot be undone.`,
+    );
+    if (!sure) return;
+    setDeletingId(r.id);
+    setError("");
+    const res = await fetch("/api/admin/users", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: r.id }),
+    });
+    const json = await res.json().catch(() => ({}));
+    setDeletingId("");
+    if (!res.ok) {
+      setError(json.error ?? "Could not delete them. Try again.");
       return;
     }
     router.refresh();
@@ -151,19 +213,49 @@ export default function UsersPanel({
                 <th className={th}>Joined</th>
                 <th className={th}>Trial</th>
                 <th className={th}>Paying</th>
+                <th className={th}>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {shown.map((r) => (
+              {shown.map((r) => {
+                const editing = editingId === r.id;
+                return (
                 <tr key={r.id} className="border-b border-line last:border-0">
-                  <td className={`${td} font-display font-bold`}>{r.name || "—"}</td>
-                  <td className={td}>
-                    <a href={`mailto:${r.email}`} className="text-brand hover:underline">
-                      {r.email}
-                    </a>
+                  <td className={`${td} font-display font-bold`}>
+                    {editing ? (
+                      <input
+                        value={draft.name}
+                        onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
+                        aria-label="Name"
+                        className="w-full rounded-lg border-2 border-line bg-white px-2 py-1 text-sm outline-none focus:border-brand"
+                      />
+                    ) : (
+                      r.name || "—"
+                    )}
                   </td>
                   <td className={td}>
-                    {r.phone ? (
+                    {editing ? (
+                      <input
+                        value={draft.email}
+                        onChange={(e) => setDraft((d) => ({ ...d, email: e.target.value }))}
+                        aria-label="Email"
+                        className="w-full rounded-lg border-2 border-line bg-white px-2 py-1 text-sm outline-none focus:border-brand"
+                      />
+                    ) : (
+                      <a href={`mailto:${r.email}`} className="text-brand hover:underline">
+                        {r.email}
+                      </a>
+                    )}
+                  </td>
+                  <td className={td}>
+                    {editing ? (
+                      <input
+                        value={draft.phone}
+                        onChange={(e) => setDraft((d) => ({ ...d, phone: e.target.value }))}
+                        aria-label="Phone"
+                        className="w-full rounded-lg border-2 border-line bg-white px-2 py-1 text-sm outline-none focus:border-brand"
+                      />
+                    ) : r.phone ? (
                       <>
                         <a href={`tel:${r.phone}`} className="text-brand hover:underline">
                           {r.phone}
@@ -216,8 +308,44 @@ export default function UsersPanel({
                       <span className="text-ink-soft">—</span>
                     )}
                   </td>
+                  <td className={td}>
+                    {editing ? (
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => saveEdit(r.id)}
+                          disabled={savingId === r.id}
+                          className="rounded-lg bg-leaf px-3 py-1.5 text-xs font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                        >
+                          {savingId === r.id ? "Saving…" : "Save"}
+                        </button>
+                        <button
+                          onClick={cancelEdit}
+                          className="rounded-lg border border-line bg-white px-3 py-1.5 text-xs font-bold text-ink-soft hover:border-brand"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => startEdit(r)}
+                          className="rounded-lg border border-line bg-white px-3 py-1.5 text-xs font-bold text-ink-soft hover:border-brand hover:text-brand"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => deleteUser(r)}
+                          disabled={deletingId === r.id}
+                          className="rounded-lg border border-v-red/30 bg-white px-3 py-1.5 text-xs font-bold text-v-red transition-opacity hover:bg-v-red/10 disabled:opacity-50"
+                        >
+                          {deletingId === r.id ? "Deleting…" : "Delete"}
+                        </button>
+                      </div>
+                    )}
+                  </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>
