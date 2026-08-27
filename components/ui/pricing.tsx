@@ -25,6 +25,7 @@ export interface PricingPlan {
   tier: "basic" | "plus" | "dietitian";
   name: string;
   price: string;
+  intro?: string;
   features: string[];
   description: string;
   isPopular: boolean;
@@ -119,8 +120,18 @@ export function Pricing({
               </span>
             </p>
 
+            {plan.intro && (
+              <p
+                className={`relative mt-6 text-left text-sm font-semibold ${
+                  plan.isPopular ? "text-white" : "text-ink"
+                }`}
+              >
+                {plan.intro}
+              </p>
+            )}
+
             <ul
-              className={`relative mx-auto mt-6 flex-1 space-y-3 text-left text-sm ${
+              className={`relative ${plan.intro ? "mt-3" : "mt-6"} mx-auto flex-1 space-y-3 text-left text-sm ${
                 plan.isPopular ? "text-white" : "text-ink"
               }`}
             >

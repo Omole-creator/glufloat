@@ -101,10 +101,11 @@ export default function PersonalizationSettings({ showGoals }: { showGoals: bool
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand/10 text-brand ring-1 ring-inset ring-brand/15">
           <Target className="h-4.5 w-4.5" strokeWidth={2.2} />
         </span>
-        <p className="font-display text-base font-bold text-ink">Make this fit you</p>
+        <p className="font-display text-base font-bold text-ink">Make GluFloat fit you</p>
       </div>
 
       <p className="mt-3 text-sm font-semibold text-ink-soft">Which meals do you eat?</p>
+      <p className="mt-0.5 text-xs text-ink-soft">Select all that apply.</p>
       <div className="mt-2 flex flex-wrap gap-2">
         {MEALS.map((m) => (
           <Chip key={m} active={mealPattern.includes(m)} onClick={() => toggleMeal(m)}>
@@ -115,9 +116,8 @@ export default function PersonalizationSettings({ showGoals }: { showGoals: bool
 
       {showGoals && (
         <>
-          <p className="mt-4 text-sm font-semibold text-ink-soft">
-            Your goal (pick as many as apply)
-          </p>
+          <p className="mt-4 text-sm font-semibold text-ink-soft">What are your goals?</p>
+          <p className="mt-0.5 text-xs text-ink-soft">Select all that apply.</p>
           <div className="mt-2 flex flex-wrap gap-2">
             {GOALS.map((g) => (
               <Chip key={g} active={goals.includes(g)} onClick={() => toggleGoal(g)}>

@@ -29,9 +29,9 @@ export const GOAL_LABEL: Record<Goal, string> = {
 };
 
 export const ACTIVITY_LABEL: Record<ActivityLevel, string> = {
-  sedentary: "Mostly sitting, not much exercise",
-  moderate: "Some activity most days",
-  active: "Exercise most days, or an active job",
+  sedentary: "Mostly sitting or little exercise",
+  moderate: "I move around regularly",
+  active: "I exercise regularly or have a physically active job",
 };
 
 export interface PlateAxes {
