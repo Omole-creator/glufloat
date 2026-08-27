@@ -4,7 +4,9 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ChevronsLeft, ChevronsRight } from "lucide-react";
-import type { DashboardTabDef } from "./DashboardNav";
+import { DashboardNavItems, type DashboardTabDef } from "./DashboardNavItems";
+
+export type { DashboardTabDef };
 
 const SIDEBAR_OPEN_KEY = "gf_sidebar_open";
 
@@ -13,9 +15,9 @@ const SIDEBAR_OPEN_KEY = "gf_sidebar_open";
  * icon-only rail, so /app reads as a dashboard on a wide screen instead of
  * one long scroll. This is purely additive alongside the existing
  * DashboardNav: both drive the exact same `activeTab` state from
- * app/app/page.tsx, so no panel logic changes. Hidden below `md` — the
- * phone experience keeps the horizontal DashboardNav, already built and
- * tested, unchanged.
+ * app/app/page.tsx, and both render rows via the shared DashboardNavItems,
+ * so mobile and desktop share one visual identity. Hidden below `md` — the
+ * phone gets its own DashboardNav using the same rows in a plain card.
  */
 export default function DashboardSidebar({
   tabs,
@@ -68,29 +70,8 @@ export default function DashboardSidebar({
         )}
       </Link>
 
-      <nav className="flex-1 space-y-1">
-        {tabs.map((t) => {
-          const isActive = t.id === active;
-          return (
-            <button
-              key={t.id}
-              type="button"
-              onClick={() => onSelect(t.id)}
-              aria-pressed={isActive}
-              title={t.label}
-              className={`flex h-11 w-full items-center gap-3 rounded-xl border-l-2 px-2.5 text-left transition-colors ${
-                isActive
-                  ? "border-brand bg-brand/10 text-brand"
-                  : "border-transparent text-ink-soft hover:bg-mist hover:text-ink"
-              }`}
-            >
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center">
-                {t.icon}
-              </span>
-              {open && <span className="truncate text-sm font-semibold">{t.label}</span>}
-            </button>
-          );
-        })}
+      <nav className="flex-1">
+        <DashboardNavItems tabs={tabs} active={active} onSelect={onSelect} compact={!open} />
       </nav>
 
       <button

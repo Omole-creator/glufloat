@@ -2,7 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Blocks, ClipboardList, Clock, Search, Target, TrendingUp } from "lucide-react";
+import {
+  Blocks,
+  ClipboardList,
+  Clock,
+  Search,
+  Stethoscope,
+  Target,
+  TrendingUp,
+} from "lucide-react";
 import Navbar from "@/components/Navbar";
 import SocialProofTicker from "@/components/SocialProofTicker";
 import Footer from "@/components/Footer";
@@ -37,14 +45,40 @@ import { trackAppOpen } from "@/lib/usage";
 import { personalGreeting, checkBackMessage } from "@/lib/mealtime";
 import type { Food } from "@/lib/types";
 
-type DashboardTabId = "search" | "meal" | "report" | "personalize" | "progress";
+type DashboardTabId =
+  | "personalize"
+  | "search"
+  | "meal"
+  | "report"
+  | "dietitian"
+  | "progress";
 
 /** Remembered on this device so a returning visitor lands where they left off. */
 const DASHBOARD_TAB_KEY = "gf_dashboard_tab";
 const DEFAULT_TAB: DashboardTabId = "search";
-const TAB_IDS: DashboardTabId[] = ["search", "meal", "report", "personalize", "progress"];
+const TAB_IDS: DashboardTabId[] = [
+  "personalize",
+  "search",
+  "meal",
+  "report",
+  "dietitian",
+  "progress",
+];
 
-const DASHBOARD_TABS: DashboardTabDef[] = [
+/**
+ * Order matters here (founder request): "Make it fit me" leads, since it is
+ * the one tab that renders ABOVE today's meal instead of below it (see
+ * `activeTab === "personalize"` further down). "Chat with dietitian" is its
+ * own tab with its own icon — never folded into "Doctor's report", even
+ * though both are medical-adjacent — and is filtered out below for anyone
+ * who is not entitled (`canUseDietitianChat`).
+ */
+const ALL_DASHBOARD_TABS: (DashboardTabDef & { id: DashboardTabId })[] = [
+  {
+    id: "personalize",
+    label: "Make it fit me",
+    icon: <Target className="h-4.5 w-4.5" strokeWidth={2.2} />,
+  },
   {
     id: "search",
     label: "Search any food",
@@ -61,9 +95,9 @@ const DASHBOARD_TABS: DashboardTabDef[] = [
     icon: <ClipboardList className="h-4.5 w-4.5" strokeWidth={2.2} />,
   },
   {
-    id: "personalize",
-    label: "Make it fit me",
-    icon: <Target className="h-4.5 w-4.5" strokeWidth={2.2} />,
+    id: "dietitian",
+    label: "Chat with dietitian",
+    icon: <Stethoscope className="h-4.5 w-4.5" strokeWidth={2.2} />,
   },
   {
     id: "progress",
@@ -109,29 +143,31 @@ export default function AppPage() {
     }
   };
 
-  // The dashboard panel sits below the daily-essentials zone; bring it into
-  // view whenever a tab is picked or a food/meal is handed down to it.
-  const scrollToPanel = () => {
+  // Every tab's content sits below the daily-essentials zone EXCEPT
+  // "personalize", which renders above it (see the JSX below) — so the
+  // scroll target has to match wherever that tab's content actually is, or
+  // picking "Make it fit me" would scroll straight past it into empty space.
+  const scrollToPanel = (tab: DashboardTabId) => {
+    const targetId = tab === "personalize" ? "dashboard-personalize" : "dashboard-panel";
     setTimeout(() => {
-      document
-        .getElementById("dashboard-panel")
-        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      document.getElementById(targetId)?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 50);
   };
   const selectTab = (id: string) => {
-    setActiveTab(id as DashboardTabId);
-    scrollToPanel();
+    const tab = id as DashboardTabId;
+    setActiveTab(tab);
+    scrollToPanel(tab);
   };
   const openInSearch = (food: Food) => {
     setSeedSearch(food);
     setActiveTab("search");
-    scrollToPanel();
+    scrollToPanel("search");
   };
   const buildMeal = (foods: Food[]) => {
     // New array each time so the builder treats it as a fresh seed to load.
     setSeedMeal([...foods]);
     setActiveTab("meal");
-    scrollToPanel();
+    scrollToPanel("meal");
   };
 
   useEffect(() => {
@@ -242,6 +278,13 @@ export default function AppPage() {
   // anon/new are redirected in the effect; only trial/subscribed render here.
   if (access.status !== "trial" && access.status !== "subscribed") return null;
 
+  // "Chat with dietitian" only ever shows for someone actually entitled to it
+  // — never during trial (canUseDietitianChat is false for every trial Access
+  // value by construction), same gate the old inline card used.
+  const dashboardTabs = ALL_DASHBOARD_TABS.filter(
+    (t) => t.id !== "dietitian" || canUseDietitianChat(access),
+  );
+
   // The badge names the actual plan a subscriber is on, not just "Membership"
   // — someone paying for Plus or Premium should see that reflected, not a
   // generic label that reads the same for every tier.
@@ -310,7 +353,7 @@ export default function AppPage() {
                 on a wide screen instead of one long scroll. Hidden below md —
                 the phone keeps the horizontal nav below, unchanged. Both
                 drive the exact same activeTab state. */}
-            <DashboardSidebar tabs={DASHBOARD_TABS} active={activeTab} onSelect={selectTab} />
+            <DashboardSidebar tabs={dashboardTabs} active={activeTab} onSelect={selectTab} />
 
             <div className="min-w-0 max-w-3xl flex-1">
           <div className="flex items-center justify-between gap-3">
@@ -331,6 +374,18 @@ export default function AppPage() {
             className="mt-1 font-display text-base font-semibold leading-tight text-ink-soft sm:text-lg"
           />
 
+          {/* "Make it fit me" is the one tab that renders ABOVE today's meal
+              instead of below it with the rest of the dashboard panels
+              (founder request) — everything else about it (always mounted,
+              only hidden with CSS, its own complete white card with its own
+              heading) is unchanged from the other panels further down. */}
+          <div
+            id="dashboard-personalize"
+            className={activeTab === "personalize" ? "mt-6 scroll-mt-24" : "hidden"}
+          >
+            <PersonalizationSettings showGoals={canUseGoalPersonalization(access)} />
+          </div>
+
           {/* Daily-essentials zone: always visible, no button needed. TodaysMeal
               is the reason someone opened the app (never collapsed, a standing
               house rule), and LogReading must stay mounted and visible here —
@@ -339,13 +394,6 @@ export default function AppPage() {
               not hidden away behind a different dashboard tab. */}
           <div className="mt-6 space-y-4">
             <TodaysMeal onBuild={buildMeal} personalize={canUseGoalPersonalization(access)} />
-
-            {/* Premium's flagship perk sits right under the meal, not buried
-                near the bottom of the page — someone paying extra for it
-                should never have to hunt for where to use it. Dietitian tier
-                only, never during trial (canUseDietitianChat is false for
-                every trial Access value by construction). */}
-            {canUseDietitianChat(access) && <ChatWithDietitian />}
 
             {/* Straight under the answer, because a reading is the one thing
                 only this person can tell us, and the app can say nothing about
@@ -358,7 +406,7 @@ export default function AppPage() {
             <ReadingNudge
               onOpenReport={() => {
                 setActiveTab("report");
-                scrollToPanel();
+                scrollToPanel("report");
               }}
             />
 
@@ -372,7 +420,7 @@ export default function AppPage() {
               unmounted when its tab is inactive — it is only hidden with CSS
               — so no component loses state or behaviour by being tabbed. */}
           <div className="mt-6 md:hidden">
-            <DashboardNav tabs={DASHBOARD_TABS} active={activeTab} onSelect={selectTab} />
+            <DashboardNav tabs={dashboardTabs} active={activeTab} onSelect={selectTab} />
           </div>
 
           <div id="dashboard-panel" className="mt-4 scroll-mt-24 space-y-4">
@@ -428,13 +476,17 @@ export default function AppPage() {
               <MonthReport open={activeTab === "report"} onToggle={() => selectTab("report")} />
             </div>
 
-            {/* PersonalizationSettings already renders its own complete white
-                card with its own icon chip and heading, exactly like MonthReport
-                does — so it is shown/hidden directly, with no extra wrapper
-                chrome that would just duplicate its own header. */}
-            <div className={activeTab === "personalize" ? "" : "hidden"}>
-              <PersonalizationSettings showGoals={canUseGoalPersonalization(access)} />
-            </div>
+            {/* Its own tab with its own icon — never folded into "Doctor's
+                report", even though both are medical-adjacent. Dietitian
+                tier only; the tab itself is already filtered out of
+                `dashboardTabs` for anyone not entitled, so this can never be
+                the active tab for them, but the access check stays here too
+                (same belt-and-suspenders pattern as the rest of the app). */}
+            {canUseDietitianChat(access) && (
+              <div className={activeTab === "dietitian" ? "" : "hidden"}>
+                <ChatWithDietitian />
+              </div>
+            )}
 
             <div className={activeTab === "progress" ? "" : "hidden"}>
               <div className="space-y-3">
