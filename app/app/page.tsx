@@ -27,8 +27,7 @@ import LogReading from "@/components/LogReading";
 import ReadingNudge from "@/components/ReadingNudge";
 import TypewriterHeadline from "@/components/TypewriterHeadline";
 import CollapsibleCard from "@/components/CollapsibleCard";
-import DashboardNav, { type DashboardTabDef } from "@/components/DashboardNav";
-import DashboardSidebar from "@/components/DashboardSidebar";
+import DashboardSidebar, { type DashboardTabDef } from "@/components/DashboardSidebar";
 import PushOptIn from "@/components/PushOptIn";
 import WhatsAppChannelCard from "@/components/WhatsAppChannelCard";
 import ChatWithDietitian from "@/components/ChatWithDietitian";
@@ -348,11 +347,11 @@ export default function AppPage() {
           aria-hidden
         />
         <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
-          <div className="flex gap-6">
-            {/* Desktop-only: a real left sidebar, so /app reads as a dashboard
-                on a wide screen instead of one long scroll. Hidden below md —
-                the phone keeps the horizontal nav below, unchanged. Both
-                drive the exact same activeTab state. */}
+          <div className="flex gap-3 md:gap-6">
+            {/* The ONE dashboard nav at every screen size — a real left
+                sidebar. On a phone it renders as a slim icon-only rail by
+                default and expands into an overlay on the first tap (see
+                DashboardSidebar); on a wide screen it just widens in place. */}
             <DashboardSidebar tabs={dashboardTabs} active={activeTab} onSelect={selectTab} />
 
             <div className="min-w-0 max-w-3xl flex-1">
@@ -413,15 +412,12 @@ export default function AppPage() {
             <VarietyNudge onOpenFood={openInSearch} />
           </div>
 
-          {/* The dashboard: one button row, one panel. Everything else that
-              used to be a long scroll (search, build, the doctor's report,
-              the always-open settings panel, and the bottom widget stack) now
-              lives behind a clearly labelled button. Nothing below is ever
-              unmounted when its tab is inactive — it is only hidden with CSS
-              — so no component loses state or behaviour by being tabbed. */}
-          <div className="mt-6 md:hidden">
-            <DashboardNav tabs={dashboardTabs} active={activeTab} onSelect={selectTab} />
-          </div>
+          {/* Everything below used to be a long scroll (search, build, the
+              doctor's report, the always-open settings panel, and the bottom
+              widget stack); it now lives behind the one left-side nav above.
+              Nothing here is ever unmounted when its tab is inactive — it is
+              only hidden with CSS — so no component loses state or
+              behaviour by being tabbed. */}
 
           <div id="dashboard-panel" className="mt-4 scroll-mt-24 space-y-4">
             <div className={activeTab === "search" ? "" : "hidden"}>
