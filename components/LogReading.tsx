@@ -20,6 +20,7 @@ import { recentChecks } from "@/lib/history";
 import { displayLabel } from "@/lib/foodName";
 import { localDayKey } from "@/lib/mealtime";
 import { trackUsage } from "@/lib/usage";
+import { showToast } from "@/components/Toast";
 
 /** How many recent meals to offer. Enough to find the right one, few enough to read. */
 const OFFER = 3;
@@ -145,6 +146,7 @@ export default function LogReading() {
     void trackUsage("reading_logged");
     setNeedConsent(false);
     setSaved(parsed);
+    showToast("Saved");
   };
 
   // Closed: a filled green button, not a white card. As a card it read as a

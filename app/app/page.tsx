@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Blocks, ClipboardList, Clock, Search } from "lucide-react";
+import { Blocks, ClipboardList, Clock, Search, Target, TrendingUp } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import SocialProofTicker from "@/components/SocialProofTicker";
 import Footer from "@/components/Footer";
 import DisclaimerGate from "@/components/DisclaimerGate";
 import FeedbackPopup from "@/components/FeedbackPopup";
+import ToastHost from "@/components/Toast";
 import SearchPanel from "@/components/SearchPanel";
 import MealBuilder from "@/components/MealBuilder";
 import HabitStreak from "@/components/HabitStreak";
@@ -18,6 +19,7 @@ import LogReading from "@/components/LogReading";
 import ReadingNudge from "@/components/ReadingNudge";
 import TypewriterHeadline from "@/components/TypewriterHeadline";
 import CollapsibleCard from "@/components/CollapsibleCard";
+import DashboardNav, { type DashboardTabDef } from "@/components/DashboardNav";
 import PushOptIn from "@/components/PushOptIn";
 import WhatsAppChannelCard from "@/components/WhatsAppChannelCard";
 import ChatWithDietitian from "@/components/ChatWithDietitian";
@@ -31,67 +33,46 @@ import {
   type Access,
 } from "@/lib/account";
 import { trackAppOpen } from "@/lib/usage";
-import { personalGreeting, currentMeal, checkBackMessage } from "@/lib/mealtime";
+import { personalGreeting, checkBackMessage } from "@/lib/mealtime";
 import type { Food } from "@/lib/types";
 
-/**
- * One of the three doors under today's meal. They are deliberately the same
- * size as each other and smaller than the meal card above: searching, building
- * and the doctor's report are what you do when the answer we gave you is not
- * the one you wanted, or when it is time to see the doctor.
- */
-function DoorCard({
-  icon,
-  title,
-  text,
-  tone,
-  active,
-  onClick,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  text: string;
-  tone: "blue" | "green";
-  active: boolean;
-  onClick: () => void;
-}) {
-  const chip =
-    tone === "green"
-      ? "bg-leaf/10 text-leaf-deep ring-leaf/15"
-      : "bg-brand/10 text-brand ring-brand/15";
-  return (
-    <button
-      onClick={onClick}
-      aria-pressed={active}
-      className={`flex h-full flex-col items-start gap-2 rounded-2xl bg-white p-3 text-left shadow-[0_4px_20px_-12px_rgba(12,42,71,0.2)] ring-1 transition-all hover:-translate-y-0.5 hover:shadow-[0_10px_28px_-14px_rgba(12,42,71,0.28)] sm:gap-2.5 sm:p-4 ${
-        active
-          ? tone === "green"
-            ? "ring-2 ring-leaf/40"
-            : "ring-2 ring-brand/40"
-          : "ring-ink/[0.05]"
-      }`}
-    >
-      <span
-        className={`flex h-10 w-10 items-center justify-center rounded-xl ring-1 ring-inset ${chip}`}
-      >
-        {icon}
-      </span>
-      <span className="font-display text-sm font-bold leading-tight text-ink sm:text-base">
-        {title}
-      </span>
-      {/* The one line of explanation is a nicety, not the label. On a phone the
-          three doors sit side by side and it would squeeze them off the first
-          screen, which is the meal's. */}
-      <span className="hidden text-sm leading-snug text-ink-soft sm:block">
-        {text}
-      </span>
-    </button>
-  );
-}
+type DashboardTabId = "search" | "meal" | "report" | "personalize" | "progress";
+
+/** Remembered on this device so a returning visitor lands where they left off. */
+const DASHBOARD_TAB_KEY = "gf_dashboard_tab";
+const DEFAULT_TAB: DashboardTabId = "search";
+const TAB_IDS: DashboardTabId[] = ["search", "meal", "report", "personalize", "progress"];
+
+const DASHBOARD_TABS: DashboardTabDef[] = [
+  {
+    id: "search",
+    label: "Search any food",
+    icon: <Search className="h-4.5 w-4.5" strokeWidth={2.2} />,
+  },
+  {
+    id: "meal",
+    label: "Build a meal",
+    icon: <Blocks className="h-4.5 w-4.5" strokeWidth={2.2} />,
+  },
+  {
+    id: "report",
+    label: "Doctor's report",
+    icon: <ClipboardList className="h-4.5 w-4.5" strokeWidth={2.2} />,
+  },
+  {
+    id: "personalize",
+    label: "Make it fit me",
+    icon: <Target className="h-4.5 w-4.5" strokeWidth={2.2} />,
+  },
+  {
+    id: "progress",
+    label: "My progress",
+    icon: <TrendingUp className="h-4.5 w-4.5" strokeWidth={2.2} />,
+  },
+];
 
 export default function AppPage() {
   const router = useRouter();
-  const [tab, setTab] = useState<"search" | "meal">("search");
   const [access, setAccess] = useState<Access | null>(null);
   const [email, setEmail] = useState<string | null>(null);
   const [name, setName] = useState<string | null>(null);
@@ -100,41 +81,56 @@ export default function AppPage() {
   const [seedSearch, setSeedSearch] = useState<Food | null>(null);
   const [seedMeal, setSeedMeal] = useState<Food[] | null>(null);
   /**
-   * The home is arranged around the journey, not the features. Today's meal is
-   * the first screen and is always open; the tools and the doctor's report are
-   * escape routes under it, and only one of those two is open at a time. They
-   * both start CLOSED, so nothing competes with the meal.
+   * The dashboard's one active tab. Generalizes the old openCard ("check" |
+   * "doctor" | null) + tab ("search" | "meal") pair into a single value
+   * covering all 5 sections. There is always exactly one active tab (no
+   * "nothing open" state) so the dashboard never shows a blank panel.
    */
-  const [openCard, setOpenCard] = useState<"check" | "doctor" | null>(null);
-  const toggle = (id: "check" | "doctor") =>
-    setOpenCard((cur) => (cur === id ? null : id));
+  const [activeTab, setActiveTabState] = useState<DashboardTabId>(DEFAULT_TAB);
 
-  // The check tools sit below the fold now, so bring them into view when a card
-  // above hands a food or a meal down to them.
-  const scrollToTools = () => {
+  // Restore the last tab this device used. Runs after mount only, since
+  // localStorage does not exist during server rendering.
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(DASHBOARD_TAB_KEY) as DashboardTabId | null;
+      if (saved && TAB_IDS.includes(saved)) setActiveTabState(saved);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  const setActiveTab = (id: DashboardTabId) => {
+    setActiveTabState(id);
+    try {
+      localStorage.setItem(DASHBOARD_TAB_KEY, id);
+    } catch {
+      /* ignore */
+    }
+  };
+
+  // The dashboard panel sits below the daily-essentials zone; bring it into
+  // view whenever a tab is picked or a food/meal is handed down to it.
+  const scrollToPanel = () => {
     setTimeout(() => {
       document
-        .getElementById("check-yourself")
+        .getElementById("dashboard-panel")
         ?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 50);
   };
+  const selectTab = (id: string) => {
+    setActiveTab(id as DashboardTabId);
+    scrollToPanel();
+  };
   const openInSearch = (food: Food) => {
     setSeedSearch(food);
-    setTab("search");
-    setOpenCard("check");
-    scrollToTools();
-  };
-  const openTools = (which: "search" | "meal") => {
-    setTab(which);
-    setOpenCard("check");
-    scrollToTools();
+    setActiveTab("search");
+    scrollToPanel();
   };
   const buildMeal = (foods: Food[]) => {
     // New array each time so the builder treats it as a fresh seed to load.
     setSeedMeal([...foods]);
-    setTab("meal");
-    setOpenCard("check");
-    scrollToTools();
+    setActiveTab("meal");
+    scrollToPanel();
   };
 
   useEffect(() => {
@@ -275,6 +271,7 @@ export default function AppPage() {
       <Navbar />
       <DisclaimerGate />
       <FeedbackPopup />
+      <ToastHost />
 
       {renewSoon && (
         <div className="fixed inset-x-0 top-24 z-40 bg-verdict-yellow/95 px-4 py-2.5 text-center text-sm font-semibold text-ink shadow-md">
@@ -321,7 +318,12 @@ export default function AppPage() {
             className="mt-1 font-display text-base font-semibold leading-tight text-ink-soft sm:text-lg"
           />
 
-          {/* Level 1: the answer they came for, owning the first screen. */}
+          {/* Daily-essentials zone: always visible, no button needed. TodaysMeal
+              is the reason someone opened the app (never collapsed, a standing
+              house rule), and LogReading must stay mounted and visible here —
+              the doctor's report panel below can ask it to open via the
+              ADD_READING_FOR window event, and that only works if LogReading is
+              not hidden away behind a different dashboard tab. */}
           <div className="mt-6 space-y-4">
             <TodaysMeal onBuild={buildMeal} personalize={canUseGoalPersonalization(access)} />
 
@@ -331,11 +333,6 @@ export default function AppPage() {
                 only, never during trial (canUseDietitianChat is false for
                 every trial Access value by construction). */}
             {canUseDietitianChat(access) && <ChatWithDietitian />}
-
-            {/* Meal pattern is free on every tier; goal/activity chips only
-                appear for someone who can actually use them (Plus, Premium,
-                or previewing in trial) — a Basic user never sees a dead field. */}
-            <PersonalizationSettings showGoals={canUseGoalPersonalization(access)} />
 
             {/* Straight under the answer, because a reading is the one thing
                 only this person can tell us, and the app can say nothing about
@@ -347,90 +344,43 @@ export default function AppPage() {
                 same scarce thing. */}
             <ReadingNudge
               onOpenReport={() => {
-                if (openCard !== "doctor") toggle("doctor");
-                setTimeout(() => {
-                  document
-                    .getElementById("doctor-report")
-                    ?.scrollIntoView({ behavior: "smooth", block: "start" });
-                }, 50);
+                setActiveTab("report");
+                scrollToPanel();
               }}
             />
 
             <VarietyNudge onOpenFood={openInSearch} />
+          </div>
 
-            {/* Level 2: the escape routes. Three equal doors, none of them
-                shouting over the meal above. */}
-            <div className="grid grid-cols-3 gap-2 sm:gap-3">
-              <DoorCard
-                icon={<Search className="h-5 w-5" strokeWidth={2.2} />}
-                title="Search any food"
-                text="Check any food you have in mind"
-                tone="blue"
-                active={openCard === "check" && tab === "search"}
-                onClick={() => openTools("search")}
-              />
-              <DoorCard
-                icon={<Blocks className="h-5 w-5" strokeWidth={2.2} />}
-                title="Build a meal"
-                text="Put your whole plate together"
-                tone="green"
-                active={openCard === "check" && tab === "meal"}
-                onClick={() => openTools("meal")}
-              />
-              <DoorCard
-                icon={<ClipboardList className="h-5 w-5" strokeWidth={2.2} />}
-                title="Doctor's report"
-                text="What you ate, ready to send"
-                tone="blue"
-                active={openCard === "doctor"}
-                onClick={() => {
-                  toggle("doctor");
-                  setTimeout(() => {
-                    document
-                      .getElementById("doctor-report")
-                      ?.scrollIntoView({ behavior: "smooth", block: "start" });
-                  }, 50);
-                }}
-              />
-            </div>
+          {/* The dashboard: one button row, one panel. Everything else that
+              used to be a long scroll (search, build, the doctor's report,
+              the always-open settings panel, and the bottom widget stack) now
+              lives behind a clearly labelled button. Nothing below is ever
+              unmounted when its tab is inactive — it is only hidden with CSS
+              — so no component loses state or behaviour by being tabbed. */}
+          <div className="mt-6">
+            <DashboardNav tabs={DASHBOARD_TABS} active={activeTab} onSelect={selectTab} />
+          </div>
 
-            {/* Level 3: whichever door they opened. */}
-            <div id="check-yourself" className="scroll-mt-24">
+          <div id="dashboard-panel" className="mt-4 scroll-mt-24 space-y-4">
+            <div className={activeTab === "search" ? "" : "hidden"}>
               <CollapsibleCard
-                open={openCard === "check"}
-                onToggle={() => toggle("check")}
-                tone={tab === "meal" ? "green" : "blue"}
-                icon={
-                  tab === "meal" ? (
-                    <Blocks className="h-6 w-6" strokeWidth={2.2} />
-                  ) : (
-                    <Search className="h-6 w-6" strokeWidth={2.2} />
-                  )
-                }
+                open={activeTab === "search"}
+                onToggle={() => selectTab("search")}
+                tone="blue"
+                icon={<Search className="h-6 w-6" strokeWidth={2.2} />}
                 header={
                   <span className="font-display text-lg font-bold leading-snug text-ink">
-                    {openCard === "check"
-                      ? tab === "meal"
-                        ? "Build your plate"
-                        : "Check a food"
-                      : `Or have a ${currentMeal()} in mind? Seek guidance here.`}
+                    Check a food
                   </span>
                 }
               >
-                {/* No tool toggle in here any more. The two cards above ARE the
-                    toggle, and having both meant two buttons with the same name
-                    doing the same job. */}
                 <div className="mt-2">
-                  {tab === "search" ? (
-                    <SearchPanel
-                      initialFood={seedSearch}
-                      onBuildMeal={(food) => buildMeal([food])}
-                    />
-                  ) : (
-                    <MealBuilder initialFoods={seedMeal} />
-                  )}
+                  <SearchPanel
+                    initialFood={seedSearch}
+                    onBuildMeal={(food) => buildMeal([food])}
+                  />
                 </div>
-
                 {/* Ties the ritual to the next meal-time reminder. */}
                 <div className="mt-6 flex items-center gap-2.5 rounded-xl bg-mist px-4 py-3 text-sm font-semibold text-ink">
                   <Clock className="h-4 w-4 shrink-0 text-brand" />
@@ -439,18 +389,47 @@ export default function AppPage() {
               </CollapsibleCard>
             </div>
 
-            <div id="doctor-report" className="scroll-mt-24">
-              <MonthReport
-                open={openCard === "doctor"}
-                onToggle={() => toggle("doctor")}
-              />
+            <div className={activeTab === "meal" ? "" : "hidden"}>
+              <CollapsibleCard
+                open={activeTab === "meal"}
+                onToggle={() => selectTab("meal")}
+                tone="green"
+                icon={<Blocks className="h-6 w-6" strokeWidth={2.2} />}
+                header={
+                  <span className="font-display text-lg font-bold leading-snug text-ink">
+                    Build your plate
+                  </span>
+                }
+              >
+                <div className="mt-2">
+                  <MealBuilder initialFoods={seedMeal} />
+                </div>
+                <div className="mt-6 flex items-center gap-2.5 rounded-xl bg-mist px-4 py-3 text-sm font-semibold text-ink">
+                  <Clock className="h-4 w-4 shrink-0 text-brand" />
+                  {checkBackMessage()}
+                </div>
+              </CollapsibleCard>
             </div>
-          </div>
 
-          <div className="mt-6 space-y-3">
-            <HabitStreak />
-            <PushOptIn />
-            <WhatsAppChannelCard />
+            <div className={activeTab === "report" ? "" : "hidden"}>
+              <MonthReport open={activeTab === "report"} onToggle={() => selectTab("report")} />
+            </div>
+
+            {/* PersonalizationSettings already renders its own complete white
+                card with its own icon chip and heading, exactly like MonthReport
+                does — so it is shown/hidden directly, with no extra wrapper
+                chrome that would just duplicate its own header. */}
+            <div className={activeTab === "personalize" ? "" : "hidden"}>
+              <PersonalizationSettings showGoals={canUseGoalPersonalization(access)} />
+            </div>
+
+            <div className={activeTab === "progress" ? "" : "hidden"}>
+              <div className="space-y-3">
+                <HabitStreak />
+                <PushOptIn />
+                <WhatsAppChannelCard />
+              </div>
+            </div>
           </div>
         </div>
       </main>

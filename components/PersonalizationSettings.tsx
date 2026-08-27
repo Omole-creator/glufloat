@@ -15,6 +15,7 @@ import {
   savePersonalizationProfile,
 } from "@/lib/personalizationProfile";
 import type { NamedMeal } from "@/lib/mealtime";
+import { showToast } from "@/components/Toast";
 
 const MEAL_LABEL: Record<NamedMeal, string> = {
   breakfast: "Breakfast",
@@ -89,6 +90,7 @@ export default function PersonalizationSettings({ showGoals }: { showGoals: bool
     const ok = await savePersonalizationProfile({ goals, activityLevel, mealPattern });
     if (ok) {
       setSaved(true);
+      showToast("Saved");
       setTimeout(() => setSaved(false), 2500);
     }
   };
