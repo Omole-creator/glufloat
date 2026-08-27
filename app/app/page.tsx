@@ -20,6 +20,7 @@ import ReadingNudge from "@/components/ReadingNudge";
 import TypewriterHeadline from "@/components/TypewriterHeadline";
 import CollapsibleCard from "@/components/CollapsibleCard";
 import DashboardNav, { type DashboardTabDef } from "@/components/DashboardNav";
+import DashboardSidebar from "@/components/DashboardSidebar";
 import PushOptIn from "@/components/PushOptIn";
 import WhatsAppChannelCard from "@/components/WhatsAppChannelCard";
 import ChatWithDietitian from "@/components/ChatWithDietitian";
@@ -294,12 +295,24 @@ export default function AppPage() {
         </div>
       )}
 
-      <main className="relative flex-1 overflow-hidden bg-gradient-to-b from-mint/50 via-mist to-mist pb-24 pt-36">
+      {/* No overflow-hidden here: it clipped the decorative glow below (harmless
+          to drop, since the glow sits above main's own top edge anyway), but it
+          also silently breaks position:sticky on any descendant — which the
+          dashboard sidebar needs to stay visible while scrolling. */}
+      <main className="relative flex-1 bg-gradient-to-b from-mint/50 via-mist to-mist pb-24 pt-36">
         <div
           className="pointer-events-none absolute inset-x-0 -top-24 mx-auto h-64 max-w-2xl bg-gradient-to-br from-brand/15 via-leaf/10 to-transparent blur-3xl"
           aria-hidden
         />
-        <div className="relative mx-auto max-w-3xl px-4 sm:px-6">
+        <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
+          <div className="flex gap-6">
+            {/* Desktop-only: a real left sidebar, so /app reads as a dashboard
+                on a wide screen instead of one long scroll. Hidden below md —
+                the phone keeps the horizontal nav below, unchanged. Both
+                drive the exact same activeTab state. */}
+            <DashboardSidebar tabs={DASHBOARD_TABS} active={activeTab} onSelect={selectTab} />
+
+            <div className="min-w-0 max-w-3xl flex-1">
           <div className="flex items-center justify-between gap-3">
             <p className="font-display text-lg font-bold text-ink sm:text-xl">
               {personalGreeting(name)}
@@ -358,7 +371,7 @@ export default function AppPage() {
               lives behind a clearly labelled button. Nothing below is ever
               unmounted when its tab is inactive — it is only hidden with CSS
               — so no component loses state or behaviour by being tabbed. */}
-          <div className="mt-6">
+          <div className="mt-6 md:hidden">
             <DashboardNav tabs={DASHBOARD_TABS} active={activeTab} onSelect={selectTab} />
           </div>
 
@@ -429,6 +442,8 @@ export default function AppPage() {
                 <PushOptIn />
                 <WhatsAppChannelCard />
               </div>
+            </div>
+          </div>
             </div>
           </div>
         </div>
