@@ -104,7 +104,7 @@ function NumberField({
 }) {
   return (
     <label className="block">
-      <span className="block text-xs font-semibold text-ink-soft">{label}</span>
+      <span className="block text-xs font-semibold text-white/80">{label}</span>
       <input
         type="number"
         inputMode="decimal"
@@ -230,23 +230,27 @@ export default function PersonalizationSettings({
   const targetValue = tdeeValue != null ? calorieTarget(tdeeValue, goals) : null;
 
   return (
-    <div className="rounded-2xl bg-white p-4 shadow-[0_6px_28px_-14px_rgba(12,42,71,0.2)] ring-1 ring-brand/10 sm:p-5">
+    // Solid brand blue, white text (founder instruction, 2026-08-30) — the
+    // same flat colour TodaysMeal's hero card already uses, so this reads as
+    // part of the same "blue is a serious answer" visual language rather
+    // than a plain white settings form.
+    <div className="rounded-2xl bg-brand p-4 shadow-[0_6px_28px_-14px_rgba(12,42,71,0.35)] sm:p-5">
       <div className="flex items-center gap-2.5">
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand/10 text-brand ring-1 ring-inset ring-brand/15">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/15 text-white ring-1 ring-inset ring-white/25">
           <Target className="h-4.5 w-4.5" strokeWidth={2.2} />
         </span>
-        <p className="font-display text-base font-bold text-ink">Make GluFloat fit you</p>
+        <p className="font-display text-base font-bold text-white">Make GluFloat fit you</p>
       </div>
 
       {/* Section: health conditions */}
-      <div className="mt-5 border-t border-line pt-4">
+      <div className="mt-5 border-t border-white/20 pt-4">
         <div className="flex items-center gap-2">
-          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-leaf/10 text-leaf-deep ring-1 ring-inset ring-leaf/15">
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white/15 text-white ring-1 ring-inset ring-white/25">
             <HeartPulse className="h-3.5 w-3.5" strokeWidth={2.4} />
           </span>
-          <p className="text-sm font-semibold text-ink">Do you have any of these?</p>
+          <p className="text-sm font-semibold text-white">Do you have any of these?</p>
         </div>
-        <p className="mt-1 text-xs text-ink-soft">Select all that apply.</p>
+        <p className="mt-1 text-xs text-white/70">Select all that apply.</p>
         <div className="mt-2 space-y-2">
           {CONDITIONS.map((c) => (
             <OptionRow key={c} active={conditions.includes(c)} onClick={() => toggleCondition(c)}>
@@ -260,12 +264,12 @@ export default function PersonalizationSettings({
       </div>
 
       {/* Section: medication timing */}
-      <div className="mt-5 border-t border-line pt-4">
+      <div className="mt-5 border-t border-white/20 pt-4">
         <div className="flex items-center gap-2">
-          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand ring-1 ring-inset ring-brand/15">
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white/15 text-white ring-1 ring-inset ring-white/25">
             <Pill className="h-3.5 w-3.5" strokeWidth={2.4} />
           </span>
-          <p className="text-sm font-semibold text-ink">
+          <p className="text-sm font-semibold text-white">
             How many times a day do you take diabetes medication?
           </p>
         </div>
@@ -289,8 +293,8 @@ export default function PersonalizationSettings({
 
         {medDosesPerDay != null && medDosesPerDay > 0 && (
           <>
-            <p className="mt-4 text-sm font-semibold text-ink-soft">When do you take it?</p>
-            <p className="mt-0.5 text-xs text-ink-soft">Select all that apply.</p>
+            <p className="mt-4 text-sm font-semibold text-white">When do you take it?</p>
+            <p className="mt-0.5 text-xs text-white/70">Select all that apply.</p>
             <div className="mt-2 space-y-2">
               {MED_TIMES.map((t) => (
                 <OptionRow key={t} active={medTimes.includes(t)} onClick={() => toggleMedTime(t)}>
@@ -299,7 +303,7 @@ export default function PersonalizationSettings({
               ))}
             </div>
 
-            <p className="mt-4 text-sm font-semibold text-ink-soft">
+            <p className="mt-4 text-sm font-semibold text-white">
               Do you take it before or after eating?
             </p>
             <div className="mt-2 space-y-2">
@@ -321,14 +325,14 @@ export default function PersonalizationSettings({
       </div>
 
       {showGoals && (
-        <div className="mt-5 border-t border-line pt-4">
+        <div className="mt-5 border-t border-white/20 pt-4">
           <div className="flex items-center gap-2">
-            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-leaf/10 text-leaf-deep ring-1 ring-inset ring-leaf/15">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white/15 text-white ring-1 ring-inset ring-white/25">
               <Sparkles className="h-3.5 w-3.5" strokeWidth={2.4} />
             </span>
-            <p className="text-sm font-semibold text-ink">What are your goals?</p>
+            <p className="text-sm font-semibold text-white">What are your goals?</p>
           </div>
-          <p className="mt-1 text-xs text-ink-soft">Select all that apply.</p>
+          <p className="mt-1 text-xs text-white/70">Select all that apply.</p>
           <div className="mt-2 space-y-2">
             {GOALS.map((g) => (
               <OptionRow key={g} active={goals.includes(g)} onClick={() => toggleGoal(g)}>
@@ -337,7 +341,7 @@ export default function PersonalizationSettings({
             ))}
           </div>
 
-          <p className="mt-4 text-sm font-semibold text-ink-soft">How physically active are you?</p>
+          <p className="mt-4 text-sm font-semibold text-white">How physically active are you?</p>
           <div className="relative mt-2">
             <button
               type="button"
@@ -379,12 +383,12 @@ export default function PersonalizationSettings({
             )}
           </div>
 
-          <div className="mt-5 border-t border-line pt-4">
+          <div className="mt-5 border-t border-white/20 pt-4">
             <div className="flex items-center gap-2">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand ring-1 ring-inset ring-brand/15">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white/15 text-white ring-1 ring-inset ring-white/25">
                 <Flame className="h-3.5 w-3.5" strokeWidth={2.4} />
               </span>
-              <p className="text-sm font-semibold text-ink">
+              <p className="text-sm font-semibold text-white">
                 Tell us about you, so we can work out your daily calories
               </p>
             </div>
@@ -426,7 +430,7 @@ export default function PersonalizationSettings({
                 out folded underneath as quiet supporting context, not three
                 lines of equal weight fighting for attention. */}
             {targetValue != null && (
-              <div className="mt-4 overflow-hidden rounded-2xl bg-gradient-to-br from-brand to-leaf p-4 text-white">
+              <div className="mt-4 overflow-hidden rounded-2xl bg-white/15 p-4 text-white ring-1 ring-inset ring-white/25">
                 <p className="text-xs font-semibold uppercase tracking-wide text-white/80">
                   Your daily calorie target
                 </p>
@@ -447,9 +451,13 @@ export default function PersonalizationSettings({
         </div>
       )}
 
+      {/* Green, not blue — the card itself is now solid brand blue, and the
+          house rule ("a surface is either blue or green, never mixed") means
+          the one action on it has to be the other colour to read as
+          tappable, same as every green button on TodaysMeal's own blue card. */}
       <button
         onClick={save}
-        className="mt-5 flex items-center gap-2 rounded-full bg-brand px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand-deep"
+        className="mt-5 flex items-center gap-2 rounded-full bg-leaf px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-leaf-deep"
       >
         {saved ? (
           <>
@@ -460,7 +468,7 @@ export default function PersonalizationSettings({
         )}
       </button>
       {saveFailed && (
-        <p className="mt-2 text-sm font-semibold text-verdict-red">
+        <p className="mt-2 rounded-lg bg-white/90 px-3 py-2 text-sm font-semibold text-verdict-red">
           This did not save. Check your connection and try again.
         </p>
       )}
