@@ -9,11 +9,14 @@ import { scoreMeal } from "@/lib/verdictEngine";
 
 /**
  * A real, recordable card — not a buried sentence — for closing a genuine
- * remaining calorie gap after breakfast/lunch/dinner. Deliberately GREEN,
- * never the deep blue TodaysMeal uses, so the two are never confused: blue
- * is "the meal for right now", green is "an extra, on top of it". Each food
- * gets the same real direction a meal card would (its own portionGuidance),
- * not just a name and a calorie count.
+ * remaining calorie gap. Deliberately GREEN, never the deep blue TodaysMeal
+ * uses, so the two are never confused: blue is "the meal for right now",
+ * green is "an extra, on top of it". Each food gets the same real direction
+ * a meal card would (its own portionGuidance), not just a name and a
+ * calorie count. **Shown only at breakfast and lunch, never dinner, and
+ * capped at 2 items** (`lib/nextMeal.ts`'s `MAX_EXTRA_ITEMS`) — by dinner
+ * the day's target must already be met through the 3 meals plus whatever
+ * extras were eaten earlier, not a fresh round of suggestions.
  *
  * Recordable: tapping "I ate this too" logs it the same way any other food
  * is logged (saveCheck), which is what lets "calories remaining today"
@@ -41,7 +44,9 @@ export default function ExtraSuggestionCard({ extra }: { extra: ExtraSuggestion 
         <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-leaf/15 text-leaf-deep ring-1 ring-inset ring-leaf/20">
           <Apple className="h-4 w-4" strokeWidth={2.4} />
         </span>
-        <p className="font-display text-sm font-bold text-ink">Still have room today? An extra</p>
+        <p className="font-display text-sm font-bold text-ink">
+          Eat these to make up your calorie intake today
+        </p>
       </div>
 
       <ul className="mt-3 space-y-3">

@@ -111,22 +111,23 @@ for (const meal of MEALS) {
   }
   if (suggestExtras(0, "2026-08-29") !== null) fail("suggestExtras(0, ...) should return null");
 
-  // A real gap: must suggest something, never more than 4 items, and never
-  // wildly overshoot (it should stop once it reaches the gap or hits 4).
+  // A real gap: must suggest something, never more than 2 items (founder
+  // instruction, 2026-08-29: "at most 2 cards instead of 4 at once"), and
+  // never wildly overshoot (it should stop once it reaches the gap or hits 2).
   const s = suggestExtras(500, "2026-08-29");
   if (!s || s.foods.length === 0) {
     fail("suggestExtras(500, ...) should suggest at least one food");
   } else {
-    if (s.foods.length > 4) fail(`suggestExtras: ${s.foods.length} items, should never exceed 4`);
+    if (s.foods.length > 2) fail(`suggestExtras: ${s.foods.length} items, should never exceed 2`);
     if (s.names.length !== s.foods.length) fail("suggestExtras: names/foods length mismatch");
   }
 
   // A huge gap (the reported scenario's residual) must still return at most
-  // 4 items — it must not pretend to close an unclosable gap by inventing
+  // 2 items — it must not pretend to close an unclosable gap by inventing
   // more food than the capped list allows.
   const huge = suggestExtras(5000, "2026-08-29");
-  if (!huge || huge.foods.length > 4) {
-    fail("suggestExtras with a huge remaining gap must still cap at 4 items, not invent more");
+  if (!huge || huge.foods.length > 2) {
+    fail("suggestExtras with a huge remaining gap must still cap at 2 items, not invent more");
   }
 
   // Rotates by day, so it is not always the same suggestion.

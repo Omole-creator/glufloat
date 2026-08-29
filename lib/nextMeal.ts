@@ -420,7 +420,7 @@ const EXTRAS = [
 export const EXTRA_TIMING: Record<string, string> = {
   suya: "Eat this on its own, any time of day. It is mostly meat, so it will not push your sugar up.",
   eggs: "Eat this with breakfast, or any time as a light bite.",
-  "fried-egg": "Eat this with breakfast, or any time as a light bite.",
+  "fried-egg": "Fry it in only one teaspoon of oil, nothing more. Eat this with breakfast, or any time as a light bite.",
   "scrambled-egg": "Eat this with breakfast, or any time as a light bite.",
   groundnut: "Eat this 15 to 20 minutes before your next meal. It slows down how fast that meal pushes your sugar up.",
   "cashew-nut": "Eat this 15 to 20 minutes before your next meal. It slows down how fast that meal pushes your sugar up.",
@@ -432,8 +432,8 @@ export const EXTRA_TIMING: Record<string, string> = {
   "egusi-seed": "Eat this roasted, any time as a snack, on its own.",
   "peanut-butter": "Eat this 15 to 20 minutes before your next meal. It slows down how fast that meal pushes your sugar up.",
   seeds: "Eat this 15 to 20 minutes before your next meal. It slows down how fast that meal pushes your sugar up.",
-  fish: "Add this to your lunch or dinner, or eat it on its own as a snack.",
-  chicken: "Add this to your lunch or dinner, or eat it on its own as a snack.",
+  fish: "Choose grilled or boiled fish, not fried. Add this to your meal, or eat it on its own as a snack.",
+  chicken: "Choose grilled or boiled chicken with the skin removed, not fried. Add this to your meal, or eat it on its own as a snack.",
   "smoked-fish": "Add this to your lunch or dinner, or eat it on its own as a snack.",
   stockfish: "Add this to your soup at lunch or dinner.",
 };
@@ -444,19 +444,24 @@ export interface ExtraSuggestion {
   calories: number;
 }
 
-const MAX_EXTRA_ITEMS = 4;
+// Capped at 2, not 4 (founder instruction, 2026-08-29: "at most 2 cards
+// instead of 4 at once ... so that it is not overwhelming"). Offered fresh at
+// both breakfast and lunch (the caller in DashboardSnapshot.tsx hides this
+// entirely at dinner), so across a day someone can see up to 2 at breakfast
+// and a different 2 at lunch — never more than 2 on screen at once.
+const MAX_EXTRA_ITEMS = 2;
 
 /**
- * Picks up to 4 EXTRAS items, rotated by day (so it is not always the same
+ * Picks up to 2 EXTRAS items, rotated by day (so it is not always the same
  * suggestion), stopping once their combined calories reach the remaining gap
- * or 4 items are picked, whichever comes first. Returns null below a small
+ * or 2 items are picked, whichever comes first. Returns null below a small
  * threshold (100kcal) — not worth suggesting anything for a gap that small —
  * and null if the gap cannot be resolved to any foods (should not happen
  * with a non-empty EXTRAS list, but never throws either way).
  *
  * Picked to land AS CLOSE AS POSSIBLE to the real remaining gap from real,
  * already-portioned, everyday-safe foods — for a very large remaining gap,
- * 4 items at their own safe portions may still not close it completely, and
+ * 2 items at their own safe portions may still not close it completely, and
  * that is an honest limit of "only ever suggest real, safe portions," not
  * something worth apologising for in the copy that shows this.
  */

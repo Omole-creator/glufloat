@@ -9,7 +9,7 @@ import {
   Search,
   Stethoscope,
   Target,
-  TrendingUp,
+  X,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import SocialProofTicker from "@/components/SocialProofTicker";
@@ -18,7 +18,6 @@ import FeedbackPopup from "@/components/FeedbackPopup";
 import ToastHost from "@/components/Toast";
 import SearchPanel from "@/components/SearchPanel";
 import MealBuilder from "@/components/MealBuilder";
-import HabitStreak from "@/components/HabitStreak";
 import VarietyNudge from "@/components/VarietyNudge";
 import MonthReport from "@/components/MonthReport";
 import TodaysMeal from "@/components/TodaysMeal";
@@ -27,9 +26,7 @@ import LogReading from "@/components/LogReading";
 import ReadingNudge from "@/components/ReadingNudge";
 import TypewriterHeadline from "@/components/TypewriterHeadline";
 import CollapsibleCard from "@/components/CollapsibleCard";
-import DashboardSidebar, { type DashboardTabDef } from "@/components/DashboardSidebar";
-import PushOptIn from "@/components/PushOptIn";
-import WhatsAppChannelCard from "@/components/WhatsAppChannelCard";
+import DashboardBottomNav, { type DashboardTabDef } from "@/components/DashboardBottomNav";
 import ChatWithDietitian from "@/components/ChatWithDietitian";
 import PersonalizationSettings from "@/components/PersonalizationSettings";
 import { PAYSTACK_URLS, pendingReference, clearPendingReference } from "@/lib/access";
@@ -49,20 +46,14 @@ type DashboardTabId =
   | "search"
   | "meal"
   | "report"
-  | "dietitian"
-  | "progress";
+  | "dietitian";
 
 /** Remembered on this device so a returning visitor lands where they left off. */
 const DASHBOARD_TAB_KEY = "gf_dashboard_tab";
+/** Whether this device has already seen the "click Fit me" landing hint. */
+const FIT_ME_HINT_KEY = "gf_fitme_hint_seen";
 const DEFAULT_TAB: DashboardTabId = "search";
-const TAB_IDS: DashboardTabId[] = [
-  "personalize",
-  "search",
-  "meal",
-  "report",
-  "dietitian",
-  "progress",
-];
+const TAB_IDS: DashboardTabId[] = ["personalize", "search", "meal", "report", "dietitian"];
 
 /**
  * Order matters here (founder request): "Make it fit me" leads, since it is
@@ -70,7 +61,9 @@ const TAB_IDS: DashboardTabId[] = [
  * `activeTab === "personalize"` further down). "Chat with dietitian" is its
  * own tab with its own icon — never folded into "Doctor's report", even
  * though both are medical-adjacent — and is filtered out below for anyone
- * who is not entitled (`canUseDietitianChat`).
+ * who is not entitled (`canUseDietitianChat`). **"My progress" was removed
+ * entirely 2026-08-29** (founder instruction) — its content (HabitStreak,
+ * PushOptIn, WhatsAppChannelCard) is no longer mounted in `/app`.
  */
 const ALL_DASHBOARD_TABS: (DashboardTabDef & { id: DashboardTabId })[] = [
   {
@@ -103,12 +96,6 @@ const ALL_DASHBOARD_TABS: (DashboardTabDef & { id: DashboardTabId })[] = [
     shortLabel: "Chat",
     icon: <Stethoscope className="h-4.5 w-4.5" strokeWidth={2.2} />,
   },
-  {
-    id: "progress",
-    label: "My progress",
-    shortLabel: "Progress",
-    icon: <TrendingUp className="h-4.5 w-4.5" strokeWidth={2.2} />,
-  },
 ];
 
 export default function AppPage() {
@@ -127,6 +114,19 @@ export default function AppPage() {
    * "nothing open" state) so the dashboard never shows a blank panel.
    */
   const [activeTab, setActiveTabState] = useState<DashboardTabId>(DEFAULT_TAB);
+  // A one-time landing hint pointing at the bottom nav's "Fit me" icon, so a
+  // first-time visitor knows where their daily calorie setup lives. Shown
+  // once per device (gf_fitme_hint_seen), dismissed by its own close button
+  // or by tapping "Fit me" itself.
+  const [showFitMeHint, setShowFitMeHint] = useState(false);
+  const dismissFitMeHint = () => {
+    setShowFitMeHint(false);
+    try {
+      localStorage.setItem(FIT_ME_HINT_KEY, "1");
+    } catch {
+      /* ignore */
+    }
+  };
 
   // Restore the last tab this device used. Runs after mount only, since
   // localStorage does not exist during server rendering.
@@ -162,6 +162,15 @@ export default function AppPage() {
     const tab = id as DashboardTabId;
     setActiveTab(tab);
     scrollToPanel(tab);
+    if (tab === "personalize") dismissFitMeHint();
+  };
+  // Where "Save" in "Make it fit me" sends the person afterward, so they are
+  // never left wondering whether it saved — the toast already confirms it,
+  // and landing back on today's meal is the second, unmissable confirmation.
+  const scrollToMeal = () => {
+    setTimeout(() => {
+      document.getElementById("todays-meal")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
   };
   const openInSearch = (food: Food) => {
     setSeedSearch(food);
@@ -211,6 +220,16 @@ export default function AppPage() {
         // A real open, by somebody who got in. Counted at most once every half
         // hour, so a reload is not a second visit.
         trackAppOpen();
+        // The calorie-setup hint only means anything for someone who can
+        // actually use "Fit me" for that (Plus/Dietitian, or a trial
+        // previewing it), and only until they have seen it once.
+        if (canUseGoalPersonalization(access)) {
+          try {
+            if (!localStorage.getItem(FIT_ME_HINT_KEY)) setShowFitMeHint(true);
+          } catch {
+            /* ignore */
+          }
+        }
       }
     })();
   }, [router]);
@@ -342,24 +361,32 @@ export default function AppPage() {
         </div>
       )}
 
+      {/* Points at the bottom nav's leftmost icon so a first-time visitor
+          knows where their daily calorie setup lives. Shown once per device. */}
+      {showFitMeHint && (
+        <div className="fixed inset-x-4 bottom-24 z-40 flex items-start gap-3 rounded-2xl bg-ink px-4 py-3 text-white shadow-[0_16px_40px_-16px_rgba(12,42,71,0.6)] sm:inset-x-auto sm:left-4 sm:max-w-xs">
+          <p className="flex-1 text-sm font-semibold leading-snug">
+            Click &quot;Fit me&quot; below to set up your daily calorie intake.
+          </p>
+          <button
+            type="button"
+            onClick={dismissFitMeHint}
+            aria-label="Dismiss"
+            className="shrink-0 text-white/70 transition-colors hover:text-white"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
+
       {/* No overflow-hidden here: it clipped the decorative glow below (harmless
-          to drop, since the glow sits above main's own top edge anyway), but it
-          also silently breaks position:sticky on any descendant — which the
-          dashboard sidebar needs to stay visible while scrolling. */}
-      <main className="relative flex-1 bg-gradient-to-b from-mint/50 via-mist to-mist pb-24 pt-36">
+          to drop, since the glow sits above main's own top edge anyway). */}
+      <main className="relative flex-1 bg-gradient-to-b from-mint/50 via-mist to-mist pb-32 pt-36">
         <div
           className="pointer-events-none absolute inset-x-0 -top-24 mx-auto h-64 max-w-2xl bg-gradient-to-br from-brand/15 via-leaf/10 to-transparent blur-3xl"
           aria-hidden
         />
-        <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
-          <div className="flex gap-3 md:gap-6">
-            {/* The ONE dashboard nav at every screen size — a real left
-                sidebar. On a phone it renders as a slim icon-only rail by
-                default and expands into an overlay on the first tap (see
-                DashboardSidebar); on a wide screen it just widens in place. */}
-            <DashboardSidebar tabs={dashboardTabs} active={activeTab} onSelect={selectTab} />
-
-            <div className="min-w-0 max-w-3xl flex-1">
+        <div className="relative mx-auto max-w-3xl px-4 sm:px-6">
           <div className="flex items-center justify-between gap-3">
             <p className="font-display text-lg font-bold text-ink sm:text-xl">
               {personalGreeting(name)}
@@ -382,30 +409,40 @@ export default function AppPage() {
               instead of below it with the rest of the dashboard panels
               (founder request) — everything else about it (always mounted,
               only hidden with CSS, its own complete white card with its own
-              heading) is unchanged from the other panels further down. */}
+              heading) is unchanged from the other panels further down. Saving
+              sends the person down to today's meal (`onSaved`) so a save is
+              never left ambiguous — the toast confirms it, landing on the
+              meal card confirms it a second, unmissable way. */}
           <div
             id="dashboard-personalize"
             className={activeTab === "personalize" ? "mt-6 scroll-mt-24" : "hidden"}
           >
-            <PersonalizationSettings showGoals={canUseGoalPersonalization(access)} />
+            <PersonalizationSettings
+              showGoals={canUseGoalPersonalization(access)}
+              onSaved={scrollToMeal}
+            />
           </div>
 
-          {/* Daily-essentials zone: always visible, no button needed. TodaysMeal
-              is the reason someone opened the app (never collapsed, a standing
-              house rule), and LogReading must stay mounted and visible here —
-              the doctor's report panel below can ask it to open via the
-              ADD_READING_FOR window event, and that only works if LogReading is
-              not hidden away behind a different dashboard tab. */}
+          {/* Daily-essentials zone: always visible, no button needed. The
+              calorie/month snapshot sits ABOVE today's meal (founder
+              instruction) so it reads as the day's scoreboard before the
+              day's answer; TodaysMeal itself is the reason someone opened the
+              app (never collapsed, a standing house rule), and LogReading
+              must stay mounted and visible here — the doctor's report panel
+              below can ask it to open via the ADD_READING_FOR window event,
+              and that only works if LogReading is not hidden away behind a
+              different dashboard tab. */}
           <div className="mt-6 space-y-4">
-            <TodaysMeal onBuild={buildMeal} personalize={canUseGoalPersonalization(access)} />
-
-            {/* The "at a glance" bento row: streak, calories remaining (the
-                one number the dietitian's spec asks to always be visible),
-                and this month's good meals. The calorie tile renders nothing
-                until the person has filled in sex/age/weight/height/activity
-                in "Make it fit me"; the streak/month tiles are free on every
-                tier and only show once there is something to say. */}
+            {/* Calories remaining today + this month's good meals, always
+                horizontal, always here — never behind a tab. Renders nothing
+                until sex/age/weight/height/activity are set in "Make it fit
+                me" (calories) or until there is a month of history (the
+                month tile). */}
             <DashboardSnapshot show={canUseGoalPersonalization(access)} />
+
+            <div id="todays-meal" className="scroll-mt-24">
+              <TodaysMeal onBuild={buildMeal} personalize={canUseGoalPersonalization(access)} />
+            </div>
 
             {/* Straight under the answer, because a reading is the one thing
                 only this person can tell us, and the app can say nothing about
@@ -426,11 +463,11 @@ export default function AppPage() {
           </div>
 
           {/* Everything below used to be a long scroll (search, build, the
-              doctor's report, the always-open settings panel, and the bottom
-              widget stack); it now lives behind the one left-side nav above.
-              Nothing here is ever unmounted when its tab is inactive — it is
-              only hidden with CSS — so no component loses state or
-              behaviour by being tabbed. */}
+              doctor's report, and the always-open settings panel); it now
+              lives behind the one bottom nav below. Nothing here is ever
+              unmounted when its tab is inactive — it is only hidden with
+              CSS — so no component loses state or behaviour by being
+              tabbed. Only the tab actually clicked is ever shown. */}
 
           <div id="dashboard-panel" className="mt-4 scroll-mt-24 space-y-4">
             <div className={activeTab === "search" ? "" : "hidden"}>
@@ -496,19 +533,11 @@ export default function AppPage() {
                 <ChatWithDietitian />
               </div>
             )}
-
-            <div className={activeTab === "progress" ? "" : "hidden"}>
-              <div className="space-y-3">
-                <HabitStreak />
-                <PushOptIn />
-                <WhatsAppChannelCard />
-              </div>
-            </div>
-          </div>
-            </div>
           </div>
         </div>
       </main>
+
+      <DashboardBottomNav tabs={dashboardTabs} active={activeTab} onSelect={selectTab} />
     </>
   );
 }

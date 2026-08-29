@@ -51,7 +51,14 @@ const MED_TIME_LABEL: Record<MedTime, string> = {
 };
 const MED_TIMES: MedTime[] = ["morning", "afternoon", "evening"];
 
-function Chip({
+/**
+ * A full-width, left-aligned option row — one choice per line, never two
+ * side by side (founder instruction, 2026-08-29: "do not centralize the
+ * options ... put them vertically one after the other"). Replaces the
+ * earlier centered, wrapping pill row for every option group on this card
+ * (conditions, medication questions, sex, goals).
+ */
+function OptionRow({
   active,
   onClick,
   children,
@@ -65,13 +72,14 @@ function Chip({
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
+      className={`flex w-full items-center justify-between gap-3 rounded-xl px-4 py-3 text-left text-sm font-semibold transition-colors ${
         active
           ? "bg-leaf text-white"
           : "bg-mist text-ink-soft ring-1 ring-inset ring-line hover:bg-mint"
       }`}
     >
-      {children}
+      <span>{children}</span>
+      {active && <Check className="h-4 w-4 shrink-0" strokeWidth={3} />}
     </button>
   );
 }
@@ -133,7 +141,16 @@ function NumberField({
  * with no goal access, since they are free on every tier (safety-relevant,
  * not a paid perk) — the caller controls the gated block via `showGoals`.
  */
-export default function PersonalizationSettings({ showGoals }: { showGoals: boolean }) {
+export default function PersonalizationSettings({
+  showGoals,
+  onSaved,
+}: {
+  showGoals: boolean;
+  /** Called after a successful save — the caller sends the person down to
+   *  today's meal card, so "did it save?" is answered a second, unmissable
+   *  way beyond the toast (founder instruction, 2026-08-29). */
+  onSaved?: () => void;
+}) {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [activityLevel, setActivityLevel] = useState<ActivityLevel | null>(null);
   const [mealPattern, setMealPattern] = useState<NamedMeal[]>(MEALS);
@@ -196,6 +213,7 @@ export default function PersonalizationSettings({ showGoals }: { showGoals: bool
       setSaved(true);
       showToast("Saved");
       setTimeout(() => setSaved(false), 2500);
+      onSaved?.();
     } else {
       // A failed save used to do nothing visible at all — the button just sat
       // there, and someone whose input got rejected (or who lost connection)
@@ -229,15 +247,15 @@ export default function PersonalizationSettings({ showGoals }: { showGoals: bool
           <p className="text-sm font-semibold text-ink">Do you have any of these?</p>
         </div>
         <p className="mt-1 text-xs text-ink-soft">Select all that apply.</p>
-        <div className="mt-2 flex flex-wrap gap-2">
+        <div className="mt-2 space-y-2">
           {CONDITIONS.map((c) => (
-            <Chip key={c} active={conditions.includes(c)} onClick={() => toggleCondition(c)}>
+            <OptionRow key={c} active={conditions.includes(c)} onClick={() => toggleCondition(c)}>
               {CONDITION_LABEL[c]}
-            </Chip>
+            </OptionRow>
           ))}
-          <Chip active={conditions.length === 0} onClick={() => setConditions([])}>
+          <OptionRow active={conditions.length === 0} onClick={() => setConditions([])}>
             None of the above
-          </Chip>
+          </OptionRow>
         </div>
       </div>
 
@@ -251,9 +269,9 @@ export default function PersonalizationSettings({ showGoals }: { showGoals: bool
             How many times a day do you take diabetes medication?
           </p>
         </div>
-        <div className="mt-2 flex flex-wrap gap-2">
+        <div className="mt-2 space-y-2">
           {MED_DOSE_OPTIONS.map((o) => (
-            <Chip
+            <OptionRow
               key={o.value}
               active={medDosesPerDay === o.value}
               onClick={() => {
@@ -265,7 +283,7 @@ export default function PersonalizationSettings({ showGoals }: { showGoals: bool
               }}
             >
               {o.label}
-            </Chip>
+            </OptionRow>
           ))}
         </div>
 
@@ -273,30 +291,30 @@ export default function PersonalizationSettings({ showGoals }: { showGoals: bool
           <>
             <p className="mt-4 text-sm font-semibold text-ink-soft">When do you take it?</p>
             <p className="mt-0.5 text-xs text-ink-soft">Select all that apply.</p>
-            <div className="mt-2 flex flex-wrap gap-2">
+            <div className="mt-2 space-y-2">
               {MED_TIMES.map((t) => (
-                <Chip key={t} active={medTimes.includes(t)} onClick={() => toggleMedTime(t)}>
+                <OptionRow key={t} active={medTimes.includes(t)} onClick={() => toggleMedTime(t)}>
                   {MED_TIME_LABEL[t]}
-                </Chip>
+                </OptionRow>
               ))}
             </div>
 
             <p className="mt-4 text-sm font-semibold text-ink-soft">
               Do you take it before or after eating?
             </p>
-            <div className="mt-2 flex flex-wrap gap-2">
-              <Chip
+            <div className="mt-2 space-y-2">
+              <OptionRow
                 active={medRelationToFood === "before"}
                 onClick={() => setMedRelationToFood((cur) => (cur === "before" ? null : "before"))}
               >
                 Before eating
-              </Chip>
-              <Chip
+              </OptionRow>
+              <OptionRow
                 active={medRelationToFood === "after"}
                 onClick={() => setMedRelationToFood((cur) => (cur === "after" ? null : "after"))}
               >
                 After eating
-              </Chip>
+              </OptionRow>
             </div>
           </>
         )}
@@ -311,11 +329,11 @@ export default function PersonalizationSettings({ showGoals }: { showGoals: bool
             <p className="text-sm font-semibold text-ink">What are your goals?</p>
           </div>
           <p className="mt-1 text-xs text-ink-soft">Select all that apply.</p>
-          <div className="mt-2 flex flex-wrap gap-2">
+          <div className="mt-2 space-y-2">
             {GOALS.map((g) => (
-              <Chip key={g} active={goals.includes(g)} onClick={() => toggleGoal(g)}>
+              <OptionRow key={g} active={goals.includes(g)} onClick={() => toggleGoal(g)}>
                 {GOAL_LABEL[g]}
-              </Chip>
+              </OptionRow>
             ))}
           </div>
 
@@ -370,11 +388,11 @@ export default function PersonalizationSettings({ showGoals }: { showGoals: bool
                 Tell us about you, so we can work out your daily calories
               </p>
             </div>
-            <div className="mt-2 flex flex-wrap gap-2">
+            <div className="mt-2 space-y-2">
               {SEXES.map((s) => (
-                <Chip key={s} active={sex === s} onClick={() => setSex((cur) => (cur === s ? null : s))}>
+                <OptionRow key={s} active={sex === s} onClick={() => setSex((cur) => (cur === s ? null : s))}>
                   {SEX_LABEL[s]}
-                </Chip>
+                </OptionRow>
               ))}
             </div>
             <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">

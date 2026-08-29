@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Flame, Zap, CheckCircle2 } from "lucide-react";
+import { Zap, CheckCircle2 } from "lucide-react";
 import { caloriesEatenToday, monthStats, INTAKE_CHANGED, type MonthStats } from "@/lib/history";
 import {
   readPersonalizationProfile,
@@ -9,24 +9,26 @@ import {
 } from "@/lib/personalizationProfile";
 import { bmr, tdee, calorieTarget } from "@/lib/tdee";
 import { suggestExtras, type ExtraSuggestion } from "@/lib/nextMeal";
-import { localDayKey } from "@/lib/mealtime";
+import { localDayKey, currentMeal } from "@/lib/mealtime";
 import ProgressRing from "@/components/ProgressRing";
 import ExtraSuggestionCard from "@/components/ExtraSuggestionCard";
 
 /**
- * The dashboard's "at a glance" row — three tiles, one shared visual
- * signature (ProgressRing, always the same brand blue-to-green sweep, never
- * a third colour): today's streak, calories remaining, and this month's good
- * meals. Replaces the old plain-text CalorieBudget card with something that
- * reads instantly, the way a real dashboard should, while never inventing a
- * number that was not already computed elsewhere (lib/history.ts's
- * monthStats, lib/tdee.ts's calorie math — this is a new VIEW on existing
- * data, not new data).
+ * The dashboard's "at a glance" row — sits directly ABOVE `TodaysMeal`
+ * (founder instruction, 2026-08-29), so a person sees the day's scoreboard
+ * before the day's answer. Two tiles, one shared visual signature
+ * (ProgressRing, always the same brand blue-to-green sweep, never a third
+ * colour): calories remaining today, and this month's good meals. **The
+ * streak tile was removed 2026-08-29** (founder instruction) — a person's
+ * streak still lives on in `HabitStreak`'s own milestone line, this row is
+ * just no longer where it is repeated. Never invents a number that was not
+ * already computed elsewhere (lib/history.ts's monthStats, lib/tdee.ts's
+ * calorie math — this is a VIEW on existing data, not new data).
  *
  * The calorie tile only renders once sex/age/weight/height/activity are set
- * AND the tier allows it (`show`); the streak/month tiles are free on every
- * tier (a person's own count of their own meals) and only render once there
- * is something to say, so a first-time user is not shown a row of zeros.
+ * AND the tier allows it (`show`); the month tile is free on every tier (a
+ * person's own count of their own meals) and only renders once there is
+ * something to say, so a first-time user is not shown a row of zeros.
  */
 export default function DashboardSnapshot({ show }: { show: boolean }) {
   const [stats, setStats] = useState<MonthStats | null>(null);
@@ -38,11 +40,13 @@ export default function DashboardSnapshot({ show }: { show: boolean }) {
     monthStats().then(setStats);
     if (!show) {
       setCalTarget(null);
+      setExtra(null);
       return;
     }
     const p = await readPersonalizationProfile();
     if (!p.sex || !p.ageYears || !p.weightKg || !p.heightCm || !p.activityLevel) {
       setCalTarget(null);
+      setExtra(null);
       return;
     }
     const dailyTarget = calorieTarget(
@@ -53,28 +57,36 @@ export default function DashboardSnapshot({ show }: { show: boolean }) {
     const left = Math.max(0, dailyTarget - eatenToday);
     setCalTarget(dailyTarget);
     setCalRemaining(left);
-    setExtra(suggestExtras(left, localDayKey()));
+    // Extras only ever show at breakfast or lunch, never dinner (founder
+    // instruction: by the end of dinner the day's target must already be
+    // met through the 3 meals themselves plus whatever extras were eaten
+    // earlier — dinner is not another round of "still hungry, eat more").
+    setExtra(currentMeal() === "dinner" ? null : suggestExtras(left, localDayKey()));
   }, [show]);
 
   useEffect(() => {
     refresh();
     window.addEventListener(INTAKE_CHANGED, refresh);
     window.addEventListener(PERSONALIZATION_CHANGED, refresh);
+    // Follows the clock, same reasoning as TodaysMeal: a phone left open
+    // across the breakfast/lunch → dinner boundary must stop offering
+    // extras without needing a reload or a fresh log/save event.
+    const id = setInterval(refresh, 60_000);
     return () => {
       window.removeEventListener(INTAKE_CHANGED, refresh);
       window.removeEventListener(PERSONALIZATION_CHANGED, refresh);
+      clearInterval(id);
     };
   }, [refresh]);
 
-  const hasStreak = stats && stats.total > 0 && stats.streakDays >= 1;
   const hasMonth = stats && stats.total > 0;
   const hasCalories = calTarget != null && calRemaining != null;
 
-  if (!hasStreak && !hasMonth && !hasCalories) return null;
+  if (!hasMonth && !hasCalories) return null;
 
   const tiles: {
     key: string;
-    icon: typeof Flame;
+    icon: typeof Zap;
     tone: "blue" | "green";
     eyebrow: string;
     percent: number;
@@ -82,19 +94,6 @@ export default function DashboardSnapshot({ show }: { show: boolean }) {
     value: string;
     unit: string;
   }[] = [];
-
-  if (hasStreak) {
-    tiles.push({
-      key: "streak",
-      icon: Flame,
-      tone: "green",
-      eyebrow: "Streak",
-      percent: (Math.min(stats!.streakDays, 7) / 7) * 100,
-      ringLabel: `${Math.min(stats!.streakDays, 7)}/7`,
-      value: `${stats!.streakDays}`,
-      unit: stats!.streakDays === 1 ? "day in a row" : "days in a row",
-    });
-  }
 
   if (hasCalories) {
     const eatenShare = calTarget! > 0 ? ((calTarget! - calRemaining!) / calTarget!) * 100 : 0;
@@ -131,32 +130,33 @@ export default function DashboardSnapshot({ show }: { show: boolean }) {
 
   return (
     <div className="space-y-3">
-      <div
-        className={`grid gap-3 ${
-          tiles.length === 3 ? "grid-cols-1 sm:grid-cols-3" : tiles.length === 2 ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1"
-        }`}
-      >
+      {/* Always horizontal, even on a phone (founder instruction) — with just
+          2 tiles left after removing the streak, there is room to keep them
+          side by side at every width rather than stacking. */}
+      <div className={`grid gap-3 ${tiles.length === 2 ? "grid-cols-2" : "grid-cols-1"}`}>
         {tiles.map((t) => {
           const Icon = t.icon;
           const tone = TONE[t.tone];
           return (
             <div
               key={t.key}
-              className="rounded-2xl bg-white p-4 shadow-[0_6px_28px_-14px_rgba(12,42,71,0.2)] ring-1 ring-ink/[0.05]"
+              className="min-w-0 rounded-2xl bg-white p-3 shadow-[0_6px_28px_-14px_rgba(12,42,71,0.2)] ring-1 ring-ink/[0.05] sm:p-4"
             >
-              <div className="flex items-center gap-2">
-                <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 ring-inset ${tone.chip}`}>
-                  <Icon className="h-3.5 w-3.5" strokeWidth={2.4} />
+              <div className="flex items-center gap-1.5">
+                <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-lg ring-1 ring-inset ${tone.chip}`}>
+                  <Icon className="h-3 w-3" strokeWidth={2.4} />
                 </span>
-                <p className="text-xs font-semibold uppercase tracking-wide text-ink-soft">{t.eyebrow}</p>
+                <p className="truncate text-[10.5px] font-semibold uppercase tracking-wide text-ink-soft sm:text-xs">
+                  {t.eyebrow}
+                </p>
               </div>
-              <div className="mt-3 flex items-center gap-4">
-                <ProgressRing percent={t.percent} size={72} stroke={7}>
-                  <span className="font-display text-sm font-bold text-ink">{t.ringLabel}</span>
+              <div className="mt-2.5 flex items-center gap-2.5 sm:gap-4">
+                <ProgressRing percent={t.percent} size={56} stroke={6}>
+                  <span className="font-display text-xs font-bold text-ink">{t.ringLabel}</span>
                 </ProgressRing>
-                <p className="font-display leading-tight text-ink">
-                  <span className="text-3xl font-bold">{t.value}</span>{" "}
-                  <span className="text-sm font-semibold text-ink-soft">{t.unit}</span>
+                <p className="min-w-0 font-display leading-tight text-ink">
+                  <span className="text-2xl font-bold sm:text-3xl">{t.value}</span>{" "}
+                  <span className="text-xs font-semibold text-ink-soft sm:text-sm">{t.unit}</span>
                 </p>
               </div>
             </div>
