@@ -262,13 +262,22 @@ function stride(n: number): number {
  * way `liked` already does. Omitting it (the default) reproduces today's
  * behaviour exactly.
  *
- * `calorieTargetForMeal` (Plus/Dietitian tier, same gate as `bias`) is a
- * second, independent tiebreak of the same shape: it prefers whichever
- * eligible plate's summed `calories` sits closest to this meal's share of the
- * person's daily calorie target (see lib/tdee.ts's distributeCalories). Like
- * `bias`, it only nudges the order among already-green plates — it can never
- * make an otherwise-ineligible plate appear, and it never touches the
- * no-repeat stride. Omitting it reproduces today's behaviour exactly.
+ * `calorieTargetForMeal` (Plus/Dietitian tier, same gate as `bias`) works
+ * differently from `bias`, on purpose: a plain scoring tiebreak was tried
+ * first and did not work, because the day-stride below walks every position
+ * in the sorted list over the month regardless of score, so a small nudge to
+ * the order barely changed which plate a person actually got on a given day
+ * — confirmed as a real bug (a person's 3 meals came nowhere near their daily
+ * target). Instead, when a target is given, the ROTATION POOL itself is
+ * narrowed first to the plates whose `calories` are closest to this meal's
+ * share of the target (relative to the single best match available, so it
+ * still narrows sensibly even when every plate falls short of a high
+ * target), with a floor on how small that pool may get so real variety
+ * survives. Least-eaten-first, the goal bias, and the day-stride/avoid-list
+ * machinery then all run exactly as before, just over that narrower pool —
+ * every existing guarantee (green-only, no-repeat, avoidIndexes respected)
+ * still holds, only the SET of plates being rotated through changes.
+ * Omitting it (the default) reproduces today's behaviour exactly.
  */
 export function planForDay(
   meal: NamedMeal,
@@ -288,14 +297,9 @@ export function planForDay(
   // day-dependent, so the order only shifts when the person's eating changes).
   // A food they logged as green counts for a little less, so a plate they like
   // and that is good for them does not drift all the way to the back. A goal
-  // bias, when present, nudges the same score by a bounded amount — enough to
-  // matter, never enough to override the day's stride or the avoid list.
+  // bias, when present, nudges the same score by a bounded amount.
   const LIKED_DISCOUNT = 0.5;
   const GOAL_BIAS_WEIGHT = 2;
-  // A relative deviation (0 = exact match), so it is bounded the same way
-  // goalAdjust is: comparable in size to the other terms, never large enough
-  // to override the day's stride or the avoid list on its own.
-  const CALORIE_BIAS_WEIGHT = 3;
   const scored = list.map((_, i) => {
     const idea = resolve(meal, i);
     const eaten = idea.foods.reduce(
@@ -306,24 +310,130 @@ export function planForDay(
       0,
     );
     const goalAdjust = bias ? GOAL_BIAS_WEIGHT * biasScore(idea.foods, bias) : 0;
-    let calorieAdjust = 0;
-    if (calorieTargetForMeal && calorieTargetForMeal > 0) {
-      const planCalories = idea.foods.reduce((s, f) => s + (f.calories ?? 0), 0);
-      calorieAdjust =
-        (CALORIE_BIAS_WEIGHT * Math.abs(planCalories - calorieTargetForMeal)) / calorieTargetForMeal;
-    }
-    return { idea, eaten: eaten + goalAdjust + calorieAdjust, tie: hash(`${meal}#${i}`) };
+    const planCalories = idea.foods.reduce((s, f) => s + (f.calories ?? 0), 0);
+    return { idea, eaten: eaten + goalAdjust, tie: hash(`${meal}#${i}`), planCalories };
   });
-  scored.sort((a, b) => a.eaten - b.eaten || a.tie - b.tie);
 
-  const step = stride(n);
-  let pos = (((dayNumber(dayKey) * step + offset) % n) + n) % n;
-  if (avoidIndexes.length > 0 && n > avoidIndexes.length) {
+  // A calorie target (Plus/Dietitian tier) is NOT a minor tiebreak added on
+  // top of the full list — a tiebreak this small was getting lost entirely,
+  // because the day-stride below walks every position in the sorted list
+  // over time regardless of score, so on any given day the "closest match"
+  // was barely more likely to be served than a distant one. Instead, narrow
+  // the ROTATION POOL itself to the closest-matching plates first, then let
+  // the existing least-eaten/goal-bias order and day-stride work exactly as
+  // before, but only within that narrower pool. This keeps every existing
+  // guarantee (still green, still no-repeat, still respects avoidIndexes) —
+  // it only changes WHICH plates are in rotation, never how rotation works.
+  let pool = scored;
+  if (calorieTargetForMeal && calorieTargetForMeal > 0) {
+    const withDiff = scored.map((s) => ({
+      ...s,
+      diff: Math.abs(s.planCalories - calorieTargetForMeal),
+    }));
+    const bestDiff = Math.min(...withDiff.map((s) => s.diff));
+    // Anything within 15% of the target, OR within a stone's throw of the
+    // single best match — relative to the BEST match, not the target itself,
+    // so this still narrows correctly to "closest available" when the target
+    // is above every plate's reach (a big, active, or muscle-building
+    // person), rather than falling through to the full, mostly-irrelevant
+    // list.
+    const band = Math.max(calorieTargetForMeal * 0.15, bestDiff + 40);
+    const close = withDiff.filter((s) => s.diff <= band);
+    // Keep enough plates in rotation for real variety (never fewer than the
+    // closest handful) even when the band above is stricter than that.
+    const MIN_POOL = Math.min(6, scored.length);
+    pool =
+      close.length >= MIN_POOL
+        ? close
+        : [...withDiff].sort((a, b) => a.diff - b.diff).slice(0, MIN_POOL);
+  }
+
+  pool.sort((a, b) => a.eaten - b.eaten || a.tie - b.tie);
+
+  const m = pool.length;
+  const step = stride(m);
+  let pos = (((dayNumber(dayKey) * step + offset) % m) + m) % m;
+  if (avoidIndexes.length > 0 && m > avoidIndexes.length) {
     let guard = 0;
-    while (avoidIndexes.includes(scored[pos].idea.index) && guard < n) {
-      pos = (pos + 1) % n;
+    while (avoidIndexes.includes(pool[pos].idea.index) && guard < m) {
+      pos = (pos + 1) % m;
       guard += 1;
     }
   }
-  return scored[pos].idea;
+  return pool[pos].idea;
+}
+
+/**
+ * A small, safe way to close a REAL leftover gap in the daily calorie
+ * budget, for people whose target is bigger than 3 realistic Nigerian meals
+ * can ever reach (a genuinely active or muscle-building person — see the
+ * "known ceiling" note in CLAUDE.md). Never touches the 3 main meals' own
+ * dietitian-set portion sizes: this only ever suggests MORE of an
+ * already-reviewed food that is safe to eat every day, at its own existing
+ * safe portion, never a bigger portion of anything.
+ *
+ * The pool is hand-picked from foods `lib/frequency.ts`'s `canBeEveryday()`
+ * already allows daily (green, protein/fat role) and that genuinely read as
+ * a light "extra," not a full dish — nuts/seeds, eggs, and a few common
+ * light proteins (suya, fish, chicken). Heavier "whole meal" items that also
+ * pass `canBeEveryday()` (nkwobi, isi-ewu, tuna salad, offal) are left out on
+ * purpose: nobody adds a bowl of isi-ewu as a top-up snack.
+ */
+const EXTRAS = [
+  "suya",
+  "eggs",
+  "fried-egg",
+  "scrambled-egg",
+  "groundnut",
+  "cashew-nut",
+  "walnut",
+  "almond",
+  "mixed-nuts",
+  "tiger-nut",
+  "coconut",
+  "egusi-seed",
+  "peanut-butter",
+  "seeds",
+  "fish",
+  "chicken",
+  "smoked-fish",
+  "stockfish",
+];
+
+export interface ExtraSuggestion {
+  foods: Food[];
+  names: string[];
+  calories: number;
+}
+
+/**
+ * Picks up to 3 EXTRAS items, rotated by day (so it is not always the same
+ * suggestion), stopping once their combined calories reach the remaining
+ * gap or 3 items are picked, whichever comes first. Returns null below a
+ * small threshold (100kcal) — not worth suggesting anything for a gap that
+ * small — and null if the gap cannot be resolved to any foods (should not
+ * happen with a non-empty EXTRAS list, but never throws either way.
+ *
+ * This is explicitly a best-effort nudge, not a promise the day's total will
+ * land exactly on target: for a very large remaining gap, 3 items capped at
+ * their own safe portions still will not close it, and the copy showing
+ * this must say so plainly rather than imply the gap always closes.
+ */
+export function suggestExtras(remainingKcal: number, dayKey: string): ExtraSuggestion | null {
+  if (!remainingKcal || remainingKcal < 100) return null;
+  const items = EXTRAS.map((id) => getFood(id)).filter((f): f is Food => f != null && (f.calories ?? 0) > 0);
+  if (items.length === 0) return null;
+
+  const start = dayNumber(dayKey) % items.length;
+  const rotated = [...items.slice(start), ...items.slice(0, start)];
+
+  const picked: Food[] = [];
+  let total = 0;
+  for (const f of rotated) {
+    if (picked.length >= 3 || total >= remainingKcal) break;
+    picked.push(f);
+    total += f.calories ?? 0;
+  }
+  if (picked.length === 0) return null;
+  return { foods: picked, names: picked.map((f) => cleanFoodName(f.name)), calories: total };
 }
