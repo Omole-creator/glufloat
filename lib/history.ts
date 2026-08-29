@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/client";
 import type { Reading } from "./glucose";
 import type { Verdict } from "./types";
+import { FOODS } from "./search";
 
 /**
  * A person's own food-check history, saved to their account (meal_checks table,
@@ -251,6 +252,55 @@ async function foodCounts(verdict?: Verdict): Promise<Map<string, number>> {
     /* empty map on failure */
   }
   return counts;
+}
+
+/** A date shifted into Nigerian time (WAT, GMT+1), same helper as lib/intake.ts,
+ *  so "today" agrees with the rest of the app's meal-time/day logic. */
+function wat(ms: number): Date {
+  return new Date(ms + 60 * 60 * 1000);
+}
+function watDayKey(d: Date): string {
+  return `${d.getUTCFullYear()}-${d.getUTCMonth()}-${d.getUTCDate()}`;
+}
+
+const foodCalories = new Map(FOODS.map((f) => [f.name, f.calories ?? 0]));
+
+/**
+ * Calories eaten today (Nigerian time), summed from the same saved "I ate
+ * this" log everything else here reads — a lookup is not a meal eaten, so
+ * this only ever counts what was actually logged, never a search or a
+ * suggestion. Splits a meal's comma-joined label the same way
+ * lib/mealSize.ts's sizedFoods() does. A food logged before the calorie data
+ * existed, or one the log can no longer match by name, simply contributes 0
+ * rather than breaking the total.
+ */
+export async function caloriesEatenToday(): Promise<number> {
+  try {
+    const supabase = createClient();
+    const todayK = watDayKey(wat(Date.now()));
+    // 48h of buffer (not 24h) so "today" in WAT is always fully covered
+    // regardless of the reader's own clock/timezone.
+    const since = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+    const { data } = await supabase
+      .from("meal_checks")
+      .select("kind,label,checked_at")
+      .gte("checked_at", since);
+    let total = 0;
+    for (const r of data ?? []) {
+      const when = new Date(r.checked_at as string).getTime();
+      if (watDayKey(wat(when)) !== todayK) continue;
+      const names =
+        r.kind === "single"
+          ? [r.label as string]
+          : String(r.label)
+              .split(",")
+              .map((s) => s.trim());
+      for (const n of names) total += foodCalories.get(n) ?? 0;
+    }
+    return Math.round(total);
+  } catch {
+    return 0;
+  }
 }
 
 export interface MonthStats {

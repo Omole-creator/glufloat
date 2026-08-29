@@ -23,6 +23,7 @@ keys are in Vercel, the app code (which I'm building) takes over.
    | 10 | `glucose-schema.sql` | `glucose_readings`, `profiles.health_data_consent_at`, and a missing delete rule on `meal_checks` |
    | 11 | `personalization-schema.sql` | `profiles.goals/.activity_level/.meal_pattern`, and `subscriptions.tier` (basic \| plus \| dietitian) |
    | 12 | `dietitian-schema.sql` | `inhouse_dietitians`, `dietitian_assignments`, and the atomic `assign_dietitian()` round-robin — must run AFTER #11, since it checks `subscriptions.tier` |
+   | 13 | `health-profile-schema.sql` | `profiles.sex/.age_years/.weight_kg/.height_cm/.conditions/.med_doses_per_day/.med_times/.med_relation_to_food` — must run AFTER #11, since it widens the `activity_level` check constraint #11 first created |
 
    Two things worth knowing about that order. **Five of these files each contain
    their own `create or replace function public.handle_new_user()`**, and the last

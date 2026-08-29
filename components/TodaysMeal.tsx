@@ -1,14 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { RefreshCw, ArrowRight, Sunrise, Sun, Moon, Check } from "lucide-react";
+import { RefreshCw, ArrowRight, Sunrise, Sun, Moon, Check, Pill } from "lucide-react";
 import {
   currentMeal,
   localDayKey,
   type NamedMeal,
 } from "@/lib/mealtime";
 import { planForDay, type MealIdea } from "@/lib/nextMeal";
-import { loggedFoodCounts, likedFoodCounts } from "@/lib/history";
+import { loggedFoodCounts, likedFoodCounts, caloriesEatenToday } from "@/lib/history";
 import { trackUsage } from "@/lib/usage";
 import type { Food } from "@/lib/types";
 import { nextEatenMeal } from "@/lib/mealPattern";
@@ -16,13 +16,24 @@ import {
   readPersonalizationProfile,
   PERSONALIZATION_CHANGED,
   type PersonalizationProfile,
+  type MedTime,
 } from "@/lib/personalizationProfile";
 import { biasVector, type PlateAxes } from "@/lib/personalization";
+import { bmr, tdee, calorieTarget, remainingMealCalorieTarget } from "@/lib/tdee";
+import { medicationAppliesToMeal, medicationTimingCopy } from "@/lib/medicationTiming";
 
 const NO_PROFILE: PersonalizationProfile = {
   goals: [],
   activityLevel: null,
   mealPattern: ["breakfast", "lunch", "dinner"],
+  sex: null,
+  ageYears: null,
+  weightKg: null,
+  heightCm: null,
+  conditions: [],
+  medDosesPerDay: null,
+  medTimes: [],
+  medRelationToFood: null,
 };
 
 const MEAL_ICON = {
@@ -163,32 +174,58 @@ export default function TodaysMeal({
     meal: null,
     day: "",
   });
+  // Medication timing is free on every tier, mirrors what profileRef already
+  // holds, kept as its own bit of render state since the pill/note below
+  // needs to re-render when it changes (profileRef alone does not).
+  const [medTimes, setMedTimes] = useState<MedTime[]>([]);
+  const [medRelationToFood, setMedRelationToFood] = useState<"before" | "after" | null>(null);
 
-  const bias = useCallback(
-    (): PlateAxes | null =>
-      personalize
-        ? biasVector({
-            goals: profileRef.current.goals,
-            activityLevel: profileRef.current.activityLevel,
-          })
-        : null,
+  // Conditions (hypertension/high cholesterol/kidney disease) are free on
+  // every tier — safety-relevant, not a paid perk — so they bias the plate
+  // regardless of `personalize`. Goals and activity level stay gated.
+  const bias = useCallback((): PlateAxes | null => {
+    const conditions = profileRef.current.conditions;
+    if (!personalize && conditions.length === 0) return null;
+    return biasVector({
+      goals: personalize ? profileRef.current.goals : [],
+      activityLevel: personalize ? profileRef.current.activityLevel : null,
+      conditions,
+    });
+  }, [personalize]);
+
+  // The daily calorie target's share for THIS meal, recalculated from what
+  // has already been eaten today (lib/tdee.ts's remainingMealCalorieTarget) —
+  // null (no bias) unless personalization is unlocked AND the person has
+  // filled in sex/age/weight/height/activity, same gating as `bias` above but
+  // for the goal-only part (this needs the bio-metrics, conditions alone are
+  // not enough to compute a calorie target).
+  const calorieTargetFor = useCallback(
+    async (m: NamedMeal): Promise<number | null> => {
+      if (!personalize) return null;
+      const p = profileRef.current;
+      if (!p.sex || !p.ageYears || !p.weightKg || !p.heightCm || !p.activityLevel) return null;
+      const dailyTarget = calorieTarget(tdee(bmr(p.sex, p.weightKg, p.heightCm, p.ageYears), p.activityLevel), p.goals);
+      const eatenToday = await caloriesEatenToday();
+      return remainingMealCalorieTarget(dailyTarget, eatenToday, p.mealPattern, m);
+    },
     [personalize],
   );
 
   const plan = useCallback(
-    (
+    async (
       m: NamedMeal,
       dk: string,
       c: Map<string, number>,
       l: Map<string, number>,
       b: PlateAxes | null,
     ) => {
-      const next = planForDay(m, dk, c, 0, toAvoid(m, dk), l, b);
+      const calTarget = await calorieTargetFor(m);
+      const next = planForDay(m, dk, c, 0, toAvoid(m, dk), l, b, calTarget);
       setIdea(next);
       setOffset(0);
       writeShown(m, dk, next.index);
     },
-    [],
+    [calorieTargetFor],
   );
 
   useEffect(() => {
@@ -210,6 +247,8 @@ export default function TodaysMeal({
         profileRef.current = profile;
         setCounts(c);
         setLiked(l);
+        setMedTimes(profile.medTimes);
+        setMedRelationToFood(profile.medRelationToFood);
         const resolved = nextEatenMeal(profile.mealPattern, currentMeal());
         const dk2 = localDayKey();
         nowRef.current = { meal: resolved, day: dk2 };
@@ -247,6 +286,8 @@ export default function TodaysMeal({
     function onChanged() {
       readPersonalizationProfile().then((profile) => {
         profileRef.current = profile;
+        setMedTimes(profile.medTimes);
+        setMedRelationToFood(profile.medRelationToFood);
         const cur = nowRef.current;
         if (cur.meal === null) return;
         const resolved = nextEatenMeal(profile.mealPattern, cur.meal);
@@ -269,9 +310,11 @@ export default function TodaysMeal({
     writeSkipped(meal, idea.index);
     const n = offset + 1;
     setOffset(n);
-    const next = planForDay(meal, dayKey, counts, n, toAvoid(meal, dayKey), liked, bias());
-    setIdea(next);
-    writeShown(meal, dayKey, next.index);
+    calorieTargetFor(meal).then((calTarget) => {
+      const next = planForDay(meal, dayKey, counts, n, toAvoid(meal, dayKey), liked, bias(), calTarget);
+      setIdea(next);
+      writeShown(meal, dayKey, next.index);
+    });
   };
 
   return (
@@ -308,6 +351,13 @@ export default function TodaysMeal({
           <Check className="h-4 w-4 text-verdict-green" strokeWidth={3} /> Good to eat
           <span className="text-white/40">·</span> Picked for you
         </span>
+
+        {medicationAppliesToMeal(medTimes, meal) && medicationTimingCopy(medRelationToFood) && (
+          <div className="mt-4 flex items-start gap-2.5 rounded-xl bg-white/10 p-3 ring-1 ring-inset ring-white/15">
+            <Pill className="mt-0.5 h-4 w-4 shrink-0 text-white/80" strokeWidth={2.2} />
+            <p className="text-sm text-white/90">{medicationTimingCopy(medRelationToFood)}</p>
+          </div>
+        )}
 
         <div className="mt-6 flex flex-wrap gap-2.5">
           <button

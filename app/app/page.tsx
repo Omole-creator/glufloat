@@ -13,7 +13,6 @@ import {
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import SocialProofTicker from "@/components/SocialProofTicker";
-import Footer from "@/components/Footer";
 import DisclaimerGate from "@/components/DisclaimerGate";
 import FeedbackPopup from "@/components/FeedbackPopup";
 import ToastHost from "@/components/Toast";
@@ -23,6 +22,7 @@ import HabitStreak from "@/components/HabitStreak";
 import VarietyNudge from "@/components/VarietyNudge";
 import MonthReport from "@/components/MonthReport";
 import TodaysMeal from "@/components/TodaysMeal";
+import CalorieBudget from "@/components/CalorieBudget";
 import LogReading from "@/components/LogReading";
 import ReadingNudge from "@/components/ReadingNudge";
 import TypewriterHeadline from "@/components/TypewriterHeadline";
@@ -76,31 +76,37 @@ const ALL_DASHBOARD_TABS: (DashboardTabDef & { id: DashboardTabId })[] = [
   {
     id: "personalize",
     label: "Make it fit me",
+    shortLabel: "Fit me",
     icon: <Target className="h-4.5 w-4.5" strokeWidth={2.2} />,
   },
   {
     id: "search",
     label: "Search any food",
+    shortLabel: "Search",
     icon: <Search className="h-4.5 w-4.5" strokeWidth={2.2} />,
   },
   {
     id: "meal",
     label: "Build a meal",
+    shortLabel: "Build",
     icon: <Blocks className="h-4.5 w-4.5" strokeWidth={2.2} />,
   },
   {
     id: "report",
     label: "Doctor's report",
+    shortLabel: "Report",
     icon: <ClipboardList className="h-4.5 w-4.5" strokeWidth={2.2} />,
   },
   {
     id: "dietitian",
     label: "Chat with dietitian",
+    shortLabel: "Chat",
     icon: <Stethoscope className="h-4.5 w-4.5" strokeWidth={2.2} />,
   },
   {
     id: "progress",
     label: "My progress",
+    shortLabel: "Progress",
     icon: <TrendingUp className="h-4.5 w-4.5" strokeWidth={2.2} />,
   },
 ];
@@ -269,7 +275,6 @@ export default function AppPage() {
             </div>
           </div>
         </main>
-        <Footer />
       </>
     );
   }
@@ -394,6 +399,11 @@ export default function AppPage() {
           <div className="mt-6 space-y-4">
             <TodaysMeal onBuild={buildMeal} personalize={canUseGoalPersonalization(access)} />
 
+            {/* The one number the dietitian's spec asks to always be visible:
+                calories remaining today. Renders nothing until the person has
+                filled in sex/age/weight/height/activity in "Make it fit me". */}
+            <CalorieBudget show={canUseGoalPersonalization(access)} />
+
             {/* Straight under the answer, because a reading is the one thing
                 only this person can tell us, and the app can say nothing about
                 their own body until they do. */}
@@ -496,8 +506,6 @@ export default function AppPage() {
           </div>
         </div>
       </main>
-
-      <Footer />
     </>
   );
 }

@@ -16,7 +16,7 @@
 import { ideasFor, planForDay } from "../lib/nextMeal";
 import { getFood } from "../lib/search";
 import { scoreMeal } from "../lib/verdictEngine";
-import { biasVector, biasScore, GOALS, ACTIVITY_LEVELS } from "../lib/personalization";
+import { biasVector, biasScore, GOALS, ACTIVITY_LEVELS, CONDITIONS } from "../lib/personalization";
 import { normalizeMealPattern, nextEatenMeal } from "../lib/mealPattern";
 import type { NamedMeal } from "../lib/mealtime";
 
@@ -70,14 +70,50 @@ if (neutral.energyLean !== 0 || neutral.proteinDensity !== 0) {
   fail(`"maintain" with no activity is not a zero vector: ${JSON.stringify(neutral)}`);
 }
 
+// Conditions sum the same way as goals, and stack on top of a goal+activity
+// vector without special-casing.
+for (const c of CONDITIONS) {
+  const soloCondition = biasVector({ goals: [], activityLevel: null, conditions: [c] });
+  const withGoal = biasVector({ goals: ["lose_weight"], activityLevel: null, conditions: [c] });
+  const soloGoal = biasVector({ goals: ["lose_weight"], activityLevel: null });
+  const expected = {
+    energyLean: soloGoal.energyLean + soloCondition.energyLean,
+    proteinDensity: soloGoal.proteinDensity + soloCondition.proteinDensity,
+  };
+  if (
+    Math.abs(withGoal.energyLean - expected.energyLean) > 1e-9 ||
+    Math.abs(withGoal.proteinDensity - expected.proteinDensity) > 1e-9
+  ) {
+    fail(`condition ${c} + goal lose_weight: combined vector is not the sum`);
+  }
+}
+
+// Kidney disease must pull proteinDensity down even alongside build_muscle —
+// the condition's protein cap must never lose to a goal's protein push.
+const kidneyPlusMuscle = biasVector({
+  goals: ["build_muscle"],
+  activityLevel: null,
+  conditions: ["kidney_disease"],
+});
+const muscleOnly = biasVector({ goals: ["build_muscle"], activityLevel: null });
+if (kidneyPlusMuscle.proteinDensity >= muscleOnly.proteinDensity) {
+  fail(
+    `kidney_disease + build_muscle: proteinDensity (${kidneyPlusMuscle.proteinDensity}) should be pulled below build_muscle alone (${muscleOnly.proteinDensity})`,
+  );
+}
+
 // ---- 2. Every plate is still green, and 0 consecutive repeats, under EVERY
 //         single goal and activity level, applied on its own -----------------
 const ALL_BIASES = [
   ...GOALS.map((g) => ({ label: `goal:${g}`, bias: biasVector({ goals: [g], activityLevel: null }) })),
   ...ACTIVITY_LEVELS.map((a) => ({ label: `activity:${a}`, bias: biasVector({ goals: [], activityLevel: a }) })),
+  ...CONDITIONS.map((c) => ({
+    label: `condition:${c}`,
+    bias: biasVector({ goals: [], activityLevel: null, conditions: [c] }),
+  })),
   {
     label: "everything at once",
-    bias: biasVector({ goals: [...GOALS], activityLevel: "active" }),
+    bias: biasVector({ goals: [...GOALS], activityLevel: "extra_active", conditions: [...CONDITIONS] }),
   },
 ];
 

@@ -19,10 +19,17 @@ alter table public.profiles
   add constraint profiles_goals_check
     check (goals <@ array['maintain','lose_weight','gain_weight','build_muscle']);
 
+-- 'active' is kept for backward compatibility with rows written before
+-- health-profile-schema.sql expanded this to the full 5-tier TDEE scale
+-- (sedentary/light/moderate/very_active/extra_active, see lib/tdee.ts). The
+-- UI never writes 'active' again; lib/personalizationProfile.ts normalises
+-- an existing 'active' row to 'very_active' on read. Existing data must
+-- never be invalidated by widening this column's options.
 alter table public.profiles
   drop constraint if exists profiles_activity_level_check,
   add constraint profiles_activity_level_check
-    check (activity_level is null or activity_level in ('sedentary','moderate','active'));
+    check (activity_level is null or activity_level in
+      ('sedentary','light','moderate','very_active','extra_active','active'));
 
 alter table public.profiles
   drop constraint if exists profiles_meal_pattern_check,

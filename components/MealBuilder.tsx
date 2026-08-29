@@ -15,6 +15,14 @@ import { events } from "@/lib/analytics";
 import { saveCheck } from "@/lib/history";
 import { trackUsage } from "@/lib/usage";
 import { cleanFoodName } from "@/lib/foodName";
+import { currentMeal } from "@/lib/mealtime";
+import {
+  readPersonalizationProfile,
+  PERSONALIZATION_CHANGED,
+  type MedTime,
+} from "@/lib/personalizationProfile";
+import { medicationAppliesToMeal, medicationTimingCopy } from "@/lib/medicationTiming";
+import { Pill } from "lucide-react";
 
 const PORTIONS: { key: PortionSize; label: string }[] = [
   { key: "half", label: "Small" },
@@ -70,6 +78,25 @@ export default function MealBuilder({
   const results = useMemo(() => searchFoods(query, 6), [query]);
   const result = useMemo(() => scoreMeal(items), [items]);
   const often = useMemo(() => mealFrequency(items), [items]);
+
+  // Medication timing, free on every tier. There is no meal-slot picker in
+  // the builder, so the current clock meal (same 3-band clock as TodaysMeal)
+  // stands in for "which meal is this" — a reasonable proxy for what someone
+  // is building right now.
+  const [medTimes, setMedTimes] = useState<MedTime[]>([]);
+  const [medRelationToFood, setMedRelationToFood] = useState<"before" | "after" | null>(null);
+  useEffect(() => {
+    const load = () =>
+      readPersonalizationProfile().then((p) => {
+        setMedTimes(p.medTimes);
+        setMedRelationToFood(p.medRelationToFood);
+      });
+    load();
+    window.addEventListener(PERSONALIZATION_CHANGED, load);
+    return () => window.removeEventListener(PERSONALIZATION_CHANGED, load);
+  }, []);
+  const medicationNote =
+    medicationAppliesToMeal(medTimes, currentMeal()) ? medicationTimingCopy(medRelationToFood) : null;
 
   useEffect(() => {
     if (items.length > 0) events.mealBuilt(result.verdict);
@@ -244,6 +271,13 @@ export default function MealBuilder({
                   key={items.map((i) => i.food.id).join()}
                   foods={items.map((i) => i.food)}
                 />
+              </div>
+            )}
+
+            {showVerdict && medicationNote && (
+              <div className="mt-3 flex items-start gap-2.5 rounded-xl border border-line bg-mist p-3">
+                <Pill className="mt-0.5 h-4 w-4 shrink-0 text-ink/60" strokeWidth={2.2} />
+                <p className="text-sm text-ink">{medicationNote}</p>
               </div>
             )}
 

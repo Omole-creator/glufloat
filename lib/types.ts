@@ -87,6 +87,31 @@ export interface Food {
    * never discourage the food. Dietician-reviewed.
    */
   medicineNote?: string;
+  /**
+   * Nutrition for the food's own serving size (the gram/ml anchor already in
+   * `portionGuidance`), not a generic per-100g figure. Owned by
+   * `scripts/food-composition.mjs`. Never shown as a source-cited number to
+   * users (same "no card cites a source" rule as the rest of the data) — used
+   * for the daily calorie budget, the carb-distribution rule, and the
+   * kidney/hypertension/cholesterol condition bias, never for the red/yellow/
+   * green verdict itself.
+   */
+  calories?: number;
+  proteinG?: number;
+  fatG?: number;
+  carbG?: number;
+  fiberG?: number;
+  potassiumMg?: number;
+  sodiumMg?: number;
+  /**
+   * Internal provenance only, never shown to users. "table" = grounded in the
+   * measured Nigeria Food Composition Table (2016); "estimated" = derived from
+   * established nutrition figures for the food where the table had no
+   * reliable row (most composite Nigerian dishes). Both are automatically
+   * checked by `scripts/food-composition-audit.mjs` (Atwater energy
+   * cross-check + per-category plausibility bands) before being written.
+   */
+  nutritionSource?: "table" | "estimated";
 }
 
 export type PortionSize = "half" | "normal" | "large";

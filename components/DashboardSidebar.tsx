@@ -77,7 +77,7 @@ export default function DashboardSidebar({
     <>
       {/* Reserves the compact rail's width in the flex row even while the
           overlay is showing, so the content column never shifts open/closed. */}
-      {overlay && <div className="w-[76px] shrink-0" aria-hidden />}
+      {overlay && <div className="w-[84px] shrink-0" aria-hidden />}
 
       {overlay && (
         <div
@@ -92,7 +92,7 @@ export default function DashboardSidebar({
           overlay
             ? "fixed left-3 top-24 bottom-6 z-[41] flex w-64 flex-col overflow-y-auto rounded-3xl bg-white p-3 shadow-[0_24px_60px_-20px_rgba(12,42,71,0.5)] ring-1 ring-ink/10"
             : `sticky top-24 flex max-h-[calc(100vh-7rem)] shrink-0 flex-col self-start overflow-y-auto rounded-3xl bg-white p-3 shadow-[0_6px_28px_-14px_rgba(12,42,71,0.2)] ring-1 ring-ink/[0.05] transition-[width] duration-300 ease-out ${
-                open ? "w-64" : "w-[76px]"
+                open ? "w-64" : "w-[84px]"
               }`
         }
       >
@@ -117,16 +117,22 @@ export default function DashboardSidebar({
           type="button"
           onClick={() => setOpenPersist(!open)}
           aria-label={open ? "Collapse the sidebar" : "Expand the sidebar"}
-          className="mt-2 flex h-11 w-full items-center gap-3 rounded-xl px-2.5 text-ink-soft/70 transition-colors hover:bg-mist hover:text-ink"
+          className={
+            open
+              ? "mt-2 flex h-12 w-full items-center gap-3 rounded-xl px-2.5 text-ink-soft/70 transition-colors hover:bg-mist hover:text-ink"
+              : "mt-2 flex w-full flex-col items-center gap-1 rounded-xl px-1 py-2 text-center text-ink-soft/70 transition-colors hover:bg-mist hover:text-ink"
+          }
         >
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-mist ring-1 ring-inset ring-line">
             {open ? (
               <ChevronsLeft className="h-4.5 w-4.5" />
             ) : (
               <ChevronsRight className="h-4.5 w-4.5" />
             )}
           </span>
-          {open && <span className="text-sm font-semibold">Hide</span>}
+          <span className={open ? "text-sm font-semibold" : "text-[10.5px] font-semibold leading-tight"}>
+            {open ? "Hide" : "Show"}
+          </span>
         </button>
       </aside>
     </>

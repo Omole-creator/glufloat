@@ -82,6 +82,16 @@ for (const meal of MEALS) {
       }
     }
 
+    // 5b. Dietitian rule: dinner never carries a moderate-GI food (breakfast
+    //     and lunch may). lib/nextMeal.ts's DINNER filter enforces this at
+    //     module load; this asserts the enforcement actually held.
+    if (meal === "dinner") {
+      const moderate = items.filter((f) => f.gi === "medium");
+      if (moderate.length > 0) {
+        fail(`${where}: moderate-GI food at dinner: ${moderate.map((f) => f.id).join(", ")}`);
+      }
+    }
+
     // 6. No plate is listed twice.
     const key = [...ids].sort().join("|");
     if (seen.has(key)) fail(`${where}: this plate is already in the list`);
@@ -196,6 +206,34 @@ for (const meal of MEALS) {
     }
     seen.add(idea.index);
     skipped.push(idea.index);
+  }
+}
+
+// 11. The dietitian's standing rule: at least two-thirds of what the app can
+//     suggest across a week must be low-GI food, the rest moderate-GI paired
+//     with fibre/protein (never high-GI — every plate here is already green).
+//     This is a property of the curated plate lists, not new runtime logic;
+//     the assertion exists so a future edit can't silently tip the balance.
+{
+  const usedIds = new Set<string>();
+  for (const meal of MEALS) {
+    for (const ids of ideasFor(meal)) {
+      for (const id of ids) usedIds.add(id);
+    }
+  }
+  let low = 0;
+  let counted = 0;
+  for (const id of usedIds) {
+    const f = getFood(id);
+    if (!f) continue;
+    counted++;
+    if (f.gi === "low") low++;
+  }
+  const share = low / counted;
+  if (share < 2 / 3) {
+    fail(
+      `only ${(share * 100).toFixed(0)}% of the ${counted} foods used across all meal ideas are low-GI (need at least 67%)`,
+    );
   }
 }
 

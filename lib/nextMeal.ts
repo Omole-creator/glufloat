@@ -143,6 +143,16 @@ const LUNCH: string[][] = [
   ["ukwa", "fish"],
 ];
 
+/**
+ * Dietitian rule: moderate-GI foods are fine at breakfast or lunch, but never
+ * at dinner (low-GI only, so the last meal of the day carries the gentlest
+ * overnight load). Checked against every food on the plate, not only the
+ * starch — a moderate-GI soup or side is excluded too.
+ */
+function hasModerateGi(ids: string[]): boolean {
+  return ids.some((id) => getFood(id)?.gi === "medium");
+}
+
 // Dinner leans lighter: pepper soup leads, the soup plates carry a different
 // protein from lunch's, and the beans plates keep to the lighter partners.
 const DINNER: string[][] = [
@@ -150,7 +160,7 @@ const DINNER: string[][] = [
   ...soupPlates(5),
   ...beansPlates(["fish", "eggs", "smoked-fish"]),
   ["ukwa", "smoked-fish"],
-];
+].filter((ids) => !hasModerateGi(ids));
 
 const IDEAS: Record<NamedMeal, string[][]> = {
   breakfast: BREAKFAST,
@@ -251,6 +261,14 @@ function stride(n: number): number {
  * no-repeat stride below; it only nudges the ORDER a little further, the same
  * way `liked` already does. Omitting it (the default) reproduces today's
  * behaviour exactly.
+ *
+ * `calorieTargetForMeal` (Plus/Dietitian tier, same gate as `bias`) is a
+ * second, independent tiebreak of the same shape: it prefers whichever
+ * eligible plate's summed `calories` sits closest to this meal's share of the
+ * person's daily calorie target (see lib/tdee.ts's distributeCalories). Like
+ * `bias`, it only nudges the order among already-green plates — it can never
+ * make an otherwise-ineligible plate appear, and it never touches the
+ * no-repeat stride. Omitting it reproduces today's behaviour exactly.
  */
 export function planForDay(
   meal: NamedMeal,
@@ -260,6 +278,7 @@ export function planForDay(
   avoidIndexes: number[] = [],
   liked: Map<string, number> = new Map(),
   bias: PlateAxes | null = null,
+  calorieTargetForMeal: number | null = null,
 ): MealIdea {
   const list = IDEAS[meal];
   const n = list.length;
@@ -273,6 +292,10 @@ export function planForDay(
   // matter, never enough to override the day's stride or the avoid list.
   const LIKED_DISCOUNT = 0.5;
   const GOAL_BIAS_WEIGHT = 2;
+  // A relative deviation (0 = exact match), so it is bounded the same way
+  // goalAdjust is: comparable in size to the other terms, never large enough
+  // to override the day's stride or the avoid list on its own.
+  const CALORIE_BIAS_WEIGHT = 3;
   const scored = list.map((_, i) => {
     const idea = resolve(meal, i);
     const eaten = idea.foods.reduce(
@@ -283,7 +306,13 @@ export function planForDay(
       0,
     );
     const goalAdjust = bias ? GOAL_BIAS_WEIGHT * biasScore(idea.foods, bias) : 0;
-    return { idea, eaten: eaten + goalAdjust, tie: hash(`${meal}#${i}`) };
+    let calorieAdjust = 0;
+    if (calorieTargetForMeal && calorieTargetForMeal > 0) {
+      const planCalories = idea.foods.reduce((s, f) => s + (f.calories ?? 0), 0);
+      calorieAdjust =
+        (CALORIE_BIAS_WEIGHT * Math.abs(planCalories - calorieTargetForMeal)) / calorieTargetForMeal;
+    }
+    return { idea, eaten: eaten + goalAdjust + calorieAdjust, tie: hash(`${meal}#${i}`) };
   });
   scored.sort((a, b) => a.eaten - b.eaten || a.tie - b.tie);
 
