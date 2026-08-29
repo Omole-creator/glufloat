@@ -9,6 +9,7 @@ import {
   Search,
   Stethoscope,
   Target,
+  UtensilsCrossed,
   X,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
@@ -22,6 +23,7 @@ import VarietyNudge from "@/components/VarietyNudge";
 import MonthReport from "@/components/MonthReport";
 import TodaysMeal from "@/components/TodaysMeal";
 import DashboardSnapshot from "@/components/DashboardSnapshot";
+import TodaysExtras from "@/components/TodaysExtras";
 import LogReading from "@/components/LogReading";
 import ReadingNudge from "@/components/ReadingNudge";
 import TypewriterHeadline from "@/components/TypewriterHeadline";
@@ -39,9 +41,11 @@ import {
 } from "@/lib/account";
 import { trackAppOpen } from "@/lib/usage";
 import { personalGreeting, checkBackMessage } from "@/lib/mealtime";
+import { ADD_READING_FOR } from "@/lib/glucoseLog";
 import type { Food } from "@/lib/types";
 
 type DashboardTabId =
+  | "todaysmeal"
   | "personalize"
   | "search"
   | "meal"
@@ -52,13 +56,23 @@ type DashboardTabId =
 const DASHBOARD_TAB_KEY = "gf_dashboard_tab";
 /** Whether this device has already seen the "click Fit me" landing hint. */
 const FIT_ME_HINT_KEY = "gf_fitme_hint_seen";
-const DEFAULT_TAB: DashboardTabId = "search";
-const TAB_IDS: DashboardTabId[] = ["personalize", "search", "meal", "report", "dietitian"];
+const DEFAULT_TAB: DashboardTabId = "todaysmeal";
+const TAB_IDS: DashboardTabId[] = [
+  "todaysmeal",
+  "personalize",
+  "search",
+  "meal",
+  "report",
+  "dietitian",
+];
 
 /**
- * Order matters here (founder request): "Make it fit me" leads, since it is
- * the one tab that renders ABOVE today's meal instead of below it (see
- * `activeTab === "personalize"` further down). "Chat with dietitian" is its
+ * Order matters here (founder request, 2026-08-30): "Today's meal" leads,
+ * since landing on the dashboard should open straight onto the answer the
+ * person came for — the calorie/month snapshot, the blue meal card, the
+ * green extras card, and the sugar-test button all live inside THIS one
+ * tab now (`activeTab === "todaysmeal"` further down), not in an
+ * always-visible zone outside the tab system. "Chat with dietitian" is its
  * own tab with its own icon — never folded into "Doctor's report", even
  * though both are medical-adjacent — and is filtered out below for anyone
  * who is not entitled (`canUseDietitianChat`). **"My progress" was removed
@@ -66,6 +80,12 @@ const TAB_IDS: DashboardTabId[] = ["personalize", "search", "meal", "report", "d
  * PushOptIn, WhatsAppChannelCard) is no longer mounted in `/app`.
  */
 const ALL_DASHBOARD_TABS: (DashboardTabDef & { id: DashboardTabId })[] = [
+  {
+    id: "todaysmeal",
+    label: "Today's meal",
+    shortLabel: "Today",
+    icon: <UtensilsCrossed className="h-4.5 w-4.5" strokeWidth={2.2} />,
+  },
   {
     id: "personalize",
     label: "Make it fit me",
@@ -148,41 +168,62 @@ export default function AppPage() {
     }
   };
 
-  // Every tab's content sits below the daily-essentials zone EXCEPT
-  // "personalize", which renders above it (see the JSX below) — so the
-  // scroll target has to match wherever that tab's content actually is, or
-  // picking "Make it fit me" would scroll straight past it into empty space.
-  const scrollToPanel = (tab: DashboardTabId) => {
-    const targetId = tab === "personalize" ? "dashboard-personalize" : "dashboard-panel";
+  // Every tab's content now lives in the one `#dashboard-panel` container —
+  // there is no longer a separate always-visible zone or a special-cased
+  // "personalize renders above it" panel, so a single scroll target works
+  // for every tab.
+  const scrollToPanel = () => {
     setTimeout(() => {
-      document.getElementById(targetId)?.scrollIntoView({ behavior: "smooth", block: "start" });
+      document.getElementById("dashboard-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 50);
+  };
+  const scrollToId = (id: string) => {
+    setTimeout(() => {
+      document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 60);
   };
   const selectTab = (id: string) => {
     const tab = id as DashboardTabId;
     setActiveTab(tab);
-    scrollToPanel(tab);
+    scrollToPanel();
     if (tab === "personalize") dismissFitMeHint();
   };
   // Where "Save" in "Make it fit me" sends the person afterward, so they are
   // never left wondering whether it saved — the toast already confirms it,
   // and landing back on today's meal is the second, unmissable confirmation.
+  // Must switch tabs first: TodaysMeal now lives inside the "todaysmeal" tab,
+  // so scrolling to it while "personalize" is still active would target a
+  // CSS-hidden element with no layout box.
   const scrollToMeal = () => {
-    setTimeout(() => {
-      document.getElementById("todays-meal")?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 50);
+    setActiveTab("todaysmeal");
+    scrollToId("todays-meal");
   };
   const openInSearch = (food: Food) => {
     setSeedSearch(food);
     setActiveTab("search");
-    scrollToPanel("search");
+    scrollToPanel();
   };
   const buildMeal = (foods: Food[]) => {
     // New array each time so the builder treats it as a fresh seed to load.
     setSeedMeal([...foods]);
     setActiveTab("meal");
-    scrollToPanel("meal");
+    scrollToPanel();
   };
+
+  // The doctor's report tab asks LogReading to open for a specific meal via
+  // this window event. LogReading now lives inside the "todaysmeal" tab
+  // (not an always-visible zone any more), so opening it while "report" is
+  // active would open a form nobody can see — switch tabs first, then
+  // scroll to it, so the opened form actually lands on screen.
+  useEffect(() => {
+    function onAskReading() {
+      setActiveTab("todaysmeal");
+      scrollToId("log-reading");
+    }
+    window.addEventListener(ADD_READING_FOR, onAskReading);
+    return () => window.removeEventListener(ADD_READING_FOR, onAskReading);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     /**
@@ -361,21 +402,33 @@ export default function AppPage() {
         </div>
       )}
 
-      {/* Points at the bottom nav's leftmost icon so a first-time visitor
-          knows where their daily calorie setup lives. Shown once per device. */}
+      {/* A centered modal-style notice, not a corner toast (founder
+          instruction, 2026-08-30: "should appear at the middle of the
+          screen"), solid brand blue with white text (house rule: a surface
+          is either blue or green, never a neutral dark card). Shown once per
+          device. Dismissed by its own close button, tapping "Fit me" in the
+          bottom nav, or tapping the backdrop. */}
       {showFitMeHint && (
-        <div className="fixed inset-x-4 bottom-24 z-40 flex items-start gap-3 rounded-2xl bg-ink px-4 py-3 text-white shadow-[0_16px_40px_-16px_rgba(12,42,71,0.6)] sm:inset-x-auto sm:left-4 sm:max-w-xs">
-          <p className="flex-1 text-sm font-semibold leading-snug">
-            Click &quot;Fit me&quot; below to set up your daily calorie intake.
-          </p>
-          <button
-            type="button"
-            onClick={dismissFitMeHint}
-            aria-label="Dismiss"
-            className="shrink-0 text-white/70 transition-colors hover:text-white"
+        <div
+          className="fixed inset-0 z-40 flex items-center justify-center bg-ink/40 p-4"
+          onClick={dismissFitMeHint}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-xs rounded-2xl bg-brand p-5 text-center shadow-[0_24px_60px_-20px_rgba(12,42,71,0.6)]"
           >
-            <X className="h-4 w-4" />
-          </button>
+            <button
+              type="button"
+              onClick={dismissFitMeHint}
+              aria-label="Dismiss"
+              className="absolute right-3 top-3 text-white/70 transition-colors hover:text-white"
+            >
+              <X className="h-4 w-4" />
+            </button>
+            <p className="text-base font-semibold leading-snug text-white">
+              Click &quot;Fit me&quot; below to set up your daily calorie intake.
+            </p>
+          </div>
         </div>
       )}
 
@@ -405,71 +458,66 @@ export default function AppPage() {
             className="mt-1 font-display text-base font-semibold leading-tight text-ink-soft sm:text-lg"
           />
 
-          {/* "Make it fit me" is the one tab that renders ABOVE today's meal
-              instead of below it with the rest of the dashboard panels
-              (founder request) — everything else about it (always mounted,
-              only hidden with CSS, its own complete white card with its own
-              heading) is unchanged from the other panels further down. Saving
-              sends the person down to today's meal (`onSaved`) so a save is
-              never left ambiguous — the toast confirms it, landing on the
-              meal card confirms it a second, unmissable way. */}
-          <div
-            id="dashboard-personalize"
-            className={activeTab === "personalize" ? "mt-6 scroll-mt-24" : "hidden"}
-          >
-            <PersonalizationSettings
-              showGoals={canUseGoalPersonalization(access)}
-              onSaved={scrollToMeal}
-            />
-          </div>
+          {/* ONE panel container, ONE tab visible at a time — no more
+              always-visible zone (founder instruction, 2026-08-30: clicking
+              any nav icon must hide every OTHER panel's content, including
+              the calorie/month snapshot and today's meal, not just swap the
+              search/build/report/dietitian panels below them). Nothing here
+              is ever unmounted when its tab is inactive — only hidden with
+              CSS — so no component loses state or behaviour by being
+              tabbed; `MonthReport` (Doctor's report) can still ask
+              `LogReading` to open via the `ADD_READING_FOR` window event,
+              which now also switches back to "todaysmeal" so the opened form
+              actually lands on screen (see the effect above). */}
+          <div id="dashboard-panel" className="mt-6 scroll-mt-24 space-y-4">
+            <div className={activeTab === "todaysmeal" ? "space-y-4" : "hidden"}>
+              {/* Calories remaining today + this month's good meals, always
+                  horizontal, sitting above the meal card (founder
+                  instruction) so it reads as the day's scoreboard before the
+                  day's answer. Renders nothing until sex/age/weight/height/
+                  activity are set in "Make it fit me" (calories) or until
+                  there is a month of history (the month tile). */}
+              <DashboardSnapshot show={canUseGoalPersonalization(access)} />
 
-          {/* Daily-essentials zone: always visible, no button needed. The
-              calorie/month snapshot sits ABOVE today's meal (founder
-              instruction) so it reads as the day's scoreboard before the
-              day's answer; TodaysMeal itself is the reason someone opened the
-              app (never collapsed, a standing house rule), and LogReading
-              must stay mounted and visible here — the doctor's report panel
-              below can ask it to open via the ADD_READING_FOR window event,
-              and that only works if LogReading is not hidden away behind a
-              different dashboard tab. */}
-          <div className="mt-6 space-y-4">
-            {/* Calories remaining today + this month's good meals, always
-                horizontal, always here — never behind a tab. Renders nothing
-                until sex/age/weight/height/activity are set in "Make it fit
-                me" (calories) or until there is a month of history (the
-                month tile). */}
-            <DashboardSnapshot show={canUseGoalPersonalization(access)} />
+              <div id="todays-meal" className="scroll-mt-24">
+                <TodaysMeal onBuild={buildMeal} personalize={canUseGoalPersonalization(access)} />
+              </div>
 
-            <div id="todays-meal" className="scroll-mt-24">
-              <TodaysMeal onBuild={buildMeal} personalize={canUseGoalPersonalization(access)} />
+              {/* The green extras card, directly under the blue meal card
+                  (founder instruction, 2026-08-30) — its own component now,
+                  not bundled inside DashboardSnapshot's tile row. */}
+              <TodaysExtras show={canUseGoalPersonalization(access)} />
+
+              {/* Straight under the answer, because a reading is the one
+                  thing only this person can tell us, and the app can say
+                  nothing about their own body until they do. */}
+              <div id="log-reading" className="scroll-mt-24">
+                <LogReading />
+              </div>
+
+              {/* Their own average when it is high, else where to spend the
+                  next strip. Sits with the sugar test button because it is
+                  about the same scarce thing. */}
+              <ReadingNudge
+                onOpenReport={() => {
+                  setActiveTab("report");
+                  scrollToPanel();
+                }}
+              />
+
+              <VarietyNudge onOpenFood={openInSearch} />
             </div>
 
-            {/* Straight under the answer, because a reading is the one thing
-                only this person can tell us, and the app can say nothing about
-                their own body until they do. */}
-            <LogReading />
+            {/* Saving sends the person down to today's meal (`onSaved`) so a
+                save is never left ambiguous — the toast confirms it, landing
+                on the meal card confirms it a second, unmissable way. */}
+            <div className={activeTab === "personalize" ? "" : "hidden"}>
+              <PersonalizationSettings
+                showGoals={canUseGoalPersonalization(access)}
+                onSaved={scrollToMeal}
+              />
+            </div>
 
-            {/* Their own average when it is high, else where to spend the next
-                strip. Sits with the sugar test button because it is about the
-                same scarce thing. */}
-            <ReadingNudge
-              onOpenReport={() => {
-                setActiveTab("report");
-                scrollToPanel("report");
-              }}
-            />
-
-            <VarietyNudge onOpenFood={openInSearch} />
-          </div>
-
-          {/* Everything below used to be a long scroll (search, build, the
-              doctor's report, and the always-open settings panel); it now
-              lives behind the one bottom nav below. Nothing here is ever
-              unmounted when its tab is inactive — it is only hidden with
-              CSS — so no component loses state or behaviour by being
-              tabbed. Only the tab actually clicked is ever shown. */}
-
-          <div id="dashboard-panel" className="mt-4 scroll-mt-24 space-y-4">
             <div className={activeTab === "search" ? "" : "hidden"}>
               <CollapsibleCard
                 open={activeTab === "search"}
