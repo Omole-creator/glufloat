@@ -35,11 +35,27 @@ export const ACTIVITY_LEVELS: ActivityLevel[] = [
 ];
 
 export const ACTIVITY_LABEL: Record<ActivityLevel, string> = {
-  sedentary: "Sedentary (little or no exercise)",
-  light: "Light activity (exercise 1 to 3 days a week)",
-  moderate: "Moderate activity (exercise 3 to 5 days a week)",
-  very_active: "Very active (exercise 6 to 7 days a week)",
-  extra_active: "Extremely active (a physical job, plus training)",
+  sedentary: "Sedentary",
+  light: "Lightly active",
+  moderate: "Moderately active",
+  very_active: "Very active",
+  extra_active: "Extremely active",
+};
+
+/**
+ * The full explanation shown for each activity level in the dropdown
+ * (`components/PersonalizationSettings.tsx`) — founder-supplied wording,
+ * 2026-08-29. `ACTIVITY_LABEL` above stays the short form used anywhere
+ * space is tight (the closed dropdown, a summary line).
+ */
+export const ACTIVITY_DESCRIPTION: Record<ActivityLevel, string> = {
+  sedentary: "Little or no exercise; mostly sitting or doing light activities throughout the day.",
+  light:
+    "Light exercise or physical activity 1–3 days a week, such as walking, cycling, dancing, or home workouts.",
+  moderate:
+    "Moderate exercise or physical activity 3–5 days a week, such as brisk walking, running, sports, or regular workouts.",
+  very_active: "Intense exercise or physical activity 6–7 days a week, or a job that keeps you physically active.",
+  extra_active: "Very intense daily exercise or training, combined with a physically demanding job.",
 };
 
 export const ACTIVITY_MULTIPLIER: Record<ActivityLevel, number> = {

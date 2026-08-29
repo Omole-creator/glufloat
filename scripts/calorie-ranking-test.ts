@@ -15,7 +15,7 @@
  *
  *   npx tsx scripts/calorie-ranking-test.ts
  */
-import { ideasFor, planForDay, suggestExtras } from "../lib/nextMeal";
+import { ideasFor, planForDay, suggestExtras, EXTRA_TIMING } from "../lib/nextMeal";
 import { getFood } from "../lib/search";
 import { scoreMeal } from "../lib/verdictEngine";
 import type { NamedMeal } from "../lib/mealtime";
@@ -111,22 +111,22 @@ for (const meal of MEALS) {
   }
   if (suggestExtras(0, "2026-08-29") !== null) fail("suggestExtras(0, ...) should return null");
 
-  // A real gap: must suggest something, never more than 3 items, and never
-  // wildly overshoot (it should stop once it reaches the gap or hits 3).
+  // A real gap: must suggest something, never more than 4 items, and never
+  // wildly overshoot (it should stop once it reaches the gap or hits 4).
   const s = suggestExtras(500, "2026-08-29");
   if (!s || s.foods.length === 0) {
     fail("suggestExtras(500, ...) should suggest at least one food");
   } else {
-    if (s.foods.length > 3) fail(`suggestExtras: ${s.foods.length} items, should never exceed 3`);
+    if (s.foods.length > 4) fail(`suggestExtras: ${s.foods.length} items, should never exceed 4`);
     if (s.names.length !== s.foods.length) fail("suggestExtras: names/foods length mismatch");
   }
 
   // A huge gap (the reported scenario's residual) must still return at most
-  // 3 items — it must not pretend to close an unclosable gap by inventing
+  // 4 items — it must not pretend to close an unclosable gap by inventing
   // more food than the capped list allows.
   const huge = suggestExtras(5000, "2026-08-29");
-  if (!huge || huge.foods.length > 3) {
-    fail("suggestExtras with a huge remaining gap must still cap at 3 items, not invent more");
+  if (!huge || huge.foods.length > 4) {
+    fail("suggestExtras with a huge remaining gap must still cap at 4 items, not invent more");
   }
 
   // Rotates by day, so it is not always the same suggestion.
@@ -138,11 +138,17 @@ for (const meal of MEALS) {
 
   // Every suggested food must actually be green (this only ever recommends
   // already-reviewed, everyday-safe foods, never anything the app itself
-  // would flag).
-  const check = suggestExtras(800, "2026-08-29");
-  if (check) {
-    for (const f of check.foods) {
-      if (f.baseVerdict !== "green") fail(`suggestExtras included a non-green food: ${f.id}`);
+  // would flag), and every one must carry a WHEN-to-eat direction — a food
+  // with a calorie count and no timing reads exactly like the confusing,
+  // direction-less list this whole card was rebuilt to replace.
+  for (let d = 0; d < 20; d++) {
+    const dayKey = `2026-08-${String((d % 28) + 1).padStart(2, "0")}`;
+    const check = suggestExtras(800, dayKey);
+    if (check) {
+      for (const f of check.foods) {
+        if (f.baseVerdict !== "green") fail(`suggestExtras included a non-green food: ${f.id}`);
+        if (!EXTRA_TIMING[f.id]) fail(`suggestExtras included ${f.id} with no EXTRA_TIMING direction`);
+      }
     }
   }
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check, Target } from "lucide-react";
+import { Check, Target, HeartPulse, Pill, Sparkles, Flame, ChevronDown } from "lucide-react";
 import {
   GOALS,
   ACTIVITY_LEVELS,
@@ -16,6 +16,7 @@ import {
   calorieTarget,
   CONDITIONS,
   CONDITION_LABEL,
+  ACTIVITY_DESCRIPTION,
   type Sex,
   type Condition,
 } from "@/lib/tdee";
@@ -27,11 +28,10 @@ import {
 import type { NamedMeal } from "@/lib/mealtime";
 import { showToast } from "@/components/Toast";
 
-const MEAL_LABEL: Record<NamedMeal, string> = {
-  breakfast: "Breakfast",
-  lunch: "Lunch",
-  dinner: "Dinner",
-};
+// No longer asked as a question (founder's call, 2026-08-29: one less thing
+// to answer) — everyone is planned for all 3 meals. normalizeMealPattern in
+// lib/mealPattern.ts already treats an empty/full list as "eats all 3", so
+// this is simply always saved as the full set now.
 const MEALS: NamedMeal[] = ["breakfast", "lunch", "dinner"];
 
 const SEX_LABEL: Record<Sex, string> = { male: "Male", female: "Female" };
@@ -148,6 +148,7 @@ export default function PersonalizationSettings({ showGoals }: { showGoals: bool
   const [loaded, setLoaded] = useState(false);
   const [saved, setSaved] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
+  const [activityOpen, setActivityOpen] = useState(false);
 
   useEffect(() => {
     readPersonalizationProfile().then((p) => {
@@ -168,15 +169,6 @@ export default function PersonalizationSettings({ showGoals }: { showGoals: bool
 
   const toggleGoal = (g: Goal) =>
     setGoals((cur) => (cur.includes(g) ? cur.filter((x) => x !== g) : [...cur, g]));
-
-  // Free choice of any combination, including all 3 or just 1. An empty
-  // selection is not blocked here — normalizeMealPattern (lib/mealPattern.ts)
-  // already treats "nothing set" as "eats all 3", so there is nothing unsafe
-  // about letting someone freely toggle every chip. The earlier version
-  // silently refused the last remaining chip to avoid an empty state, which
-  // just looked like the third meal did not respond to a click.
-  const toggleMeal = (m: NamedMeal) =>
-    setMealPattern((cur) => (cur.includes(m) ? cur.filter((x) => x !== m) : [...cur, m]));
 
   const toggleCondition = (c: Condition) =>
     setConditions((cur) => (cur.includes(c) ? cur.filter((x) => x !== c) : [...cur, c]));
@@ -228,86 +220,97 @@ export default function PersonalizationSettings({ showGoals }: { showGoals: bool
         <p className="font-display text-base font-bold text-ink">Make GluFloat fit you</p>
       </div>
 
-      <p className="mt-3 text-sm font-semibold text-ink-soft">Which meals do you eat?</p>
-      <p className="mt-0.5 text-xs text-ink-soft">Select all that apply.</p>
-      <div className="mt-2 flex flex-wrap gap-2">
-        {MEALS.map((m) => (
-          <Chip key={m} active={mealPattern.includes(m)} onClick={() => toggleMeal(m)}>
-            {MEAL_LABEL[m]}
+      {/* Section: health conditions */}
+      <div className="mt-5 border-t border-line pt-4">
+        <div className="flex items-center gap-2">
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-leaf/10 text-leaf-deep ring-1 ring-inset ring-leaf/15">
+            <HeartPulse className="h-3.5 w-3.5" strokeWidth={2.4} />
+          </span>
+          <p className="text-sm font-semibold text-ink">Do you have any of these?</p>
+        </div>
+        <p className="mt-1 text-xs text-ink-soft">Select all that apply.</p>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {CONDITIONS.map((c) => (
+            <Chip key={c} active={conditions.includes(c)} onClick={() => toggleCondition(c)}>
+              {CONDITION_LABEL[c]}
+            </Chip>
+          ))}
+          <Chip active={conditions.length === 0} onClick={() => setConditions([])}>
+            None of the above
           </Chip>
-        ))}
+        </div>
       </div>
 
-      <p className="mt-4 text-sm font-semibold text-ink-soft">Do you have any of these?</p>
-      <p className="mt-0.5 text-xs text-ink-soft">Select all that apply.</p>
-      <div className="mt-2 flex flex-wrap gap-2">
-        {CONDITIONS.map((c) => (
-          <Chip key={c} active={conditions.includes(c)} onClick={() => toggleCondition(c)}>
-            {CONDITION_LABEL[c]}
-          </Chip>
-        ))}
-        <Chip active={conditions.length === 0} onClick={() => setConditions([])}>
-          None of the above
-        </Chip>
-      </div>
-
-      <p className="mt-4 text-sm font-semibold text-ink-soft">
-        How many times a day do you take diabetes medication?
-      </p>
-      <div className="mt-2 flex flex-wrap gap-2">
-        {MED_DOSE_OPTIONS.map((o) => (
-          <Chip
-            key={o.value}
-            active={medDosesPerDay === o.value}
-            onClick={() => {
-              setMedDosesPerDay(o.value);
-              if (o.value === 0) {
-                setMedTimes([]);
-                setMedRelationToFood(null);
-              }
-            }}
-          >
-            {o.label}
-          </Chip>
-        ))}
-      </div>
-
-      {medDosesPerDay != null && medDosesPerDay > 0 && (
-        <>
-          <p className="mt-4 text-sm font-semibold text-ink-soft">When do you take it?</p>
-          <p className="mt-0.5 text-xs text-ink-soft">Select all that apply.</p>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {MED_TIMES.map((t) => (
-              <Chip key={t} active={medTimes.includes(t)} onClick={() => toggleMedTime(t)}>
-                {MED_TIME_LABEL[t]}
-              </Chip>
-            ))}
-          </div>
-
-          <p className="mt-4 text-sm font-semibold text-ink-soft">
-            Do you take it before or after eating?
+      {/* Section: medication timing */}
+      <div className="mt-5 border-t border-line pt-4">
+        <div className="flex items-center gap-2">
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand ring-1 ring-inset ring-brand/15">
+            <Pill className="h-3.5 w-3.5" strokeWidth={2.4} />
+          </span>
+          <p className="text-sm font-semibold text-ink">
+            How many times a day do you take diabetes medication?
           </p>
-          <div className="mt-2 flex flex-wrap gap-2">
+        </div>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {MED_DOSE_OPTIONS.map((o) => (
             <Chip
-              active={medRelationToFood === "before"}
-              onClick={() => setMedRelationToFood((cur) => (cur === "before" ? null : "before"))}
+              key={o.value}
+              active={medDosesPerDay === o.value}
+              onClick={() => {
+                setMedDosesPerDay(o.value);
+                if (o.value === 0) {
+                  setMedTimes([]);
+                  setMedRelationToFood(null);
+                }
+              }}
             >
-              Before eating
+              {o.label}
             </Chip>
-            <Chip
-              active={medRelationToFood === "after"}
-              onClick={() => setMedRelationToFood((cur) => (cur === "after" ? null : "after"))}
-            >
-              After eating
-            </Chip>
-          </div>
-        </>
-      )}
+          ))}
+        </div>
+
+        {medDosesPerDay != null && medDosesPerDay > 0 && (
+          <>
+            <p className="mt-4 text-sm font-semibold text-ink-soft">When do you take it?</p>
+            <p className="mt-0.5 text-xs text-ink-soft">Select all that apply.</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {MED_TIMES.map((t) => (
+                <Chip key={t} active={medTimes.includes(t)} onClick={() => toggleMedTime(t)}>
+                  {MED_TIME_LABEL[t]}
+                </Chip>
+              ))}
+            </div>
+
+            <p className="mt-4 text-sm font-semibold text-ink-soft">
+              Do you take it before or after eating?
+            </p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              <Chip
+                active={medRelationToFood === "before"}
+                onClick={() => setMedRelationToFood((cur) => (cur === "before" ? null : "before"))}
+              >
+                Before eating
+              </Chip>
+              <Chip
+                active={medRelationToFood === "after"}
+                onClick={() => setMedRelationToFood((cur) => (cur === "after" ? null : "after"))}
+              >
+                After eating
+              </Chip>
+            </div>
+          </>
+        )}
+      </div>
 
       {showGoals && (
-        <>
-          <p className="mt-4 text-sm font-semibold text-ink-soft">What are your goals?</p>
-          <p className="mt-0.5 text-xs text-ink-soft">Select all that apply.</p>
+        <div className="mt-5 border-t border-line pt-4">
+          <div className="flex items-center gap-2">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-leaf/10 text-leaf-deep ring-1 ring-inset ring-leaf/15">
+              <Sparkles className="h-3.5 w-3.5" strokeWidth={2.4} />
+            </span>
+            <p className="text-sm font-semibold text-ink">What are your goals?</p>
+          </div>
+          <p className="mt-1 text-xs text-ink-soft">Select all that apply.</p>
           <div className="mt-2 flex flex-wrap gap-2">
             {GOALS.map((g) => (
               <Chip key={g} active={goals.includes(g)} onClick={() => toggleGoal(g)}>
@@ -316,71 +319,114 @@ export default function PersonalizationSettings({ showGoals }: { showGoals: bool
             ))}
           </div>
 
-          <p className="mt-4 text-sm font-semibold text-ink-soft">How active are you?</p>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {ACTIVITY_LEVELS.map((a) => (
-              <Chip
-                key={a}
-                active={activityLevel === a}
-                onClick={() => setActivityLevel((cur) => (cur === a ? null : a))}
-              >
-                {ACTIVITY_LABEL[a]}
-              </Chip>
-            ))}
+          <p className="mt-4 text-sm font-semibold text-ink-soft">How physically active are you?</p>
+          <div className="relative mt-2">
+            <button
+              type="button"
+              onClick={() => setActivityOpen((v) => !v)}
+              aria-expanded={activityOpen}
+              className="flex w-full items-center justify-between rounded-xl border border-line bg-white px-3.5 py-2.5 text-left text-sm outline-none focus:border-brand"
+            >
+              <span className={activityLevel ? "font-semibold text-ink" : "text-ink-soft"}>
+                {activityLevel ? ACTIVITY_LABEL[activityLevel] : "Select one"}
+              </span>
+              <ChevronDown
+                className={`h-4 w-4 shrink-0 text-ink-soft transition-transform ${activityOpen ? "rotate-180" : ""}`}
+              />
+            </button>
+
+            {activityOpen && (
+              <div className="absolute z-10 mt-1 w-full overflow-hidden rounded-xl border border-line bg-white shadow-[0_12px_32px_-12px_rgba(12,42,71,0.3)]">
+                {ACTIVITY_LEVELS.map((a) => (
+                  <button
+                    key={a}
+                    type="button"
+                    onClick={() => {
+                      setActivityLevel(a);
+                      setActivityOpen(false);
+                    }}
+                    className={`block w-full border-b border-line px-3.5 py-2.5 text-left last:border-b-0 hover:bg-mist ${
+                      activityLevel === a ? "bg-leaf/5" : ""
+                    }`}
+                  >
+                    <span className={`text-sm font-semibold ${activityLevel === a ? "text-leaf-deep" : "text-ink"}`}>
+                      {ACTIVITY_LABEL[a]}
+                    </span>
+                    <span className="mt-0.5 block text-xs leading-snug text-ink-soft">
+                      {ACTIVITY_DESCRIPTION[a]}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
-          <p className="mt-4 text-sm font-semibold text-ink-soft">
-            Tell us about you, so we can work out your daily calories
-          </p>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {SEXES.map((s) => (
-              <Chip key={s} active={sex === s} onClick={() => setSex((cur) => (cur === s ? null : s))}>
-                {SEX_LABEL[s]}
-              </Chip>
-            ))}
-          </div>
-          <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <NumberField
-              label="Age (years)"
-              value={ageYears}
-              onChange={setAgeYears}
-              placeholder="e.g. 45"
-              min={1}
-              max={120}
-            />
-            <NumberField
-              label="Weight (kg)"
-              value={weightKg}
-              onChange={setWeightKg}
-              placeholder="e.g. 70"
-              min={20}
-              max={300}
-            />
-            <NumberField
-              label="Height (cm)"
-              value={heightCm}
-              onChange={setHeightCm}
-              placeholder="e.g. 165"
-              min={50}
-              max={250}
-            />
-          </div>
-
-          {targetValue != null && (
-            <div className="mt-3 rounded-xl border border-line bg-mist p-3 text-sm text-ink">
-              <p>
-                Resting energy (BMR): <strong>{Math.round(bmrValue!)} kcal a day</strong>
-              </p>
-              <p className="mt-1">
-                Full daily need with your activity (TDEE):{" "}
-                <strong>{Math.round(tdeeValue!)} kcal a day</strong>
-              </p>
-              <p className="mt-1">
-                Your daily calorie target: <strong>{targetValue} kcal a day</strong>
+          <div className="mt-5 border-t border-line pt-4">
+            <div className="flex items-center gap-2">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand ring-1 ring-inset ring-brand/15">
+                <Flame className="h-3.5 w-3.5" strokeWidth={2.4} />
+              </span>
+              <p className="text-sm font-semibold text-ink">
+                Tell us about you, so we can work out your daily calories
               </p>
             </div>
-          )}
-        </>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {SEXES.map((s) => (
+                <Chip key={s} active={sex === s} onClick={() => setSex((cur) => (cur === s ? null : s))}>
+                  {SEX_LABEL[s]}
+                </Chip>
+              ))}
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <NumberField
+                label="Age (years)"
+                value={ageYears}
+                onChange={setAgeYears}
+                placeholder="e.g. 45"
+                min={1}
+                max={120}
+              />
+              <NumberField
+                label="Weight (kg)"
+                value={weightKg}
+                onChange={setWeightKg}
+                placeholder="e.g. 70"
+                min={20}
+                max={300}
+              />
+              <NumberField
+                label="Height (cm)"
+                value={heightCm}
+                onChange={setHeightCm}
+                placeholder="e.g. 165"
+                min={50}
+                max={250}
+              />
+            </div>
+
+            {/* One clear answer first — the target — with how it was worked
+                out folded underneath as quiet supporting context, not three
+                lines of equal weight fighting for attention. */}
+            {targetValue != null && (
+              <div className="mt-4 overflow-hidden rounded-2xl bg-gradient-to-br from-brand to-leaf p-4 text-white">
+                <p className="text-xs font-semibold uppercase tracking-wide text-white/80">
+                  Your daily calorie target
+                </p>
+                <p className="font-display text-3xl font-bold leading-tight">
+                  {targetValue} <span className="text-base font-semibold text-white/80">kcal a day</span>
+                </p>
+                <div className="mt-3 flex gap-5 border-t border-white/25 pt-3 text-xs text-white/85">
+                  <p>
+                    Resting energy <strong className="block text-sm text-white">{Math.round(bmrValue!)} kcal</strong>
+                  </p>
+                  <p>
+                    Full daily need <strong className="block text-sm text-white">{Math.round(tdeeValue!)} kcal</strong>
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       )}
 
       <button

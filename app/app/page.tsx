@@ -22,7 +22,7 @@ import HabitStreak from "@/components/HabitStreak";
 import VarietyNudge from "@/components/VarietyNudge";
 import MonthReport from "@/components/MonthReport";
 import TodaysMeal from "@/components/TodaysMeal";
-import CalorieBudget from "@/components/CalorieBudget";
+import DashboardSnapshot from "@/components/DashboardSnapshot";
 import LogReading from "@/components/LogReading";
 import ReadingNudge from "@/components/ReadingNudge";
 import TypewriterHeadline from "@/components/TypewriterHeadline";
@@ -399,10 +399,13 @@ export default function AppPage() {
           <div className="mt-6 space-y-4">
             <TodaysMeal onBuild={buildMeal} personalize={canUseGoalPersonalization(access)} />
 
-            {/* The one number the dietitian's spec asks to always be visible:
-                calories remaining today. Renders nothing until the person has
-                filled in sex/age/weight/height/activity in "Make it fit me". */}
-            <CalorieBudget show={canUseGoalPersonalization(access)} />
+            {/* The "at a glance" bento row: streak, calories remaining (the
+                one number the dietitian's spec asks to always be visible),
+                and this month's good meals. The calorie tile renders nothing
+                until the person has filled in sex/age/weight/height/activity
+                in "Make it fit me"; the streak/month tiles are free on every
+                tier and only show once there is something to say. */}
+            <DashboardSnapshot show={canUseGoalPersonalization(access)} />
 
             {/* Straight under the answer, because a reading is the one thing
                 only this person can tell us, and the app can say nothing about
