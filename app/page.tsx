@@ -47,9 +47,8 @@ const PLANS: PricingPlan[] = [
     features: [
       "Get meals tailored to your personal goals",
       "Get meal recommendations that fit your lifestyle",
-      "See your daily calorie target and easy ways to close the gap",
+      "See your daily calorie target and recommended meals to help you meet it",
       "Get recommendations based on how you actually eat",
-      "Get recommendations that account for meals you usually skip",
     ],
   },
   {
@@ -136,7 +135,7 @@ export default function Home() {
         title="Defy Diabetes. Enjoy Food Again."
         description="Get personalized meal recommendations, search any food you're craving, or build your own meals. GluFloat keeps track of what you eat and your sugar tests, and turns it into a report for your doctor."
         announcementBanner={{
-          text: "Reviewed by 6 registered dietitians",
+          text: "Reviewed by 7 registered dietitians",
           icon: <ShieldCheck className="h-4 w-4 text-leaf-bright" />,
         }}
         ctaSlot={
@@ -289,7 +288,7 @@ export default function Home() {
                   "No card needed",
                   "Free for 7 days",
                   "Stop any time",
-                  "Checked by 6 dietitians",
+                  "Checked by 7 dietitians",
                 ].map((b) => (
                   <li key={b} className="flex items-center gap-2.5 text-sm font-medium">
                     <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-verdict-green/15">
@@ -388,7 +387,7 @@ export default function Home() {
           <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {[
               { end: 1400, suffix: "+", unit: "Nigerian foods", label: "and we add more every month" },
-              { end: 6, suffix: "", unit: "registered dietitians", label: "reviewed our food guidance" },
+              { end: 7, suffix: "", unit: "registered dietitians", label: "reviewed our food guidance" },
               { end: 3, suffix: "", unit: "clear colours", label: "green, yellow, or red. That is all" },
               { end: 10, suffix: " sec", unit: "to an answer", label: "faster than dishing the food" },
             ].map((t, i) => (

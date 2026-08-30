@@ -19,7 +19,7 @@ import { scoreMeal } from "@/lib/verdictEngine";
  * (breakfast, lunch or dinner — `set.meal`), close to each other in
  * calories and never sharing a food with the meal templates in
  * `lib/nextMeal.ts` (a food is either "your meal" or "an extra", never
- * both). "Try a different one" cycles through them if the first is not to
+ * both). "Try a different snack" cycles through them if the first is not to
  * someone's taste; whichever is showing when "I ate this too" is tapped is
  * the one that gets logged.
  *
@@ -67,7 +67,7 @@ export default function ExtraSuggestionCard({ set }: { set: ExtraSuggestionSet }
             onClick={tryAnother}
             className="flex shrink-0 items-center gap-1 rounded-full bg-white px-2.5 py-1.5 text-xs font-bold text-leaf-deep ring-1 ring-inset ring-leaf/25 transition-colors hover:bg-leaf/10"
           >
-            <RefreshCw className="h-3 w-3" /> Try a different one
+            <RefreshCw className="h-3 w-3" /> Try a different snack
           </button>
         )}
       </div>
