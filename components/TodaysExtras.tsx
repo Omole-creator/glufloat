@@ -13,5 +13,5 @@ import ExtraSuggestionCard from "@/components/ExtraSuggestionCard";
 export default function TodaysExtras({ show }: { show: boolean }) {
   const { extra } = useTodaysCalories(show);
   if (!extra) return null;
-  return <ExtraSuggestionCard extra={extra} />;
+  return <ExtraSuggestionCard set={extra} />;
 }

@@ -114,11 +114,12 @@ await page.screenshot({ path: `${OUT}/app-disclaimer.png` });
 await page.getByRole("button", { name: "I understand" }).click();
 
 // The QA account is a subscriber with a far-future period end, so /app shows
-// the evergreen membership badge rather than a day count. The badge now names
-// the actual tier (see lib/pricing.ts TIER_LABEL), and the QA account is
-// Basic, so it reads "GluFloat: active".
+// the evergreen membership badge rather than a day count. The badge names the
+// actual tier (see lib/pricing.ts TIER_LABEL). The QA account was moved to
+// the dietitian tier on 2026-08-30 so this suite (and a manual check) can
+// exercise every paid feature at once — it reads "GluFloat Premium: active".
 await check("membership badge shows for a subscriber", async () =>
-  visible(page.getByText("GluFloat: active", { exact: true })),
+  visible(page.getByText("GluFloat Premium: active", { exact: true })),
 );
 
 // ---- 3b. the sugar reading box ---------------------------------------------

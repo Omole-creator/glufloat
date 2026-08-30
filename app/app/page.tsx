@@ -23,6 +23,7 @@ import VarietyNudge from "@/components/VarietyNudge";
 import MonthReport from "@/components/MonthReport";
 import TodaysMeal from "@/components/TodaysMeal";
 import DashboardSnapshot from "@/components/DashboardSnapshot";
+import FirstStepsChecklist from "@/components/FirstStepsChecklist";
 import TodaysExtras from "@/components/TodaysExtras";
 import LogReading from "@/components/LogReading";
 import ReadingNudge from "@/components/ReadingNudge";
@@ -477,6 +478,12 @@ export default function AppPage() {
                   day's answer. Renders nothing until sex/age/weight/height/
                   activity are set in "Make it fit me" (calories) or until
                   there is a month of history (the month tile). */}
+              <FirstStepsChecklist
+                showFitMe={canUseGoalPersonalization(access)}
+                onGoToFitMe={() => selectTab("personalize")}
+                onGoToSearch={() => selectTab("search")}
+              />
+
               <DashboardSnapshot show={canUseGoalPersonalization(access)} />
 
               <div id="todays-meal" className="scroll-mt-24">

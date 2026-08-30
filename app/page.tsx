@@ -32,6 +32,7 @@ const PLANS: PricingPlan[] = [
       "Check any of 1,400+ Nigerian foods before you eat",
       "Get personalized breakfast, lunch, and dinner recommendations every day",
       "Build a meal and get personalized guidance on it",
+      "Save your sugar test numbers next to what you ate",
       "Generate a monthly meal report to share with your doctor",
       "Get a gentle reminder before each meal",
     ],
@@ -46,9 +47,9 @@ const PLANS: PricingPlan[] = [
     features: [
       "Get meals tailored to your personal goals",
       "Get meal recommendations that fit your lifestyle",
+      "See your daily calorie target and easy ways to close the gap",
       "Get recommendations based on how you actually eat",
       "Get recommendations that account for meals you usually skip",
-      "Get a more personalized food experience built around your everyday life",
     ],
   },
   {
@@ -112,7 +113,7 @@ const WHAT_YOU_GET: Feature[] = [
   {
     icon: <FileText className={ICON} strokeWidth={2.2} />,
     title: "Share with Your Doctor",
-    text: "Generate a comprehensive food report to support better conversations during appointments.",
+    text: "Save your sugar test numbers next to what you ate, and turn it all into a report for your next appointment.",
     tone: "green",
   },
 ];
@@ -133,7 +134,7 @@ export default function Home() {
 
       <HeroLanding
         title="Defy Diabetes. Enjoy Food Again."
-        description="Get personalized meal recommendations, search any food you're craving, or build your own meals. GluFloat keeps track of everything and generates food reports for your doctor."
+        description="Get personalized meal recommendations, search any food you're craving, or build your own meals. GluFloat keeps track of what you eat and your sugar tests, and turns it into a report for your doctor."
         announcementBanner={{
           text: "Reviewed by 6 registered dietitians",
           icon: <ShieldCheck className="h-4 w-4 text-leaf-bright" />,

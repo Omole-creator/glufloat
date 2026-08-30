@@ -364,122 +364,145 @@ export function planForDay(
 }
 
 /**
- * A small, safe way to close a REAL leftover gap in the daily calorie
- * budget, for people whose target is bigger than 3 realistic Nigerian meals
- * can ever reach (a genuinely active or muscle-building person — see the
- * "known ceiling" note in CLAUDE.md). Never touches the 3 main meals' own
- * dietitian-set portion sizes: this only ever suggests MORE of an
- * already-reviewed food that is safe to eat every day, at its own existing
- * safe portion, never a bigger portion of anything.
+ * A small, safe way to close a leftover gap in the daily calorie budget, for
+ * people whose target is bigger than 3 Nigerian meals can reach on their own
+ * (a genuinely active or muscle-building person — see the "known ceiling"
+ * note in CLAUDE.md). Never touches the 3 main meals' own dietitian-set
+ * portion sizes: this only ever suggests MORE of an already-reviewed food
+ * that is safe to eat every day, at its own existing safe portion.
  *
- * The pool is hand-picked from foods `lib/frequency.ts`'s `canBeEveryday()`
- * already allows daily (green, protein/fat role) and that genuinely read as
- * a light "extra," not a full dish — nuts/seeds, eggs, and a few common
- * light proteins (suya, fish, chicken). Heavier "whole meal" items that also
- * pass `canBeEveryday()` (nkwobi, isi-ewu, tuna salad, offal) are left out on
- * purpose: nobody adds a bowl of isi-ewu as a top-up snack.
+ * **Every food here is picked so it never also appears in BREAKFAST, LUNCH or
+ * DINNER above.** A food cannot be both "your meal" and "something extra on
+ * the side" in the same app — that is why eggs, fish, chicken, smoked fish,
+ * stockfish and groundnut, which all show up in the meal templates, were
+ * dropped from this list even though they used to be here.
+ *
+ * **Options are grouped by meal**, not one shared pool for the whole day, so
+ * whatever shows during breakfast is something that actually belongs at
+ * breakfast, and the same for lunch and dinner. Each meal gets exactly 3
+ * options to choose from (`EXTRA_OPTIONS`), close to each other in calories,
+ * so trying a different one does not throw off the day's numbers.
  */
-const EXTRAS = [
-  "suya",
-  "eggs",
-  "fried-egg",
-  "scrambled-egg",
-  "groundnut",
-  "cashew-nut",
+const BREAKFAST_EXTRA_OPTIONS: string[][] = [
+  ["fried-egg"],
+  ["walnut"],
+  ["almond"],
+];
+
+const LUNCH_EXTRA_OPTIONS: string[][] = [
+  ["mixed-nuts"],
+  ["cashew-nut"],
+  ["egusi-seed"],
+];
+
+const DINNER_EXTRA_OPTIONS: string[][] = [
+  ["suya"],
+  ["tiger-nut", "peanut-butter"],
+  ["coconut", "seeds"],
+];
+
+const EXTRA_OPTIONS: Record<NamedMeal, string[][]> = {
+  breakfast: BREAKFAST_EXTRA_OPTIONS,
+  lunch: LUNCH_EXTRA_OPTIONS,
+  dinner: DINNER_EXTRA_OPTIONS,
+};
+
+/** Nuts and seeds sit ahead of whichever meal they are shown next to. */
+const PRE_MEAL_NUTS = new Set([
   "walnut",
   "almond",
   "mixed-nuts",
+  "cashew-nut",
+  "egusi-seed",
   "tiger-nut",
   "coconut",
-  "egusi-seed",
   "peanut-butter",
   "seeds",
-  "fish",
-  "chicken",
-  "smoked-fish",
-  "stockfish",
-];
+]);
 
-/**
- * WHEN to eat each extra, not just what and how much. Two real, established
- * eating-order effects drive the two patterns used here:
- *   - Nuts, seeds and nut butters are fat and body-building food with almost
- *     no starch. Eaten 15-20 minutes AHEAD of a meal, that fat and
- *     body-building food slow the stomach down, so the meal that follows
- *     pushes sugar up more slowly than it would on its own (the same
- *     "food order" effect behind why GluFloat always pairs a starch with
- *     vegetables and body-building food, applied ahead of time instead of
- *     alongside).
- *   - Meat, fish and eggs carry almost no starch at all, so timing them
- *     against a meal matters far less — these read naturally added onto an
- *     existing meal or eaten alone, at any time, and the copy says so.
- * Every line here avoids the house-banned words (`COPYWRITING-PLAYBOOK.md`
- * §0.1) the same as every other card: no "spike", no "protein", no
- * "portion" — see scripts/plain-words.mjs's audit list.
- */
-export const EXTRA_TIMING: Record<string, string> = {
-  suya: "Eat this on its own, any time of day. It is mostly meat, so it will not push your sugar up.",
-  eggs: "Eat this with breakfast, or any time as a light bite.",
-  "fried-egg": "Fry it in only one teaspoon of oil, nothing more. Eat this with breakfast, or any time as a light bite.",
-  "scrambled-egg": "Eat this with breakfast, or any time as a light bite.",
-  groundnut: "Eat this 15 to 20 minutes before your next meal. It slows down how fast that meal pushes your sugar up.",
-  "cashew-nut": "Eat this 15 to 20 minutes before your next meal. It slows down how fast that meal pushes your sugar up.",
-  walnut: "Eat this 15 to 20 minutes before your next meal. It slows down how fast that meal pushes your sugar up.",
-  almond: "Eat this 15 to 20 minutes before your next meal. It slows down how fast that meal pushes your sugar up.",
-  "mixed-nuts": "Eat this 15 to 20 minutes before your next meal. It slows down how fast that meal pushes your sugar up.",
-  "tiger-nut": "Eat this 15 to 20 minutes before your next meal. It slows down how fast that meal pushes your sugar up.",
-  coconut: "Eat this 15 to 20 minutes before your next meal. It slows down how fast that meal pushes your sugar up.",
-  "egusi-seed": "Eat this roasted, any time as a snack, on its own.",
-  "peanut-butter": "Eat this 15 to 20 minutes before your next meal. It slows down how fast that meal pushes your sugar up.",
-  seeds: "Eat this 15 to 20 minutes before your next meal. It slows down how fast that meal pushes your sugar up.",
-  fish: "Choose grilled or boiled fish, not fried. Add this to your meal, or eat it on its own as a snack.",
-  chicken: "Choose grilled or boiled chicken with the skin removed, not fried. Add this to your meal, or eat it on its own as a snack.",
-  "smoked-fish": "Add this to your lunch or dinner, or eat it on its own as a snack.",
-  stockfish: "Add this to your soup at lunch or dinner.",
+const MEAL_WORD: Record<NamedMeal, string> = {
+  breakfast: "breakfast",
+  lunch: "lunch",
+  dinner: "dinner",
 };
 
-export interface ExtraSuggestion {
+const FIXED_TIMING: Record<string, string> = {
+  "fried-egg":
+    "Fry it in only one teaspoon of oil, nothing more. Eat this with your breakfast, or any time as a light bite.",
+  suya: "Eat this on its own, any time of day. It is mostly meat, so it will not push your sugar up.",
+};
+
+/**
+ * WHEN to eat each extra, not just what and how much.
+ *
+ * Nuts, seeds and nut butters are fat and body-building food with almost no
+ * starch. Research on eating something fatty or body-building shortly ahead
+ * of a carbohydrate meal (whey and nut "preload" studies) shows it slows the
+ * stomach down, so the meal that follows pushes sugar up more slowly than it
+ * would on its own — the same reason GluFloat always pairs a starch with
+ * vegetables and body-building food, used here ahead of time instead of
+ * alongside. Studies test this in a 15-to-30-minute window before the meal,
+ * which is why the copy gives that range. Because each option now sits
+ * inside its OWN meal's set, "your next meal" is named directly — a walnut
+ * shown at breakfast says "before your breakfast", the same walnut idea
+ * shown at dinner would say "before your dinner".
+ *
+ * Every line avoids the house-banned words (`COPYWRITING-PLAYBOOK.md` §0.1),
+ * same as every other card: no "spike", no "protein", no "portion" — see
+ * scripts/plain-words.mjs's audit list.
+ */
+export function extraTimingFor(id: string, meal: NamedMeal): string {
+  if (FIXED_TIMING[id]) return FIXED_TIMING[id];
+  if (PRE_MEAL_NUTS.has(id)) {
+    return `Eat this 15 to 30 minutes before your ${MEAL_WORD[meal]}. It slows down how fast that meal pushes your sugar up.`;
+  }
+  return "";
+}
+
+export interface ExtraOption {
   foods: Food[];
   names: string[];
   calories: number;
 }
 
-// Capped at 2, not 4 (founder instruction, 2026-08-29: "at most 2 cards
-// instead of 4 at once ... so that it is not overwhelming"). Offered fresh at
-// both breakfast and lunch (the caller in DashboardSnapshot.tsx hides this
-// entirely at dinner), so across a day someone can see up to 2 at breakfast
-// and a different 2 at lunch — never more than 2 on screen at once.
-const MAX_EXTRA_ITEMS = 2;
+export interface ExtraSuggestionSet {
+  meal: NamedMeal;
+  options: ExtraOption[];
+}
+
+/** How small a leftover gap has to be before there is nothing worth suggesting. */
+const MIN_GAP_KCAL = 100;
 
 /**
- * Picks up to 2 EXTRAS items, rotated by day (so it is not always the same
- * suggestion), stopping once their combined calories reach the remaining gap
- * or 2 items are picked, whichever comes first. Returns null below a small
- * threshold (100kcal) — not worth suggesting anything for a gap that small —
- * and null if the gap cannot be resolved to any foods (should not happen
- * with a non-empty EXTRAS list, but never throws either way).
+ * The (up to) 3 real options for closing today's leftover gap at this meal,
+ * rotated by day so a returning person does not always see the same one
+ * first. Returns null below a small threshold (100kcal, not worth
+ * suggesting anything for a gap that small) or once nothing in the list can
+ * be resolved (a food renamed or removed — should not happen, never throws).
  *
- * Picked to land AS CLOSE AS POSSIBLE to the real remaining gap from real,
- * already-portioned, everyday-safe foods — for a very large remaining gap,
- * 2 items at their own safe portions may still not close it completely, and
- * that is an honest limit of "only ever suggest real, safe portions," not
- * something worth apologising for in the copy that shows this.
+ * These are fixed, real combinations, not a greedy fill toward the exact
+ * gap: a very large gap may still not be fully closed by 3 small, everyday-
+ * safe options, and that is an honest limit of "only ever suggest real, safe
+ * portions," not something to apologise for in the copy that shows this.
  */
-export function suggestExtras(remainingKcal: number, dayKey: string): ExtraSuggestion | null {
-  if (!remainingKcal || remainingKcal < 100) return null;
-  const items = EXTRAS.map((id) => getFood(id)).filter((f): f is Food => f != null && (f.calories ?? 0) > 0);
-  if (items.length === 0) return null;
+export function suggestExtras(
+  remainingKcal: number,
+  dayKey: string,
+  meal: NamedMeal,
+): ExtraSuggestionSet | null {
+  if (!remainingKcal || remainingKcal < MIN_GAP_KCAL) return null;
+  const templates = EXTRA_OPTIONS[meal];
+  const options = templates
+    .map((ids) => {
+      const foods = ids.map((id) => getFood(id)).filter((f): f is Food => f != null);
+      if (foods.length !== ids.length) return null;
+      const calories = foods.reduce((s, f) => s + (f.calories ?? 0), 0);
+      return { foods, names: foods.map((f) => cleanFoodName(f.name)), calories };
+    })
+    .filter((o): o is ExtraOption => o != null);
+  if (options.length === 0) return null;
 
-  const start = dayNumber(dayKey) % items.length;
-  const rotated = [...items.slice(start), ...items.slice(0, start)];
-
-  const picked: Food[] = [];
-  let total = 0;
-  for (const f of rotated) {
-    if (picked.length >= MAX_EXTRA_ITEMS || total >= remainingKcal) break;
-    picked.push(f);
-    total += f.calories ?? 0;
-  }
-  if (picked.length === 0) return null;
-  return { foods: picked, names: picked.map((f) => cleanFoodName(f.name)), calories: total };
+  const start = dayNumber(dayKey) % options.length;
+  const rotated = [...options.slice(start), ...options.slice(0, start)];
+  return { meal, options: rotated };
 }

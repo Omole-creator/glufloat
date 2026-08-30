@@ -15,7 +15,7 @@
  *
  *   npx tsx scripts/calorie-ranking-test.ts
  */
-import { ideasFor, planForDay, suggestExtras, EXTRA_TIMING } from "../lib/nextMeal";
+import { ideasFor, planForDay, suggestExtras, extraTimingFor } from "../lib/nextMeal";
 import { getFood } from "../lib/search";
 import { scoreMeal } from "../lib/verdictEngine";
 import type { NamedMeal } from "../lib/mealtime";
@@ -103,52 +103,87 @@ for (const meal of MEALS) {
   }
 }
 
-// ---- 5. suggestExtras: closes real gaps sensibly, never invents nonsense --
+// ---- 5. suggestExtras: closes real gaps sensibly, never invents nonsense,
+//         and now runs at all 3 meals with 3 real, swappable options -------
 {
   // Below the threshold: nothing suggested, not even a token gesture.
-  if (suggestExtras(50, "2026-08-29") !== null) {
+  if (suggestExtras(50, "2026-08-29", "breakfast") !== null) {
     fail("suggestExtras(50, ...) should return null below the 100kcal threshold");
   }
-  if (suggestExtras(0, "2026-08-29") !== null) fail("suggestExtras(0, ...) should return null");
+  if (suggestExtras(0, "2026-08-29", "lunch") !== null) fail("suggestExtras(0, ...) should return null");
 
-  // A real gap: must suggest something, never more than 2 items (founder
-  // instruction, 2026-08-29: "at most 2 cards instead of 4 at once"), and
-  // never wildly overshoot (it should stop once it reaches the gap or hits 2).
-  const s = suggestExtras(500, "2026-08-29");
-  if (!s || s.foods.length === 0) {
-    fail("suggestExtras(500, ...) should suggest at least one food");
-  } else {
-    if (s.foods.length > 2) fail(`suggestExtras: ${s.foods.length} items, should never exceed 2`);
-    if (s.names.length !== s.foods.length) fail("suggestExtras: names/foods length mismatch");
+  for (const meal of MEALS) {
+    // A real gap: must suggest at least one option, never more than 2 foods
+    // in any single option, and never more than 3 options to choose from.
+    const s = suggestExtras(500, "2026-08-29", meal);
+    if (!s || s.options.length === 0) {
+      fail(`suggestExtras(500, ..., ${meal}) should suggest at least one option`);
+    } else {
+      if (s.options.length > 3) fail(`suggestExtras: ${meal} offered ${s.options.length} options, should never exceed 3`);
+      for (const o of s.options) {
+        if (o.foods.length > 2) fail(`suggestExtras: ${meal} option has ${o.foods.length} foods, should never exceed 2`);
+        if (o.names.length !== o.foods.length) fail(`suggestExtras: ${meal} names/foods length mismatch`);
+      }
+    }
+
+    // A huge gap (the reported scenario's residual) must still cap each
+    // option's size — it must not pretend to close an unclosable gap by
+    // inventing more food than the fixed option list allows.
+    const huge = suggestExtras(5000, "2026-08-29", meal);
+    if (!huge || huge.options.some((o) => o.foods.length > 2)) {
+      fail(`suggestExtras with a huge remaining gap (${meal}) must still cap each option at 2 items, not invent more`);
+    }
+
+    // Every suggested food must actually be green (this only ever recommends
+    // already-reviewed, everyday-safe foods), and every one must carry a
+    // WHEN-to-eat direction — a food with a calorie count and no timing reads
+    // exactly like the confusing, direction-less list this card replaced.
+    for (let d = 0; d < 20; d++) {
+      const dayKey = `2026-08-${String((d % 28) + 1).padStart(2, "0")}`;
+      const check = suggestExtras(800, dayKey, meal);
+      if (check) {
+        for (const o of check.options) {
+          for (const f of o.foods) {
+            if (f.baseVerdict !== "green") fail(`suggestExtras included a non-green food: ${f.id}`);
+            if (!extraTimingFor(f.id, meal)) fail(`suggestExtras included ${f.id} with no timing direction`);
+          }
+        }
+      }
+    }
   }
 
-  // A huge gap (the reported scenario's residual) must still return at most
-  // 2 items — it must not pretend to close an unclosable gap by inventing
-  // more food than the capped list allows.
-  const huge = suggestExtras(5000, "2026-08-29");
-  if (!huge || huge.foods.length > 2) {
-    fail("suggestExtras with a huge remaining gap must still cap at 2 items, not invent more");
-  }
-
-  // Rotates by day, so it is not always the same suggestion.
+  // Rotates by day, so it is not always the same first option.
   const days = ["2026-08-01", "2026-08-02", "2026-08-03", "2026-08-04", "2026-08-05"];
-  const firstNames = days.map((d) => suggestExtras(300, d)?.names.join(","));
+  const firstNames = days.map((d) => suggestExtras(300, d, "lunch")?.options[0]?.names.join(","));
   if (new Set(firstNames).size === 1) {
     fail("suggestExtras never varies across 5 different days — the rotation is not working");
   }
 
-  // Every suggested food must actually be green (this only ever recommends
-  // already-reviewed, everyday-safe foods, never anything the app itself
-  // would flag), and every one must carry a WHEN-to-eat direction — a food
-  // with a calorie count and no timing reads exactly like the confusing,
-  // direction-less list this whole card was rebuilt to replace.
-  for (let d = 0; d < 20; d++) {
-    const dayKey = `2026-08-${String((d % 28) + 1).padStart(2, "0")}`;
-    const check = suggestExtras(800, dayKey);
-    if (check) {
-      for (const f of check.foods) {
-        if (f.baseVerdict !== "green") fail(`suggestExtras included a non-green food: ${f.id}`);
-        if (!EXTRA_TIMING[f.id]) fail(`suggestExtras included ${f.id} with no EXTRA_TIMING direction`);
+  // The options inside one meal's set must land close to each other in
+  // calories — the whole point of offering alternatives is that swapping one
+  // for another should not throw off the day's numbers.
+  for (const meal of MEALS) {
+    const s = suggestExtras(500, "2026-08-29", meal);
+    if (s && s.options.length > 1) {
+      const cals = s.options.map((o) => o.calories);
+      const spread = Math.max(...cals) - Math.min(...cals);
+      if (spread > 100) fail(`suggestExtras: ${meal} options spread ${spread}kcal apart, should stay close`);
+    }
+  }
+
+  // A food offered as an "extra" must never also appear in that food's own
+  // meal-idea plates (a food is either "your meal" or "an extra", never
+  // both), and the reverse: no blue-card food should be reused as an extra.
+  const blueCardIds = new Set(MEALS.flatMap((m) => ideasFor(m)).flat());
+  for (const meal of MEALS) {
+    const s = suggestExtras(9999, "2026-08-29", meal);
+    if (s) {
+      for (const o of s.options) {
+        for (const f of o.foods) {
+          if (blueCardIds.has(f.id)) {
+            fail(`suggestExtras: ${f.id} is offered as an extra but also appears in a meal-idea plate`);
+          }
+        }
       }
     }
   }

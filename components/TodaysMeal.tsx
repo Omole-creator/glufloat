@@ -303,6 +303,7 @@ export default function TodaysMeal({
   if (!meal || !idea || idea.foods.length === 0) return null;
 
   const Icon = MEAL_ICON[meal];
+  const mealCalories = idea.foods.reduce((sum, f) => sum + (f.calories ?? 0), 0);
   const another = () => {
     void trackUsage("meal_reroll");
     // They are walking away from this plate. Remember it, so it is not the one
@@ -347,10 +348,20 @@ export default function TodaysMeal({
           {line(idea.names)}
         </p>
 
-        <span className="mt-4 inline-flex items-center gap-2 rounded-full bg-white/15 px-3.5 py-1.5 text-sm font-semibold text-white ring-1 ring-inset ring-white/20">
-          <Check className="h-4 w-4 text-verdict-green" strokeWidth={3} /> Good to eat
-          <span className="text-white/40">·</span> Picked for you
-        </span>
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3.5 py-1.5 text-sm font-semibold text-white ring-1 ring-inset ring-white/20">
+            <Check className="h-4 w-4 text-verdict-green" strokeWidth={3} /> Good to eat
+            <span className="text-white/40">·</span> Picked for you
+          </span>
+          {/* Shown up front, not only after "I ate this" — someone deciding
+              whether to eat this plate wants the number before they commit
+              to it, not after. */}
+          {mealCalories > 0 && (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3.5 py-1.5 text-sm font-semibold text-white ring-1 ring-inset ring-white/20">
+              {mealCalories} kcal
+            </span>
+          )}
+        </div>
 
         {medicationAppliesToMeal(medTimes, meal) && medicationTimingCopy(medRelationToFood) && (
           <div className="mt-4 flex items-start gap-2.5 rounded-xl bg-white/10 p-3 ring-1 ring-inset ring-white/15">

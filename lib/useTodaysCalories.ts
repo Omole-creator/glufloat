@@ -4,14 +4,23 @@ import { useCallback, useEffect, useState } from "react";
 import { caloriesEatenToday, INTAKE_CHANGED } from "@/lib/history";
 import { readPersonalizationProfile, PERSONALIZATION_CHANGED } from "@/lib/personalizationProfile";
 import { bmr, tdee, calorieTarget } from "@/lib/tdee";
-import { suggestExtras, type ExtraSuggestion } from "@/lib/nextMeal";
+import { suggestExtras, type ExtraSuggestionSet } from "@/lib/nextMeal";
 import { currentMeal, localDayKey } from "@/lib/mealtime";
 
 export interface TodaysCalories {
   target: number | null;
   remaining: number | null;
-  extra: ExtraSuggestion | null;
+  extra: ExtraSuggestionSet | null;
 }
+
+/**
+ * How small a leftover has to be, once dinner is under way, before it is not
+ * worth showing at all. Dinner is the last meal of the day, and its own
+ * extras (see below) are the last suggestion the app will ever make for
+ * today — leaving a small number like "40 kcal remaining" on screen after
+ * that would read as unfinished business when nothing more is coming.
+ */
+const DAY_END_FLOOR = 150;
 
 /**
  * The one place "today's calorie target," "calories remaining," and "which
@@ -23,14 +32,27 @@ export interface TodaysCalories {
  *
  * `null` for everything until `show` is true and sex/age/weight/height/
  * activity are all set. Refreshes on `INTAKE_CHANGED`, `PERSONALIZATION_CHANGED`,
- * and a 60-second clock tick — the last one is what lets `extra` fall back to
- * `null` at the breakfast/lunch → dinner boundary without needing a reload or
- * a fresh log/save event (extras are never offered at dinner).
+ * and a 60-second clock tick.
+ *
+ * **Extras now show at all three meals, dinner included.** They used to stop
+ * at lunch, on the idea that the day's target would already be met by then —
+ * but for a lot of real targets it was not, and "calories remaining today"
+ * could sit at 500kcal even after the person had eaten everything the app
+ * gave them, which reads as broken. Dinner now gets its own set of options
+ * too, so there is one more real chance to close the gap with actual food.
+ *
+ * **Once dinner is under way, a small leftover reads as zero.** Nothing more
+ * will be suggested after dinner's own options, so once the true gap drops
+ * under `DAY_END_FLOOR`, the number shown is 0 rather than a small,
+ * unactionable leftover. A genuinely large gap (a very active or muscle-
+ * building person whose target sits above what 3 Nigerian meals plus their
+ * extras can reach) is shown honestly rather than forced to 0 — see the
+ * "known ceiling" note in CLAUDE.md.
  */
 export function useTodaysCalories(show: boolean): TodaysCalories {
   const [target, setTarget] = useState<number | null>(null);
   const [remaining, setRemaining] = useState<number | null>(null);
-  const [extra, setExtra] = useState<ExtraSuggestion | null>(null);
+  const [extra, setExtra] = useState<ExtraSuggestionSet | null>(null);
 
   const refresh = useCallback(async () => {
     if (!show) {
@@ -51,10 +73,11 @@ export function useTodaysCalories(show: boolean): TodaysCalories {
       p.goals,
     );
     const eatenToday = await caloriesEatenToday();
-    const left = Math.max(0, dailyTarget - eatenToday);
+    const trueLeft = Math.max(0, dailyTarget - eatenToday);
+    const meal = currentMeal();
     setTarget(dailyTarget);
-    setRemaining(left);
-    setExtra(currentMeal() === "dinner" ? null : suggestExtras(left, localDayKey()));
+    setRemaining(meal === "dinner" && trueLeft < DAY_END_FLOOR ? 0 : trueLeft);
+    setExtra(suggestExtras(trueLeft, localDayKey(), meal));
   }, [show]);
 
   useEffect(() => {
