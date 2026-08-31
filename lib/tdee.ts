@@ -99,36 +99,30 @@ const GOAL_CALORIE_ADJUST: Record<Goal, number> = {
 };
 
 /**
- * The real ceiling on what this app's own meal-idea plates + extras can ever
- * serve in a day: 3 meals at their structural max (breakfast 425 + lunch 725
- * + dinner 674 = 1,824kcal, from lib/nextMeal.ts's IDEAS, verified against
- * data/foods.json) plus one extra option at each meal (best case
- * ~196+180+225 = 601kcal, lib/nextMeal.ts's EXTRA_OPTIONS) — a theoretical
- * 2,425kcal/day. This constant sits a safety margin below that because
- * planForDay's MIN_POOL variety floor means the served plate is not always
- * the single largest eligible one.
- *
- * A target above this used to be shown honestly, with "calories remaining"
- * left unable to ever reach 0 for a very active or muscle-building person —
- * a deliberate design choice, reversed by direct founder instruction: the
- * target the app actually plans meals and tracks "remaining" against must
- * always be achievable by real food, full stop. calorieTarget() clamps to
- * this so every consumer (the settings display, per-meal planning, and the
- * "remaining" calc) agrees on one number. bmr()/tdee() stay uncapped
- * (labelled "Resting energy"/"Full daily need", not a target).
- */
-export const MEAL_PLANNING_CALORIE_CEILING = 2200;
-
-/**
  * Multiple goals are a plain sum, same rule as lib/personalization.ts's bias
- * vector — no pair is special-cased. Floored well above any starvation range,
- * and capped at MEAL_PLANNING_CALORIE_CEILING (see above) so the target is
- * always closeable by real food.
+ * vector — no pair is special-cased. Floored well above any starvation range.
+ *
+ * **Never capped, no matter how large** (founder instruction, 2026-08-31:
+ * "glufloat must always meet the calorie needs of each user no matter the
+ * value" / "all recommended meals must add up at the end of the day to meet
+ * each user calorie goals"). An earlier version of this function clamped its
+ * output to a fixed ceiling (the real max 3 Nigerian meal-idea plates could
+ * reach) — reversed the same day: capping the TARGET was the wrong fix,
+ * because it meant a genuinely high-need person (very active, or building
+ * muscle) was quietly told their real need was lower than it is. The right
+ * fix keeps the target honest and instead makes the SUPPLY side unbounded:
+ * `lib/nextMeal.ts`'s `suggestExtras()` sizes a real, safe extra-food LIST
+ * for each meal (not a fixed one-off), long enough that the main plate plus
+ * every item in it sums to that meal's own fair share of the day
+ * (`remainingMealCalorieTarget`, weighted by `MEAL_MAX_CALORIES`) — so the
+ * 3 recommended meals already add up to the full target by construction,
+ * without anyone needing to guess how many times to log an extra snack. See
+ * `lib/useTodaysCalories.ts` and `lib/nextMeal.ts` for the supply-side half
+ * of this.
  */
 export function calorieTarget(tdeeValue: number, goals: Goal[]): number {
   const adjust = goals.reduce((sum, g) => sum + GOAL_CALORIE_ADJUST[g], 0);
-  const raw = Math.max(1200, Math.round(tdeeValue + adjust));
-  return Math.min(raw, MEAL_PLANNING_CALORIE_CEILING);
+  return Math.max(1200, Math.round(tdeeValue + adjust));
 }
 
 /**

@@ -15,11 +15,22 @@
  *
  *   npx tsx scripts/calorie-ranking-test.ts
  */
-import { ideasFor, planForDay, suggestExtras, extraTimingFor, MEAL_MAX_CALORIES } from "../lib/nextMeal";
+import {
+  ideasFor,
+  planForDay,
+  suggestExtras,
+  extraTimingFor,
+  MEAL_MAX_CALORIES,
+  MAX_EXTRA_ITEMS,
+} from "../lib/nextMeal";
 import { getFood } from "../lib/search";
 import { scoreMeal } from "../lib/verdictEngine";
 import type { NamedMeal } from "../lib/mealtime";
-import { calorieTarget, remainingMealCalorieTarget, MEAL_PLANNING_CALORIE_CEILING } from "../lib/tdee";
+import { calorieTarget, remainingMealCalorieTarget } from "../lib/tdee";
+
+// Must match lib/useTodaysCalories.ts's DAY_END_FLOOR — the small residual
+// the real app floors to a displayed 0 once dinner is under way.
+const DAY_END_FLOOR = 200;
 
 const MEALS: NamedMeal[] = ["breakfast", "lunch", "dinner"];
 const problems: string[] = [];
@@ -104,8 +115,10 @@ for (const meal of MEALS) {
   }
 }
 
-// ---- 5. suggestExtras: closes real gaps sensibly, never invents nonsense,
-//         and now runs at all 3 meals with 3 real, swappable options -------
+// ---- 5. suggestExtras: sizes a real LIST of items to close the gap it is
+//         given (not 3 alternatives to pick one of), never invents a bigger
+//         single serving, and is bounded only by the MAX_EXTRA_ITEMS sanity
+//         guard, never by a calorie ceiling. --------------------------------
 {
   // Below the threshold: nothing suggested, not even a token gesture.
   if (suggestExtras(50, "2026-08-29", "breakfast") !== null) {
@@ -114,25 +127,42 @@ for (const meal of MEALS) {
   if (suggestExtras(0, "2026-08-29", "lunch") !== null) fail("suggestExtras(0, ...) should return null");
 
   for (const meal of MEALS) {
-    // A real gap: must suggest at least one option, never more than 2 foods
-    // in any single option, and never more than 3 options to choose from.
+    // A real, modest gap: must suggest at least one item, each item never
+    // more than 2 foods, and the list's total should land close to the gap
+    // (never wildly over — the loop stops once it's within one item of it).
     const s = suggestExtras(500, "2026-08-29", meal);
-    if (!s || s.options.length === 0) {
-      fail(`suggestExtras(500, ..., ${meal}) should suggest at least one option`);
+    if (!s || s.items.length === 0) {
+      fail(`suggestExtras(500, ..., ${meal}) should suggest at least one item`);
     } else {
-      if (s.options.length > 3) fail(`suggestExtras: ${meal} offered ${s.options.length} options, should never exceed 3`);
-      for (const o of s.options) {
-        if (o.foods.length > 2) fail(`suggestExtras: ${meal} option has ${o.foods.length} foods, should never exceed 2`);
+      for (const o of s.items) {
+        if (o.foods.length > 2) fail(`suggestExtras: ${meal} item has ${o.foods.length} foods, should never exceed 2`);
         if (o.names.length !== o.foods.length) fail(`suggestExtras: ${meal} names/foods length mismatch`);
+      }
+      if (s.totalCalories !== s.items.reduce((sum, o) => sum + o.calories, 0)) {
+        fail(`suggestExtras: ${meal} totalCalories does not match the sum of its items`);
+      }
+      const maxItemCal = Math.max(...s.items.map((o) => o.calories));
+      if (s.totalCalories < 500 - maxItemCal) {
+        fail(`suggestExtras(500, ..., ${meal}) undershoots by more than one item's worth (total ${s.totalCalories})`);
       }
     }
 
-    // A huge gap (the reported scenario's residual) must still cap each
-    // option's size — it must not pretend to close an unclosable gap by
-    // inventing more food than the fixed option list allows.
-    const huge = suggestExtras(5000, "2026-08-29", meal);
-    if (!huge || huge.options.some((o) => o.foods.length > 2)) {
-      fail(`suggestExtras with a huge remaining gap (${meal}) must still cap each option at 2 items, not invent more`);
+    // A huge gap must still cap each individual item's size (never invent a
+    // bigger single serving), but is now allowed to use MANY items — the
+    // sanity guard (MAX_EXTRA_ITEMS), never a calorie ceiling, is what
+    // eventually bounds the list. A big enough gap should actually hit that
+    // guard, proving the list really does grow to meet a big number rather
+    // than silently stopping short.
+    const huge = suggestExtras(100000, "2026-08-29", meal);
+    if (!huge) {
+      fail(`suggestExtras with a huge remaining gap (${meal}) should still suggest something`);
+    } else {
+      if (huge.items.some((o) => o.foods.length > 2)) {
+        fail(`suggestExtras with a huge remaining gap (${meal}) must still cap each item at 2 foods, not invent more`);
+      }
+      if (huge.items.length !== MAX_EXTRA_ITEMS) {
+        fail(`suggestExtras with a huge remaining gap (${meal}) should hit the MAX_EXTRA_ITEMS guard (${MAX_EXTRA_ITEMS}), got ${huge.items.length} items`);
+      }
     }
 
     // Every suggested food must actually be green (this only ever recommends
@@ -143,7 +173,7 @@ for (const meal of MEALS) {
       const dayKey = `2026-08-${String((d % 28) + 1).padStart(2, "0")}`;
       const check = suggestExtras(800, dayKey, meal);
       if (check) {
-        for (const o of check.options) {
+        for (const o of check.items) {
           for (const f of o.foods) {
             if (f.baseVerdict !== "green") fail(`suggestExtras included a non-green food: ${f.id}`);
             if (!extraTimingFor(f.id, meal)) fail(`suggestExtras included ${f.id} with no timing direction`);
@@ -153,23 +183,12 @@ for (const meal of MEALS) {
     }
   }
 
-  // Rotates by day, so it is not always the same first option.
+  // Rotates by day, so a returning person does not always see the same
+  // combination first.
   const days = ["2026-08-01", "2026-08-02", "2026-08-03", "2026-08-04", "2026-08-05"];
-  const firstNames = days.map((d) => suggestExtras(300, d, "lunch")?.options[0]?.names.join(","));
+  const firstNames = days.map((d) => suggestExtras(300, d, "lunch")?.items[0]?.names.join(","));
   if (new Set(firstNames).size === 1) {
     fail("suggestExtras never varies across 5 different days — the rotation is not working");
-  }
-
-  // The options inside one meal's set must land close to each other in
-  // calories — the whole point of offering alternatives is that swapping one
-  // for another should not throw off the day's numbers.
-  for (const meal of MEALS) {
-    const s = suggestExtras(500, "2026-08-29", meal);
-    if (s && s.options.length > 1) {
-      const cals = s.options.map((o) => o.calories);
-      const spread = Math.max(...cals) - Math.min(...cals);
-      if (spread > 100) fail(`suggestExtras: ${meal} options spread ${spread}kcal apart, should stay close`);
-    }
   }
 
   // A food offered as an "extra" must never also appear in that food's own
@@ -179,7 +198,7 @@ for (const meal of MEALS) {
   for (const meal of MEALS) {
     const s = suggestExtras(9999, "2026-08-29", meal);
     if (s) {
-      for (const o of s.options) {
+      for (const o of s.items) {
         for (const f of o.foods) {
           if (blueCardIds.has(f.id)) {
             fail(`suggestExtras: ${f.id} is offered as an extra but also appears in a meal-idea plate`);
@@ -190,11 +209,13 @@ for (const meal of MEALS) {
   }
 }
 
-// ---- 6. MEAL_MAX_CALORIES matches the real plate data, and a full-day
-//         walk-through (the exact reported bug shape: a very-active/
-//         build_muscle target) must end with a small, floorable residual —
-//         not the hundreds-of-kcal structural gap this whole fix exists to
-//         close. -------------------------------------------------------------
+// ---- 6. MEAL_MAX_CALORIES matches the real plate data, calorieTarget() is
+//         NEVER capped, and a full-day walk-through (main plate + a
+//         meal-scoped suggestExtras list at each meal, same as the real app)
+//         must end with a small, floorable residual — for realistic targets
+//         AND for a deliberately extreme one, proving the day's 3
+//         recommended meals really do add up to whatever the target is,
+//         "no matter the value" (founder instruction, 2026-08-31). ----------
 {
   const realMax = (meal: NamedMeal) =>
     Math.max(...ideasFor(meal).map((ids) => ids.reduce((s, id) => s + (getFood(id)?.calories ?? 0), 0)));
@@ -204,38 +225,51 @@ for (const meal of MEALS) {
     }
   }
 
-  // The reported scenario: a raw TDEE-based target of 3,430kcal (very_active
-  // + build_muscle) must clamp to the achievable ceiling.
-  const dailyTarget = calorieTarget(3430, ["build_muscle"]);
-  if (dailyTarget !== MEAL_PLANNING_CALORIE_CEILING) {
-    fail(`a high-TDEE build_muscle target should clamp to ${MEAL_PLANNING_CALORIE_CEILING}, got ${dailyTarget}`);
+  // calorieTarget() must never clamp — a high-TDEE build_muscle raw value
+  // passes straight through (only the 1,200kcal safety floor still applies,
+  // and build_muscle's own documented +250kcal adjustment, lib/tdee.ts).
+  const rawTdeeTarget = calorieTarget(3430, ["build_muscle"]);
+  if (rawTdeeTarget !== 3680) {
+    fail(`calorieTarget() must never cap the target — 3,430 + 250 in, got ${rawTdeeTarget} out`);
   }
 
-  let eatenToday = 0;
-  for (const meal of MEALS) {
-    const share = remainingMealCalorieTarget(
-      dailyTarget,
-      eatenToday,
-      MEALS,
-      meal,
-      MEAL_MAX_CALORIES,
-    );
-    const idea = planForDay(meal, "2026-08-29", new Map(), 0, [], new Map(), null, share);
-    eatenToday += planCalories(meal, idea.index);
-    const extra = suggestExtras(Math.max(0, dailyTarget - eatenToday), "2026-08-29", meal);
-    if (extra && extra.options[0]) {
-      eatenToday += extra.options[0].calories;
+  function walkFullDay(dailyTarget: number): number {
+    let eatenToday = 0;
+    for (const meal of MEALS) {
+      const mealShare = remainingMealCalorieTarget(dailyTarget, eatenToday, MEALS, meal, MEAL_MAX_CALORIES);
+      const idea = planForDay(meal, "2026-08-29", new Map(), 0, [], new Map(), null, mealShare);
+      eatenToday += planCalories(meal, idea.index);
+      // Same scoping the real app uses (lib/useTodaysCalories.ts): the
+      // extras gap is THIS meal's own fair share minus its real plate
+      // ceiling, not the whole day's remaining — so a big target's extra
+      // eating is spread across all 3 meals, not front-loaded into one.
+      const extrasGap = Math.max(0, mealShare - (MEAL_MAX_CALORIES[meal] ?? 0));
+      const extra = suggestExtras(extrasGap, "2026-08-29", meal);
+      if (extra) eatenToday += extra.totalCalories;
+    }
+    return dailyTarget - eatenToday;
+  }
+
+  // Every target the founder named explicitly (2,900 / 3,200), the exact
+  // reported bug's raw TDEE (3,430), and a deliberately extreme one (6,000 —
+  // well past any real person's TDEE) must all close to within the real
+  // app's DAY_END_FLOOR. This is the literal proof of "no matter the value."
+  for (const dailyTarget of [2900, 3200, 3430, 6000]) {
+    const residual = walkFullDay(dailyTarget);
+    if (residual > DAY_END_FLOOR) {
+      fail(
+        `full-day walk-through for a ${dailyTarget}kcal target (breakfast+lunch+dinner, each plate + its meal-scoped extras) left ${residual}kcal unclosed — should be within the ${DAY_END_FLOOR}kcal end-of-day floor`,
+      );
     }
   }
-  const residual = dailyTarget - eatenToday;
-  // DAY_END_FLOOR (lib/useTodaysCalories.ts) is 200 — a real day's residual
-  // once the capped target and the weighted, band-biased selection are both
-  // in play must land inside that, so "calories remaining" reaches 0 by end
-  // of dinner in the real app rather than showing a large permanent leftover.
-  if (residual > 200) {
-    fail(
-      `full-day walk-through (breakfast+lunch+dinner, each plate + its best extra) left ${residual}kcal of a ${dailyTarget}kcal target unclosed — should be within the 200kcal end-of-day floor`,
-    );
+
+  // A target so far beyond MAX_EXTRA_ITEMS × every meal's own extras that it
+  // genuinely cannot close within one day is the ONLY case where a residual
+  // is expected — and it must still come from the MAX_EXTRA_ITEMS sanity
+  // guard, never from a calorie ceiling on the target itself.
+  const impossible = walkFullDay(50000);
+  if (impossible <= DAY_END_FLOOR) {
+    fail("a 50,000kcal target closed within the end-of-day floor — the MAX_EXTRA_ITEMS guard may not be wired correctly");
   }
 }
 

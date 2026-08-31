@@ -179,11 +179,15 @@ function planCaloriesOf(ids: string[]): number {
 }
 
 /**
- * The single largest plate each meal category can serve, in calories — the
- * real, structural ceiling lib/tdee.ts's remainingMealCalorieTarget weights
- * its per-meal split by (see MEAL_PLANNING_CALORIE_CEILING there). Computed
- * directly from IDEAS so this can never drift from the actual meal-idea
- * data — verified against data/foods.json in scripts/calorie-ranking-test.ts.
+ * The single largest plate each meal category can serve, in calories — what
+ * lib/tdee.ts's remainingMealCalorieTarget weights the per-meal split by, so
+ * breakfast (structurally smaller) isn't assigned the same flat share as
+ * lunch/dinner. This is a real portion-size ceiling, not a daily-target
+ * ceiling — a target above what the 3 main meals can reach is closed instead
+ * by suggestExtras() below, which sizes a real extra-food LIST to cover the
+ * rest. Computed directly from IDEAS so this can never drift from the actual
+ * meal-idea data — verified against data/foods.json in
+ * scripts/calorie-ranking-test.ts.
  */
 export const MEAL_MAX_CALORIES: Record<NamedMeal, number> = {
   breakfast: Math.max(...ideasFor("breakfast").map(planCaloriesOf)),
@@ -392,15 +396,24 @@ export function planForDay(
 }
 
 /**
- * A small, safe way to close the last of the daily calorie budget after each
- * main meal — this is the second half (with MEAL_MAX_CALORIES-weighted
- * per-meal targets and calorieTarget()'s ceiling in lib/tdee.ts) of what
- * makes "calories remaining" reach exactly 0 by end of dinner for everyone,
- * including a genuinely active or muscle-building person, rather than
- * leaving an honest-but-unclosable gap (see CLAUDE.md). Never touches the 3
- * main meals' own dietitian-set portion sizes: this only ever suggests MORE
- * of an already-reviewed food that is safe to eat every day, at its own
- * existing safe portion.
+ * A small, safe way to close the daily calorie gap — this is what makes
+ * "calories remaining" reach exactly 0 by end of dinner for EVERYONE, no
+ * matter how large their real target is (founder instruction, 2026-08-31:
+ * "glufloat must always meet the calorie needs of each user no matter the
+ * value... it must not be capped" / "all recommended meals must add up at
+ * the end of the day to meet each user calorie goals"). `lib/tdee.ts`'s
+ * `calorieTarget()` is never capped, so the achievability guarantee lives
+ * entirely here: `suggestExtras()` below sizes a real LIST of safe, everyday
+ * servings for each meal — long enough that the main plate plus every item
+ * in the list sums to that meal's own fair share of the day — so the
+ * RECOMMENDATION itself already adds up, rather than relying on a person to
+ * guess how many times to come back and log another snack.
+ * `ExtraSuggestionCard` (components/) also stays loggable after a tap rather
+ * than disabling itself, as a safety net for real intake drifting from the
+ * plan, but the primary guarantee is the list being sized correctly up
+ * front. Never touches the 3 main meals' own dietitian-set portion sizes:
+ * this only ever suggests MORE of an already-reviewed food that is safe to
+ * eat every day, at its own existing safe portion.
  *
  * **Every food here is picked so it never also appears in BREAKFAST, LUNCH or
  * DINNER above.** A food cannot be both "your meal" and "something extra on
@@ -498,23 +511,47 @@ export interface ExtraOption {
 
 export interface ExtraSuggestionSet {
   meal: NamedMeal;
-  options: ExtraOption[];
+  /**
+   * Every serving recommended for THIS meal, together — not 3 alternatives
+   * to pick one of. The whole point is that the main plate plus every item
+   * in this list sums to this meal's own fair share of the day's target, so
+   * the day's 3 recommended meals (each already including its own extras)
+   * add up to the full calorie goal by construction, without anyone having
+   * to guess how many times to come back and log another snack.
+   */
+  items: ExtraOption[];
+  /** Sum of every item's calories — the total this list is meant to add. */
+  totalCalories: number;
 }
 
 /** How small a leftover gap has to be before there is nothing worth suggesting. */
 const MIN_GAP_KCAL = 100;
 
 /**
- * The (up to) 3 real options for closing today's leftover gap at this meal,
- * rotated by day so a returning person does not always see the same one
- * first. Returns null below a small threshold (100kcal, not worth
- * suggesting anything for a gap that small) or once nothing in the list can
- * be resolved (a food renamed or removed — should not happen, never throws).
+ * A sanity guard on how many items one suggestion list can ever hold — not a
+ * calorie ceiling (there is none, see lib/tdee.ts's calorieTarget doc), just
+ * a guard against a mistyped or extreme profile producing an unusably long
+ * list. 12 items at ~200kcal each is already ~2,400kcal of extras alone, on
+ * top of the day's 3 real meals — comfortably past any realistic target.
+ */
+export const MAX_EXTRA_ITEMS = 12;
+
+/**
+ * The real, safe servings needed to close THIS meal's own share of today's
+ * calorie gap — sized to the gap, not a fixed count (founder instruction,
+ * 2026-08-31: "all recommended meals must add up at the end of the day to
+ * meet each user calorie goals" / "glufloat must always meet the calorie
+ * needs of each user no matter the value"). Rotated by day so a returning
+ * person does not always see the same combination first. Returns null below
+ * a small threshold (100kcal, not worth suggesting anything for a gap that
+ * small) or once nothing in the list can be resolved (a food renamed or
+ * removed — should not happen, never throws).
  *
- * These are fixed, real combinations, not a greedy fill toward the exact
- * gap: a very large gap may still not be fully closed by 3 small, everyday-
- * safe options, and that is an honest limit of "only ever suggest real, safe
- * portions," not something to apologise for in the copy that shows this.
+ * Built from the SAME small, fixed, everyday-safe combinations as before
+ * (`EXTRA_OPTIONS`) — nothing here invents a bigger single serving to
+ * force-fit a big number. A large gap is closed by using MORE of these real
+ * servings, cycled for variety, not by making any one of them bigger than a
+ * dietitian would actually recommend.
  */
 export function suggestExtras(
   remainingKcal: number,
@@ -535,5 +572,20 @@ export function suggestExtras(
 
   const start = dayNumber(dayKey) % options.length;
   const rotated = [...options.slice(start), ...options.slice(0, start)];
-  return { meal, options: rotated };
+
+  // Cycle through the rotated combinations, adding one at a time, until the
+  // gap is closed (within MIN_GAP_KCAL) or the sanity guard is hit. This is
+  // what makes the full recommendation (main plate + every item here) add
+  // up to this meal's own fair share of the day's target.
+  const items: ExtraOption[] = [];
+  let left = remainingKcal;
+  let i = 0;
+  while (left >= MIN_GAP_KCAL && items.length < MAX_EXTRA_ITEMS) {
+    const opt = rotated[i % rotated.length];
+    items.push(opt);
+    left -= opt.calories;
+    i++;
+  }
+  const totalCalories = items.reduce((s, o) => s + o.calories, 0);
+  return { meal, items, totalCalories };
 }

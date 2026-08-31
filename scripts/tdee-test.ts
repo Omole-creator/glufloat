@@ -10,7 +10,6 @@ import {
   remainingMealCalorieTarget,
   ACTIVITY_MULTIPLIER,
   ACTIVITY_LEVELS,
-  MEAL_PLANNING_CALORIE_CEILING,
 } from "../lib/tdee";
 
 let failures = 0;
@@ -61,15 +60,14 @@ assertEqual(
   1750,
 );
 assertTrue("calorie target never drops below the safety floor", calorieTarget(1000, ["lose_weight"]) >= 1200);
-assertEqual(
-  "a very high TDEE + build_muscle clamps at the meal-planning ceiling",
-  calorieTarget(3430, ["build_muscle"]),
-  MEAL_PLANNING_CALORIE_CEILING,
-);
-assertTrue(
-  "a target under the ceiling is left untouched",
-  calorieTarget(1800, ["maintain"]) === 1800 && 1800 < MEAL_PLANNING_CALORIE_CEILING,
-);
+// calorieTarget() must NEVER cap its output, no matter how high (founder
+// instruction, 2026-08-31: "glufloat must always meet the calorie needs of
+// each user no matter the value... it must not be capped"). The app meets a
+// high target by supplying more real food (lib/nextMeal.ts's suggestExtras,
+// sized to close the gap — see scripts/calorie-ranking-test.ts), never by
+// quietly asking for less than the person actually needs.
+assertEqual("a very high TDEE + build_muscle target passes through uncapped", calorieTarget(3430, ["build_muscle"]), 3680);
+assertEqual("an extreme target still passes through uncapped", calorieTarget(6000, ["build_muscle"]), 6250);
 
 // 4. Carb budget and distribution ---------------------------------------------
 const dailyCarb = carbBudgetG(2000);
