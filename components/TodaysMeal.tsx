@@ -7,7 +7,7 @@ import {
   localDayKey,
   type NamedMeal,
 } from "@/lib/mealtime";
-import { planForDay, MEAL_MAX_CALORIES, type MealIdea } from "@/lib/nextMeal";
+import { planForDay, type MealIdea } from "@/lib/nextMeal";
 import { loggedFoodCounts, likedFoodCounts, caloriesEatenToday } from "@/lib/history";
 import { trackUsage } from "@/lib/usage";
 import type { Food } from "@/lib/types";
@@ -194,13 +194,18 @@ export default function TodaysMeal({
   }, [personalize]);
 
   // The daily calorie target's share for THIS meal, recalculated from what
-  // has already been eaten today (lib/tdee.ts's remainingMealCalorieTarget),
-  // weighted by each meal's own real achievable range (MEAL_MAX_CALORIES) so
-  // breakfast is never assigned a share no breakfast plate could reach — null
-  // (no bias) unless personalization is unlocked AND the person has filled in
-  // sex/age/weight/height/activity, same gating as `bias` above but for the
-  // goal-only part (this needs the bio-metrics, conditions alone are not
-  // enough to compute a calorie target).
+  // has already been eaten today (lib/tdee.ts's remainingMealCalorieTarget)
+  // — a FLAT, EVEN split across the meals the person eats (founder
+  // instruction, 2026-08-31: "I want evenly split, not awkward split" — an
+  // earlier version weighted this by each meal's own real plate ceiling,
+  // MEAL_MAX_CALORIES, which structurally under-fed breakfast since real
+  // breakfast dishes cap lower than lunch/dinner; unnecessary now that
+  // lib/nextMeal.ts's extras are unbounded, so a flat share plus
+  // however-many-real-extras-it-takes gives evenly-sized meals instead).
+  // null (no bias) unless personalization is unlocked AND the person has
+  // filled in sex/age/weight/height/activity, same gating as `bias` above
+  // but for the goal-only part (this needs the bio-metrics, conditions
+  // alone are not enough to compute a calorie target).
   const calorieTargetFor = useCallback(
     async (m: NamedMeal): Promise<number | null> => {
       if (!personalize) return null;
@@ -208,7 +213,7 @@ export default function TodaysMeal({
       if (!p.sex || !p.ageYears || !p.weightKg || !p.heightCm || !p.activityLevel) return null;
       const dailyTarget = calorieTarget(tdee(bmr(p.sex, p.weightKg, p.heightCm, p.ageYears), p.activityLevel), p.goals);
       const eatenToday = await caloriesEatenToday();
-      return remainingMealCalorieTarget(dailyTarget, eatenToday, p.mealPattern, m, MEAL_MAX_CALORIES);
+      return remainingMealCalorieTarget(dailyTarget, eatenToday, p.mealPattern, m);
     },
     [personalize],
   );

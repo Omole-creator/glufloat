@@ -549,18 +549,37 @@ const MIN_GAP_KCAL = 100;
  */
 export const MAX_EXTRA_ITEMS = 12;
 
-/** Cycles through `options` starting at `start`, adding one at a time, until
- * the gap is closed (within MIN_GAP_KCAL) or the sanity guard is hit. */
+/**
+ * Cycles through `options` starting at `start`, adding one real serving at a
+ * time, until the gap is closed. A real serving cannot be split into
+ * fractions, so the LAST item is a genuine decision, not just "stop once
+ * under the threshold": once the next serving would take the total PAST the
+ * remaining gap, land on whichever side is closer — a small overshoot if
+ * that serving is closer than leaving the gap open, a small undershoot
+ * otherwise (founder instruction, 2026-08-31: "be sure the meal consumed
+ * gives the exact calories" — closest match, either direction, since whole
+ * real servings can't hit an arbitrary number exactly). Bounded by
+ * MAX_EXTRA_ITEMS as a sanity guard, never a calorie ceiling.
+ */
 function buildVariant(options: ExtraOption[], start: number, remainingKcal: number): ExtraVariant {
   const rotated = [...options.slice(start), ...options.slice(0, start)];
   const items: ExtraOption[] = [];
   let left = remainingKcal;
   let i = 0;
-  while (left >= MIN_GAP_KCAL && items.length < MAX_EXTRA_ITEMS) {
+  while (left > 0 && items.length < MAX_EXTRA_ITEMS) {
     const opt = rotated[i % rotated.length];
-    items.push(opt);
-    left -= opt.calories;
-    i++;
+    if (opt.calories <= left) {
+      // Still short even with this one added — a genuine intermediate
+      // step, not the final decision.
+      items.push(opt);
+      left -= opt.calories;
+      i++;
+      continue;
+    }
+    // This serving would take the total past the gap — the final decision:
+    // land on whichever side is closer.
+    if (opt.calories - left < left) items.push(opt);
+    break;
   }
   return { items, totalCalories: items.reduce((s, o) => s + o.calories, 0) };
 }

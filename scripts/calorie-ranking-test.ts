@@ -261,36 +261,67 @@ for (const meal of MEALS) {
     fail(`calorieTarget() must never cap the target — 3,430 + 250 in, got ${rawTdeeTarget} out`);
   }
 
-  function walkFullDay(dailyTarget: number): number {
+  // Returns the residual AND each meal's real total, so callers can check
+  // both "does it close" and "is it evenly spread."
+  function walkFullDay(dailyTarget: number, dayKey = "2026-08-29"): { residual: number; totals: Record<NamedMeal, number> } {
     let eatenToday = 0;
+    const totals = {} as Record<NamedMeal, number>;
     for (const meal of MEALS) {
-      const mealShare = remainingMealCalorieTarget(dailyTarget, eatenToday, MEALS, meal, MEAL_MAX_CALORIES);
-      const idea = planForDay(meal, "2026-08-29", new Map(), 0, [], new Map(), null, mealShare);
-      eatenToday += planCalories(meal, idea.index);
+      // FLAT split, matching the real app (lib/useTodaysCalories.ts,
+      // components/TodaysMeal.tsx) — no mealWeights argument. An earlier
+      // version weighted this by MEAL_MAX_CALORIES, which structurally
+      // under-fed breakfast; reverted by founder instruction ("I want
+      // evenly split, not awkward split").
+      const mealShare = remainingMealCalorieTarget(dailyTarget, eatenToday, MEALS, meal);
+      const idea = planForDay(meal, dayKey, new Map(), 0, [], new Map(), null, mealShare);
+      const plateCal = planCalories(meal, idea.index);
       // Same scoping the real app uses (lib/useTodaysCalories.ts): the
       // extras gap is THIS meal's own fair share minus its real plate
       // ceiling, not the whole day's remaining — so a big target's extra
       // eating is spread across all 3 meals, not front-loaded into one.
       const extrasGap = Math.max(0, mealShare - (MEAL_MAX_CALORIES[meal] ?? 0));
-      const extra = suggestExtras(extrasGap, "2026-08-29", meal);
+      const extra = suggestExtras(extrasGap, dayKey, meal);
       // A real person picks ONE variant to eat; every variant is built to
       // close the same gap independently, so using the first one (the
       // default shown) is representative of any real choice.
-      if (extra) eatenToday += extra.variants[0].totalCalories;
+      const mealTotal = plateCal + (extra ? extra.variants[0].totalCalories : 0);
+      totals[meal] = mealTotal;
+      eatenToday += mealTotal;
     }
-    return dailyTarget - eatenToday;
+    return { residual: dailyTarget - eatenToday, totals };
   }
 
-  // Every target the founder named explicitly (2,900 / 3,200), the exact
-  // reported bug's raw TDEE (3,430), and a deliberately extreme one (6,000 —
-  // well past any real person's TDEE) must all close to within the real
-  // app's DAY_END_FLOOR. This is the literal proof of "no matter the value."
-  for (const dailyTarget of [2900, 3200, 3430, 6000]) {
-    const residual = walkFullDay(dailyTarget);
-    if (residual > DAY_END_FLOOR) {
-      fail(
-        `full-day walk-through for a ${dailyTarget}kcal target (breakfast+lunch+dinner, each plate + its meal-scoped extras) left ${residual}kcal unclosed — should be within the ${DAY_END_FLOOR}kcal end-of-day floor`,
-      );
+  // Every target the founder named explicitly (2,800 / 2,900 / 3,200), the
+  // exact reported bug's raw TDEE (3,430), and a deliberately extreme one
+  // (6,000 — well past any real person's TDEE) must all close to within the
+  // real app's DAY_END_FLOOR. This is the literal proof of "no matter the
+  // value." Checked across several different days, since which specific
+  // real plate gets served (and so each meal's exact total) varies day to
+  // day via the least-eaten-first rotation.
+  const days = ["2026-08-01", "2026-08-10", "2026-08-15", "2026-08-20", "2026-08-29"];
+  for (const dailyTarget of [2800, 2900, 3200, 3430, 6000]) {
+    for (const dayKey of days) {
+      const { residual, totals } = walkFullDay(dailyTarget, dayKey);
+      if (residual > DAY_END_FLOOR) {
+        fail(
+          `full-day walk-through for a ${dailyTarget}kcal target on ${dayKey} (breakfast+lunch+dinner, each plate + its meal-scoped extras) left ${residual}kcal unclosed — should be within the ${DAY_END_FLOOR}kcal end-of-day floor`,
+        );
+      }
+      // Evenly spread (founder instruction, 2026-08-31: "I want evenly
+      // split, not awkward split") — no meal should land wildly far from a
+      // flat third. Generous tolerance (real plate/extras combinatorics
+      // vary day to day), but it must not reproduce the old lopsided shape
+      // (e.g. breakfast at ~520 of a 2,800 target, barely over half an even
+      // third, while another meal ran to 1,300+).
+      const evenShare = dailyTarget / 3;
+      for (const meal of MEALS) {
+        const deviation = Math.abs(totals[meal] - evenShare);
+        if (deviation > evenShare * 0.45) {
+          fail(
+            `full-day walk-through for a ${dailyTarget}kcal target on ${dayKey}: ${meal} totalled ${totals[meal]}kcal, too far from the even share of ${Math.round(evenShare)}kcal (off by ${Math.round(deviation)}) — the split should be roughly even, not lopsided`,
+          );
+        }
+      }
     }
   }
 
@@ -299,7 +330,7 @@ for (const meal of MEALS) {
   // is expected — and it must still come from the MAX_EXTRA_ITEMS sanity
   // guard, never from a calorie ceiling on the target itself.
   const impossible = walkFullDay(50000);
-  if (impossible <= DAY_END_FLOOR) {
+  if (impossible.residual <= DAY_END_FLOOR) {
     fail("a 50,000kcal target closed within the end-of-day floor — the MAX_EXTRA_ITEMS guard may not be wired correctly");
   }
 }

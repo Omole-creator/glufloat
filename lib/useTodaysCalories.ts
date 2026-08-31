@@ -57,13 +57,19 @@ const DAY_END_FLOOR = 200;
  * into `suggestExtras` at breakfast used to try to close the ENTIRE day's
  * gap before lunch even happened, front-loading everything into the first
  * meal instead of spreading it out. `mealShare` (via
- * `remainingMealCalorieTarget`, the same weighted split `TodaysMeal.tsx`
- * uses to size the main plate) is this meal's own slice of the target; the
- * extras gap is what's left of THAT slice once the main plate's own real
- * ceiling (`MEAL_MAX_CALORIES[meal]`) is assumed eaten. Because `mealShare`
- * is recalculated from the REAL `eatenToday` every time this runs, any
- * meal that actually fell short of its assumed ceiling is automatically
- * compensated for by the next meal's larger share — the same
+ * `remainingMealCalorieTarget`) is this meal's own slice of the target — a
+ * FLAT 1/3 split (founder instruction, same day: "I want evenly split, not
+ * awkward split" — an earlier version weighted this by each meal's own real
+ * plate ceiling, `MEAL_MAX_CALORIES`, which structurally under-fed breakfast
+ * since real breakfast dishes cap lower than lunch/dinner; that's no longer
+ * necessary now that extras are unbounded, so a flat split plus
+ * however-many-extras-it-takes gives genuinely even totals instead). The
+ * extras gap is what's left of the meal's flat share once the main plate's
+ * own real ceiling (`MEAL_MAX_CALORIES[meal]`) is assumed eaten — that part
+ * still uses `MEAL_MAX_CALORIES`, just not as the SPLIT weight. Because
+ * `mealShare` is recalculated from the REAL `eatenToday` every time this
+ * runs, any meal that actually fell short of its assumed ceiling is
+ * automatically compensated for by the next meal's larger share — the same
  * self-correcting design `remainingMealCalorieTarget` already had.
  *
  * **Once dinner is under way, a small leftover reads as zero.** Nothing more
@@ -100,7 +106,7 @@ export function useTodaysCalories(show: boolean): TodaysCalories {
     const eatenToday = await caloriesEatenToday();
     const trueLeft = Math.max(0, dailyTarget - eatenToday);
     const meal = currentMeal();
-    const mealShare = remainingMealCalorieTarget(dailyTarget, eatenToday, p.mealPattern, meal, MEAL_MAX_CALORIES);
+    const mealShare = remainingMealCalorieTarget(dailyTarget, eatenToday, p.mealPattern, meal);
     const extrasGap = Math.max(0, mealShare - (MEAL_MAX_CALORIES[meal] ?? 0));
     setTarget(dailyTarget);
     setRemaining(meal === "dinner" && trueLeft < DAY_END_FLOOR ? 0 : trueLeft);
