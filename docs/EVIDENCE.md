@@ -548,3 +548,33 @@ comorbidity warnings (Q11, "All correct").
    of them is why **banana is not a red food** (99 in one Nigerian study vs about
    51 internationally, and we kept the middle). If that strike means she disagrees,
    banana changes. Do not guess it.
+
+---
+
+## 9. Extras card: safe single-sitting serving sizes
+
+**Not a research finding on its own — a house bound, same footing as the
+weekly-frequency numbers in §1, pending dietitian sign-off.** It answers a
+narrower question than glycaemic index: not "does this food raise sugar"
+(all 11 foods below are already low-GI and green) but "how much of it is
+still a sensible, safe amount to eat in one sitting." `lib/nextMeal.ts`'s
+`EXTRA_CANDIDATES` scales each food continuously up to the `maxGrams` ceiling
+below, so it can land exactly on a person's remaining calorie gap without
+ever repeating the same food twice in one recommendation (direct
+instruction, 2026-08-31: "do not be scared to increase the quantity ... just
+ensure you do your research and be sure it is safe").
+
+| Food | Base serving | Safe ceiling used | Basis |
+|---|---|---|---|
+| Walnut, almond, mixed nuts, cashew nut, tiger nut | ~30g | 60g (about 2oz) | Standard nut/seed serving guidance is 1oz (28g); up to 1-2oz per sitting is the commonly cited safe range for calorie/fat load, not glycaemic risk (nuts are low-GI). [Cleveland Clinic](https://health.clevelandclinic.org/a-diet-tip-for-people-with-type-2-diabetes-eat-more-nuts), [Virta Health](https://www.virtahealth.com/blog/best-nuts-and-seeds-for-diabetes). |
+| Egusi (melon seed), roasted | 2 tbsp (30g) | 4 tbsp (60g) | Same nut/seed-serving reasoning as above; used only for the roasted-snack form, never the soup form — the card never implies the seed is eaten raw. |
+| Peanut butter, seeds | 1 tbsp (15g) | 2 tbsp (30g) | Same nut/seed-serving reasoning; nut butter and seeds cited alongside whole nuts in the same guidance. |
+| Coconut | ~40g (2-3 pieces) | 60g (1.5x base, not 2x) | Higher in saturated fat than the other nuts here, so kept to a smaller multiple. |
+| Suya (grilled meat) | 1 stick / ~7 pieces (90g) | 2 sticks / ~180g | "One or two sticks... is safer than large trays" for a diabetic; a standard serving is already cited as ~100g/3 skewers, so 90-180g sits inside normal real-world suya portions. [Addy's Diabetes Health Store](https://addysdiabeteshealthstore.com/can-diabetics-eat-suya/). |
+| Fried egg | 2 eggs (100g) | **not scaled — fixed at 2 eggs** | Egg quantity carries its own safe-*weekly*-count caution unrelated to calories: research on people with type 2 diabetes supports up to ~1-1.7 eggs/day (6-12/week) with no adverse effect on cholesterol or glucose control, but recommends against habitually going higher. A bigger calorie gap is closed by a DIFFERENT food in the pool, never a second egg serving. [Cleveland Clinic](https://health.clevelandclinic.org/how-many-eggs-can-you-eat-on-a-heart-healthy-diet), [sugarfit](https://www.sugarfit.com/blog/eggs-for-diabetes/). |
+
+**What this does not change**: the verdict, GI, `baseVerdict`, and the food's
+own canonical `portionGuidance` (the size shown on its own card everywhere
+else in the app) are untouched. This table only governs how far the EXTRAS
+card may scale a food when it is being offered as an add-on snack, never how
+the food is described anywhere else.

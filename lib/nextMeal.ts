@@ -397,63 +397,189 @@ export function planForDay(
 
 /**
  * A small, safe way to close the daily calorie gap — this is what makes
- * "calories remaining" reach exactly 0 by end of dinner for EVERYONE, no
- * matter how large their real target is (founder instruction, 2026-08-31:
- * "glufloat must always meet the calorie needs of each user no matter the
- * value... it must not be capped" / "all recommended meals must add up at
- * the end of the day to meet each user calorie goals" / "they are meant to
- * have 3 options each time of the day"). `lib/tdee.ts`'s `calorieTarget()`
- * is never capped, so the achievability guarantee lives entirely here:
- * `suggestExtras()` below builds 3 real, independently-complete VARIANTS for
- * each meal — each one, on its own, long enough that the main plate plus
- * every item in it sums to that meal's own fair share of the day, so the
- * RECOMMENDATION itself already adds up no matter which of the 3 a person
- * picks, rather than relying on a person to guess how many times to come
- * back and log another snack. `ExtraSuggestionCard` (components/) lets a
- * person cycle between the 3 variants ("Try a different snack" swaps the
- * WHOLE variant, not one item within it) and also stays loggable after a
- * tap rather than disabling itself, as a safety net for real intake
- * drifting from the plan — but the primary guarantee is each variant being
- * sized correctly up front. Never touches the 3 main meals' own
- * dietitian-set portion sizes: this only ever suggests MORE of an
- * already-reviewed food that is safe to eat every day, at its own existing
- * safe portion.
+ * "calories remaining" reach exactly 0 by end of dinner for a realistic
+ * target, no matter how large (founder instruction, 2026-08-31: "glufloat
+ * must always meet the calorie needs of each user no matter the value... it
+ * must not be capped" / "all recommended meals must add up at the end of the
+ * day to meet each user calorie goals"). `lib/tdee.ts`'s `calorieTarget()` is
+ * never capped, so the achievability guarantee lives here — but the SUPPLY
+ * side is honestly bounded by how much of a real, safe snack a person can
+ * actually eat at once (see `EXTRA_CANDIDATES` below), never by an arbitrary
+ * ceiling on the target itself.
+ *
+ * **Redesigned 2026-08-31** after live QA on the extras card surfaced three
+ * problems with the earlier fixed-preset design, and direct follow-up
+ * instructions on how to fix them:
+ *  1. "Try a different snack" only reshuffled the ORDER of the same 2-3
+ *     fixed combos, so once a gap needed more than one item every option
+ *     converged on an identical grouped result — clicking visibly did
+ *     nothing. Root-caused directly against the code, not guessed.
+ *  2. The old design repeated ONE small fixed serving to reach a bigger
+ *     number ("Egusi × 2 ... that is this size, 2 times today"), which reads
+ *     badly. Reversed on direct instruction: "do not be scared to increase
+ *     the quantity they need to eat ... just ensure you do your research and
+ *     be sure it is safe."
+ *  3. The fixed presets could only get within a sanity-guard's worth of an
+ *     arbitrary number, never exactly on it.
+ *
+ * The fix: each food is a CONTINUOUSLY SCALABLE real serving (a whole,
+ * countable number of nuts/tablespoons/pieces — never a fraction), sized to
+ * land exactly on the calorie gap, capped at a per-food SAFE MAXIMUM
+ * single-sitting amount (`EXTRA_CANDIDATES.maxGrams`, researched and
+ * documented in docs/EVIDENCE.md's extras section, pending dietitian
+ * sign-off same as the weekly-frequency numbers). **A food is never repeated
+ * within one recommendation** — if one food's safe maximum can't cover the
+ * whole gap, the NEXT, DIFFERENT food in the pool closes the rest. This is
+ * what makes "eat it once" and "hit the exact number" both true together.
+ * `fried-egg` is deliberately NOT scaled past its base two-egg serving —
+ * egg quantity carries its own safe-weekly-count caution unrelated to
+ * calories, so a bigger gap is closed by a different food, never a second
+ * helping of eggs.
+ *
+ * **Only 2 choices per meal-time, not 3** (reversed from the earlier design
+ * on direct instruction: "it is better to have 1-2 extras card each time of
+ * the day because having 3 ... can be overwhelming"). "Try a different
+ * snack" toggles between 2 genuinely different foods — verified by
+ * scripts/calorie-ranking-test.ts, not just asserted.
  *
  * **Every food here is picked so it never also appears in BREAKFAST, LUNCH or
- * DINNER above.** A food cannot be both "your meal" and "something extra on
- * the side" in the same app — that is why eggs, fish, chicken, smoked fish,
- * stockfish and groundnut, which all show up in the meal templates, were
- * dropped from this list even though they used to be here.
+ * DINNER above**, and this is now enforced at RUNTIME (`EXCLUDED_FROM_EXTRAS`
+ * below), not only by the two lists happening to be kept separate by hand. A
+ * food cannot be both "your meal" and "something extra on the side" in the
+ * same app — that is why eggs, fish, chicken, smoked fish, stockfish and
+ * groundnut, which all show up in the meal templates, were dropped from this
+ * list even though they used to be here.
  *
- * **Options are grouped by meal**, not one shared pool for the whole day, so
- * whatever shows during breakfast is something that actually belongs at
- * breakfast, and the same for lunch and dinner. Each meal gets exactly 3
- * options to choose from (`EXTRA_OPTIONS`), close to each other in calories,
- * so trying a different one does not throw off the day's numbers.
+ * **Candidates are grouped by meal**, not one shared pool for the whole day,
+ * so whatever shows during breakfast is something that actually belongs at
+ * breakfast, and the same for lunch and dinner.
  */
-const BREAKFAST_EXTRA_OPTIONS: string[][] = [
-  ["fried-egg"],
-  ["walnut"],
-  ["almond"],
-];
+interface ExtraCandidate {
+  id: string;
+  /**
+   * Whether this food's serving may be scaled up. Non-scalable foods
+   * (fried-egg) are always offered at exactly their base amount, never more.
+   */
+  scalable: boolean;
+  /** Whole real units the base serving is already described in. */
+  baseUnits: number;
+  /** The gram anchor for that base serving (matches the food's own portionGuidance). */
+  baseGrams: number;
+  /**
+   * The safe single-sitting ceiling in grams. Nuts, seeds and nut butter use
+   * roughly double the base serving (about 1-2oz / 28-56g is the standard
+   * safe nut/seed range); coconut is kept to 1.5x for its higher saturated
+   * fat; suya (lean grilled meat) allows "one or two sticks". Sourced and
+   * documented in docs/EVIDENCE.md.
+   */
+  maxGrams: number;
+  /** The exact line shown for a given (units, grams) — always a whole real amount. */
+  describe: (units: number, grams: number) => string;
+}
 
-const LUNCH_EXTRA_OPTIONS: string[][] = [
-  ["mixed-nuts"],
-  ["cashew-nut"],
-  ["egusi-seed"],
-];
-
-const DINNER_EXTRA_OPTIONS: string[][] = [
-  ["suya"],
-  ["tiger-nut", "peanut-butter"],
-  ["coconut", "seeds"],
-];
-
-const EXTRA_OPTIONS: Record<NamedMeal, string[][]> = {
-  breakfast: BREAKFAST_EXTRA_OPTIONS,
-  lunch: LUNCH_EXTRA_OPTIONS,
-  dinner: DINNER_EXTRA_OPTIONS,
+const EXTRA_CANDIDATES: Record<NamedMeal, ExtraCandidate[]> = {
+  breakfast: [
+    {
+      id: "fried-egg",
+      scalable: false,
+      baseUnits: 2,
+      baseGrams: 100,
+      maxGrams: 100,
+      describe: () => "Two eggs (about 100g). Fry them in one teaspoon of oil.",
+    },
+    {
+      id: "walnut",
+      scalable: true,
+      baseUnits: 7,
+      baseGrams: 30,
+      maxGrams: 60,
+      describe: (units, grams) => `About ${units} whole walnuts (${grams}g).`,
+    },
+    {
+      id: "almond",
+      scalable: true,
+      baseUnits: 20,
+      baseGrams: 30,
+      maxGrams: 60,
+      describe: (units, grams) => `About ${units} almonds (${grams}g).`,
+    },
+  ],
+  lunch: [
+    {
+      id: "mixed-nuts",
+      scalable: true,
+      baseUnits: 10,
+      baseGrams: 30,
+      maxGrams: 60,
+      describe: (units, grams) => `About ${units} mixed nuts (${grams}g).`,
+    },
+    {
+      id: "cashew-nut",
+      scalable: true,
+      baseUnits: 15,
+      baseGrams: 30,
+      maxGrams: 60,
+      describe: (units, grams) => `About ${units} cashew nuts (${grams}g).`,
+    },
+    {
+      id: "egusi-seed",
+      scalable: true,
+      baseUnits: 2,
+      baseGrams: 30,
+      maxGrams: 60,
+      describe: (units, grams) => `About ${units} tablespoons, roasted (${grams}g).`,
+    },
+  ],
+  dinner: [
+    {
+      id: "suya",
+      scalable: true,
+      baseUnits: 7,
+      baseGrams: 90,
+      maxGrams: 180,
+      describe: (units, grams) => `About ${units} pieces of suya meat (about ${grams}g).`,
+    },
+    {
+      id: "tiger-nut",
+      scalable: true,
+      baseUnits: 20,
+      baseGrams: 30,
+      maxGrams: 60,
+      describe: (units, grams) => `About ${units} tiger nuts (${grams}g).`,
+    },
+    {
+      id: "peanut-butter",
+      scalable: true,
+      baseUnits: 1,
+      baseGrams: 15,
+      maxGrams: 30,
+      describe: (units, grams) => `About ${units} tablespoon${units === 1 ? "" : "s"} (about ${grams}g).`,
+    },
+    {
+      id: "coconut",
+      scalable: true,
+      baseUnits: 3,
+      baseGrams: 40,
+      maxGrams: 60,
+      describe: (units, grams) => `About ${units} small pieces (about ${grams}g).`,
+    },
+    {
+      id: "seeds",
+      scalable: true,
+      baseUnits: 1,
+      baseGrams: 15,
+      maxGrams: 30,
+      describe: (units, grams) => `About ${units} tablespoon${units === 1 ? "" : "s"} (about ${grams}g).`,
+    },
+  ],
 };
+
+/**
+ * The real runtime guard: no candidate id may ever be one that also appears
+ * in a breakfast/lunch/dinner meal-idea plate. Computed once from `IDEAS`
+ * itself, so it can never drift out of step with the meal templates above.
+ */
+const EXCLUDED_FROM_EXTRAS = new Set(Object.values(IDEAS).flat().flat());
 
 /** Nuts and seeds sit ahead of whichever meal they are shown next to. */
 const PRE_MEAL_NUTS = new Set([
@@ -507,17 +633,21 @@ export function extraTimingFor(id: string, meal: NamedMeal): string {
   return "";
 }
 
+/** One real, exactly-sized serving of one food. */
 export interface ExtraOption {
-  foods: Food[];
-  names: string[];
+  food: Food;
+  name: string;
+  units: number;
+  grams: number;
   calories: number;
+  instruction: string;
 }
 
 /**
- * One real, complete way to close THIS meal's gap — every item in it,
- * together, sums to (about) the gap it was built for. A person eats
- * everything in ONE variant, not a pick-one-food-from-here-and-there mix
- * across variants.
+ * One real, complete way to close THIS meal's gap — every item in it is a
+ * DIFFERENT food (never a repeat), together summing to (about) the gap it
+ * was built for. A person eats everything in ONE variant, not a
+ * pick-one-food-from-here-and-there mix across variants.
  */
 export interface ExtraVariant {
   items: ExtraOption[];
@@ -527,12 +657,12 @@ export interface ExtraVariant {
 export interface ExtraSuggestionSet {
   meal: NamedMeal;
   /**
-   * 3 real, independently-complete ways to close this meal's gap — not one
-   * fixed list. Each variant on its own already sums to this meal's own fair
-   * share of the day's target, so whichever ONE a person picks and eats, the
-   * day's 3 recommended meals still add up to the full calorie goal. This is
-   * what "Try a different snack" cycles between: the whole variant swaps,
-   * not one item within it.
+   * 2 real, independently-complete ways to close this meal's gap. Each
+   * variant on its own already sums to this meal's own fair share of the
+   * day's target, so whichever ONE a person picks and eats, the day's
+   * numbers still add up to the full calorie goal. This is what "Try a
+   * different snack" cycles between: the whole variant swaps, never one
+   * item within it.
    */
   variants: ExtraVariant[];
 }
@@ -540,69 +670,102 @@ export interface ExtraSuggestionSet {
 /** How small a leftover gap has to be before there is nothing worth suggesting. */
 const MIN_GAP_KCAL = 100;
 
-/**
- * A sanity guard on how many items one variant can ever hold — not a
- * calorie ceiling (there is none, see lib/tdee.ts's calorieTarget doc), just
- * a guard against a mistyped or extreme profile producing an unusably long
- * list. 12 items at ~200kcal each is already ~2,400kcal of extras alone, on
- * top of the day's 3 real meals — comfortably past any realistic target.
- */
-export const MAX_EXTRA_ITEMS = 12;
+/** Below this, adding one more whole real serving is not worth the overshoot. */
+const MIN_ADD_KCAL = 20;
 
 /**
- * Cycles through `options` starting at `start`, adding one real serving at a
- * time, until the gap is closed. A real serving cannot be split into
- * fractions, so the LAST item is a genuine decision, not just "stop once
- * under the threshold": once the next serving would take the total PAST the
- * remaining gap, land on whichever side is closer — a small overshoot if
- * that serving is closer than leaving the gap open, a small undershoot
- * otherwise (founder instruction, 2026-08-31: "be sure the meal consumed
- * gives the exact calories" — closest match, either direction, since whole
- * real servings can't hit an arbitrary number exactly). Bounded by
- * MAX_EXTRA_ITEMS as a sanity guard, never a calorie ceiling.
+ * A sanity guard: the most distinct real foods one meal's pool holds (5, for
+ * dinner). Not a calorie ceiling — a variant can never repeat a food, so
+ * this is simply how many distinct foods exist to draw from.
  */
-function buildVariant(options: ExtraOption[], start: number, remainingKcal: number): ExtraVariant {
-  const rotated = [...options.slice(start), ...options.slice(0, start)];
+export const MAX_EXTRA_ITEMS = Math.max(...Object.values(EXTRA_CANDIDATES).map((l) => l.length));
+
+/**
+ * One whole real serving of `candidate`, scaled to land as close as possible
+ * to `targetKcal` without exceeding its own safe maximum. Never a fraction —
+ * always a whole countable unit (nuts, tablespoons, pieces, eggs). A
+ * non-scalable food (fried-egg) always returns its fixed base serving.
+ */
+function sizeExtra(candidate: ExtraCandidate, food: Food, targetKcal: number): ExtraOption {
+  const baseKcal = food.calories ?? 0;
+  if (!candidate.scalable) {
+    return {
+      food,
+      name: cleanFoodName(food.name),
+      units: candidate.baseUnits,
+      grams: candidate.baseGrams,
+      calories: baseKcal,
+      instruction: candidate.describe(candidate.baseUnits, candidate.baseGrams),
+    };
+  }
+  const kcalPerUnit = baseKcal / candidate.baseUnits;
+  const gramsPerUnit = candidate.baseGrams / candidate.baseUnits;
+  const maxUnits = Math.max(candidate.baseUnits, Math.round(candidate.maxGrams / gramsPerUnit));
+  const cappedTarget = Math.min(targetKcal, maxUnits * kcalPerUnit);
+  const units = Math.max(1, Math.min(maxUnits, Math.round(cappedTarget / kcalPerUnit)));
+  const grams = Math.round(units * gramsPerUnit);
+  const calories = Math.round(units * kcalPerUnit);
+  return { food, name: cleanFoodName(food.name), units, grams, calories, instruction: candidate.describe(units, grams) };
+}
+
+/** The smallest whole real serving of this food is worth this many calories. */
+function atomicKcalOf(candidate: ExtraCandidate, food: Food): number {
+  const baseKcal = food.calories ?? 0;
+  return candidate.scalable ? baseKcal / candidate.baseUnits : baseKcal;
+}
+
+/**
+ * Builds one variant starting at `startIdx` in the pool, adding a DIFFERENT
+ * real food each time, only if the previous one's safe maximum was not
+ * enough — never repeating a food (direct instruction, 2026-08-31: "each
+ * recommendation, they should only eat it once ... if 20 nuts is safe ...
+ * say so instead of telling them to eat 10 nuts twice"). A real serving
+ * cannot be split into fractions, so a food whose smallest whole unit would
+ * overshoot the remaining gap by more than leaving it open is skipped
+ * (`atomic - left > left`) rather than force-added — a later, finer-grained
+ * food in the pool may still close it more closely.
+ */
+function buildVariant(
+  pool: { candidate: ExtraCandidate; food: Food }[],
+  startIdx: number,
+  targetKcal: number,
+): ExtraVariant {
+  const rotated = [...pool.slice(startIdx), ...pool.slice(0, startIdx)];
   const items: ExtraOption[] = [];
-  let left = remainingKcal;
-  let i = 0;
-  while (left > 0 && items.length < MAX_EXTRA_ITEMS) {
-    const opt = rotated[i % rotated.length];
-    if (opt.calories <= left) {
-      // Still short even with this one added — a genuine intermediate
-      // step, not the final decision.
-      items.push(opt);
-      left -= opt.calories;
-      i++;
-      continue;
+  let left = targetKcal;
+  for (let i = 0; i < rotated.length; i++) {
+    if (left < MIN_ADD_KCAL) break;
+    const { candidate, food } = rotated[i];
+    const atomic = atomicKcalOf(candidate, food);
+    const isLast = i === rotated.length - 1;
+    if (!isLast) {
+      // A later, finer-grained food may close the remainder more closely —
+      // skip this one for now if even its smallest real serving would
+      // overshoot the gap by more than leaving it open.
+      if (atomic - left > left) continue;
+    } else if (items.length > 0 && atomic - left > left) {
+      // The last food left in the pool, and something has already been
+      // recommended: a real serving can't be split into fractions, so only
+      // add this one if it lands closer than leaving the small remainder
+      // open.
+      break;
     }
-    // This serving would take the total past the gap — the final decision:
-    // land on whichever side is closer.
-    if (opt.calories - left < left) items.push(opt);
-    break;
+    const sized = sizeExtra(candidate, food, left);
+    items.push(sized);
+    left -= sized.calories;
   }
   return { items, totalCalories: items.reduce((s, o) => s + o.calories, 0) };
 }
 
 /**
- * 3 real, swappable ways to close THIS meal's own share of today's calorie
- * gap — each one sized to the gap, not a fixed count (founder instruction,
- * 2026-08-31: "all recommended meals must add up at the end of the day to
- * meet each user calorie goals" / "glufloat must always meet the calorie
- * needs of each user no matter the value" — AND, separately, "they are meant
- * to have 3 options each time of the day": real choice, not just correct
- * math). Which variant shows FIRST is rotated by day, so a returning person
- * does not always see the same one; "Try a different snack" then cycles
- * between the 3 within a visit. Returns null below a small threshold
- * (100kcal, not worth suggesting anything for a gap that small) or once
- * nothing in the list can be resolved (a food renamed or removed — should
- * not happen, never throws).
- *
- * Built from the SAME small, fixed, everyday-safe combinations as before
- * (`EXTRA_OPTIONS`) — nothing here invents a bigger single serving to
- * force-fit a big number. A large gap is closed by using MORE of these real
- * servings within whichever variant is picked, not by making any one of
- * them bigger than a dietitian would actually recommend.
+ * 2 real, swappable ways to close THIS meal's own share of today's calorie
+ * gap — each one a real, exactly-sized, NEVER-repeated food (or two, only
+ * when one food's safe maximum is not enough on its own). Which pair of
+ * foods leads is rotated by day, so a returning person does not always see
+ * the same one; "Try a different snack" then swaps to the other within a
+ * visit. Returns null below a small threshold (100kcal) or once nothing in
+ * the pool can be resolved (a food renamed or removed — should not happen,
+ * never throws).
  */
 export function suggestExtras(
   remainingKcal: number,
@@ -610,24 +773,21 @@ export function suggestExtras(
   meal: NamedMeal,
 ): ExtraSuggestionSet | null {
   if (!remainingKcal || remainingKcal < MIN_GAP_KCAL) return null;
-  const templates = EXTRA_OPTIONS[meal];
-  const options = templates
-    .map((ids) => {
-      const foods = ids.map((id) => getFood(id)).filter((f): f is Food => f != null);
-      if (foods.length !== ids.length) return null;
-      const calories = foods.reduce((s, f) => s + (f.calories ?? 0), 0);
-      return { foods, names: foods.map((f) => cleanFoodName(f.name)), calories };
-    })
-    .filter((o): o is ExtraOption => o != null);
-  if (options.length === 0) return null;
+  const pool = EXTRA_CANDIDATES[meal]
+    .filter((candidate) => !EXCLUDED_FROM_EXTRAS.has(candidate.id))
+    .map((candidate) => ({ candidate, food: getFood(candidate.id) }))
+    .filter((p): p is { candidate: ExtraCandidate; food: Food } => p.food != null);
+  if (pool.length === 0) return null;
 
-  // 3 variants (or fewer, if a food failed to resolve), each starting its
-  // own cycle from a different template — so a small gap (the common case)
-  // gives 3 genuinely different single-item choices, and a larger gap gives
-  // 3 differently-ordered builds of the same real combinations. Which one is
-  // FIRST rotates by day (dayNumber(dayKey) picks the starting variant).
-  const n = options.length;
+  // At most 2 variants (fewer only if the pool itself is smaller), each
+  // starting its own cycle from a different candidate — so the 2 choices are
+  // genuinely different foods, not a cosmetic reorder of the same one. Which
+  // pair leads rotates by day (dayNumber(dayKey) picks the starting index).
+  const n = pool.length;
   const dayStart = dayNumber(dayKey) % n;
-  const variants = Array.from({ length: n }, (_, v) => buildVariant(options, (dayStart + v) % n, remainingKcal));
+  const numVariants = Math.min(2, n);
+  const variants = Array.from({ length: numVariants }, (_, v) =>
+    buildVariant(pool, (dayStart + v) % n, remainingKcal),
+  );
   return { meal, variants };
 }

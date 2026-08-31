@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { caloriesEatenToday, INTAKE_CHANGED } from "@/lib/history";
 import { readPersonalizationProfile, PERSONALIZATION_CHANGED } from "@/lib/personalizationProfile";
 import { bmr, tdee, calorieTarget, remainingMealCalorieTarget } from "@/lib/tdee";
-import { suggestExtras, MEAL_MAX_CALORIES, type ExtraSuggestionSet } from "@/lib/nextMeal";
+import { suggestExtras, planForDay, type ExtraSuggestionSet } from "@/lib/nextMeal";
 import { currentMeal, localDayKey } from "@/lib/mealtime";
 
 export interface TodaysCalories {
@@ -59,18 +59,22 @@ const DAY_END_FLOOR = 200;
  * meal instead of spreading it out. `mealShare` (via
  * `remainingMealCalorieTarget`) is this meal's own slice of the target — a
  * FLAT 1/3 split (founder instruction, same day: "I want evenly split, not
- * awkward split" — an earlier version weighted this by each meal's own real
- * plate ceiling, `MEAL_MAX_CALORIES`, which structurally under-fed breakfast
- * since real breakfast dishes cap lower than lunch/dinner; that's no longer
- * necessary now that extras are unbounded, so a flat split plus
- * however-many-extras-it-takes gives genuinely even totals instead). The
- * extras gap is what's left of the meal's flat share once the main plate's
- * own real ceiling (`MEAL_MAX_CALORIES[meal]`) is assumed eaten — that part
- * still uses `MEAL_MAX_CALORIES`, just not as the SPLIT weight. Because
- * `mealShare` is recalculated from the REAL `eatenToday` every time this
- * runs, any meal that actually fell short of its assumed ceiling is
- * automatically compensated for by the next meal's larger share — the same
- * self-correcting design `remainingMealCalorieTarget` already had.
+ * awkward split").
+ *
+ * **The extras gap is sized against the ACTUAL plate for this meal, not a
+ * theoretical ceiling** (fixed 2026-08-31, alongside the extras-card
+ * redesign — a real bug: sizing extras against `MEAL_MAX_CALORIES[meal]`,
+ * the single largest possible plate, systematically under-suggested extras
+ * whenever the plate actually served that day was smaller, which is the
+ * common case, leaving the day up to ~100kcal short even though every
+ * individual number looked reasonable). `planForDay` is called here the
+ * same way it is for display, narrowed to this meal's own share so the
+ * resolved plate is realistic for the target, and its REAL calories are
+ * what the extras gap is measured against. Because `mealShare` is
+ * recalculated from the REAL `eatenToday` every time this runs, any meal
+ * that actually fell short is automatically compensated for by the next
+ * meal's larger share — the same self-correcting design
+ * `remainingMealCalorieTarget` already had.
  *
  * **Once dinner is under way, a small leftover reads as zero.** Nothing more
  * will be suggested once the true gap drops under `DAY_END_FLOOR`, the
@@ -106,11 +110,14 @@ export function useTodaysCalories(show: boolean): TodaysCalories {
     const eatenToday = await caloriesEatenToday();
     const trueLeft = Math.max(0, dailyTarget - eatenToday);
     const meal = currentMeal();
+    const dayKey = localDayKey();
     const mealShare = remainingMealCalorieTarget(dailyTarget, eatenToday, p.mealPattern, meal);
-    const extrasGap = Math.max(0, mealShare - (MEAL_MAX_CALORIES[meal] ?? 0));
+    const idea = planForDay(meal, dayKey, new Map(), 0, [], new Map(), null, mealShare);
+    const plateCal = idea.foods.reduce((s, f) => s + (f.calories ?? 0), 0);
+    const extrasGap = Math.max(0, mealShare - plateCal);
     setTarget(dailyTarget);
     setRemaining(meal === "dinner" && trueLeft < DAY_END_FLOOR ? 0 : trueLeft);
-    setExtra(suggestExtras(extrasGap, localDayKey(), meal));
+    setExtra(suggestExtras(extrasGap, dayKey, meal));
   }, [show]);
 
   useEffect(() => {

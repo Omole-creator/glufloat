@@ -105,7 +105,12 @@ const portionGuidance = {
   "soaked-garri": "Avoid. If at all, one small cup (200ml) with no sugar.",
   "glucose-lucozade": "None, unless you are treating a low sugar. Then half a glass (100ml).",
   smoothie: "One small cup (200ml), made from whole fruit with no added sugar.",
-  "fried-egg": "One to two eggs, fried in one teaspoon of oil.",
+  // Was "One to two eggs, fried in one teaspoon of oil." — a vague range, and
+  // the calorie figure (196kcal, food-composition.mjs) already assumes two
+  // eggs at ~100g, so the text now names the exact number it actually means
+  // (2026-08-31, direct instruction: "do not say eat 1-2 egg. state the
+  // exact number").
+  "fried-egg": "Two eggs (about 100g). Fry them in one teaspoon of oil.",
   gizdodo: "A small plate, about one cup (150g). Plantain with the gizzard.",
   // "A rare treat only, one" reads as a broken sentence and sometimes leaves
   // "one" with no noun. Reword to "Avoid. If you do have it, only <amount>."
