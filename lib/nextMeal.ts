@@ -401,19 +401,23 @@ export function planForDay(
  * matter how large their real target is (founder instruction, 2026-08-31:
  * "glufloat must always meet the calorie needs of each user no matter the
  * value... it must not be capped" / "all recommended meals must add up at
- * the end of the day to meet each user calorie goals"). `lib/tdee.ts`'s
- * `calorieTarget()` is never capped, so the achievability guarantee lives
- * entirely here: `suggestExtras()` below sizes a real LIST of safe, everyday
- * servings for each meal — long enough that the main plate plus every item
- * in the list sums to that meal's own fair share of the day — so the
- * RECOMMENDATION itself already adds up, rather than relying on a person to
- * guess how many times to come back and log another snack.
- * `ExtraSuggestionCard` (components/) also stays loggable after a tap rather
- * than disabling itself, as a safety net for real intake drifting from the
- * plan, but the primary guarantee is the list being sized correctly up
- * front. Never touches the 3 main meals' own dietitian-set portion sizes:
- * this only ever suggests MORE of an already-reviewed food that is safe to
- * eat every day, at its own existing safe portion.
+ * the end of the day to meet each user calorie goals" / "they are meant to
+ * have 3 options each time of the day"). `lib/tdee.ts`'s `calorieTarget()`
+ * is never capped, so the achievability guarantee lives entirely here:
+ * `suggestExtras()` below builds 3 real, independently-complete VARIANTS for
+ * each meal — each one, on its own, long enough that the main plate plus
+ * every item in it sums to that meal's own fair share of the day, so the
+ * RECOMMENDATION itself already adds up no matter which of the 3 a person
+ * picks, rather than relying on a person to guess how many times to come
+ * back and log another snack. `ExtraSuggestionCard` (components/) lets a
+ * person cycle between the 3 variants ("Try a different snack" swaps the
+ * WHOLE variant, not one item within it) and also stays loggable after a
+ * tap rather than disabling itself, as a safety net for real intake
+ * drifting from the plan — but the primary guarantee is each variant being
+ * sized correctly up front. Never touches the 3 main meals' own
+ * dietitian-set portion sizes: this only ever suggests MORE of an
+ * already-reviewed food that is safe to eat every day, at its own existing
+ * safe portion.
  *
  * **Every food here is picked so it never also appears in BREAKFAST, LUNCH or
  * DINNER above.** A food cannot be both "your meal" and "something extra on
@@ -509,26 +513,35 @@ export interface ExtraOption {
   calories: number;
 }
 
+/**
+ * One real, complete way to close THIS meal's gap — every item in it,
+ * together, sums to (about) the gap it was built for. A person eats
+ * everything in ONE variant, not a pick-one-food-from-here-and-there mix
+ * across variants.
+ */
+export interface ExtraVariant {
+  items: ExtraOption[];
+  totalCalories: number;
+}
+
 export interface ExtraSuggestionSet {
   meal: NamedMeal;
   /**
-   * Every serving recommended for THIS meal, together — not 3 alternatives
-   * to pick one of. The whole point is that the main plate plus every item
-   * in this list sums to this meal's own fair share of the day's target, so
-   * the day's 3 recommended meals (each already including its own extras)
-   * add up to the full calorie goal by construction, without anyone having
-   * to guess how many times to come back and log another snack.
+   * 3 real, independently-complete ways to close this meal's gap — not one
+   * fixed list. Each variant on its own already sums to this meal's own fair
+   * share of the day's target, so whichever ONE a person picks and eats, the
+   * day's 3 recommended meals still add up to the full calorie goal. This is
+   * what "Try a different snack" cycles between: the whole variant swaps,
+   * not one item within it.
    */
-  items: ExtraOption[];
-  /** Sum of every item's calories — the total this list is meant to add. */
-  totalCalories: number;
+  variants: ExtraVariant[];
 }
 
 /** How small a leftover gap has to be before there is nothing worth suggesting. */
 const MIN_GAP_KCAL = 100;
 
 /**
- * A sanity guard on how many items one suggestion list can ever hold — not a
+ * A sanity guard on how many items one variant can ever hold — not a
  * calorie ceiling (there is none, see lib/tdee.ts's calorieTarget doc), just
  * a guard against a mistyped or extreme profile producing an unusably long
  * list. 12 items at ~200kcal each is already ~2,400kcal of extras alone, on
@@ -536,22 +549,41 @@ const MIN_GAP_KCAL = 100;
  */
 export const MAX_EXTRA_ITEMS = 12;
 
+/** Cycles through `options` starting at `start`, adding one at a time, until
+ * the gap is closed (within MIN_GAP_KCAL) or the sanity guard is hit. */
+function buildVariant(options: ExtraOption[], start: number, remainingKcal: number): ExtraVariant {
+  const rotated = [...options.slice(start), ...options.slice(0, start)];
+  const items: ExtraOption[] = [];
+  let left = remainingKcal;
+  let i = 0;
+  while (left >= MIN_GAP_KCAL && items.length < MAX_EXTRA_ITEMS) {
+    const opt = rotated[i % rotated.length];
+    items.push(opt);
+    left -= opt.calories;
+    i++;
+  }
+  return { items, totalCalories: items.reduce((s, o) => s + o.calories, 0) };
+}
+
 /**
- * The real, safe servings needed to close THIS meal's own share of today's
- * calorie gap — sized to the gap, not a fixed count (founder instruction,
+ * 3 real, swappable ways to close THIS meal's own share of today's calorie
+ * gap — each one sized to the gap, not a fixed count (founder instruction,
  * 2026-08-31: "all recommended meals must add up at the end of the day to
  * meet each user calorie goals" / "glufloat must always meet the calorie
- * needs of each user no matter the value"). Rotated by day so a returning
- * person does not always see the same combination first. Returns null below
- * a small threshold (100kcal, not worth suggesting anything for a gap that
- * small) or once nothing in the list can be resolved (a food renamed or
- * removed — should not happen, never throws).
+ * needs of each user no matter the value" — AND, separately, "they are meant
+ * to have 3 options each time of the day": real choice, not just correct
+ * math). Which variant shows FIRST is rotated by day, so a returning person
+ * does not always see the same one; "Try a different snack" then cycles
+ * between the 3 within a visit. Returns null below a small threshold
+ * (100kcal, not worth suggesting anything for a gap that small) or once
+ * nothing in the list can be resolved (a food renamed or removed — should
+ * not happen, never throws).
  *
  * Built from the SAME small, fixed, everyday-safe combinations as before
  * (`EXTRA_OPTIONS`) — nothing here invents a bigger single serving to
  * force-fit a big number. A large gap is closed by using MORE of these real
- * servings, cycled for variety, not by making any one of them bigger than a
- * dietitian would actually recommend.
+ * servings within whichever variant is picked, not by making any one of
+ * them bigger than a dietitian would actually recommend.
  */
 export function suggestExtras(
   remainingKcal: number,
@@ -570,22 +602,13 @@ export function suggestExtras(
     .filter((o): o is ExtraOption => o != null);
   if (options.length === 0) return null;
 
-  const start = dayNumber(dayKey) % options.length;
-  const rotated = [...options.slice(start), ...options.slice(0, start)];
-
-  // Cycle through the rotated combinations, adding one at a time, until the
-  // gap is closed (within MIN_GAP_KCAL) or the sanity guard is hit. This is
-  // what makes the full recommendation (main plate + every item here) add
-  // up to this meal's own fair share of the day's target.
-  const items: ExtraOption[] = [];
-  let left = remainingKcal;
-  let i = 0;
-  while (left >= MIN_GAP_KCAL && items.length < MAX_EXTRA_ITEMS) {
-    const opt = rotated[i % rotated.length];
-    items.push(opt);
-    left -= opt.calories;
-    i++;
-  }
-  const totalCalories = items.reduce((s, o) => s + o.calories, 0);
-  return { meal, items, totalCalories };
+  // 3 variants (or fewer, if a food failed to resolve), each starting its
+  // own cycle from a different template — so a small gap (the common case)
+  // gives 3 genuinely different single-item choices, and a larger gap gives
+  // 3 differently-ordered builds of the same real combinations. Which one is
+  // FIRST rotates by day (dayNumber(dayKey) picks the starting variant).
+  const n = options.length;
+  const dayStart = dayNumber(dayKey) % n;
+  const variants = Array.from({ length: n }, (_, v) => buildVariant(options, (dayStart + v) % n, remainingKcal));
+  return { meal, variants };
 }

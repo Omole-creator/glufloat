@@ -22,11 +22,12 @@ export interface TodaysCalories {
  *
  * `calorieTarget()` (lib/tdee.ts) is never capped — a genuinely high target
  * (very active, or building muscle) is supplied by `suggestExtras()` sizing
- * a real, right-sized LIST of extra food for each meal, not by asking for
- * less than the person actually needs. A real end-of-day leftover under this
- * floor should be small rotation dust — the last, sub-100kcal sliver
- * `suggestExtras` itself declines to bother with — not a large unclosed gap;
- * widened slightly (from 150) to comfortably absorb that ordinary dust.
+ * 3 real, independently-complete extra-food variants for each meal (pick
+ * any one and eat it), not by asking for less than the person actually
+ * needs. A real end-of-day leftover under this floor should be small
+ * rotation dust — the last, sub-100kcal sliver `suggestExtras` itself
+ * declines to bother with — not a large unclosed gap; widened slightly
+ * (from 150) to comfortably absorb that ordinary dust.
  */
 const DAY_END_FLOOR = 200;
 

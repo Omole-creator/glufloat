@@ -115,10 +115,11 @@ for (const meal of MEALS) {
   }
 }
 
-// ---- 5. suggestExtras: sizes a real LIST of items to close the gap it is
-//         given (not 3 alternatives to pick one of), never invents a bigger
-//         single serving, and is bounded only by the MAX_EXTRA_ITEMS sanity
-//         guard, never by a calorie ceiling. --------------------------------
+// ---- 5. suggestExtras: builds 3 real, independently-complete VARIANTS
+//         (not one fixed list), each sized to close the gap it is given,
+//         never inventing a bigger single serving, and bounded only by the
+//         MAX_EXTRA_ITEMS sanity guard within a variant, never by a
+//         calorie ceiling. ---------------------------------------------------
 {
   // Below the threshold: nothing suggested, not even a token gesture.
   if (suggestExtras(50, "2026-08-29", "breakfast") !== null) {
@@ -127,41 +128,52 @@ for (const meal of MEALS) {
   if (suggestExtras(0, "2026-08-29", "lunch") !== null) fail("suggestExtras(0, ...) should return null");
 
   for (const meal of MEALS) {
-    // A real, modest gap: must suggest at least one item, each item never
-    // more than 2 foods, and the list's total should land close to the gap
-    // (never wildly over — the loop stops once it's within one item of it).
+    // A real, modest gap: must offer 3 real variants (one per real
+    // combination for this meal), each with at least one item, each item
+    // never more than 2 foods, and each variant's total should land close
+    // to the gap on its own (never wildly over — the loop stops once it's
+    // within one item of it).
     const s = suggestExtras(500, "2026-08-29", meal);
-    if (!s || s.items.length === 0) {
-      fail(`suggestExtras(500, ..., ${meal}) should suggest at least one item`);
+    if (!s || s.variants.length === 0) {
+      fail(`suggestExtras(500, ..., ${meal}) should suggest at least one variant`);
     } else {
-      for (const o of s.items) {
-        if (o.foods.length > 2) fail(`suggestExtras: ${meal} item has ${o.foods.length} foods, should never exceed 2`);
-        if (o.names.length !== o.foods.length) fail(`suggestExtras: ${meal} names/foods length mismatch`);
+      if (s.variants.length !== 3) {
+        fail(`suggestExtras: ${meal} offered ${s.variants.length} variants, should be 3 (one per real combination)`);
       }
-      if (s.totalCalories !== s.items.reduce((sum, o) => sum + o.calories, 0)) {
-        fail(`suggestExtras: ${meal} totalCalories does not match the sum of its items`);
-      }
-      const maxItemCal = Math.max(...s.items.map((o) => o.calories));
-      if (s.totalCalories < 500 - maxItemCal) {
-        fail(`suggestExtras(500, ..., ${meal}) undershoots by more than one item's worth (total ${s.totalCalories})`);
+      for (const variant of s.variants) {
+        if (variant.items.length === 0) fail(`suggestExtras: ${meal} variant should suggest at least one item`);
+        for (const o of variant.items) {
+          if (o.foods.length > 2) fail(`suggestExtras: ${meal} item has ${o.foods.length} foods, should never exceed 2`);
+          if (o.names.length !== o.foods.length) fail(`suggestExtras: ${meal} names/foods length mismatch`);
+        }
+        if (variant.totalCalories !== variant.items.reduce((sum, o) => sum + o.calories, 0)) {
+          fail(`suggestExtras: ${meal} variant totalCalories does not match the sum of its items`);
+        }
+        const maxItemCal = Math.max(...variant.items.map((o) => o.calories));
+        if (variant.totalCalories < 500 - maxItemCal) {
+          fail(`suggestExtras(500, ..., ${meal}) variant undershoots by more than one item's worth (total ${variant.totalCalories})`);
+        }
       }
     }
 
-    // A huge gap must still cap each individual item's size (never invent a
-    // bigger single serving), but is now allowed to use MANY items — the
-    // sanity guard (MAX_EXTRA_ITEMS), never a calorie ceiling, is what
-    // eventually bounds the list. A big enough gap should actually hit that
-    // guard, proving the list really does grow to meet a big number rather
-    // than silently stopping short.
+    // A huge gap must still cap each individual item's size within a
+    // variant (never invent a bigger single serving), but a variant is now
+    // allowed to use MANY items — the sanity guard (MAX_EXTRA_ITEMS), never
+    // a calorie ceiling, is what eventually bounds it. A big enough gap
+    // should actually hit that guard in every variant, proving each one
+    // really does grow to meet a big number rather than silently stopping
+    // short.
     const huge = suggestExtras(100000, "2026-08-29", meal);
     if (!huge) {
       fail(`suggestExtras with a huge remaining gap (${meal}) should still suggest something`);
     } else {
-      if (huge.items.some((o) => o.foods.length > 2)) {
-        fail(`suggestExtras with a huge remaining gap (${meal}) must still cap each item at 2 foods, not invent more`);
-      }
-      if (huge.items.length !== MAX_EXTRA_ITEMS) {
-        fail(`suggestExtras with a huge remaining gap (${meal}) should hit the MAX_EXTRA_ITEMS guard (${MAX_EXTRA_ITEMS}), got ${huge.items.length} items`);
+      for (const variant of huge.variants) {
+        if (variant.items.some((o) => o.foods.length > 2)) {
+          fail(`suggestExtras with a huge remaining gap (${meal}) must still cap each item at 2 foods, not invent more`);
+        }
+        if (variant.items.length !== MAX_EXTRA_ITEMS) {
+          fail(`suggestExtras with a huge remaining gap (${meal}) should hit the MAX_EXTRA_ITEMS guard (${MAX_EXTRA_ITEMS}), got ${variant.items.length} items`);
+        }
       }
     }
 
@@ -173,22 +185,36 @@ for (const meal of MEALS) {
       const dayKey = `2026-08-${String((d % 28) + 1).padStart(2, "0")}`;
       const check = suggestExtras(800, dayKey, meal);
       if (check) {
-        for (const o of check.items) {
-          for (const f of o.foods) {
-            if (f.baseVerdict !== "green") fail(`suggestExtras included a non-green food: ${f.id}`);
-            if (!extraTimingFor(f.id, meal)) fail(`suggestExtras included ${f.id} with no timing direction`);
+        for (const variant of check.variants) {
+          for (const o of variant.items) {
+            for (const f of o.foods) {
+              if (f.baseVerdict !== "green") fail(`suggestExtras included a non-green food: ${f.id}`);
+              if (!extraTimingFor(f.id, meal)) fail(`suggestExtras included ${f.id} with no timing direction`);
+            }
           }
         }
       }
     }
   }
 
-  // Rotates by day, so a returning person does not always see the same
-  // combination first.
+  // Which variant is FIRST rotates by day, so a returning person does not
+  // always see the same one.
   const days = ["2026-08-01", "2026-08-02", "2026-08-03", "2026-08-04", "2026-08-05"];
-  const firstNames = days.map((d) => suggestExtras(300, d, "lunch")?.items[0]?.names.join(","));
+  const firstNames = days.map((d) => suggestExtras(300, d, "lunch")?.variants[0]?.items[0]?.names.join(","));
   if (new Set(firstNames).size === 1) {
-    fail("suggestExtras never varies across 5 different days — the rotation is not working");
+    fail("suggestExtras never varies which variant is first across 5 different days — the rotation is not working");
+  }
+
+  // Distinct variants for the same call must actually differ from each
+  // other (that is the whole point of offering 3) — at least the FIRST
+  // item differs, since each variant starts its cycle at a different real
+  // combination.
+  const threeVariants = suggestExtras(300, "2026-08-29", "breakfast");
+  if (threeVariants) {
+    const firstItemNames = threeVariants.variants.map((v) => v.items[0]?.names.join(","));
+    if (new Set(firstItemNames).size < Math.min(3, threeVariants.variants.length)) {
+      fail("suggestExtras: breakfast's 3 variants are not meaningfully different from each other");
+    }
   }
 
   // A food offered as an "extra" must never also appear in that food's own
@@ -198,10 +224,12 @@ for (const meal of MEALS) {
   for (const meal of MEALS) {
     const s = suggestExtras(9999, "2026-08-29", meal);
     if (s) {
-      for (const o of s.items) {
-        for (const f of o.foods) {
-          if (blueCardIds.has(f.id)) {
-            fail(`suggestExtras: ${f.id} is offered as an extra but also appears in a meal-idea plate`);
+      for (const variant of s.variants) {
+        for (const o of variant.items) {
+          for (const f of o.foods) {
+            if (blueCardIds.has(f.id)) {
+              fail(`suggestExtras: ${f.id} is offered as an extra but also appears in a meal-idea plate`);
+            }
           }
         }
       }
@@ -245,7 +273,10 @@ for (const meal of MEALS) {
       // eating is spread across all 3 meals, not front-loaded into one.
       const extrasGap = Math.max(0, mealShare - (MEAL_MAX_CALORIES[meal] ?? 0));
       const extra = suggestExtras(extrasGap, "2026-08-29", meal);
-      if (extra) eatenToday += extra.totalCalories;
+      // A real person picks ONE variant to eat; every variant is built to
+      // close the same gap independently, so using the first one (the
+      // default shown) is representative of any real choice.
+      if (extra) eatenToday += extra.variants[0].totalCalories;
     }
     return dailyTarget - eatenToday;
   }
