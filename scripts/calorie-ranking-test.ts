@@ -15,10 +15,11 @@
  *
  *   npx tsx scripts/calorie-ranking-test.ts
  */
-import { ideasFor, planForDay, suggestExtras, extraTimingFor } from "../lib/nextMeal";
+import { ideasFor, planForDay, suggestExtras, extraTimingFor, MEAL_MAX_CALORIES } from "../lib/nextMeal";
 import { getFood } from "../lib/search";
 import { scoreMeal } from "../lib/verdictEngine";
 import type { NamedMeal } from "../lib/mealtime";
+import { calorieTarget, remainingMealCalorieTarget, MEAL_PLANNING_CALORIE_CEILING } from "../lib/tdee";
 
 const MEALS: NamedMeal[] = ["breakfast", "lunch", "dinner"];
 const problems: string[] = [];
@@ -186,6 +187,55 @@ for (const meal of MEALS) {
         }
       }
     }
+  }
+}
+
+// ---- 6. MEAL_MAX_CALORIES matches the real plate data, and a full-day
+//         walk-through (the exact reported bug shape: a very-active/
+//         build_muscle target) must end with a small, floorable residual —
+//         not the hundreds-of-kcal structural gap this whole fix exists to
+//         close. -------------------------------------------------------------
+{
+  const realMax = (meal: NamedMeal) =>
+    Math.max(...ideasFor(meal).map((ids) => ids.reduce((s, id) => s + (getFood(id)?.calories ?? 0), 0)));
+  for (const meal of MEALS) {
+    if (MEAL_MAX_CALORIES[meal] !== realMax(meal)) {
+      fail(`MEAL_MAX_CALORIES.${meal} (${MEAL_MAX_CALORIES[meal]}) does not match the real plate data (${realMax(meal)})`);
+    }
+  }
+
+  // The reported scenario: a raw TDEE-based target of 3,430kcal (very_active
+  // + build_muscle) must clamp to the achievable ceiling.
+  const dailyTarget = calorieTarget(3430, ["build_muscle"]);
+  if (dailyTarget !== MEAL_PLANNING_CALORIE_CEILING) {
+    fail(`a high-TDEE build_muscle target should clamp to ${MEAL_PLANNING_CALORIE_CEILING}, got ${dailyTarget}`);
+  }
+
+  let eatenToday = 0;
+  for (const meal of MEALS) {
+    const share = remainingMealCalorieTarget(
+      dailyTarget,
+      eatenToday,
+      MEALS,
+      meal,
+      MEAL_MAX_CALORIES,
+    );
+    const idea = planForDay(meal, "2026-08-29", new Map(), 0, [], new Map(), null, share);
+    eatenToday += planCalories(meal, idea.index);
+    const extra = suggestExtras(Math.max(0, dailyTarget - eatenToday), "2026-08-29", meal);
+    if (extra && extra.options[0]) {
+      eatenToday += extra.options[0].calories;
+    }
+  }
+  const residual = dailyTarget - eatenToday;
+  // DAY_END_FLOOR (lib/useTodaysCalories.ts) is 200 — a real day's residual
+  // once the capped target and the weighted, band-biased selection are both
+  // in play must land inside that, so "calories remaining" reaches 0 by end
+  // of dinner in the real app rather than showing a large permanent leftover.
+  if (residual > 200) {
+    fail(
+      `full-day walk-through (breakfast+lunch+dinner, each plate + its best extra) left ${residual}kcal of a ${dailyTarget}kcal target unclosed — should be within the 200kcal end-of-day floor`,
+    );
   }
 }
 

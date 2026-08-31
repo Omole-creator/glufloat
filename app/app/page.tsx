@@ -30,6 +30,7 @@ import ReadingNudge from "@/components/ReadingNudge";
 import TypewriterHeadline from "@/components/TypewriterHeadline";
 import CollapsibleCard from "@/components/CollapsibleCard";
 import DashboardBottomNav, { type DashboardTabDef } from "@/components/DashboardBottomNav";
+import DashboardLeftNav from "@/components/DashboardLeftNav";
 import ChatWithDietitian from "@/components/ChatWithDietitian";
 import PersonalizationSettings from "@/components/PersonalizationSettings";
 import { PAYSTACK_URLS, pendingReference, clearPendingReference } from "@/lib/access";
@@ -434,13 +435,22 @@ export default function AppPage() {
       )}
 
       {/* No overflow-hidden here: it clipped the decorative glow below (harmless
-          to drop, since the glow sits above main's own top edge anyway). */}
-      <main className="relative flex-1 bg-gradient-to-b from-mint/50 via-mist to-mist pb-32 pt-36">
+          to drop, since the glow sits above main's own top edge anyway) — and
+          it would also break `position: sticky` on DashboardLeftNav below. */}
+      <main className="relative flex-1 bg-gradient-to-b from-mint/50 via-mist to-mist pb-32 pt-36 md:pb-16">
         <div
           className="pointer-events-none absolute inset-x-0 -top-24 mx-auto h-64 max-w-2xl bg-gradient-to-br from-brand/15 via-leaf/10 to-transparent blur-3xl"
           aria-hidden
         />
-        <div className="relative mx-auto max-w-3xl px-4 sm:px-6">
+        <div className="relative mx-auto max-w-3xl px-4 sm:px-6 md:max-w-5xl">
+          {/* Desktop-only left nav (founder instruction) beside the content
+              column; the mobile bottom bar (DashboardBottomNav, below) is
+              untouched and hidden here via md:hidden instead. */}
+          <div className="md:flex md:items-start md:gap-6">
+            <div className="hidden md:block">
+              <DashboardLeftNav tabs={dashboardTabs} active={activeTab} onSelect={selectTab} />
+            </div>
+            <div className="min-w-0 md:flex-1">
           <div className="flex items-center justify-between gap-3">
             <p className="font-display text-lg font-bold text-ink sm:text-xl">
               {personalGreeting(name)}
@@ -481,7 +491,7 @@ export default function AppPage() {
               <FirstStepsChecklist
                 showFitMe={canUseGoalPersonalization(access)}
                 onGoToFitMe={() => selectTab("personalize")}
-                onGoToSearch={() => selectTab("search")}
+                onGoToMeal={scrollToMeal}
               />
 
               <DashboardSnapshot show={canUseGoalPersonalization(access)} />
@@ -589,10 +599,14 @@ export default function AppPage() {
               </div>
             )}
           </div>
+            </div>
+          </div>
         </div>
       </main>
 
-      <DashboardBottomNav tabs={dashboardTabs} active={activeTab} onSelect={selectTab} />
+      <div className="md:hidden">
+        <DashboardBottomNav tabs={dashboardTabs} active={activeTab} onSelect={selectTab} />
+      </div>
     </>
   );
 }

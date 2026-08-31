@@ -173,6 +173,24 @@ export function ideasFor(meal: NamedMeal): string[][] {
   return IDEAS[meal];
 }
 
+/** The calorie total of a plate's ids (missing/renamed foods contribute 0). */
+function planCaloriesOf(ids: string[]): number {
+  return ids.reduce((s, id) => s + (getFood(id)?.calories ?? 0), 0);
+}
+
+/**
+ * The single largest plate each meal category can serve, in calories — the
+ * real, structural ceiling lib/tdee.ts's remainingMealCalorieTarget weights
+ * its per-meal split by (see MEAL_PLANNING_CALORIE_CEILING there). Computed
+ * directly from IDEAS so this can never drift from the actual meal-idea
+ * data — verified against data/foods.json in scripts/calorie-ranking-test.ts.
+ */
+export const MEAL_MAX_CALORIES: Record<NamedMeal, number> = {
+  breakfast: Math.max(...ideasFor("breakfast").map(planCaloriesOf)),
+  lunch: Math.max(...ideasFor("lunch").map(planCaloriesOf)),
+  dinner: Math.max(...ideasFor("dinner").map(planCaloriesOf)),
+};
+
 export interface MealIdea {
   foods: Food[];
   /** How to name each food cleanly on the card (no "Titus / Mackerel" lists). */
@@ -310,8 +328,11 @@ export function planForDay(
       0,
     );
     const goalAdjust = bias ? GOAL_BIAS_WEIGHT * biasScore(idea.foods, bias) : 0;
-    const planCalories = idea.foods.reduce((s, f) => s + (f.calories ?? 0), 0);
-    return { idea, eaten: eaten + goalAdjust, tie: hash(`${meal}#${i}`), planCalories };
+    const planCalories = planCaloriesOf(list[i]);
+    // `diff` defaults to 0 here (no target given) so the pool has a uniform
+    // shape whether or not the calorie-target narrowing below runs, and the
+    // final sort's `diff` tiebreak (see below) is a no-op in that case.
+    return { idea, eaten: eaten + goalAdjust, tie: hash(`${meal}#${i}`), planCalories, diff: 0 };
   });
 
   // A calorie target (Plus/Dietitian tier) is NOT a minor tiebreak added on
@@ -348,7 +369,14 @@ export function planForDay(
         : [...withDiff].sort((a, b) => a.diff - b.diff).slice(0, MIN_POOL);
   }
 
-  pool.sort((a, b) => a.eaten - b.eaten || a.tie - b.tie);
+  // `eaten` (least-eaten-first, the variety/no-repeat guarantee) stays the
+  // primary key, unchanged. `diff` (distance from this meal's calorie
+  // target) is a new secondary key, ahead of the fixed hash tiebreak: when
+  // several pool members tie on `eaten` — common, since most of a narrowed
+  // pool hasn't been eaten recently — this biases toward the plate closest
+  // to target rather than picking arbitrarily among them, which is what
+  // actually closes the calorie gap rather than merely making it eligible.
+  pool.sort((a, b) => a.eaten - b.eaten || a.diff - b.diff || a.tie - b.tie);
 
   const m = pool.length;
   const step = stride(m);
@@ -364,12 +392,15 @@ export function planForDay(
 }
 
 /**
- * A small, safe way to close a leftover gap in the daily calorie budget, for
- * people whose target is bigger than 3 Nigerian meals can reach on their own
- * (a genuinely active or muscle-building person — see the "known ceiling"
- * note in CLAUDE.md). Never touches the 3 main meals' own dietitian-set
- * portion sizes: this only ever suggests MORE of an already-reviewed food
- * that is safe to eat every day, at its own existing safe portion.
+ * A small, safe way to close the last of the daily calorie budget after each
+ * main meal — this is the second half (with MEAL_MAX_CALORIES-weighted
+ * per-meal targets and calorieTarget()'s ceiling in lib/tdee.ts) of what
+ * makes "calories remaining" reach exactly 0 by end of dinner for everyone,
+ * including a genuinely active or muscle-building person, rather than
+ * leaving an honest-but-unclosable gap (see CLAUDE.md). Never touches the 3
+ * main meals' own dietitian-set portion sizes: this only ever suggests MORE
+ * of an already-reviewed food that is safe to eat every day, at its own
+ * existing safe portion.
  *
  * **Every food here is picked so it never also appears in BREAKFAST, LUNCH or
  * DINNER above.** A food cannot be both "your meal" and "something extra on

@@ -19,8 +19,15 @@ export interface TodaysCalories {
  * extras (see below) are the last suggestion the app will ever make for
  * today — leaving a small number like "40 kcal remaining" on screen after
  * that would read as unfinished business when nothing more is coming.
+ *
+ * Now that calorieTarget() (lib/tdee.ts) caps the daily target at what real
+ * food can actually supply, and planForDay biases each meal's pick toward
+ * the top of its band (lib/nextMeal.ts), a real end-of-day leftover should
+ * typically be small rotation-variance dust rather than the old
+ * hundreds-of-kcal structural gap — this floor was widened slightly (from
+ * 150) to comfortably absorb that ordinary variance.
  */
-const DAY_END_FLOOR = 150;
+const DAY_END_FLOOR = 200;
 
 /**
  * The one place "today's calorie target," "calories remaining," and "which
@@ -44,10 +51,11 @@ const DAY_END_FLOOR = 150;
  * **Once dinner is under way, a small leftover reads as zero.** Nothing more
  * will be suggested after dinner's own options, so once the true gap drops
  * under `DAY_END_FLOOR`, the number shown is 0 rather than a small,
- * unactionable leftover. A genuinely large gap (a very active or muscle-
- * building person whose target sits above what 3 Nigerian meals plus their
- * extras can reach) is shown honestly rather than forced to 0 — see the
- * "known ceiling" note in CLAUDE.md.
+ * unactionable leftover. `dailyTarget` (from `calorieTarget()`, lib/tdee.ts)
+ * is now capped at `MEAL_PLANNING_CALORIE_CEILING`, so even a very active or
+ * muscle-building person's target is always achievable by real food — the
+ * gap this floor absorbs should be ordinary rotation dust, not a genuinely
+ * unclosable structural shortfall. See lib/tdee.ts and CLAUDE.md.
  */
 export function useTodaysCalories(show: boolean): TodaysCalories {
   const [target, setTarget] = useState<number | null>(null);

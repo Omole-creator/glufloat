@@ -10,6 +10,7 @@ import {
   remainingMealCalorieTarget,
   ACTIVITY_MULTIPLIER,
   ACTIVITY_LEVELS,
+  MEAL_PLANNING_CALORIE_CEILING,
 } from "../lib/tdee";
 
 let failures = 0;
@@ -60,6 +61,15 @@ assertEqual(
   1750,
 );
 assertTrue("calorie target never drops below the safety floor", calorieTarget(1000, ["lose_weight"]) >= 1200);
+assertEqual(
+  "a very high TDEE + build_muscle clamps at the meal-planning ceiling",
+  calorieTarget(3430, ["build_muscle"]),
+  MEAL_PLANNING_CALORIE_CEILING,
+);
+assertTrue(
+  "a target under the ceiling is left untouched",
+  calorieTarget(1800, ["maintain"]) === 1800 && 1800 < MEAL_PLANNING_CALORIE_CEILING,
+);
 
 // 4. Carb budget and distribution ---------------------------------------------
 const dailyCarb = carbBudgetG(2000);
@@ -106,6 +116,31 @@ assertEqual(
   "a person who skips lunch splits the day across their 2 real meals",
   remainingMealCalorieTarget(1800, 0, ["breakfast", "dinner"], "breakfast"),
   900,
+);
+
+// 7. Weighted split (mealWeights) proportions the budget by each meal's own
+// real achievable range, instead of a flat equal share, and reproduces the
+// flat split exactly when omitted.
+const weights = { breakfast: 425, lunch: 725, dinner: 674 };
+assertEqual(
+  "weighted breakfast share is proportional to its own real max, not a flat third",
+  remainingMealCalorieTarget(2200, 0, ["breakfast", "lunch", "dinner"], "breakfast", weights),
+  Math.round((2200 * 425) / 1824),
+);
+assertEqual(
+  "weighted lunch share, after breakfast + its extra are eaten",
+  remainingMealCalorieTarget(2200, 621, ["breakfast", "lunch", "dinner"], "lunch", weights),
+  Math.round(((2200 - 621) * 725) / (725 + 674)),
+);
+assertEqual(
+  "weighted dinner share converges on dinner's own max once it's the only meal left",
+  remainingMealCalorieTarget(2200, 1526, ["breakfast", "lunch", "dinner"], "dinner", weights),
+  2200 - 1526,
+);
+assertEqual(
+  "omitting mealWeights reproduces the old flat split exactly",
+  remainingMealCalorieTarget(1800, 0, ["breakfast", "lunch", "dinner"], "breakfast"),
+  600,
 );
 
 if (failures > 0) {

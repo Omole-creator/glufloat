@@ -99,12 +99,36 @@ const GOAL_CALORIE_ADJUST: Record<Goal, number> = {
 };
 
 /**
+ * The real ceiling on what this app's own meal-idea plates + extras can ever
+ * serve in a day: 3 meals at their structural max (breakfast 425 + lunch 725
+ * + dinner 674 = 1,824kcal, from lib/nextMeal.ts's IDEAS, verified against
+ * data/foods.json) plus one extra option at each meal (best case
+ * ~196+180+225 = 601kcal, lib/nextMeal.ts's EXTRA_OPTIONS) — a theoretical
+ * 2,425kcal/day. This constant sits a safety margin below that because
+ * planForDay's MIN_POOL variety floor means the served plate is not always
+ * the single largest eligible one.
+ *
+ * A target above this used to be shown honestly, with "calories remaining"
+ * left unable to ever reach 0 for a very active or muscle-building person —
+ * a deliberate design choice, reversed by direct founder instruction: the
+ * target the app actually plans meals and tracks "remaining" against must
+ * always be achievable by real food, full stop. calorieTarget() clamps to
+ * this so every consumer (the settings display, per-meal planning, and the
+ * "remaining" calc) agrees on one number. bmr()/tdee() stay uncapped
+ * (labelled "Resting energy"/"Full daily need", not a target).
+ */
+export const MEAL_PLANNING_CALORIE_CEILING = 2200;
+
+/**
  * Multiple goals are a plain sum, same rule as lib/personalization.ts's bias
- * vector — no pair is special-cased. Floored well above any starvation range.
+ * vector — no pair is special-cased. Floored well above any starvation range,
+ * and capped at MEAL_PLANNING_CALORIE_CEILING (see above) so the target is
+ * always closeable by real food.
  */
 export function calorieTarget(tdeeValue: number, goals: Goal[]): number {
   const adjust = goals.reduce((sum, g) => sum + GOAL_CALORIE_ADJUST[g], 0);
-  return Math.max(1200, Math.round(tdeeValue + adjust));
+  const raw = Math.max(1200, Math.round(tdeeValue + adjust));
+  return Math.min(raw, MEAL_PLANNING_CALORIE_CEILING);
 }
 
 /**
@@ -152,18 +176,31 @@ const MEAL_ORDER: NamedMeal[] = ["breakfast", "lunch", "dinner"];
  * three independent flat thirds. Meals are ordered breakfast < lunch <
  * dinner; "remaining" is this meal plus whichever LATER meals are in the
  * person's own mealPattern. Never goes below 0.
+ *
+ * `mealWeights` (optional) splits the remaining budget PROPORTIONALLY to
+ * each meal's own real achievable range instead of a flat equal share —
+ * breakfast structurally maxes far lower than lunch/dinner in Nigerian
+ * cuisine (see lib/nextMeal.ts's MEAL_MAX_CALORIES), so a flat split could
+ * assign breakfast a target no breakfast plate could ever reach. Omitting it
+ * reproduces the old flat-split behaviour exactly, byte for byte — every
+ * existing caller and every existing test keeps working unmodified.
  */
 export function remainingMealCalorieTarget(
   dailyTarget: number,
   eatenToday: number,
   mealPattern: NamedMeal[],
   meal: NamedMeal,
+  mealWeights?: Partial<Record<NamedMeal, number>>,
 ): number {
   const idx = MEAL_ORDER.indexOf(meal);
   const remaining = mealPattern.filter((m) => MEAL_ORDER.indexOf(m) >= idx);
   const mealsLeft = remaining.length > 0 ? remaining.length : 1;
   const budgetLeft = Math.max(0, dailyTarget - eatenToday);
-  return Math.round(budgetLeft / mealsLeft);
+  if (!mealWeights) return Math.round(budgetLeft / mealsLeft);
+  const weightOf = (m: NamedMeal) => mealWeights[m] ?? 1;
+  const remainingMeals = remaining.length > 0 ? remaining : [meal];
+  const totalWeight = remainingMeals.reduce((s, m) => s + weightOf(m), 0);
+  return Math.round((budgetLeft * weightOf(meal)) / (totalWeight || 1));
 }
 
 /**

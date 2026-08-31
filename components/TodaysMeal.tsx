@@ -7,7 +7,7 @@ import {
   localDayKey,
   type NamedMeal,
 } from "@/lib/mealtime";
-import { planForDay, type MealIdea } from "@/lib/nextMeal";
+import { planForDay, MEAL_MAX_CALORIES, type MealIdea } from "@/lib/nextMeal";
 import { loggedFoodCounts, likedFoodCounts, caloriesEatenToday } from "@/lib/history";
 import { trackUsage } from "@/lib/usage";
 import type { Food } from "@/lib/types";
@@ -194,11 +194,13 @@ export default function TodaysMeal({
   }, [personalize]);
 
   // The daily calorie target's share for THIS meal, recalculated from what
-  // has already been eaten today (lib/tdee.ts's remainingMealCalorieTarget) —
-  // null (no bias) unless personalization is unlocked AND the person has
-  // filled in sex/age/weight/height/activity, same gating as `bias` above but
-  // for the goal-only part (this needs the bio-metrics, conditions alone are
-  // not enough to compute a calorie target).
+  // has already been eaten today (lib/tdee.ts's remainingMealCalorieTarget),
+  // weighted by each meal's own real achievable range (MEAL_MAX_CALORIES) so
+  // breakfast is never assigned a share no breakfast plate could reach — null
+  // (no bias) unless personalization is unlocked AND the person has filled in
+  // sex/age/weight/height/activity, same gating as `bias` above but for the
+  // goal-only part (this needs the bio-metrics, conditions alone are not
+  // enough to compute a calorie target).
   const calorieTargetFor = useCallback(
     async (m: NamedMeal): Promise<number | null> => {
       if (!personalize) return null;
@@ -206,7 +208,7 @@ export default function TodaysMeal({
       if (!p.sex || !p.ageYears || !p.weightKg || !p.heightCm || !p.activityLevel) return null;
       const dailyTarget = calorieTarget(tdee(bmr(p.sex, p.weightKg, p.heightCm, p.ageYears), p.activityLevel), p.goals);
       const eatenToday = await caloriesEatenToday();
-      return remainingMealCalorieTarget(dailyTarget, eatenToday, p.mealPattern, m);
+      return remainingMealCalorieTarget(dailyTarget, eatenToday, p.mealPattern, m, MEAL_MAX_CALORIES);
     },
     [personalize],
   );

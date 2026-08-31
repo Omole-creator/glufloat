@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { CheckCircle2, Circle, ListChecks, X } from "lucide-react";
 import { recentChecks, INTAKE_CHANGED } from "@/lib/history";
 import { readPersonalizationProfile, PERSONALIZATION_CHANGED } from "@/lib/personalizationProfile";
+import { currentMeal } from "@/lib/mealtime";
 
 /** Once closed on this device, stays closed for good. */
 const DISMISS_KEY = "gf_first_steps_dismissed";
@@ -39,11 +40,11 @@ function hasFullProfile(p: {
 export default function FirstStepsChecklist({
   showFitMe,
   onGoToFitMe,
-  onGoToSearch,
+  onGoToMeal,
 }: {
   showFitMe: boolean;
   onGoToFitMe: () => void;
-  onGoToSearch: () => void;
+  onGoToMeal: () => void;
 }) {
   const [loaded, setLoaded] = useState(false);
   const [hasMeal, setHasMeal] = useState(false);
@@ -73,8 +74,19 @@ export default function FirstStepsChecklist({
     };
   }, [load]);
 
+  // Points at whichever meal the blue card is showing right now, so the
+  // first thing a new user does is pick the app's own recommendation
+  // instead of searching for something themselves.
+  const meal = currentMeal();
+  const mealStepLabel =
+    meal === "breakfast"
+      ? "Eat today's breakfast"
+      : meal === "lunch"
+        ? "Eat today's lunch"
+        : "Eat today's dinner";
+
   const steps = [
-    { key: "meal", label: "Log your first meal", done: hasMeal, onClick: onGoToSearch },
+    { key: "meal", label: mealStepLabel, done: hasMeal, onClick: onGoToMeal },
     ...(showFitMe
       ? [{ key: "profile", label: "Set up Fit me", done: hasProfile, onClick: onGoToFitMe }]
       : []),
