@@ -674,11 +674,16 @@ const MIN_GAP_KCAL = 100;
 const MIN_ADD_KCAL = 20;
 
 /**
- * A sanity guard: the most distinct real foods one meal's pool holds (5, for
- * dinner). Not a calorie ceiling — a variant can never repeat a food, so
- * this is simply how many distinct foods exist to draw from.
+ * The most distinct real foods one variant may EVER combine — a hard product
+ * cap, not a calorie ceiling (direct instruction, 2026-09-01, repeated after
+ * the first fix still left a variant able to grow to the whole pool: "3
+ * extra snacks in each green card ... can be overwhelming for users" / "1-2
+ * extras card to meet calorie intake daily is required not 3"). A person is
+ * never asked to eat more than 2 different snack items in one sitting to
+ * close a gap — if 2 foods at their own safe maximum still is not enough,
+ * the day is left honestly a little short rather than adding a 3rd.
  */
-export const MAX_EXTRA_ITEMS = Math.max(...Object.values(EXTRA_CANDIDATES).map((l) => l.length));
+export const MAX_EXTRA_ITEMS = 2;
 
 /**
  * One whole real serving of `candidate`, scaled to land as close as possible
@@ -708,22 +713,22 @@ function sizeExtra(candidate: ExtraCandidate, food: Food, targetKcal: number): E
   return { food, name: cleanFoodName(food.name), units, grams, calories, instruction: candidate.describe(units, grams) };
 }
 
-/** The smallest whole real serving of this food is worth this many calories. */
-function atomicKcalOf(candidate: ExtraCandidate, food: Food): number {
-  const baseKcal = food.calories ?? 0;
-  return candidate.scalable ? baseKcal / candidate.baseUnits : baseKcal;
-}
-
 /**
- * Builds one variant starting at `startIdx` in the pool, adding a DIFFERENT
- * real food each time, only if the previous one's safe maximum was not
- * enough — never repeating a food (direct instruction, 2026-08-31: "each
+ * Builds one variant starting at `startIdx` in the pool: the food at
+ * `startIdx`, scaled up to its own safe maximum if the gap needs it, and —
+ * ONLY if that alone was not enough — the very next, DIFFERENT food in
+ * rotation, and nothing more (`MAX_EXTRA_ITEMS`, a hard 2-item cap, direct
+ * instruction: "1-2 extras card to meet calorie intake daily is required
+ * not 3 ... 3 extra snacks in each green card ... can be overwhelming").
+ * A food is never repeated (direct instruction, 2026-08-31: "each
  * recommendation, they should only eat it once ... if 20 nuts is safe ...
- * say so instead of telling them to eat 10 nuts twice"). A real serving
- * cannot be split into fractions, so a food whose smallest whole unit would
- * overshoot the remaining gap by more than leaving it open is skipped
- * (`atomic - left > left`) rather than force-added — a later, finer-grained
- * food in the pool may still close it more closely.
+ * say so instead of telling them to eat 10 nuts twice"). With a hard 2-item
+ * cap and a pool of 3 or more real foods, a different `startIdx` walks a
+ * different sliding window of foods, so two variants are guaranteed to
+ * differ in WHICH foods they use, not merely reorder the same set — the
+ * earlier design let a variant grow to the whole pool, which made two
+ * variants converge on an identical set once a gap was big enough, and
+ * "Try a different snack" only visibly reordered it.
  */
 function buildVariant(
   pool: { candidate: ExtraCandidate; food: Food }[],
@@ -733,23 +738,10 @@ function buildVariant(
   const rotated = [...pool.slice(startIdx), ...pool.slice(0, startIdx)];
   const items: ExtraOption[] = [];
   let left = targetKcal;
-  for (let i = 0; i < rotated.length; i++) {
-    if (left < MIN_ADD_KCAL) break;
+  const cap = Math.min(MAX_EXTRA_ITEMS, rotated.length);
+  for (let i = 0; i < cap; i++) {
+    if (i > 0 && left < MIN_ADD_KCAL) break;
     const { candidate, food } = rotated[i];
-    const atomic = atomicKcalOf(candidate, food);
-    const isLast = i === rotated.length - 1;
-    if (!isLast) {
-      // A later, finer-grained food may close the remainder more closely —
-      // skip this one for now if even its smallest real serving would
-      // overshoot the gap by more than leaving it open.
-      if (atomic - left > left) continue;
-    } else if (items.length > 0 && atomic - left > left) {
-      // The last food left in the pool, and something has already been
-      // recommended: a real serving can't be split into fractions, so only
-      // add this one if it lands closer than leaving the small remainder
-      // open.
-      break;
-    }
     const sized = sizeExtra(candidate, food, left);
     items.push(sized);
     left -= sized.calories;

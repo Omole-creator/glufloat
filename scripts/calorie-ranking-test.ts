@@ -121,7 +121,7 @@ for (const meal of MEALS) {
     fail("suggestExtras(50, ...) should return null below the 100kcal threshold");
   }
   if (suggestExtras(0, "2026-08-29", "lunch") !== null) fail("suggestExtras(0, ...) should return null");
-  if (MAX_EXTRA_ITEMS < 2) fail("MAX_EXTRA_ITEMS should reflect the largest per-meal candidate pool");
+  if (MAX_EXTRA_ITEMS !== 2) fail("MAX_EXTRA_ITEMS should be a hard cap of 2 distinct foods per variant, not " + MAX_EXTRA_ITEMS);
 
   for (const meal of MEALS) {
     // A real, modest gap: exactly 2 variants (the pools are all >= 2 foods),
@@ -137,6 +137,9 @@ for (const meal of MEALS) {
       }
       for (const variant of s.variants) {
         if (variant.items.length === 0) fail(`suggestExtras: ${meal} variant should suggest at least one item`);
+        if (variant.items.length > MAX_EXTRA_ITEMS) {
+          fail(`suggestExtras: ${meal} variant has ${variant.items.length} items, must never exceed the ${MAX_EXTRA_ITEMS}-item cap (direct instruction: 1-2 snacks, never 3)`);
+        }
         const ids = variant.items.map((o) => o.food.id);
         if (new Set(ids).size !== ids.length) {
           fail(`suggestExtras: ${meal} variant repeats a food within itself (${ids.join(", ")})`);
@@ -171,6 +174,9 @@ for (const meal of MEALS) {
       for (const variant of [...huge1.variants, ...huge2.variants]) {
         const ids = variant.items.map((o) => o.food.id);
         if (new Set(ids).size !== ids.length) fail(`suggestExtras with a huge gap (${meal}) repeated a food`);
+        if (variant.items.length > MAX_EXTRA_ITEMS) {
+          fail(`suggestExtras with a huge gap (${meal}) has ${variant.items.length} items, must never exceed the ${MAX_EXTRA_ITEMS}-item cap`);
+        }
       }
       // Doubling an already-huge gap must not change the total: the pool's
       // safe ceiling has already been hit, proving this is a real safety
@@ -178,6 +184,25 @@ for (const meal of MEALS) {
       for (let v = 0; v < huge1.variants.length; v++) {
         if (huge1.variants[v].totalCalories !== huge2.variants[v].totalCalories) {
           fail(`suggestExtras: ${meal} variant ${v} kept growing past a huge gap — should hit a fixed safe ceiling`);
+        }
+      }
+      // Even under a huge gap, the 2 variants must use DIFFERENT foods, not
+      // just reorder the same set — this is the exact bug reported live
+      // ("Try a different snack" only reshuffled position). Meaningful only
+      // when the meal's real candidate pool holds more foods than the
+      // 2-item cap (breakfast/lunch: 3, dinner: 5 — see
+      // lib/nextMeal.ts's EXTRA_CANDIDATES); with exactly 2 candidates,
+      // both windows are forced to use the same pair.
+      const POOL_SIZE: Record<NamedMeal, number> = { breakfast: 3, lunch: 3, dinner: 5 };
+      if (huge1.variants.length === 2 && POOL_SIZE[meal] > MAX_EXTRA_ITEMS) {
+        const [a, b] = huge1.variants;
+        const idsA = new Set(a.items.map((o) => o.food.id));
+        const idsB = new Set(b.items.map((o) => o.food.id));
+        const sameSet = idsA.size === idsB.size && [...idsA].every((id) => idsB.has(id));
+        if (sameSet) {
+          fail(
+            `suggestExtras: ${meal}'s 2 variants use the SAME foods under a huge gap (${[...idsA].join(", ")}) — "Try a different snack" would show no real change`,
+          );
         }
       }
     }
@@ -313,21 +338,30 @@ for (const meal of MEALS) {
     return { residual: dailyTarget - eatenToday, totals };
   }
 
-  // Realistic targets — the founder-named 2,800 / 2,900 / 3,200, the exact
-  // reported bug's raw TDEE of 3,430, and the user's own worked example of
-  // 2,500 — must now close almost exactly (continuous safe-range scaling),
-  // not merely within the old, much looser sanity-guard floor. Checked
-  // across several different days, since which specific real plate gets
-  // served (and so each meal's exact total) varies day to day via the
+  // Realistic, common targets — the user's own worked example of 2,500, and
+  // 2,800 / 2,900 — must close almost exactly (continuous safe-range
+  // scaling comfortably covers these within the 2-item-per-meal cap).
+  // Checked across several different days, since which specific real plate
+  // gets served (and so each meal's exact total) varies day to day via the
   // least-eaten-first rotation.
   const TIGHT_FLOOR = 60;
+  // Higher targets (3,200 / 3,430, the exact reported bug's raw TDEE) sit
+  // close to what a hard 2-items-per-meal cap can safely provide, so a
+  // larger, still-bounded residual is EXPECTED and correct on a
+  // less-favourable day's rotation, not a bug — this is the deliberate
+  // trade-off of "never more than 2 snacks" (direct instruction, 2026-09-01:
+  // "1-2 extras card to meet calorie intake daily is required not 3") over
+  // "always exact no matter the value." A small, honest shortfall here beats
+  // a 3rd snack.
+  const HIGH_FLOOR = 320;
   const days = ["2026-08-01", "2026-08-10", "2026-08-15", "2026-08-20", "2026-08-29"];
   for (const dailyTarget of [2500, 2800, 2900, 3200, 3430]) {
+    const floor = dailyTarget <= 2900 ? TIGHT_FLOOR : HIGH_FLOOR;
     for (const dayKey of days) {
       const { residual, totals } = walkFullDay(dailyTarget, dayKey);
-      if (residual > TIGHT_FLOOR) {
+      if (residual > floor) {
         fail(
-          `full-day walk-through for a ${dailyTarget}kcal target on ${dayKey} (breakfast+lunch+dinner, each plate + its meal-scoped extras) left ${residual}kcal unclosed — should close within ${TIGHT_FLOOR}kcal now that extras scale continuously`,
+          `full-day walk-through for a ${dailyTarget}kcal target on ${dayKey} (breakfast+lunch+dinner, each plate + its meal-scoped extras) left ${residual}kcal unclosed — should close within ${floor}kcal`,
         );
       }
       // Evenly spread (founder instruction, 2026-08-31: "I want evenly
@@ -345,14 +379,14 @@ for (const meal of MEALS) {
     }
   }
 
-  // A genuinely extreme target (well past what the researched safe-serving
-  // ceilings in docs/EVIDENCE.md §9 can cover) is the ONLY case where a real
-  // residual is expected — and it must come from every candidate already
-  // sitting at its own safe maximum, never from the app inventing an unsafe
-  // bigger serving to force a match.
+  // A genuinely extreme target (well past what a 2-item-capped, researched
+  // safe-serving pool in docs/EVIDENCE.md §9 can cover) is expected to leave
+  // a real residual — and it must come from every variant sitting at its
+  // own 2-item safe cap, never from the app inventing an unsafe bigger
+  // serving or a 3rd item to force a match.
   const impossible = walkFullDay(50000);
-  if (impossible.residual <= TIGHT_FLOOR) {
-    fail("a 50,000kcal target closed within the tight floor — the safe-serving ceiling may not be wired correctly");
+  if (impossible.residual <= HIGH_FLOOR) {
+    fail("a 50,000kcal target closed within the high floor — the safe-serving ceiling may not be wired correctly");
   }
 }
 
