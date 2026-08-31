@@ -431,10 +431,14 @@ export function planForDay(
  * within one recommendation** — if one food's safe maximum can't cover the
  * whole gap, the NEXT, DIFFERENT food in the pool closes the rest. This is
  * what makes "eat it once" and "hit the exact number" both true together.
- * `fried-egg` is deliberately NOT scaled past its base two-egg serving —
- * egg quantity carries its own safe-weekly-count caution unrelated to
- * calories, so a bigger gap is closed by a different food, never a second
- * helping of eggs.
+ *
+ * **Every candidate must be eaten AS IS, with no cooking step at snack
+ * time** (direct instruction, 2026-09-01: "all snacks must be something
+ * that must be consumed without cooking"). `fried-egg` (frying) and
+ * `egusi-seed` (the melon seed is normally cooked into soup or actively
+ * roasted, not bought ready-to-eat the way nuts are) were both dropped for
+ * this reason — every remaining candidate is a nut, seed, spread, or
+ * already-grilled meat a person can eat straight from the pack.
  *
  * **Only 2 choices per meal-time, not 3** (reversed from the earlier design
  * on direct instruction: "it is better to have 1-2 extras card each time of
@@ -457,8 +461,10 @@ export function planForDay(
 interface ExtraCandidate {
   id: string;
   /**
-   * Whether this food's serving may be scaled up. Non-scalable foods
-   * (fried-egg) are always offered at exactly their base amount, never more.
+   * Whether this food's serving may be scaled up past its base amount. Every
+   * current candidate is scalable; the flag is kept for a future food whose
+   * quantity should stay fixed regardless of the calorie gap (a past example
+   * was egg count, capped for reasons unrelated to calories).
    */
   scalable: boolean;
   /** Whole real units the base serving is already described in. */
@@ -477,101 +483,123 @@ interface ExtraCandidate {
   describe: (units: number, grams: number) => string;
 }
 
+/**
+ * Every candidate here must clear FOUR bars, all direct instructions from
+ * live QA on 2026-09-01:
+ *  1. **Ready to eat as is, no cooking step at snack time** — `fried-egg`
+ *     (frying) and `egusi-seed` (normally cooked into soup, or actively
+ *     roasted) were removed.
+ *  2. **Genuinely edible alone, by a person, with nothing added** — a
+ *     narrower bar than #1: dry chia or flax seed, for instance, is not
+ *     something eaten by the spoonful on its own (it is a soak-in-liquid or
+ *     stir-into-food ingredient). This is WHY the multi-type "Seeds
+ *     (pumpkin, sunflower, flax, chia)" entry was removed, not only because
+ *     it named several kinds at once.
+ *  3. **One specific, single, real food — never a blended category**
+ *     ("is there any nut called mixed nuts?" / "what does mixed seeds
+ *     mean? ... be specific with names of snacks"). "Mixed Nuts" was
+ *     removed for this reason.
+ *  4. **Easy to find in a Nigerian market, and cheap** ("only include
+ *     snack that is edible, easy to find in the nigerian market and
+ *     economically friendly"). `almond` was removed here — a real, safe,
+ *     edible nut, but an imported supermarket item next to the others,
+ *     which are all cheap, everyday market/roadside foods (the African
+ *     walnut here is `asala`/`ukpa`, not the imported English walnut).
+ *
+ * All 4 bars were re-applied on the same day to widen the pool past the
+ * first 6 survivors ("are these the only 7 snacks you could come up with?
+ * ... find more edible and enjoyable snacks"), adding `dambu-nama` (dried
+ * shredded spiced beef, a real ready-to-eat Northern Nigerian food, eaten
+ * "Alone or with vegetables" per its own data — genuine meat variety
+ * alongside suya) and `bitter-kola` (chewed raw, "every day" frequency,
+ * cheap and everywhere). Considered and rejected, and worth knowing why:
+ * `groundnut`, `plain-yogurt`, `soy-milk`, `avocado` are all real no-cook
+ * snacks but already used inside a BREAKFAST plate above, so the
+ * "never both a meal and an extra" rule excludes them; `ube` (African pear)
+ * needs its own "softened" heating step, same as `egusi-seed`; `kola-nut`
+ * and every green FRUIT (apple, guava, avocado, etc.) carry their own
+ * weekly cap (not "every day"), so using them here would silently
+ * contradict what their own card already says elsewhere in the app;
+ * `sesame-seed` shares egusi's problem — its own pairing text says it is
+ * "stirred into soups", not eaten alone.
+ *
+ * Nuts, nut butter and meat are not tied to a time of day the way a soup or
+ * a swallow is, so the SAME pool is offered at every meal-time rather than
+ * an arbitrary, thinner split per meal — more real foods in the pool also
+ * means more genuine variety for "Try a different snack" and a better
+ * chance of landing exactly on the calorie gap.
+ */
+const READY_TO_EAT_EXTRAS: ExtraCandidate[] = [
+  {
+    id: "walnut",
+    scalable: true,
+    baseUnits: 7,
+    baseGrams: 30,
+    maxGrams: 60,
+    describe: (units, grams) => `About ${units} whole walnuts (${grams}g).`,
+  },
+  {
+    id: "cashew-nut",
+    scalable: true,
+    baseUnits: 15,
+    baseGrams: 30,
+    maxGrams: 60,
+    describe: (units, grams) => `About ${units} cashew nuts (${grams}g).`,
+  },
+  {
+    id: "tiger-nut",
+    scalable: true,
+    baseUnits: 20,
+    baseGrams: 30,
+    maxGrams: 60,
+    describe: (units, grams) => `About ${units} tiger nuts (${grams}g).`,
+  },
+  {
+    id: "coconut",
+    scalable: true,
+    baseUnits: 3,
+    baseGrams: 40,
+    maxGrams: 60,
+    describe: (units, grams) => `About ${units} small pieces (about ${grams}g).`,
+  },
+  {
+    id: "peanut-butter",
+    scalable: true,
+    baseUnits: 1,
+    baseGrams: 15,
+    maxGrams: 30,
+    describe: (units, grams) => `About ${units} tablespoon${units === 1 ? "" : "s"} (about ${grams}g).`,
+  },
+  {
+    id: "suya",
+    scalable: true,
+    baseUnits: 7,
+    baseGrams: 90,
+    maxGrams: 180,
+    describe: (units, grams) => `About ${units} pieces of suya meat (about ${grams}g).`,
+  },
+  {
+    id: "dambu-nama",
+    scalable: true,
+    baseUnits: 4,
+    baseGrams: 60,
+    maxGrams: 120,
+    describe: (units, grams) => `About ${units} tablespoons of dambu nama (about ${grams}g).`,
+  },
+  {
+    id: "bitter-kola",
+    scalable: true,
+    baseUnits: 2,
+    baseGrams: 15,
+    maxGrams: 22,
+    describe: (units, grams) => `About ${units} seeds (about ${grams}g).`,
+  },
+];
+
 const EXTRA_CANDIDATES: Record<NamedMeal, ExtraCandidate[]> = {
-  breakfast: [
-    {
-      id: "fried-egg",
-      scalable: false,
-      baseUnits: 2,
-      baseGrams: 100,
-      maxGrams: 100,
-      describe: () => "Two eggs (about 100g). Fry them in one teaspoon of oil.",
-    },
-    {
-      id: "walnut",
-      scalable: true,
-      baseUnits: 7,
-      baseGrams: 30,
-      maxGrams: 60,
-      describe: (units, grams) => `About ${units} whole walnuts (${grams}g).`,
-    },
-    {
-      id: "almond",
-      scalable: true,
-      baseUnits: 20,
-      baseGrams: 30,
-      maxGrams: 60,
-      describe: (units, grams) => `About ${units} almonds (${grams}g).`,
-    },
-  ],
-  lunch: [
-    {
-      id: "mixed-nuts",
-      scalable: true,
-      baseUnits: 10,
-      baseGrams: 30,
-      maxGrams: 60,
-      describe: (units, grams) => `About ${units} mixed nuts (${grams}g).`,
-    },
-    {
-      id: "cashew-nut",
-      scalable: true,
-      baseUnits: 15,
-      baseGrams: 30,
-      maxGrams: 60,
-      describe: (units, grams) => `About ${units} cashew nuts (${grams}g).`,
-    },
-    {
-      id: "egusi-seed",
-      scalable: true,
-      baseUnits: 2,
-      baseGrams: 30,
-      maxGrams: 60,
-      describe: (units, grams) => `About ${units} tablespoons, roasted (${grams}g).`,
-    },
-  ],
-  dinner: [
-    {
-      id: "suya",
-      scalable: true,
-      baseUnits: 7,
-      baseGrams: 90,
-      maxGrams: 180,
-      describe: (units, grams) => `About ${units} pieces of suya meat (about ${grams}g).`,
-    },
-    {
-      id: "tiger-nut",
-      scalable: true,
-      baseUnits: 20,
-      baseGrams: 30,
-      maxGrams: 60,
-      describe: (units, grams) => `About ${units} tiger nuts (${grams}g).`,
-    },
-    {
-      id: "peanut-butter",
-      scalable: true,
-      baseUnits: 1,
-      baseGrams: 15,
-      maxGrams: 30,
-      describe: (units, grams) => `About ${units} tablespoon${units === 1 ? "" : "s"} (about ${grams}g).`,
-    },
-    {
-      id: "coconut",
-      scalable: true,
-      baseUnits: 3,
-      baseGrams: 40,
-      maxGrams: 60,
-      describe: (units, grams) => `About ${units} small pieces (about ${grams}g).`,
-    },
-    {
-      id: "seeds",
-      scalable: true,
-      baseUnits: 1,
-      baseGrams: 15,
-      maxGrams: 30,
-      describe: (units, grams) => `About ${units} tablespoon${units === 1 ? "" : "s"} (about ${grams}g).`,
-    },
-  ],
+  breakfast: READY_TO_EAT_EXTRAS,
+  lunch: READY_TO_EAT_EXTRAS,
+  dinner: READY_TO_EAT_EXTRAS,
 };
 
 /**
@@ -581,17 +609,14 @@ const EXTRA_CANDIDATES: Record<NamedMeal, ExtraCandidate[]> = {
  */
 const EXCLUDED_FROM_EXTRAS = new Set(Object.values(IDEAS).flat().flat());
 
-/** Nuts and seeds sit ahead of whichever meal they are shown next to. */
+/** Nuts sit ahead of whichever meal they are shown next to. */
 const PRE_MEAL_NUTS = new Set([
   "walnut",
-  "almond",
-  "mixed-nuts",
   "cashew-nut",
-  "egusi-seed",
   "tiger-nut",
   "coconut",
   "peanut-butter",
-  "seeds",
+  "bitter-kola",
 ]);
 
 const MEAL_WORD: Record<NamedMeal, string> = {
@@ -601,9 +626,8 @@ const MEAL_WORD: Record<NamedMeal, string> = {
 };
 
 const FIXED_TIMING: Record<string, string> = {
-  "fried-egg":
-    "Fry it in only one teaspoon of oil, nothing more. Eat this with your breakfast, or any time as a light bite.",
   suya: "Eat this on its own, any time of day. It is mostly meat, so it will not push your sugar up.",
+  "dambu-nama": "Eat this on its own, any time of day. It is mostly meat, so it will not push your sugar up.",
 };
 
 /**
@@ -688,8 +712,9 @@ export const MAX_EXTRA_ITEMS = 2;
 /**
  * One whole real serving of `candidate`, scaled to land as close as possible
  * to `targetKcal` without exceeding its own safe maximum. Never a fraction —
- * always a whole countable unit (nuts, tablespoons, pieces, eggs). A
- * non-scalable food (fried-egg) always returns its fixed base serving.
+ * always a whole countable unit (nuts, tablespoons, pieces). A non-scalable
+ * candidate always returns its fixed base serving instead (see the
+ * `scalable` field's own doc).
  */
 function sizeExtra(candidate: ExtraCandidate, food: Food, targetKcal: number): ExtraOption {
   const baseKcal = food.calories ?? 0;
@@ -714,37 +739,59 @@ function sizeExtra(candidate: ExtraCandidate, food: Food, targetKcal: number): E
 }
 
 /**
- * Builds one variant starting at `startIdx` in the pool: the food at
- * `startIdx`, scaled up to its own safe maximum if the gap needs it, and —
- * ONLY if that alone was not enough — the very next, DIFFERENT food in
- * rotation, and nothing more (`MAX_EXTRA_ITEMS`, a hard 2-item cap, direct
- * instruction: "1-2 extras card to meet calorie intake daily is required
- * not 3 ... 3 extra snacks in each green card ... can be overwhelming").
- * A food is never repeated (direct instruction, 2026-08-31: "each
- * recommendation, they should only eat it once ... if 20 nuts is safe ...
- * say so instead of telling them to eat 10 nuts twice"). With a hard 2-item
- * cap and a pool of 3 or more real foods, a different `startIdx` walks a
- * different sliding window of foods, so two variants are guaranteed to
- * differ in WHICH foods they use, not merely reorder the same set — the
- * earlier design let a variant grow to the whole pool, which made two
- * variants converge on an identical set once a gap was big enough, and
- * "Try a different snack" only visibly reordered it.
+ * Builds one variant starting with the food at `startIdx`, scaled up to its
+ * own safe maximum if the gap needs it, and — ONLY if that alone was not
+ * enough — a SECOND, DIFFERENT food, and nothing more (`MAX_EXTRA_ITEMS`, a
+ * hard 2-item cap, direct instruction: "1-2 extras card to meet calorie
+ * intake daily is required not 3 ... 3 extra snacks in each green card ...
+ * can be overwhelming"). A food is never repeated (direct instruction,
+ * 2026-08-31: "each recommendation, they should only eat it once ... if 20
+ * nuts is safe ... say so instead of telling them to eat 10 nuts twice").
+ *
+ * The second food is the BEST FIT from whatever remains in the pool — the
+ * one whose sized serving lands closest to the leftover gap — not simply
+ * "the next one in a fixed rotation." An earlier version always picked the
+ * fixed next neighbour, which broke once a low-calorie candidate (bitter
+ * kola, max ~48kcal) happened to sit next to another already-capped
+ * candidate: that ONE rotation slot could never close even a modest gap,
+ * while every other slot could. Best-fit removes this "unlucky pairing"
+ * entirely — every starting point now closes a gap as well as the pool
+ * genuinely allows.
+ *
+ * Two variants still use DIFFERENT foods, not a reorder of the same set:
+ * they start from a different `startIdx`, so their FIRST food always
+ * differs when the pool has more entries than the item cap — the earlier
+ * design let a variant grow to the whole pool, which made two variants
+ * converge on an identical set once a gap was big enough, and "Try a
+ * different snack" only visibly reordered it.
  */
 function buildVariant(
   pool: { candidate: ExtraCandidate; food: Food }[],
   startIdx: number,
   targetKcal: number,
 ): ExtraVariant {
-  const rotated = [...pool.slice(startIdx), ...pool.slice(0, startIdx)];
-  const items: ExtraOption[] = [];
-  let left = targetKcal;
-  const cap = Math.min(MAX_EXTRA_ITEMS, rotated.length);
-  for (let i = 0; i < cap; i++) {
-    if (i > 0 && left < MIN_ADD_KCAL) break;
-    const { candidate, food } = rotated[i];
-    const sized = sizeExtra(candidate, food, left);
-    items.push(sized);
-    left -= sized.calories;
+  const first = pool[startIdx];
+  const sizedFirst = sizeExtra(first.candidate, first.food, targetKcal);
+  const items: ExtraOption[] = [sizedFirst];
+  let left = targetKcal - sizedFirst.calories;
+
+  if (left >= MIN_ADD_KCAL && MAX_EXTRA_ITEMS >= 2) {
+    let best: ExtraOption | null = null;
+    let bestDiff = Infinity;
+    for (let i = 0; i < pool.length; i++) {
+      if (i === startIdx) continue;
+      const { candidate, food } = pool[i];
+      const sized = sizeExtra(candidate, food, left);
+      const diff = Math.abs(sized.calories - left);
+      if (diff < bestDiff) {
+        bestDiff = diff;
+        best = sized;
+      }
+    }
+    if (best) {
+      items.push(best);
+      left -= best.calories;
+    }
   }
   return { items, totalCalories: items.reduce((s, o) => s + o.calories, 0) };
 }

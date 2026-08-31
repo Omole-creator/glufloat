@@ -556,7 +556,7 @@ comorbidity warnings (Q11, "All correct").
 **Not a research finding on its own — a house bound, same footing as the
 weekly-frequency numbers in §1, pending dietitian sign-off.** It answers a
 narrower question than glycaemic index: not "does this food raise sugar"
-(all 11 foods below are already low-GI and green) but "how much of it is
+(all 8 foods below are already low-GI and green) but "how much of it is
 still a sensible, safe amount to eat in one sitting." `lib/nextMeal.ts`'s
 `EXTRA_CANDIDATES` scales each food continuously up to the `maxGrams` ceiling
 below, so it can land exactly on a person's remaining calorie gap without
@@ -564,14 +564,50 @@ ever repeating the same food twice in one recommendation (direct
 instruction, 2026-08-31: "do not be scared to increase the quantity ... just
 ensure you do your research and be sure it is safe").
 
+**Four rules govern which foods may be a candidate at all, all added
+2026-09-01 after live QA:**
+1. **Ready to eat as is, with no cooking step at snack time.** `fried-egg`
+   (needs frying) and `egusi-seed` (normally cooked into soup, or actively
+   roasted — not sold ready-to-eat the way nuts are) were both removed:
+   "all snacks must be something that must be consumed without cooking."
+2. **Genuinely edible alone, with nothing added** — narrower than #1. Dry
+   chia or flax is a soak-in-liquid or stir-into-food ingredient, not
+   something eaten by the spoonful on its own: "is [it] eatable by man [if
+   not cooked]? If no, do not include it."
+3. **One specific, single, real food — never a blended category.**
+   `mixed-nuts` ("Mixed Nuts") and `seeds` ("Seeds (pumpkin, sunflower,
+   flax, chia)") were removed for this reason (and #2), on direct
+   instruction: "is there any nut called mixed nuts?" / "what does mixed
+   seeds mean? ... be specific with names of snacks." Both were real foods
+   in the data (not invented), just not specific enough, or not eaten
+   alone, as a snack.
+4. **Easy to find in a Nigerian market, and cheap** ("only include snack
+   that is edible, easy to find in the nigerian market and economically
+   friendly"). `almond` was removed here — real and edible, but an imported
+   supermarket item next to the others, which are all cheap, everyday
+   market/roadside foods.
+
+The pool was then widened past its first 6 survivors, same day ("are these
+the only 7 snacks you could come up with? ... find more edible and
+enjoyable snacks"), adding `dambu-nama` and `bitter-kola` (both clear all 4
+rules above). Rejected and why, so this isn't re-litigated later:
+`groundnut`/`plain-yogurt`/`soy-milk`/`avocado` are real no-cook snacks
+already used in a breakfast plate (`lib/nextMeal.ts`'s `BREAKFAST`), so the
+"never both a meal and an extra" rule excludes them; `ube` (African pear)
+needs its own softening/heating step like `egusi-seed`; `kola-nut` and
+every green fruit in the data (apple, guava, avocado, etc.) carry their own
+weekly cap, not "every day", so using them here would contradict their own
+card; `sesame-seed` is, by its own pairing text, stirred into soups rather
+than eaten alone.
+
 | Food | Base serving | Safe ceiling used | Basis |
 |---|---|---|---|
-| Walnut, almond, mixed nuts, cashew nut, tiger nut | ~30g | 60g (about 2oz) | Standard nut/seed serving guidance is 1oz (28g); up to 1-2oz per sitting is the commonly cited safe range for calorie/fat load, not glycaemic risk (nuts are low-GI). [Cleveland Clinic](https://health.clevelandclinic.org/a-diet-tip-for-people-with-type-2-diabetes-eat-more-nuts), [Virta Health](https://www.virtahealth.com/blog/best-nuts-and-seeds-for-diabetes). |
-| Egusi (melon seed), roasted | 2 tbsp (30g) | 4 tbsp (60g) | Same nut/seed-serving reasoning as above; used only for the roasted-snack form, never the soup form — the card never implies the seed is eaten raw. |
-| Peanut butter, seeds | 1 tbsp (15g) | 2 tbsp (30g) | Same nut/seed-serving reasoning; nut butter and seeds cited alongside whole nuts in the same guidance. |
+| Walnut (Nigerian, asala/ukpa), cashew nut, tiger nut | ~30g | 60g (about 2oz) | Standard nut serving guidance is 1oz (28g); up to 1-2oz per sitting is the commonly cited safe range for calorie/fat load, not glycaemic risk (nuts are low-GI). [Cleveland Clinic](https://health.clevelandclinic.org/a-diet-tip-for-people-with-type-2-diabetes-eat-more-nuts), [Virta Health](https://www.virtahealth.com/blog/best-nuts-and-seeds-for-diabetes). |
+| Peanut butter | 1 tbsp (15g) | 2 tbsp (30g) | Same nut-serving reasoning; nut butter cited alongside whole nuts in the same guidance. |
 | Coconut | ~40g (2-3 pieces) | 60g (1.5x base, not 2x) | Higher in saturated fat than the other nuts here, so kept to a smaller multiple. |
 | Suya (grilled meat) | 1 stick / ~7 pieces (90g) | 2 sticks / ~180g | "One or two sticks... is safer than large trays" for a diabetic; a standard serving is already cited as ~100g/3 skewers, so 90-180g sits inside normal real-world suya portions. [Addy's Diabetes Health Store](https://addysdiabeteshealthstore.com/can-diabetics-eat-suya/). |
-| Fried egg | 2 eggs (100g) | **not scaled — fixed at 2 eggs** | Egg quantity carries its own safe-*weekly*-count caution unrelated to calories: research on people with type 2 diabetes supports up to ~1-1.7 eggs/day (6-12/week) with no adverse effect on cholesterol or glucose control, but recommends against habitually going higher. A bigger calorie gap is closed by a DIFFERENT food in the pool, never a second egg serving. [Cleveland Clinic](https://health.clevelandclinic.org/how-many-eggs-can-you-eat-on-a-heart-healthy-diet), [sugarfit](https://www.sugarfit.com/blog/eggs-for-diabetes/). |
+| Dambu Nama (dried shredded beef) | ~60g (a palm-size handful, the food's own portion) | 120g (2x base) | Same reasoning as suya — a real, everyday-safe meat, doubled to a still-realistic second helping. Gram weight for a countable "tablespoon" unit is an estimate (`nutritionSource: "estimated"` on this food already, same footing), no card-cited source. |
+| Bitter kola (orogbo) | 2 seeds (~15g, estimated — the food's own `portionGuidance` gives no gram figure) | ~22g (about 3 seeds) | Kept to a smaller multiple than the nuts above: it is chewed for a mild stimulant effect (kolanin/caffeine-like alkaloids), not a bulk snack, so scaling it up aggressively would not be sensible even though its own frequency is "every day." |
 
 **What this does not change**: the verdict, GI, `baseVerdict`, and the food's
 own canonical `portionGuidance` (the size shown on its own card everywhere

@@ -190,10 +190,10 @@ for (const meal of MEALS) {
       // just reorder the same set — this is the exact bug reported live
       // ("Try a different snack" only reshuffled position). Meaningful only
       // when the meal's real candidate pool holds more foods than the
-      // 2-item cap (breakfast/lunch: 3, dinner: 5 — see
-      // lib/nextMeal.ts's EXTRA_CANDIDATES); with exactly 2 candidates,
+      // 2-item cap (all 3 meals share the same 7-food ready-to-eat pool —
+      // see lib/nextMeal.ts's EXTRA_CANDIDATES); with exactly 2 candidates,
       // both windows are forced to use the same pair.
-      const POOL_SIZE: Record<NamedMeal, number> = { breakfast: 3, lunch: 3, dinner: 5 };
+      const POOL_SIZE: Record<NamedMeal, number> = { breakfast: 8, lunch: 8, dinner: 8 };
       if (huge1.variants.length === 2 && POOL_SIZE[meal] > MAX_EXTRA_ITEMS) {
         const [a, b] = huge1.variants;
         const idsA = new Set(a.items.map((o) => o.food.id));
@@ -338,30 +338,24 @@ for (const meal of MEALS) {
     return { residual: dailyTarget - eatenToday, totals };
   }
 
-  // Realistic, common targets — the user's own worked example of 2,500, and
-  // 2,800 / 2,900 — must close almost exactly (continuous safe-range
-  // scaling comfortably covers these within the 2-item-per-meal cap).
-  // Checked across several different days, since which specific real plate
-  // gets served (and so each meal's exact total) varies day to day via the
-  // least-eaten-first rotation.
+  // Realistic targets — the user's own worked example of 2,500, 2,800 /
+  // 2,900, and the higher 3,200 / 3,430 (the exact reported bug's raw
+  // TDEE) — must ALL close almost exactly now. The best-fit second-item
+  // pick in buildVariant() (2026-09-01, after `bitter-kola`'s low ceiling
+  // exposed a fixed-neighbour rotation as unreliable) plus the wider
+  // 8-food pool close every one of these within the same tight floor as
+  // the smaller/moderate targets — no need for a separate, looser
+  // tolerance at the high end any more. Checked across several different
+  // days, since which specific real plate gets served (and so each meal's
+  // exact total) varies day to day via the least-eaten-first rotation.
   const TIGHT_FLOOR = 60;
-  // Higher targets (3,200 / 3,430, the exact reported bug's raw TDEE) sit
-  // close to what a hard 2-items-per-meal cap can safely provide, so a
-  // larger, still-bounded residual is EXPECTED and correct on a
-  // less-favourable day's rotation, not a bug — this is the deliberate
-  // trade-off of "never more than 2 snacks" (direct instruction, 2026-09-01:
-  // "1-2 extras card to meet calorie intake daily is required not 3") over
-  // "always exact no matter the value." A small, honest shortfall here beats
-  // a 3rd snack.
-  const HIGH_FLOOR = 320;
   const days = ["2026-08-01", "2026-08-10", "2026-08-15", "2026-08-20", "2026-08-29"];
   for (const dailyTarget of [2500, 2800, 2900, 3200, 3430]) {
-    const floor = dailyTarget <= 2900 ? TIGHT_FLOOR : HIGH_FLOOR;
     for (const dayKey of days) {
       const { residual, totals } = walkFullDay(dailyTarget, dayKey);
-      if (residual > floor) {
+      if (residual > TIGHT_FLOOR) {
         fail(
-          `full-day walk-through for a ${dailyTarget}kcal target on ${dayKey} (breakfast+lunch+dinner, each plate + its meal-scoped extras) left ${residual}kcal unclosed — should close within ${floor}kcal`,
+          `full-day walk-through for a ${dailyTarget}kcal target on ${dayKey} (breakfast+lunch+dinner, each plate + its meal-scoped extras) left ${residual}kcal unclosed — should close within ${TIGHT_FLOOR}kcal`,
         );
       }
       // Evenly spread (founder instruction, 2026-08-31: "I want evenly
@@ -385,8 +379,8 @@ for (const meal of MEALS) {
   // own 2-item safe cap, never from the app inventing an unsafe bigger
   // serving or a 3rd item to force a match.
   const impossible = walkFullDay(50000);
-  if (impossible.residual <= HIGH_FLOOR) {
-    fail("a 50,000kcal target closed within the high floor — the safe-serving ceiling may not be wired correctly");
+  if (impossible.residual <= TIGHT_FLOOR) {
+    fail("a 50,000kcal target closed within the tight floor — the safe-serving ceiling may not be wired correctly");
   }
 }
 
