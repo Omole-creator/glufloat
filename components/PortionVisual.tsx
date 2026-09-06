@@ -7,20 +7,19 @@ import { cleanFoodName } from "@/lib/foodName";
  * score (see verdictEngine.ts) — the "how much to eat" text underneath kept
  * showing the same normal-size guidance no matter which size was tapped, so
  * tapping Small or Large looked like it did nothing. There is no per-food
- * halved/enlarged gram figure in the data (only the normal-size anchor is
- * ever written), so this reuses the exact plain wording verdictEngine.ts's
- * own breakdown text already says for this ("You chose a small size of X.
- * That helps a lot." / "A large size of X makes the sugar rise more."),
- * rather than inventing new phrasing — the food name is dropped since it is
- * already shown right above this note in the same card. An earlier version
- * ("You asked for a large size, more than this. That makes the sugar rise
- * more:") was reported confusing (2026-09-06) — the ambiguous "this" and a
- * colon running into a separate sentence below. Two short, plain sentences
- * instead, matching the reading level the rest of the app already holds to.
+ * halved/enlarged gram figure in the data (the food's own portionGuidance
+ * IS the one real, safe size), so this note POINTS AT that size rather than
+ * describing the tap in the abstract — the exact fix requested (2026-09-06:
+ * "still no connection with the portion... here's the right size"). Ends in
+ * a colon, directly introducing the portionGuidance sentence right below it
+ * in the same card, so the two read as one connected thought, not two
+ * separate ideas. An earlier version ("You asked for a large size, more
+ * than this. That makes the sugar rise more:") pointed at nothing concrete
+ * ("this") and was reported confusing for that reason.
  */
 function sizeNote(portion: PortionSize): string | null {
-  if (portion === "half") return "You picked Small. That helps a lot.";
-  if (portion === "large") return "You picked Large. That makes the sugar rise more.";
+  if (portion === "half") return "You picked Small. Here is the right size:";
+  if (portion === "large") return "You picked Large. Stick with the right size instead:";
   return null;
 }
 
