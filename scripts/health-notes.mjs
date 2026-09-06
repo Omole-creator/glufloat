@@ -58,14 +58,25 @@ const ALCOHOL_IDS = new Set(["beer", "pito", "palm-wine", "local-gin"]);
 // and tangerine do NOT do this, so they must not be listed here.
 const CITRUS_IDS = new Set(["grapefruit", "pomelo"]);
 // Saturated or heavy fats that raise cholesterol (oils, butter, full-fat dairy).
+// `coconut` (the flesh, not just the oil) belongs here too: it is genuinely
+// high in saturated fat, and used to fall through EXCLUDE_IDS below with NO
+// note at all (that exclusion was only ever meant to stop its "coconut chips"
+// alias false-matching the fried-snack scan — it accidentally suppressed the
+// real fat warning too, caught 2026-09-06 while auditing extras candidates).
 const FAT_IDS = new Set([
-  "butter", "coconut-oil", "palm-oil", "mayonnaise", "milk-full-cream",
-  "evaporated-milk", "wara",
+  "butter", "coconut", "coconut-oil", "palm-oil", "mayonnaise",
+  "milk-full-cream", "evaporated-milk", "wara",
 ]);
 // Very salty foods whose role blocks the keyword scan (noodles, iru, canned).
 const SALT_IDS = new Set(["indomie", "locust-bean", "baked-beans"]);
-// Cooked dishes heavy with palm oil that are not soups.
-const OIL_IDS = new Set(["native-rice", "abacha"]);
+// Cooked dishes heavy with palm oil that are not soups. `banga-rice` (added
+// later via scripts/add-banga-rice.mjs, category "rice"/role "starch") is
+// the same shape as native-rice — cooked directly in palm-fruit oil per its
+// own logicNote ("full of oil") — but the oily-soup keyword check below only
+// ever fires on role "soup", so it silently lost its dishOil note the first
+// time this script ran after it was added. Caught 2026-09-06 by diffing this
+// script's own output before applying it, per this file's own house rule.
+const OIL_IDS = new Set(["native-rice", "abacha", "banga-rice"]);
 // Ogbono is an oilseed: the seed carries its own fat, on top of the palm oil.
 const OGBONO_IDS = new Set(["ogbono-soup"]);
 
@@ -117,11 +128,14 @@ function hasAny(text, words) {
 }
 
 // Foods a keyword catches only through a side alias, while the food itself is
-// lean or boiled (turkey "turkey suya", coconut "coconut chips", chickpeas
-// "fried chickpeas", beans-and-plantain "ewa ati dodo").
+// lean or boiled (turkey "turkey suya", chickpeas "fried chickpeas",
+// beans-and-plantain "ewa ati dodo"). `coconut` used to be here too (its
+// "coconut chips" alias false-matches the fried-snack scan) but was moved
+// into FAT_IDS above instead, 2026-09-06: FAT_IDS is checked before the
+// fried-snack scan runs, so it still gets the correct note (the real
+// saturated-fat one) rather than none at all.
 const EXCLUDE_IDS = new Set([
   "turkey",
-  "coconut",
   "chickpeas",
   "beans-and-plantain",
 ]);
