@@ -8,12 +8,19 @@ import { cleanFoodName } from "@/lib/foodName";
  * showing the same normal-size guidance no matter which size was tapped, so
  * tapping Small or Large looked like it did nothing. There is no per-food
  * halved/enlarged gram figure in the data (only the normal-size anchor is
- * ever written), so this says the same true, size-aware thing the verdict
- * breakdown already says, rather than inventing a new number.
+ * ever written), so this reuses the exact plain wording verdictEngine.ts's
+ * own breakdown text already says for this ("You chose a small size of X.
+ * That helps a lot." / "A large size of X makes the sugar rise more."),
+ * rather than inventing new phrasing — the food name is dropped since it is
+ * already shown right above this note in the same card. An earlier version
+ * ("You asked for a large size, more than this. That makes the sugar rise
+ * more:") was reported confusing (2026-09-06) — the ambiguous "this" and a
+ * colon running into a separate sentence below. Two short, plain sentences
+ * instead, matching the reading level the rest of the app already holds to.
  */
 function sizeNote(portion: PortionSize): string | null {
-  if (portion === "half") return "You asked for a small size, about half of this:";
-  if (portion === "large") return "You asked for a large size, more than this. That makes the sugar rise more:";
+  if (portion === "half") return "You picked Small. That helps a lot.";
+  if (portion === "large") return "You picked Large. That makes the sugar rise more.";
   return null;
 }
 
