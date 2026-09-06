@@ -86,10 +86,10 @@ export default function FirstStepsChecklist({
         : "Eat today's dinner";
 
   const steps = [
-    { key: "meal", label: mealStepLabel, done: hasMeal, onClick: onGoToMeal },
     ...(showFitMe
-      ? [{ key: "profile", label: "Set up Fit me", done: hasProfile, onClick: onGoToFitMe }]
+      ? [{ key: "profile", label: 'Set up "Fit me"', done: hasProfile, onClick: onGoToFitMe }]
       : []),
+    { key: "meal", label: mealStepLabel, done: hasMeal, onClick: onGoToMeal },
   ];
   const allDone = steps.every((s) => s.done);
 
