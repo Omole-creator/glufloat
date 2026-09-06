@@ -394,7 +394,7 @@ export default function MealBuilder({
                 </p>
                 <div className="mt-3 space-y-3">
                   {items.map((i) => (
-                    <PortionMini key={i.food.id} food={i.food} />
+                    <PortionMini key={i.food.id} food={i.food} portion={i.portion} />
                   ))}
                 </div>
               </div>

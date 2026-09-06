@@ -1,6 +1,21 @@
-import type { Food } from "@/lib/types";
+import type { Food, PortionSize } from "@/lib/types";
 import { portionVisual, type PortionKey } from "@/lib/portionVisual";
 import { cleanFoodName } from "@/lib/foodName";
+
+/**
+ * The meal builder's Small/Normal/Large tap only ever nudged the verdict
+ * score (see verdictEngine.ts) — the "how much to eat" text underneath kept
+ * showing the same normal-size guidance no matter which size was tapped, so
+ * tapping Small or Large looked like it did nothing. There is no per-food
+ * halved/enlarged gram figure in the data (only the normal-size anchor is
+ * ever written), so this says the same true, size-aware thing the verdict
+ * breakdown already says, rather than inventing a new number.
+ */
+function sizeNote(portion: PortionSize): string | null {
+  if (portion === "half") return "You asked for a small size, about half of this:";
+  if (portion === "large") return "You asked for a large size, more than this. That makes the sugar rise more:";
+  return null;
+}
 
 const BLUE = "#1b5faa";
 const GREEN = "#3e9b4f";
@@ -221,8 +236,9 @@ export default function PortionVisual({ food }: { food: Food }) {
 }
 
 /** Compact chip used in the meal builder (icon + the food + the clear amount). */
-export function PortionMini({ food }: { food: Food }) {
+export function PortionMini({ food, portion = "normal" }: { food: Food; portion?: PortionSize }) {
   const { key } = portionVisual(food);
+  const note = sizeNote(portion);
   return (
     <div className="flex items-center gap-2.5">
       <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-white shadow-sm">
@@ -232,6 +248,7 @@ export function PortionMini({ food }: { food: Food }) {
       </span>
       <div className="min-w-0 text-xs">
         <p className="font-semibold text-ink">{cleanFoodName(food.name)}</p>
+        {note && <p className="font-semibold text-ink-soft">{note}</p>}
         <p className="text-ink-soft">{food.portionGuidance}</p>
       </div>
     </div>
