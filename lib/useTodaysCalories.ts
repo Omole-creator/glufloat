@@ -112,7 +112,7 @@ export function useTodaysCalories(show: boolean): TodaysCalories {
     const meal = currentMeal();
     const dayKey = localDayKey();
     const mealShare = remainingMealCalorieTarget(dailyTarget, eatenToday, p.mealPattern, meal);
-    const idea = planForDay(meal, dayKey, new Map(), 0, [], new Map(), null, mealShare);
+    const idea = planForDay(meal, dayKey, new Map(), 0, [], new Map(), null, mealShare, p.conditions);
     const plateCal = idea.foods.reduce((s, f) => s + (f.calories ?? 0), 0);
     const extrasGap = Math.max(0, mealShare - plateCal);
     setTarget(dailyTarget);

@@ -14,6 +14,9 @@ import {
   bmr,
   tdee,
   calorieTarget,
+  bmi,
+  bmiCategory,
+  BMI_CATEGORY_LABEL,
   CONDITIONS,
   CONDITION_LABEL,
   ACTIVITY_DESCRIPTION,
@@ -228,6 +231,9 @@ export default function PersonalizationSettings({
     sex && ageYears && weightKg && heightCm ? bmr(sex, weightKg, heightCm, ageYears) : null;
   const tdeeValue = bmrValue != null && activityLevel ? tdee(bmrValue, activityLevel) : null;
   const targetValue = tdeeValue != null ? calorieTarget(tdeeValue, goals) : null;
+  // Needs only weight/height, unlike BMR/TDEE above, so it can show even
+  // before sex/age/activity are filled in.
+  const bmiValue = weightKg && heightCm ? bmi(weightKg, heightCm) : null;
 
   return (
     // Solid brand blue, white text (founder instruction, 2026-08-30) — the
@@ -437,15 +443,34 @@ export default function PersonalizationSettings({
                 <p className="font-display text-3xl font-bold leading-tight">
                   {targetValue} <span className="text-base font-semibold text-white/80">kcal a day</span>
                 </p>
-                <div className="mt-3 flex gap-5 border-t border-white/25 pt-3 text-xs text-white/85">
+                <div className="mt-3 flex flex-wrap gap-5 border-t border-white/25 pt-3 text-xs text-white/85">
                   <p>
                     Resting energy <strong className="block text-sm text-white">{Math.round(bmrValue!)} kcal</strong>
                   </p>
                   <p>
                     Full daily need <strong className="block text-sm text-white">{Math.round(tdeeValue!)} kcal</strong>
                   </p>
+                  {bmiValue != null && (
+                    <p>
+                      Weight status{" "}
+                      <strong className="block text-sm text-white">
+                        {BMI_CATEGORY_LABEL[bmiCategory(bmiValue)]}
+                      </strong>
+                    </p>
+                  )}
                 </div>
               </div>
+            )}
+            {/* Weight/height alone are enough for this (unlike the target box
+                above, which also needs sex/age/activity) — shown on its own
+                so it does not wait on the rest of the form. A reviewing
+                dietitian tested a real overweight profile and found no
+                weight-status classification anywhere in "Fit me". */}
+            {targetValue == null && bmiValue != null && (
+              <p className="mt-4 rounded-2xl bg-white/15 p-4 text-sm text-white ring-1 ring-inset ring-white/25">
+                Weight status:{" "}
+                <strong className="font-display">{BMI_CATEGORY_LABEL[bmiCategory(bmiValue)]}</strong>
+              </p>
             )}
           </div>
         </div>

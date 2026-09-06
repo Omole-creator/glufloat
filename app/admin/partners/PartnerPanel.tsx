@@ -386,6 +386,7 @@ export default function PartnerPanel({
                         <PartnerReportButton
                           partnerId={r.id}
                           partnerName={r.name}
+                          partnerEmail={r.email}
                           query={query}
                           small
                         />

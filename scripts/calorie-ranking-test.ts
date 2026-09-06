@@ -190,10 +190,12 @@ for (const meal of MEALS) {
       // just reorder the same set — this is the exact bug reported live
       // ("Try a different snack" only reshuffled position). Meaningful only
       // when the meal's real candidate pool holds more foods than the
-      // 2-item cap (all 3 meals share the same 7-food ready-to-eat pool —
-      // see lib/nextMeal.ts's EXTRA_CANDIDATES); with exactly 2 candidates,
-      // both windows are forced to use the same pair.
-      const POOL_SIZE: Record<NamedMeal, number> = { breakfast: 8, lunch: 8, dinner: 8 };
+      // 2-item cap (all 3 meals share the same 6-food ready-to-eat pool —
+      // see lib/nextMeal.ts's EXTRA_CANDIDATES; was 8 until `suya` and
+      // `dambu-nama` were removed 2026-09-06 on dietitian feedback, see the
+      // "fifth bar" note above READY_TO_EAT_EXTRAS); with exactly 2
+      // candidates, both windows are forced to use the same pair.
+      const POOL_SIZE: Record<NamedMeal, number> = { breakfast: 6, lunch: 6, dinner: 6 };
       if (huge1.variants.length === 2 && POOL_SIZE[meal] > MAX_EXTRA_ITEMS) {
         const [a, b] = huge1.variants;
         const idsA = new Set(a.items.map((o) => o.food.id));
@@ -340,22 +342,35 @@ for (const meal of MEALS) {
 
   // Realistic targets — the user's own worked example of 2,500, 2,800 /
   // 2,900, and the higher 3,200 / 3,430 (the exact reported bug's raw
-  // TDEE) — must ALL close almost exactly now. The best-fit second-item
-  // pick in buildVariant() (2026-09-01, after `bitter-kola`'s low ceiling
-  // exposed a fixed-neighbour rotation as unreliable) plus the wider
-  // 8-food pool close every one of these within the same tight floor as
-  // the smaller/moderate targets — no need for a separate, looser
-  // tolerance at the high end any more. Checked across several different
-  // days, since which specific real plate gets served (and so each meal's
-  // exact total) varies day to day via the least-eaten-first rotation.
+  // TDEE) — must close almost exactly. The best-fit second-item pick in
+  // buildVariant() (2026-09-01, after `bitter-kola`'s low ceiling exposed a
+  // fixed-neighbour rotation as unreliable) closes every one of these
+  // within a tight floor.
+  //
+  // **The two most demanding targets (3,200 / 3,430) need a looser floor**
+  // as of 2026-09-06: `suya` and `dambu-nama`, the two highest-capacity
+  // candidates in the extras pool, were removed entirely on a reviewing
+  // dietitian's direct feedback that processed meat should never be
+  // recommended to a diabetic — see the "fifth bar" note above
+  // `READY_TO_EAT_EXTRAS` in lib/nextMeal.ts. That shrank the pool from 8
+  // foods to 6 and lowered its real safe ceiling, so the highest daily
+  // targets can no longer always close within 60kcal. Same house precedent
+  // as the earlier MAX_EXTRA_ITEMS cap: a safety-driven limit on the pool
+  // is a deliberate trade-off, not a bug to chase back to the old floor.
+  // 2,500 / 2,800 / 2,900 are unaffected and keep the tight floor. Checked
+  // across several different days, since which specific real plate gets
+  // served (and so each meal's exact total) varies day to day via the
+  // least-eaten-first rotation.
   const TIGHT_FLOOR = 60;
+  const HIGH_TARGET_FLOOR = 400;
   const days = ["2026-08-01", "2026-08-10", "2026-08-15", "2026-08-20", "2026-08-29"];
   for (const dailyTarget of [2500, 2800, 2900, 3200, 3430]) {
+    const floor = dailyTarget >= 3200 ? HIGH_TARGET_FLOOR : TIGHT_FLOOR;
     for (const dayKey of days) {
       const { residual, totals } = walkFullDay(dailyTarget, dayKey);
-      if (residual > TIGHT_FLOOR) {
+      if (residual > floor) {
         fail(
-          `full-day walk-through for a ${dailyTarget}kcal target on ${dayKey} (breakfast+lunch+dinner, each plate + its meal-scoped extras) left ${residual}kcal unclosed — should close within ${TIGHT_FLOOR}kcal`,
+          `full-day walk-through for a ${dailyTarget}kcal target on ${dayKey} (breakfast+lunch+dinner, each plate + its meal-scoped extras) left ${residual}kcal unclosed — should close within ${floor}kcal`,
         );
       }
       // Evenly spread (founder instruction, 2026-08-31: "I want evenly

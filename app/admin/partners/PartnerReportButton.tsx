@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { jsPDF } from "jspdf";
 import { COMMISSION_CAP, COMMISSION_RATE, naira } from "@/lib/partners";
+import { partnerReportEmail } from "@/lib/partnerReportMessage";
 
 /**
  * A PDF a partner can be sent, because they have no dashboard of their own.
@@ -20,16 +21,45 @@ import { COMMISSION_CAP, COMMISSION_RATE, naira } from "@/lib/partners";
 export default function PartnerReportButton({
   partnerId,
   partnerName,
+  partnerEmail,
   query,
   small = false,
 }: {
   partnerId: string;
   partnerName: string;
+  partnerEmail: string;
   /** The period currently on screen. */
   query: Record<string, string>;
   small?: boolean;
 }) {
   const [busy, setBusy] = useState(false);
+  const [emailing, setEmailing] = useState(false);
+
+  /**
+   * Opens the admin's own mail client with the report pre-filled, so it can
+   * be sent by hand each month. No email service, no new credentials, no
+   * automation — the founder's explicit call (2026-09-06): a manual "Send
+   * report" button, not an automated monthly send. The whole report (this
+   * period's numbers, the money, lifetime totals) is written straight into
+   * the email body, so it is a complete, useful email even if the admin
+   * never attaches the PDF from "Download their report" alongside it.
+   */
+  async function sendEmail() {
+    setEmailing(true);
+    try {
+      const qs = new URLSearchParams({ id: partnerId, ...query });
+      const res = await fetch(`/api/admin/partner-report?${qs}`);
+      if (!res.ok) {
+        alert("Could not build the report.");
+        return;
+      }
+      const d = await res.json();
+      const { subject, body } = partnerReportEmail(d);
+      window.location.href = `mailto:${encodeURIComponent(partnerEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    } finally {
+      setEmailing(false);
+    }
+  }
 
   async function make() {
     setBusy(true);
@@ -205,17 +235,31 @@ export default function PartnerReportButton({
   }
 
   return (
-    <button
-      onClick={make}
-      disabled={busy}
-      title={`PDF report for ${partnerName}`}
-      className={
-        small
-          ? "text-xs text-ink-soft underline hover:text-brand disabled:opacity-40"
-          : "rounded-full border-2 border-line bg-white px-5 py-2.5 font-display font-bold text-ink transition-colors hover:border-brand disabled:opacity-50"
-      }
-    >
-      {busy ? "Building..." : small ? "Report" : "Download their report"}
-    </button>
+    <span className="inline-flex items-center gap-3">
+      <button
+        onClick={make}
+        disabled={busy}
+        title={`PDF report for ${partnerName}`}
+        className={
+          small
+            ? "text-xs text-ink-soft underline hover:text-brand disabled:opacity-40"
+            : "rounded-full border-2 border-line bg-white px-5 py-2.5 font-display font-bold text-ink transition-colors hover:border-brand disabled:opacity-50"
+        }
+      >
+        {busy ? "Building..." : small ? "Report" : "Download their report"}
+      </button>
+      <button
+        onClick={sendEmail}
+        disabled={emailing || !partnerEmail}
+        title={partnerEmail ? `Email report to ${partnerEmail}` : "No email on file for this partner"}
+        className={
+          small
+            ? "text-xs text-ink-soft underline hover:text-brand disabled:opacity-40"
+            : "rounded-full border-2 border-line bg-white px-5 py-2.5 font-display font-bold text-ink transition-colors hover:border-brand disabled:opacity-50"
+        }
+      >
+        {emailing ? "Opening..." : small ? "Email" : "Send report"}
+      </button>
+    </span>
   );
 }

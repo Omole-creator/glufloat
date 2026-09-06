@@ -197,6 +197,39 @@ export function remainingMealCalorieTarget(
   return Math.round((budgetLeft * weightOf(meal)) / (totalWeight || 1));
 }
 
+export type BmiCategory = "underweight" | "normal" | "overweight" | "obese";
+
+export const BMI_CATEGORY_LABEL: Record<BmiCategory, string> = {
+  underweight: "Underweight",
+  normal: "Normal weight",
+  overweight: "Overweight",
+  obese: "Obese",
+};
+
+/** Standard formula: weight (kg) / height (m) squared. */
+export function bmi(weightKg: number, heightCm: number): number {
+  const heightM = heightCm / 100;
+  return weightKg / (heightM * heightM);
+}
+
+/**
+ * WHO's standard adult cut-offs (kg/m²) — the same ones used worldwide, not
+ * a house number. Added 2026-09-06: a reviewing dietitian tested "Fit me"
+ * with a real overweight/obese profile (150cm, 70kg) and found the app never
+ * told her which weight-status band it fell in, only the calorie numbers
+ * underneath. This is a plain, standard classification, not a grade on
+ * anyone's blood sugar or effort (see the glucose-reading rule in
+ * CLAUDE.md — that rule is about never grading a sugar TEST result; a BMI
+ * band is an ordinary, universally-published clinical classification, the
+ * same kind of fact a doctor's own scale would show).
+ */
+export function bmiCategory(bmiValue: number): BmiCategory {
+  if (bmiValue < 18.5) return "underweight";
+  if (bmiValue < 25) return "normal";
+  if (bmiValue < 30) return "overweight";
+  return "obese";
+}
+
 /**
  * Kidney disease caps daily protein at 0.6-0.8 g/kg/day (NKF KDOQI /
  * International Society of Renal Nutrition and Metabolism guidance), a real

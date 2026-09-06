@@ -2,7 +2,7 @@ import { getFood } from "./search";
 import type { Food } from "./types";
 import type { NamedMeal } from "./mealtime";
 import { cleanFoodName } from "./foodName";
-import { biasScore, type PlateAxes } from "./personalization";
+import { biasScore, type PlateAxes, type Condition } from "./personalization";
 
 /**
  * Safe meal ideas to suggest for the meal happening right now.
@@ -48,6 +48,42 @@ const SOUP_PROTEINS = [
   "pomo",
   "shaki",
 ];
+
+/**
+ * Which SOUP_PROTEINS should not be handed to someone with a flagged
+ * comorbidity. Computed from the food data itself, not a hand-kept id list
+ * — a reviewing dietitian flagged that the app offers organ meat (pomo,
+ * shaki) as an interchangeable swap for beef/fish with no regard for the
+ * person's own comorbidities (2026-09-06 feedback: "before you start
+ * prescribing a meal ... you have to make sure the meal is according to
+ * their disease condition").
+ *
+ * Checking the data turned up the SAME gap on more proteins than first
+ * reported: `beef` and `goat-meat` carry the identical "pick fish or
+ * skinless chicken instead" instruction as the organ meats (they are ALL
+ * red/organ meat under one healthNote), and `stockfish`/`smoked-fish` carry
+ * their own, separate "very salty ... if you have high blood pressure, high
+ * cholesterol, or kidney problems" instruction. `SOUP_PROTEINS` only ever
+ * holds actual protein foods, and every healthNote a protein in this list
+ * carries already exists specifically to tell a person with one of these
+ * three conditions to choose something else — so rather than hand-pick which
+ * ids to exclude (and risk it silently drifting out of step, the same trap
+ * `scripts/health-notes.mjs`'s own notes warn about elsewhere in this
+ * codebase), this reads the flag directly off whichever proteins actually
+ * carry a healthNote. `fish`, `chicken`, `turkey`, `snail` and
+ * `prawns-crayfish` carry none and are never excluded.
+ */
+const CONDITION_EXCLUDED_PROTEIN_IDS = new Set(
+  SOUP_PROTEINS.filter((id) => Boolean(getFood(id)?.healthNote)),
+);
+
+/** Any flagged condition is enough: every excluded protein's own healthNote
+ * already names all three conditions together (see
+ * CONDITION_EXCLUDED_PROTEIN_IDS above), so there is no case here where one
+ * of the three should see it and another should not. */
+function excludesRiskyProtein(conditions: Condition[]): boolean {
+  return conditions.length > 0;
+}
 
 /**
  * Green soups that are genuinely eaten with a swallow. The stews and sauces
@@ -284,6 +320,18 @@ function stride(n: number): number {
  * way `liked` already does. Omitting it (the default) reproduces today's
  * behaviour exactly.
  *
+ * `conditions` (free on every tier, same as the health-condition part of
+ * `bias`) is the one thing here that is NOT just a reorder: when the person
+ * has flagged hypertension, high cholesterol or kidney disease, any idea
+ * whose protein carries its own comorbidity healthNote
+ * (`CONDITION_EXCLUDED_PROTEIN_IDS`: beef, goat meat, pomo, shaki, stockfish,
+ * smoked fish) is dropped from the rotation pool before scoring, rather than
+ * merely nudged down the order — see `excludesRiskyProtein` above for why
+ * this is a hard exclusion and not a bias. Falls back to the unfiltered pool
+ * if that would ever empty it (it does not today — fish, chicken, turkey
+ * and snail all carry no healthNote and stay eligible). Omitting it (the
+ * default, an empty array) reproduces today's behaviour exactly.
+ *
  * `calorieTargetForMeal` (Plus/Dietitian tier, same gate as `bias`) works
  * differently from `bias`, on purpose: a plain scoring tiebreak was tried
  * first and did not work, because the day-stride below walks every position
@@ -310,6 +358,7 @@ export function planForDay(
   liked: Map<string, number> = new Map(),
   bias: PlateAxes | null = null,
   calorieTargetForMeal: number | null = null,
+  conditions: Condition[] = [],
 ): MealIdea {
   const list = IDEAS[meal];
   const n = list.length;
@@ -339,6 +388,18 @@ export function planForDay(
     return { idea, eaten: eaten + goalAdjust, tie: hash(`${meal}#${i}`), planCalories, diff: 0 };
   });
 
+  // A hard exclusion, not a reorder (see `excludesRiskyProtein` above): drop
+  // any idea whose protein is one that food's own `healthNote` already warns
+  // this person about. Falls back to the unfiltered list if this would ever
+  // empty it, so a rare edge case can never leave nothing to serve.
+  let base = scored;
+  if (excludesRiskyProtein(conditions)) {
+    const safe = scored.filter(
+      (s) => !s.idea.foods.some((f) => CONDITION_EXCLUDED_PROTEIN_IDS.has(f.id)),
+    );
+    if (safe.length > 0) base = safe;
+  }
+
   // A calorie target (Plus/Dietitian tier) is NOT a minor tiebreak added on
   // top of the full list — a tiebreak this small was getting lost entirely,
   // because the day-stride below walks every position in the sorted list
@@ -349,9 +410,9 @@ export function planForDay(
   // before, but only within that narrower pool. This keeps every existing
   // guarantee (still green, still no-repeat, still respects avoidIndexes) —
   // it only changes WHICH plates are in rotation, never how rotation works.
-  let pool = scored;
+  let pool = base;
   if (calorieTargetForMeal && calorieTargetForMeal > 0) {
-    const withDiff = scored.map((s) => ({
+    const withDiff = base.map((s) => ({
       ...s,
       diff: Math.abs(s.planCalories - calorieTargetForMeal),
     }));
@@ -366,7 +427,7 @@ export function planForDay(
     const close = withDiff.filter((s) => s.diff <= band);
     // Keep enough plates in rotation for real variety (never fewer than the
     // closest handful) even when the band above is stricter than that.
-    const MIN_POOL = Math.min(6, scored.length);
+    const MIN_POOL = Math.min(6, base.length);
     pool =
       close.length >= MIN_POOL
         ? close
@@ -508,11 +569,29 @@ interface ExtraCandidate {
  *
  * All 4 bars were re-applied on the same day to widen the pool past the
  * first 6 survivors ("are these the only 7 snacks you could come up with?
- * ... find more edible and enjoyable snacks"), adding `dambu-nama` (dried
- * shredded spiced beef, a real ready-to-eat Northern Nigerian food, eaten
- * "Alone or with vegetables" per its own data — genuine meat variety
- * alongside suya) and `bitter-kola` (chewed raw, "every day" frequency,
- * cheap and everywhere). Considered and rejected, and worth knowing why:
+ * ... find more edible and enjoyable snacks"), adding `bitter-kola` (chewed
+ * raw, "every day" frequency, cheap and everywhere).
+ *
+ * **A fifth bar was added 2026-09-06, and it removed two foods that had
+ * cleared the original four**: no candidate may be a PROCESSED meat,
+ * following a reviewing dietitian's direct feedback ("suya is a highly
+ * processed meat... you cannot recommend suya for somebody that is having
+ * diabetes"). This is independent of blood sugar (suya and dambu nama are
+ * both genuinely low-GI, meat-only foods) — processed meat carries its own,
+ * separately established cardiovascular/type-2-diabetes risk regardless of
+ * its glycaemic effect, which the GI-only verdict engine was never built to
+ * weigh. `suya` (grilled but salted and cured in a spice/oil rub) and
+ * `dambu-nama` (dried, salted, shredded beef) both fail this bar and were
+ * removed entirely — not condition-gated, since the concern applies to
+ * every person managing diabetes, not only those with a specific
+ * comorbidity flagged (contrast with `CONDITION_EXCLUDED_PROTEIN_IDS`
+ * above: organ/red meat and high-salt dried fish are all fine for blood
+ * sugar, and stay offered by default, only excluded for the specific
+ * conditions their own healthNote already names). `docs/EVIDENCE.md` §9
+ * covers the research behind the remaining candidates and should be
+ * updated with this removal if it is revisited.
+ *
+ * The rest of the "already considered and rejected" list, worth keeping:
  * `groundnut`, `plain-yogurt`, `soy-milk`, `avocado` are all real no-cook
  * snacks but already used inside a BREAKFAST plate above, so the
  * "never both a meal and an extra" rule excludes them; `ube` (African pear)
@@ -571,22 +650,6 @@ const READY_TO_EAT_EXTRAS: ExtraCandidate[] = [
     describe: (units, grams) => `About ${units} tablespoon${units === 1 ? "" : "s"} (about ${grams}g).`,
   },
   {
-    id: "suya",
-    scalable: true,
-    baseUnits: 7,
-    baseGrams: 90,
-    maxGrams: 180,
-    describe: (units, grams) => `About ${units} pieces of suya meat (about ${grams}g).`,
-  },
-  {
-    id: "dambu-nama",
-    scalable: true,
-    baseUnits: 4,
-    baseGrams: 60,
-    maxGrams: 120,
-    describe: (units, grams) => `About ${units} tablespoons of dambu nama (about ${grams}g).`,
-  },
-  {
     id: "bitter-kola",
     scalable: true,
     baseUnits: 2,
@@ -625,11 +688,6 @@ const MEAL_WORD: Record<NamedMeal, string> = {
   dinner: "dinner",
 };
 
-const FIXED_TIMING: Record<string, string> = {
-  suya: "Eat this on its own, any time of day. It is mostly meat, so it will not push your sugar up.",
-  "dambu-nama": "Eat this on its own, any time of day. It is mostly meat, so it will not push your sugar up.",
-};
-
 /**
  * WHEN to eat each extra, not just what and how much.
  *
@@ -648,9 +706,14 @@ const FIXED_TIMING: Record<string, string> = {
  * Every line avoids the house-banned words (`COPYWRITING-PLAYBOOK.md` §0.1),
  * same as every other card: no "spike", no "protein", no "portion" — see
  * scripts/plain-words.mjs's audit list.
+ *
+ * Every remaining candidate is one of the pre-meal nuts/seeds/spread in
+ * `PRE_MEAL_NUTS`, so that is the only branch left here since `suya` and
+ * `dambu-nama` (the two candidates that used to need their own fixed
+ * "eat this any time" line) were removed entirely — see the processed-meat
+ * bar above `READY_TO_EAT_EXTRAS`.
  */
 export function extraTimingFor(id: string, meal: NamedMeal): string {
-  if (FIXED_TIMING[id]) return FIXED_TIMING[id];
   if (PRE_MEAL_NUTS.has(id)) {
     return `Eat this 15 to 30 minutes before your ${MEAL_WORD[meal]}. It slows down how fast that meal pushes your sugar up.`;
   }
@@ -825,8 +888,31 @@ export function suggestExtras(
   const n = pool.length;
   const dayStart = dayNumber(dayKey) % n;
   const numVariants = Math.min(2, n);
-  const variants = Array.from({ length: numVariants }, (_, v) =>
-    buildVariant(pool, (dayStart + v) % n, remainingKcal),
-  );
+  const first = buildVariant(pool, dayStart, remainingKcal);
+  const variants: ExtraVariant[] = [first];
+
+  if (numVariants === 2) {
+    const firstIds = compositionKey(first);
+    // A genuinely huge gap maxes every candidate out, and "closest fit" for
+    // the second item then has no real distinguishing signal left — with a
+    // small pool this can make the very next starting index land on the
+    // same pair as `first`, just reordered (a real convergence, seen once
+    // the extras pool shrank to 6 foods — see the processed-meat removal
+    // above). Walk forward through every remaining starting index and keep
+    // the first one whose FOOD SET actually differs, so "Try a different
+    // snack" always shows a real change whenever the pool has more than 2
+    // foods to draw from. Falls back to the immediate next index (today's
+    // old behaviour) only if every rotation truly converges — a pool of 2.
+    let second = buildVariant(pool, (dayStart + 1) % n, remainingKcal);
+    for (let step = 2; step <= n - 1 && compositionKey(second) === firstIds; step++) {
+      second = buildVariant(pool, (dayStart + step) % n, remainingKcal);
+    }
+    variants.push(second);
+  }
   return { meal, variants };
+}
+
+/** The set of food ids in a variant, order-independent, for a same/different check. */
+function compositionKey(variant: ExtraVariant): string {
+  return variant.items.map((o) => o.food.id).sort().join(",");
 }

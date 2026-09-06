@@ -128,6 +128,7 @@ export default async function PartnersPage({
                 <PartnerReportButton
                   partnerId={open.partner.id}
                   partnerName={open.partner.name}
+                  partnerEmail={open.partner.email}
                   query={{
                     grain: period.grain,
                     y: String(period.y),
