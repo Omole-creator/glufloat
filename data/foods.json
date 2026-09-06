@@ -3637,7 +3637,7 @@
     "potassiumMg": 142,
     "sodiumMg": 8,
     "nutritionSource": "estimated",
-    "healthNote": "This is high in fat that can raise your cholesterol. If you have high cholesterol, high blood pressure, or heart trouble, use only one teaspoon at a time."
+    "healthNote": "This is high in fat that can raise your cholesterol. If you have high cholesterol, high blood pressure, or heart trouble, keep to the size shown below, and eat it less often."
   },
   {
     "id": "walnut",
@@ -4105,7 +4105,7 @@
     "frequency": "About 3 times a week.",
     "logicNote": "Has the natural sugar of milk. Do not use sweet condensed milk, which is red.",
     "tags": [],
-    "healthNote": "This is high in fat that can raise your cholesterol. If you have high cholesterol, high blood pressure, or heart trouble, use only one teaspoon at a time.",
+    "healthNote": "This is high in fat that can raise your cholesterol. If you have high cholesterol, high blood pressure, or heart trouble, keep to the size shown below, and eat it less often.",
     "portionIcon": "glass",
     "calories": 76,
     "proteinG": 4,
@@ -4226,7 +4226,7 @@
     "tags": [
       "local"
     ],
-    "healthNote": "This is high in fat that can raise your cholesterol. If you have high cholesterol, high blood pressure, or heart trouble, use only one teaspoon at a time.",
+    "healthNote": "This is high in fat that can raise your cholesterol. If you have high cholesterol, high blood pressure, or heart trouble, keep to the size shown below, and eat it less often.",
     "portionIcon": "pieces",
     "calories": 252,
     "proteinG": 18,
@@ -4257,7 +4257,7 @@
     "tags": [
       "local"
     ],
-    "healthNote": "This is high in fat that can raise your cholesterol. If you have high cholesterol, high blood pressure, or heart trouble, use only one teaspoon at a time.",
+    "healthNote": "This is high in fat that can raise your cholesterol. If you have high cholesterol, high blood pressure, or heart trouble, keep to the size shown below, and eat it less often.",
     "portionIcon": "spoon",
     "calories": 71,
     "proteinG": 0,
@@ -4350,7 +4350,7 @@
     "frequency": "About 3 times a week.",
     "logicNote": "No sugar impact. The bread under it is the issue.",
     "tags": [],
-    "healthNote": "This is high in fat that can raise your cholesterol. If you have high cholesterol, high blood pressure, or heart trouble, use only one teaspoon at a time.",
+    "healthNote": "This is high in fat that can raise your cholesterol. If you have high cholesterol, high blood pressure, or heart trouble, keep to the size shown below, and eat it less often.",
     "portionIcon": "spoon",
     "calories": 36,
     "proteinG": 0,
@@ -4381,7 +4381,7 @@
     "frequency": "About 3 times a week.",
     "logicNote": "Some sugar in salad cream. Use lightly.",
     "tags": [],
-    "healthNote": "This is high in fat that can raise your cholesterol. If you have high cholesterol, high blood pressure, or heart trouble, use only one teaspoon at a time.",
+    "healthNote": "This is high in fat that can raise your cholesterol. If you have high cholesterol, high blood pressure, or heart trouble, keep to the size shown below, and eat it less often.",
     "portionIcon": "spoon",
     "calories": 34,
     "proteinG": 0.1,
@@ -7098,7 +7098,7 @@
     "frequency": "About 3 times a week.",
     "logicNote": "Plain evaporated milk has the natural sugar of milk, so use one tablespoon. Do not use the sweet condensed kind.",
     "tags": [],
-    "healthNote": "This is high in fat that can raise your cholesterol. If you have high cholesterol, high blood pressure, or heart trouble, use only one teaspoon at a time.",
+    "healthNote": "This is high in fat that can raise your cholesterol. If you have high cholesterol, high blood pressure, or heart trouble, keep to the size shown below, and eat it less often.",
     "portionIcon": "spoon",
     "calories": 20,
     "proteinG": 1,
@@ -7693,7 +7693,7 @@
     "frequency": "About 3 times a week.",
     "logicNote": "No sugar impact, but still a heavy fat, so use one teaspoon.",
     "tags": [],
-    "healthNote": "This is high in fat that can raise your cholesterol. If you have high cholesterol, high blood pressure, or heart trouble, use only one teaspoon at a time.",
+    "healthNote": "This is high in fat that can raise your cholesterol. If you have high cholesterol, high blood pressure, or heart trouble, keep to the size shown below, and eat it less often.",
     "portionIcon": "spoon",
     "calories": 69,
     "proteinG": 0,

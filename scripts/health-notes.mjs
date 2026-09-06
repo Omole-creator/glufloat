@@ -31,8 +31,15 @@ const NOTES = {
   // and it was the ONLY plant of the eight she wanted a warning on.
   ogbono:
     "Ogbono seed is high in fat, and this dish is cooked with a lot of palm oil too. If you have high blood pressure, high cholesterol, or kidney problems, use less oil, go easy on the red meat, and keep to the size shown below.",
+  // "Use only one teaspoon at a time" was wrong for most of the 7 foods this
+  // note is on: coconut and wara are eaten in pieces, not spooned, and
+  // milk-full-cream's own real size (half a cup) is far more than a
+  // teaspoon, so the note directly contradicted the size shown right below
+  // it. Fixed 2026-09-06 to defer to that real size instead of asserting a
+  // unit that only fits butter/coconut-oil/mayonnaise — same pattern the
+  // `oil` note already uses.
   fat:
-    "This is high in fat that can raise your cholesterol. If you have high cholesterol, high blood pressure, or heart trouble, use only one teaspoon at a time.",
+    "This is high in fat that can raise your cholesterol. If you have high cholesterol, high blood pressure, or heart trouble, keep to the size shown below, and eat it less often.",
   kidney:
     "Do not eat this if you have kidney problems. Star fruit has a natural poison that strong kidneys clear but weak kidneys cannot, and it can make a kidney patient very sick.",
   // Alcohol stops the liver from releasing sugar, so the sugar can crash long
