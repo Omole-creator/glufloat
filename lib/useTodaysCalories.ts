@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { caloriesEatenToday, loggedFoodCounts, likedFoodCounts, INTAKE_CHANGED } from "@/lib/history";
-import { readPersonalizationProfile, PERSONALIZATION_CHANGED } from "@/lib/personalizationProfile";
+import { readPersonalizationProfile, personalRotationKey, PERSONALIZATION_CHANGED } from "@/lib/personalizationProfile";
 import { bmr, tdee, calorieTarget, remainingMealCalorieTarget } from "@/lib/tdee";
 import { suggestExtras, planForDay, type ExtraSuggestionSet } from "@/lib/nextMeal";
 import { currentMeal, localDayKey } from "@/lib/mealtime";
@@ -177,6 +177,7 @@ export function useTodaysCalories(show: boolean): TodaysCalories {
     const mealShare = remainingMealCalorieTarget(dailyTarget, eatenToday, p.mealPattern, meal);
     const [counts, liked] = await Promise.all([loggedFoodCounts(), likedFoodCounts()]);
     const bias = biasVector({ goals: p.goals, activityLevel: p.activityLevel, conditions: p.conditions });
+    const personalKey = personalRotationKey(p);
     const idea = planForDay(
       meal,
       dayKey,
@@ -187,10 +188,11 @@ export function useTodaysCalories(show: boolean): TodaysCalories {
       bias,
       mealShare,
       p.conditions,
+      personalKey,
     );
     const plateCal = idea.foods.reduce((s, f) => s + (f.calories ?? 0), 0);
     const extrasGap = Math.max(0, mealShare - plateCal);
-    const extras = suggestExtras(extrasGap, dayKey, meal, p.conditions);
+    const extras = suggestExtras(extrasGap, dayKey, meal, p.conditions, personalKey);
     // The best any variant reaches — usually variants[0] (sized closest to
     // the gap), but take the max in case a later variant ever does better,
     // so this never overstates a shortfall that a variant already covers.

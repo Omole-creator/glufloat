@@ -14,6 +14,7 @@ import type { Food } from "@/lib/types";
 import { nextEatenMeal } from "@/lib/mealPattern";
 import {
   readPersonalizationProfile,
+  personalRotationKey,
   PERSONALIZATION_CHANGED,
   type PersonalizationProfile,
   type MedTime,
@@ -146,7 +147,18 @@ export default function TodaysMeal({
       b: PlateAxes | null,
     ) => {
       const calTarget = await calorieTargetFor(m);
-      const next = planForDay(m, dk, c, 0, toAvoid(m, dk), l, b, calTarget, profileRef.current.conditions);
+      const next = planForDay(
+        m,
+        dk,
+        c,
+        0,
+        toAvoid(m, dk),
+        l,
+        b,
+        calTarget,
+        profileRef.current.conditions,
+        personalRotationKey(profileRef.current),
+      );
       setIdea(next);
       setOffset(0);
       writeShown(m, dk, next.index);
@@ -238,7 +250,18 @@ export default function TodaysMeal({
     const n = offset + 1;
     setOffset(n);
     calorieTargetFor(meal).then((calTarget) => {
-      const next = planForDay(meal, dayKey, counts, n, toAvoid(meal, dayKey), liked, bias(), calTarget, profileRef.current.conditions);
+      const next = planForDay(
+        meal,
+        dayKey,
+        counts,
+        n,
+        toAvoid(meal, dayKey),
+        liked,
+        bias(),
+        calTarget,
+        profileRef.current.conditions,
+        personalRotationKey(profileRef.current),
+      );
       setIdea(next);
       writeShown(meal, dayKey, next.index);
     });

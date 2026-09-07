@@ -129,6 +129,31 @@ export async function readPersonalizationProfile(): Promise<PersonalizationProfi
   }
 }
 
+/**
+ * A plain, stable string built from a person's own saved profile — the
+ * `personalKey` `lib/nextMeal.ts`'s `planForDay()`/`suggestExtras()` fold
+ * into their day-position pick, so two different people (or the same
+ * person after a real profile change) do not converge on the identical
+ * plate purely because they happened to check on the same day. See
+ * `planForDay`'s own doc for the full story (a direct report: two people
+ * with different weight/goals got the same meal; the same person changing
+ * their own weight also got the same meal). Two profiles that agree on
+ * every field here — including two people who genuinely have not entered
+ * anything — correctly produce the same key; that is not a bug, it means
+ * there is no personal signal to differentiate on yet.
+ */
+export function personalRotationKey(p: PersonalizationProfile): string {
+  return [
+    p.sex ?? "",
+    p.ageYears ?? "",
+    p.weightKg ?? "",
+    p.heightCm ?? "",
+    p.activityLevel ?? "",
+    [...p.goals].sort().join("+"),
+    [...p.conditions].sort().join("+"),
+  ].join("|");
+}
+
 export async function savePersonalizationProfile(p: PersonalizationProfile): Promise<boolean> {
   try {
     const supabase = createClient();

@@ -348,6 +348,33 @@ function stride(n: number): number {
  * every existing guarantee (green-only, no-repeat, avoidIndexes respected)
  * still holds, only the SET of plates being rotated through changes.
  * Omitting it (the default) reproduces today's behaviour exactly.
+ *
+ * `personalKey` (added 2026-09-08, same gate as `bias`) fixes a real, direct
+ * report: two different people, with genuinely different weight/goals/
+ * activity, were getting the exact SAME plate on the same day — and the
+ * SAME person, after changing their own weight, still got the same plate
+ * too. Root cause, confirmed with real numbers: `pos` below was a function
+ * of the DAY ONLY (`dayNumber(dayKey) * step + offset`) — `bias` only
+ * reorders the pool's SORT ORDER, and for a narrow pool (especially once
+ * `calorieTargetForMeal` has already trimmed it down) two different bias
+ * vectors often produce the same RELATIVE ordering even though their
+ * absolute scores differ, so the same fixed day-position can land on the
+ * same entry for very different people. `personalKey` is a plain string the
+ * caller builds from the person's own saved profile (sex/age/weight/height/
+ * activity/goals/conditions — see `components/TodaysMeal.tsx` and
+ * `lib/useTodaysCalories.ts`) and is folded into `pos` as an additive salt,
+ * the same mechanism `offset` already uses for "try another meal": it never
+ * changes the sort order or the pool membership (so green-only, the
+ * calorie-target narrowing, and avoidIndexes are all untouched), it only
+ * shifts WHICH position in that same ranked list this person's day lands on
+ * — the stride-coprime property that guarantees full-cycle coverage before
+ * any repeat holds for any additive constant, so a person's own no-repeat
+ * guarantee is unaffected, and changing ANY saved detail (weight, a goal,
+ * activity) changes their salt and therefore their plate, immediately.
+ * Omitting it (the default, `""`) reproduces today's behaviour exactly —
+ * `hash("")` is never computed, so this is a true no-op for every existing
+ * caller (`scripts/meal-ideas-test.ts`, `scripts/goal-ranking-test.ts`,
+ * `scripts/calorie-ranking-test.ts`) that does not pass it.
  */
 export function planForDay(
   meal: NamedMeal,
@@ -359,6 +386,7 @@ export function planForDay(
   bias: PlateAxes | null = null,
   calorieTargetForMeal: number | null = null,
   conditions: Condition[] = [],
+  personalKey = "",
 ): MealIdea {
   const list = IDEAS[meal];
   const n = list.length;
@@ -445,7 +473,8 @@ export function planForDay(
 
   const m = pool.length;
   const step = stride(m);
-  let pos = (((dayNumber(dayKey) * step + offset) % m) + m) % m;
+  const salt = personalKey ? hash(personalKey) : 0;
+  let pos = (((dayNumber(dayKey) * step + offset + salt) % m) + m) % m;
   if (avoidIndexes.length > 0 && m > avoidIndexes.length) {
     let guard = 0;
     while (avoidIndexes.includes(pool[pos].idea.index) && guard < m) {
@@ -745,6 +774,16 @@ export interface ExtraOption {
 export interface ExtraVariant {
   items: ExtraOption[];
   totalCalories: number;
+  /**
+   * How many of `items`, counting from the start, are the typical 1-2
+   * shown by default (`MAX_EXTRA_ITEMS`). Any further items are an
+   * automatic top-up added only because the typical set could not close
+   * the day's real calorie gap on its own — see `buildVariant()`. The UI
+   * groups the display around this so a big-gap day still reads as
+   * "your usual pick, plus a bit more to fully meet today's number" rather
+   * than one undifferentiated pile.
+   */
+  coreCount: number;
 }
 
 export interface ExtraSuggestionSet {
@@ -767,14 +806,34 @@ const MIN_GAP_KCAL = 100;
 const MIN_ADD_KCAL = 20;
 
 /**
- * The most distinct real foods one variant may EVER combine — a hard product
- * cap, not a calorie ceiling (direct instruction, 2026-09-01, repeated after
- * the first fix still left a variant able to grow to the whole pool: "3
- * extra snacks in each green card ... can be overwhelming for users" / "1-2
- * extras card to meet calorie intake daily is required not 3"). A person is
- * never asked to eat more than 2 different snack items in one sitting to
- * close a gap — if 2 foods at their own safe maximum still is not enough,
- * the day is left honestly a little short rather than adding a 3rd.
+ * The TYPICAL number of distinct real foods a variant shows as its normal
+ * set — 2, per direct instruction 2026-09-01 ("3 extra snacks in each green
+ * card ... can be overwhelming for users" / "1-2 extras card to meet
+ * calorie intake daily is required not 3"). This governs `coreCount` (see
+ * `ExtraVariant`) and how `components/ExtraSuggestionCard.tsx` groups the
+ * display — it is NOT a hard stop on `buildVariant()` any more.
+ *
+ * **Changed 2026-09-08, direct instruction: "do what is best to always
+ * ensure they meet the calorie intake daily", automated, with no referral
+ * out** (a person reported the exact same meal AND extras across a normal-
+ * weight and an obese profile; traced to, among other things, extras
+ * hitting this 2-item stop identically in both cases even though their real
+ * gaps genuinely differed). A first attempt at "always meet the goal"
+ * showed a plain honest-shortfall message instead ("ask your dietitian") —
+ * rejected on the same instruction: GluFloat is meant to run automated,
+ * and a human referral is reserved for the paid dietitian-chat tier, not a
+ * stand-in for the app's own job. So `buildVariant()` now keeps adding
+ * more DISTINCT real foods, each still capped at its own researched safe
+ * maximum (`docs/EVIDENCE.md` §9), past this typical count, for as long as
+ * a real gap remains and the pool has an unused candidate left — up to the
+ * WHOLE pool (6 foods today, `READY_TO_EAT_EXTRAS`), which is enough to
+ * close nearly every realistic gap this file has been asked about (a
+ * measured worked example: 1,488kcal available across all 6 candidates at
+ * their own safe max, against a measured worst-case single-meal gap of
+ * 1,497-2,040kcal). In the common case (most real gaps, per
+ * scripts/calorie-ranking-test.ts's full-day walk) this closes within the
+ * same 1-2 items as before — nothing changes there. A food is still NEVER
+ * repeated within one variant.
  */
 export const MAX_EXTRA_ITEMS = 2;
 
@@ -809,30 +868,32 @@ function sizeExtra(candidate: ExtraCandidate, food: Food, targetKcal: number): E
 
 /**
  * Builds one variant starting with the food at `startIdx`, scaled up to its
- * own safe maximum if the gap needs it, and — ONLY if that alone was not
- * enough — a SECOND, DIFFERENT food, and nothing more (`MAX_EXTRA_ITEMS`, a
- * hard 2-item cap, direct instruction: "1-2 extras card to meet calorie
- * intake daily is required not 3 ... 3 extra snacks in each green card ...
- * can be overwhelming"). A food is never repeated (direct instruction,
- * 2026-08-31: "each recommendation, they should only eat it once ... if 20
- * nuts is safe ... say so instead of telling them to eat 10 nuts twice").
+ * own safe maximum if the gap needs it, then keeps adding the BEST-FIT
+ * DIFFERENT food — the one whose sized serving lands closest to whatever
+ * remains — for as long as a real gap remains (`MIN_ADD_KCAL`) and the pool
+ * still has an unused candidate. `coreCount` on the result marks how many
+ * items are the typical 1-2 (`MAX_EXTRA_ITEMS`, still the number shown as
+ * the "normal" set) versus an automatic top-up added past that, only
+ * because the typical set alone did not reach the day's real need — see
+ * `MAX_EXTRA_ITEMS`'s own doc for why this replaced an earlier hard 2-item
+ * stop. A food is never repeated (direct instruction, 2026-08-31: "each
+ * recommendation, they should only eat it once ... if 20 nuts is safe ...
+ * say so instead of telling them to eat 10 nuts twice").
  *
- * The second food is the BEST FIT from whatever remains in the pool — the
- * one whose sized serving lands closest to the leftover gap — not simply
- * "the next one in a fixed rotation." An earlier version always picked the
- * fixed next neighbour, which broke once a low-calorie candidate (bitter
- * kola, max ~48kcal) happened to sit next to another already-capped
- * candidate: that ONE rotation slot could never close even a modest gap,
- * while every other slot could. Best-fit removes this "unlucky pairing"
- * entirely — every starting point now closes a gap as well as the pool
- * genuinely allows.
+ * Best-fit (not "the next one in a fixed rotation") is what makes every
+ * starting point close a gap as well as the pool genuinely allows — an
+ * earlier version that always picked the fixed next neighbour broke once a
+ * low-calorie candidate (bitter kola, max ~48kcal) happened to sit next to
+ * another already-capped candidate, and that ONE rotation slot could never
+ * close even a modest gap while every other slot could.
  *
- * Two variants still use DIFFERENT foods, not a reorder of the same set:
- * they start from a different `startIdx`, so their FIRST food always
- * differs when the pool has more entries than the item cap — the earlier
- * design let a variant grow to the whole pool, which made two variants
- * converge on an identical set once a gap was big enough, and "Try a
- * different snack" only visibly reordered it.
+ * Two variants still use DIFFERENT foods, not a reorder of the same set, in
+ * the common case: they start from a different `startIdx`, so their FIRST
+ * food always differs. Only once a gap is so large that closing it needs
+ * the ENTIRE pool do two variants converge on the same set by necessity —
+ * there is no way to offer 2 genuinely different combinations that both use
+ * every candidate — and `suggestExtras()`'s own distinctness search already
+ * falls back gracefully when that happens.
  */
 function buildVariant(
   pool: { candidate: ExtraCandidate; food: Food }[],
@@ -842,27 +903,34 @@ function buildVariant(
   const first = pool[startIdx];
   const sizedFirst = sizeExtra(first.candidate, first.food, targetKcal);
   const items: ExtraOption[] = [sizedFirst];
+  const used = new Set<number>([startIdx]);
   let left = targetKcal - sizedFirst.calories;
 
-  if (left >= MIN_ADD_KCAL && MAX_EXTRA_ITEMS >= 2) {
+  while (left >= MIN_ADD_KCAL && used.size < pool.length) {
     let best: ExtraOption | null = null;
+    let bestIdx = -1;
     let bestDiff = Infinity;
     for (let i = 0; i < pool.length; i++) {
-      if (i === startIdx) continue;
+      if (used.has(i)) continue;
       const { candidate, food } = pool[i];
       const sized = sizeExtra(candidate, food, left);
       const diff = Math.abs(sized.calories - left);
       if (diff < bestDiff) {
         bestDiff = diff;
         best = sized;
+        bestIdx = i;
       }
     }
-    if (best) {
-      items.push(best);
-      left -= best.calories;
-    }
+    if (!best) break;
+    items.push(best);
+    used.add(bestIdx);
+    left -= best.calories;
   }
-  return { items, totalCalories: items.reduce((s, o) => s + o.calories, 0) };
+  return {
+    items,
+    totalCalories: items.reduce((s, o) => s + o.calories, 0),
+    coreCount: Math.min(MAX_EXTRA_ITEMS, items.length),
+  };
 }
 
 /**
@@ -906,12 +974,20 @@ function guardedCandidate(candidate: ExtraCandidate, food: Food, capProtein: boo
  * `conditions` (optional, default none) is the same free-on-every-tier signal
  * `planForDay` already takes — see `guardedCandidate` above for what it does
  * here. Omitting it reproduces today's behaviour exactly.
+ *
+ * `personalKey` (optional, default `""`) is the same personal salt
+ * `planForDay` takes (see its own doc) — folded into which candidate a
+ * variant starts from, so two different people (or the same person after a
+ * real profile change) do not always land on the same starting food purely
+ * because they happened to check on the same day. Omitting it reproduces
+ * today's behaviour exactly.
  */
 export function suggestExtras(
   remainingKcal: number,
   dayKey: string,
   meal: NamedMeal,
   conditions: Condition[] = [],
+  personalKey = "",
 ): ExtraSuggestionSet | null {
   if (!remainingKcal || remainingKcal < MIN_GAP_KCAL) return null;
   const capProtein = conditions.includes("kidney_disease");
@@ -925,9 +1001,11 @@ export function suggestExtras(
   // At most 2 variants (fewer only if the pool itself is smaller), each
   // starting its own cycle from a different candidate — so the 2 choices are
   // genuinely different foods, not a cosmetic reorder of the same one. Which
-  // pair leads rotates by day (dayNumber(dayKey) picks the starting index).
+  // pair leads rotates by day (dayNumber(dayKey) picks the starting index),
+  // salted per-person the same way planForDay's `pos` is.
   const n = pool.length;
-  const dayStart = dayNumber(dayKey) % n;
+  const salt = personalKey ? hash(personalKey) : 0;
+  const dayStart = (((dayNumber(dayKey) + salt) % n) + n) % n;
   const numVariants = Math.min(2, n);
   const first = buildVariant(pool, dayStart, remainingKcal);
   const variants: ExtraVariant[] = [first];
