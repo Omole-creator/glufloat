@@ -626,10 +626,16 @@ export function planForDay(
     );
     const goalAdjust = bias ? GOAL_BIAS_WEIGHT * biasScore(idea.foods, bias) : 0;
     const planCalories = planCaloriesOf(list[i]);
+    // Whether this plate actually HAS a food scaleMainProtein/scaleMainSide
+    // can work with — used below (only when a calorie target is active) so
+    // the rotation does not leave whether scaling ever fires to chance.
+    const hasScalable = idea.foods.some(
+      (f) => MAIN_PROTEIN_BASE_GRAMS[f.id] != null || MAIN_SIDE_CONFIG[f.id] != null,
+    );
     // `diff` defaults to 0 here (no target given) so the pool has a uniform
     // shape whether or not the calorie-target narrowing below runs, and the
     // final sort's `diff` tiebreak (see below) is a no-op in that case.
-    return { idea, eaten: eaten + goalAdjust, tie: hash(`${meal}#${i}`), planCalories, diff: 0 };
+    return { idea, eaten: eaten + goalAdjust, tie: hash(`${meal}#${i}`), planCalories, diff: 0, hasScalable };
   });
 
   // A hard exclusion, not a reorder (see `excludesRiskyProtein` above): drop
@@ -679,13 +685,30 @@ export function planForDay(
   }
 
   // `eaten` (least-eaten-first, the variety/no-repeat guarantee) stays the
-  // primary key, unchanged. `diff` (distance from this meal's calorie
-  // target) is a new secondary key, ahead of the fixed hash tiebreak: when
-  // several pool members tie on `eaten` — common, since most of a narrowed
-  // pool hasn't been eaten recently — this biases toward the plate closest
-  // to target rather than picking arbitrarily among them, which is what
-  // actually closes the calorie gap rather than merely making it eligible.
-  pool.sort((a, b) => a.eaten - b.eaten || a.diff - b.diff || a.tie - b.tie);
+  // primary key, unchanged. When a calorie target is active, `hasScalable`
+  // is the next key — direct founder feedback, 2026-09-08: the blue card
+  // was not consistently covering "most" of a demanding target, traced to
+  // the rotation sometimes landing on a plate with NO scalable protein/side
+  // at all (only 5 of 11 SOUP_PROTEINS, and 5 of the 20 BREAKFAST plates,
+  // are actually scalable), leaving scaleMainProtein/scaleMainSide's own
+  // safe ceiling unused purely by chance. Preferring a scalable plate among
+  // otherwise-equal candidates does not raise how much any single serving
+  // may safely grow — that ceiling is unchanged — it only makes sure the
+  // plate ACTUALLY USES the safe headroom it has, every time a calorie
+  // target calls for it, rather than leaving it to which plate the
+  // least-eaten order happens to reach first. `diff` (distance from this
+  // meal's calorie target) is the tiebreak after that, ahead of the fixed
+  // hash: when several pool members still tie, this biases toward the
+  // plate closest to target rather than picking arbitrarily among them.
+  pool.sort(
+    (a, b) =>
+      a.eaten - b.eaten ||
+      (calorieTargetForMeal && calorieTargetForMeal > 0
+        ? Number(b.hasScalable) - Number(a.hasScalable)
+        : 0) ||
+      a.diff - b.diff ||
+      a.tie - b.tie,
+  );
 
   const m = pool.length;
   const step = stride(m);
@@ -1033,12 +1056,13 @@ export interface ExtraVariant {
 export interface ExtraSuggestionSet {
   meal: NamedMeal;
   /**
-   * 2 real, independently-complete ways to close this meal's gap. Each
-   * variant on its own already sums to this meal's own fair share of the
-   * day's target, so whichever ONE a person picks and eats, the day's
-   * numbers still add up to the full calorie goal. This is what "Try a
-   * different snack" cycles between: the whole variant swaps, never one
-   * item within it.
+   * Up to 2 real, independently-built ways to close this meal's gap. Each
+   * variant closes the gap AS CLOSE AS a safe, at-most-2-item combination
+   * honestly can — for most real gaps that is exactly the gap, but for a
+   * genuinely demanding target (see `MAX_EXTRA_ITEMS`'s own doc) it may be
+   * a real, honest shortfall rather than an exact match; it never becomes a
+   * 3rd item to close the rest. This is what "Try a different snack"
+   * cycles between: the whole variant swaps, never one item within it.
    */
   variants: ExtraVariant[];
 }
@@ -1050,49 +1074,45 @@ const MIN_GAP_KCAL = 100;
 const MIN_ADD_KCAL = 20;
 
 /**
- * The TYPICAL number of distinct real foods a variant shows as its normal
- * set — 2, per direct instruction 2026-09-01 ("3 extra snacks in each green
- * card ... can be overwhelming for users" / "1-2 extras card to meet
- * calorie intake daily is required not 3"). This governs `coreCount` (see
- * `ExtraVariant`) and how `components/ExtraSuggestionCard.tsx` groups the
- * display — it is NOT a hard stop on `buildVariant()` any more.
+ * The number of distinct real foods a variant may EVER show — 2, per direct
+ * instruction 2026-09-01 ("3 extra snacks in each green card ... can be
+ * overwhelming for users" / "1-2 extras card to meet calorie intake daily
+ * is required not 3"). This governs `coreCount` (see `ExtraVariant`) and
+ * how `components/ExtraSuggestionCard.tsx` groups the display.
  *
- * **Changed 2026-09-08, direct instruction: "do what is best to always
- * ensure they meet the calorie intake daily", automated, with no referral
- * out** (a person reported the exact same meal AND extras across a normal-
- * weight and an obese profile; traced to, among other things, extras
- * hitting this 2-item stop identically in both cases even though their real
- * gaps genuinely differed). A first attempt at "always meet the goal"
- * showed a plain honest-shortfall message instead ("ask your dietitian") —
- * rejected on the same instruction: GluFloat is meant to run automated,
- * and a human referral is reserved for the paid dietitian-chat tier, not a
- * stand-in for the app's own job. So `buildVariant()` now keeps adding
- * more DISTINCT real foods, each still capped at its own researched safe
- * maximum (`docs/EVIDENCE.md` §9), past this typical count, for as long as
- * a real gap remains and the pool has an unused candidate left — up to the
- * WHOLE pool (6 foods today, `READY_TO_EAT_EXTRAS`), which is enough to
- * close nearly every realistic gap this file has been asked about (a
- * measured worked example: 1,488kcal available across all 6 candidates at
- * their own safe max, against a measured worst-case single-meal gap of
- * 1,497-2,040kcal). In the common case (most real gaps, per
- * scripts/calorie-ranking-test.ts's full-day walk) this closes within the
- * same 1-2 items as before — nothing changes there. A food is still NEVER
- * repeated within one variant.
+ * **This went through three real designs, in order, and the third is the
+ * current, binding one:**
  *
- * **Tightened 2026-09-08 (later the same day), direct founder instruction,
- * non-negotiable: "keep extras to less than 2 and preferably nothing...
- * as long as it is safe based on thorough research about the blue card
- * meals recommendations."** Two changes came out of that instruction, both
- * upstream of this constant: `scaleMainProtein` and the new `scaleMainSide`
- * now close a meaningful part of a meal's gap from the PLATE itself before
- * extras are even considered (see their own docs), and `buildVariant` below
- * was rewritten to actively search for the FEWEST items that get close
- * enough, rather than greedily accumulating from a fixed rotation start —
- * the greedy top-up described above is now the rare fallback for a gap a
- * safe 1-or-2-item combination genuinely cannot reach, not the everyday
- * path. `MAX_EXTRA_ITEMS` itself is unchanged (2 was already the right
- * number); what changed is that the algorithm now actually tries to stay
- * at or under it instead of treating it as a soft label.
+ * 1. **A hard 2-item stop (original).** Once a demanding target was
+ *    reported to leave "calories remaining" stuck at a large, unexplained
+ *    number, and two very different people were found producing identical
+ *    extras (both saturating this same 2-item stop), a first fix tried an
+ *    honest-shortfall message instead ("ask your dietitian") — rejected on
+ *    direct instruction: GluFloat runs automated, and a human referral is
+ *    reserved for the paid dietitian-chat tier, not a stand-in for the
+ *    app's own job.
+ * 2. **An automatic top-up past 2 items (2026-09-08).** `buildVariant()`
+ *    was changed to keep adding more distinct real foods, each still
+ *    capped at its own researched safe maximum, for as long as a real gap
+ *    remained and the pool had an unused candidate — up to the WHOLE pool.
+ *    This closed a demanding target's calories, but at the direct cost of
+ *    the "less than 2" instruction: a real 3,000+kcal/day target, tested
+ *    live the same day, still produced 3 extras.
+ * 3. **A true hard cap of 2, current (2026-09-08, later the same day),
+ *    direct founder instruction, non-negotiable: "keep extras to less than
+ *    2 and preferably nothing... as long as it is safe based on thorough
+ *    research about the blue card meals recommendations."** `buildVariant()`
+ *    now NEVER returns more than 2 items — for a gap 2 safe items honestly
+ *    cannot reach, it returns the closest 1-or-2-item combination and
+ *    accepts a real shortfall, the same trade-off this file already
+ *    accepts for a `kidney_disease` profile and for a genuinely extreme
+ *    (50,000kcal) target. `scaleMainProtein` and `scaleMainSide` (see their
+ *    own docs) close a meaningful part of a meal's gap from the PLATE
+ *    itself, before extras are even considered, which is what keeps this
+ *    shortfall from being the common case — but it is not, and was never
+ *    going to be, a way to make it disappear entirely: the same safety
+ *    ceilings that make plate-scaling and extras safe also bound how much
+ *    of a genuinely large gap either one can ever close alone.
  */
 export const MAX_EXTRA_ITEMS = 2;
 
@@ -1138,116 +1158,80 @@ function acceptableDiff(targetKcal: number): number {
 }
 
 /**
- * Looks for the SMALLEST number of distinct foods (1, then 2) from `pool`
- * that lands within `acceptableDiff` of `targetKcal` — direct founder
- * instruction, non-negotiable: "keep extras to less than 2 and preferably
- * nothing." Walks the pool in rotation order starting at `startIdx` so
- * which food(s) lead still varies day to day and meal to meal, but a
- * candidate further round the rotation is only ever tried after every
- * closer-to-`startIdx` single-item option has been checked, so rotation
- * never costs an extra item when a 1-item answer was available somewhere in
- * the pool. Returns null if no 1-or-2-item combination gets close enough;
- * the caller then falls back to `greedyClose` for a gap only a genuinely
- * large, multi-item combination can reach.
- */
-function bestSmallCombo(
-  pool: { candidate: ExtraCandidate; food: Food }[],
-  startIdx: number,
-  targetKcal: number,
-): ExtraOption[] | null {
-  const n = pool.length;
-  const margin = acceptableDiff(targetKcal);
-
-  for (let step = 0; step < n; step++) {
-    const i = (startIdx + step) % n;
-    const sized = sizeExtra(pool[i].candidate, pool[i].food, targetKcal);
-    if (Math.abs(sized.calories - targetKcal) <= margin) return [sized];
-  }
-
-  for (let step = 0; step < n; step++) {
-    const i = (startIdx + step) % n;
-    const sizedFirst = sizeExtra(pool[i].candidate, pool[i].food, targetKcal);
-    const left = targetKcal - sizedFirst.calories;
-    if (left < MIN_ADD_KCAL) continue;
-    for (let j = 0; j < n; j++) {
-      if (j === i) continue;
-      const sizedSecond = sizeExtra(pool[j].candidate, pool[j].food, left);
-      const total = sizedFirst.calories + sizedSecond.calories;
-      if (Math.abs(total - targetKcal) <= margin) return [sizedFirst, sizedSecond];
-    }
-  }
-  return null;
-}
-
-/**
- * The exhaustive fallback for a gap no 1-or-2-item combination can safely
- * reach: keeps adding the next best-fit, never-repeated food from `pool`
- * until the gap closes or the pool runs out. This is now the RARE path —
- * see `MAX_EXTRA_ITEMS`'s own doc — reserved for a genuinely demanding
- * target `bestSmallCombo` truly cannot reach.
- */
-function greedyClose(
-  pool: { candidate: ExtraCandidate; food: Food }[],
-  startIdx: number,
-  targetKcal: number,
-): ExtraOption[] {
-  const n = pool.length;
-  const first = pool[startIdx];
-  const sizedFirst = sizeExtra(first.candidate, first.food, targetKcal);
-  const items: ExtraOption[] = [sizedFirst];
-  const used = new Set<number>([startIdx]);
-  let left = targetKcal - sizedFirst.calories;
-
-  while (left >= MIN_ADD_KCAL && used.size < n) {
-    let best: ExtraOption | null = null;
-    let bestIdx = -1;
-    let bestDiff = Infinity;
-    for (let i = 0; i < n; i++) {
-      if (used.has(i)) continue;
-      const { candidate, food } = pool[i];
-      const sized = sizeExtra(candidate, food, left);
-      const diff = Math.abs(sized.calories - left);
-      if (diff < bestDiff) {
-        bestDiff = diff;
-        best = sized;
-        bestIdx = i;
-      }
-    }
-    if (!best) break;
-    items.push(best);
-    used.add(bestIdx);
-    left -= best.calories;
-  }
-  return items;
-}
-
-/**
- * One real, complete way to close a meal's gap. Tries the FEWEST distinct
- * foods first (`bestSmallCombo`: 1 item, then 2), only reaching for more
- * (`greedyClose`) when no 1-or-2-item combination gets close enough — see
- * `MAX_EXTRA_ITEMS`'s own doc for why this order matters now (direct
- * founder instruction, non-negotiable: "keep extras to less than 2 and
- * preferably nothing"). Rotation (`startIdx`) still decides which food(s)
- * lead, so the same person is not shown an identical pick every day, but it
- * never overrides the fewest-items-first rule.
+ * Builds one variant of AT MOST `MAX_EXTRA_ITEMS` (2) distinct foods from
+ * `pool` — a HARD cap, not a soft target. Direct founder instruction, live
+ * test feedback 2026-09-08 (a real 3,000+kcal/day target still produced 3
+ * extras): an earlier version of this function fell back to a greedy
+ * multi-item top-up once no 1-or-2-item combination landed within a close
+ * margin of the gap, which is exactly what let a demanding target add a
+ * 3rd item. There is no fallback past 2 any more — for a gap 2 safe items
+ * genuinely cannot reach, this returns the CLOSEST achievable 1-or-2-item
+ * combination and accepts the real shortfall, the same trade-off already
+ * accepted elsewhere in this file for a kidney_disease profile and for a
+ * genuinely extreme (50,000kcal) target: an honest partial answer beats
+ * silently adding a 3rd food.
  *
- * Distinctness between the day's two variants is handled entirely by
- * `suggestExtras` retrying a DIFFERENT `startIdx` (never by excluding foods
- * outright) — an earlier version of this function took an `avoid` set to
- * exclude the first variant's foods from the second, which broke a real
- * case: once the first variant needs 3+ items to reach a large gap, only a
- * few foods are left to avoid INTO, and the second variant could no longer
- * independently reach anywhere near the same target. Retrying the starting
- * point instead lets the second variant draw on the FULL pool, same as the
- * first, while still landing on a genuinely different combination in the
- * common case.
+ * Walks the pool in rotation order from `startIdx` (so which food(s) lead
+ * still varies day to day and meal to meal) looking for a single item, then
+ * a pair, within `acceptableDiff` of `targetKcal` — returning the first one
+ * found, so rotation is respected whenever more than one option would do.
+ * If nothing gets that close, it falls back to whichever single item or
+ * pair (search across the WHOLE pool, not just the rotation order) lands
+ * CLOSEST overall, so a demanding gap still gets the best 2-item answer the
+ * pool can honestly give, never a worse one for the sake of rotation.
  */
 function buildVariant(
   pool: { candidate: ExtraCandidate; food: Food }[],
   startIdx: number,
   targetKcal: number,
 ): ExtraVariant {
-  const items = bestSmallCombo(pool, startIdx, targetKcal) ?? greedyClose(pool, startIdx, targetKcal);
+  const n = pool.length;
+  const margin = acceptableDiff(targetKcal);
+  let bestSingle: ExtraOption | null = null;
+  let bestSingleDiff = Infinity;
+
+  for (let step = 0; step < n; step++) {
+    const i = (startIdx + step) % n;
+    const sized = sizeExtra(pool[i].candidate, pool[i].food, targetKcal);
+    const diff = Math.abs(sized.calories - targetKcal);
+    if (diff <= margin) return finishVariant([sized]);
+    if (diff < bestSingleDiff) {
+      bestSingleDiff = diff;
+      bestSingle = sized;
+    }
+  }
+
+  let bestPair: ExtraOption[] | null = null;
+  let bestPairDiff = Infinity;
+  for (let step = 0; step < n; step++) {
+    const i = (startIdx + step) % n;
+    const sizedFirst = sizeExtra(pool[i].candidate, pool[i].food, targetKcal);
+    const left = targetKcal - sizedFirst.calories;
+    // A left this small means the first item alone already lands close to
+    // (or past) the target — adding a second, forced-to-1-unit item here
+    // would only make the total WORSE, not closer. Skip pairing from this
+    // first candidate entirely; its solo result is already tracked above.
+    if (left < MIN_ADD_KCAL) continue;
+    for (let j = 0; j < n; j++) {
+      if (j === i) continue;
+      const sizedSecond = sizeExtra(pool[j].candidate, pool[j].food, left);
+      const total = sizedFirst.calories + sizedSecond.calories;
+      const diff = Math.abs(total - targetKcal);
+      if (diff <= margin) return finishVariant([sizedFirst, sizedSecond]);
+      if (diff < bestPairDiff) {
+        bestPairDiff = diff;
+        bestPair = [sizedFirst, sizedSecond];
+      }
+    }
+  }
+
+  // Nothing landed within the margin — take whichever of the best single or
+  // best pair honestly gets closer, never more than 2 items either way.
+  if (bestPair && (!bestSingle || bestPairDiff <= bestSingleDiff)) return finishVariant(bestPair);
+  return finishVariant(bestSingle ? [bestSingle] : []);
+}
+
+function finishVariant(items: ExtraOption[]): ExtraVariant {
   return {
     items,
     totalCalories: items.reduce((s, o) => s + o.calories, 0),
