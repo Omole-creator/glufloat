@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Stethoscope } from "lucide-react";
-import { getAssignedDietitian } from "@/lib/dietitianChat";
+import { getAssignedDietitian, type AssignedDietitian } from "@/lib/dietitianChat";
 
 const GREETING = "Hi, I have diabetes and I would like some guidance.";
 
@@ -13,23 +13,30 @@ const GREETING = "Hi, I have diabetes and I would like some guidance.";
  * the real entitlement check lives server-side in assign_dietitian(), which
  * this component calls and trusts to refuse anyone who has not actually paid
  * for the dietitian tier.
+ *
+ * The assigned dietitian's own name (e.g. "Dtn Angela Chinele" for someone
+ * routed to a partner-reserved dietitian, see
+ * supabase/dietitian-partner-routing-schema.sql) is shown right on the
+ * button, 2026-09-07 — `dietitianChat.ts` already fetched it but nothing
+ * displayed it, so every user saw the same generic "Chat with my dietitian"
+ * regardless of who they were actually about to message.
  */
 export default function ChatWithDietitian() {
-  const [href, setHref] = useState<string | null>(null);
+  const [dietitian, setDietitian] = useState<AssignedDietitian | null>(null);
 
   useEffect(() => {
     let alive = true;
     getAssignedDietitian().then((d) => {
-      if (alive && d) {
-        setHref(`https://wa.me/${d.whatsappNumber}?text=${encodeURIComponent(GREETING)}`);
-      }
+      if (alive && d) setDietitian(d);
     });
     return () => {
       alive = false;
     };
   }, []);
 
-  if (!href) return null;
+  if (!dietitian) return null;
+
+  const href = `https://wa.me/${dietitian.whatsappNumber}?text=${encodeURIComponent(GREETING)}`;
 
   return (
     <div className="flex items-start gap-3 rounded-2xl bg-white p-4 shadow-[0_6px_28px_-14px_rgba(12,42,71,0.2)] ring-1 ring-brand/10">
@@ -47,7 +54,7 @@ export default function ChatWithDietitian() {
           rel="noopener noreferrer"
           className="mt-3 inline-flex items-center justify-center rounded-full bg-leaf px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-leaf-deep"
         >
-          Chat with my dietitian
+          Chat with {dietitian.name}
         </a>
       </div>
     </div>
