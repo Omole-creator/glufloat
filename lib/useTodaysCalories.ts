@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { caloriesEatenToday, loggedFoodCounts, likedFoodCounts, INTAKE_CHANGED } from "@/lib/history";
 import { readPersonalizationProfile, personalRotationKey, PERSONALIZATION_CHANGED } from "@/lib/personalizationProfile";
 import { bmr, tdee, calorieTarget, remainingMealCalorieTarget } from "@/lib/tdee";
-import { suggestExtras, planForDay, type ExtraSuggestionSet } from "@/lib/nextMeal";
+import { suggestExtras, planForDay, mealIdeaCalories, type ExtraSuggestionSet } from "@/lib/nextMeal";
 import { currentMeal, localDayKey } from "@/lib/mealtime";
 import { biasVector } from "@/lib/personalization";
 import { toAvoid } from "@/lib/mealRotationMemory";
@@ -190,13 +190,15 @@ export function useTodaysCalories(show: boolean): TodaysCalories {
       p.conditions,
       personalKey,
     );
-    const plateCal = idea.foods.reduce((s, f) => s + (f.calories ?? 0), 0);
-    // A bigger, still-safe protein serving (idea.scaledProtein) closes part
-    // of the gap directly within the plate, before extras — see
-    // scaleMainProtein()'s own doc in lib/nextMeal.ts. Subtract its real
-    // contribution so extras only ever cover what is genuinely still left.
-    const proteinExtraKcal = idea.scaledProtein?.extraCalories ?? 0;
-    const extrasGap = Math.max(0, mealShare - plateCal - proteinExtraKcal);
+    // mealIdeaCalories() already folds in scaledProtein/scaledSide's own
+    // contribution (a bigger, still-safe serving closes part of the gap
+    // directly within the plate, before extras — see scaleMainProtein's and
+    // scaleMainSide's own docs in lib/nextMeal.ts). Using the SAME helper
+    // components/TodaysMeal.tsx uses for its kcal badge, rather than each
+    // file summing the plate's calories its own way, is deliberate — see
+    // mealIdeaCalories's own doc for the bug that pattern already caused
+    // once.
+    const extrasGap = Math.max(0, mealShare - mealIdeaCalories(idea));
     const extras = suggestExtras(extrasGap, dayKey, meal, p.conditions, personalKey);
     // The best any variant reaches — usually variants[0] (sized closest to
     // the gap), but take the max in case a later variant ever does better,

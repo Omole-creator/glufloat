@@ -137,9 +137,11 @@ const MAIN_PROTEIN_MAX_MULTIPLIER = 1.75;
  * over a rounding-sized difference). */
 const MIN_PROTEIN_SCALE_KCAL = 20;
 
-/** One protein food, scaled up from its own normal serving to help close a
- * meal's real calorie gap directly, rather than only through extras. */
-export interface ScaledProtein {
+/** One food, scaled up from its own normal serving to help close a meal's
+ * real calorie gap directly, rather than only through extras. Shared shape
+ * for both the main-plate protein scaler and the breakfast side scaler
+ * below — `ScaledProtein` is kept as the name used at protein call sites. */
+export interface ScaledPortion {
   food: Food;
   name: string;
   /** The FULL new serving in grams (not just the added amount). */
@@ -153,6 +155,8 @@ export interface ScaledProtein {
    *  person sees both numbers, never just a bigger one with no anchor. */
   instruction: string;
 }
+
+export type ScaledProtein = ScaledPortion;
 
 /**
  * Scales up the first scalable protein found in `foods` (a resolved plate)
@@ -189,6 +193,83 @@ export function scaleMainProtein(
     calories,
     extraCalories: calories - baseKcal,
     instruction: `A bigger ${cleanFoodName(food.name).toLowerCase()} serving today: about ${grams}g, instead of the usual ${baseGrams}g. This helps meet your calorie goal, and protein this size stays safe for your sugar.`,
+  };
+}
+
+/**
+ * Real gram anchors and safe single-sitting ceilings for the second item on
+ * a BREAKFAST plate that is neither a starch nor a protein — a fat/dairy
+ * side, the same shape `docs/EVIDENCE.md` §9 already researched for the
+ * extras pool. Deliberately the exact 4 foods §9 already names as "real
+ * no-cook snacks, rejected from the extras pool only because they are
+ * already used inside a BREAKFAST plate" — that rejection reasoning points
+ * straight here: scale them as part of the meal they already belong to,
+ * the same way `scaleMainProtein` scales a lunch/dinner soup's protein.
+ * Multipliers researched against the ADA diabetes exchange list (fetched
+ * live 2026-09-07): groundnut's 30g base already equals exactly one ADA
+ * "fat exchange" (20 small peanuts), so 60g matches the same 60g/"1-2oz"
+ * ceiling §9 already set for walnut/cashew/tiger-nut; avocado's 75g base
+ * already exceeds a single ADA exchange (1/8 medium fruit), so a whole
+ * 150g fruit is an ordinary single-sitting amount; plain yogurt's 300g is a
+ * modest step past the ADA's one-cup (240g) milk exchange; soy milk gets a
+ * smaller 1.5x (not 2x) for the same reason coconut did in §9 — doubling a
+ * whole cup of one beverage in a sitting is a lot, a more modest top-up is
+ * more realistic. See `docs/EVIDENCE.md`'s breakfast-side-scaling section
+ * for the full citations. All four carry negligible sodium (5-113mg base).
+ */
+const MAIN_SIDE_CONFIG: Record<string, { baseGrams: number; maxGrams: number; unit: string }> = {
+  groundnut: { baseGrams: 30, maxGrams: 60, unit: "g" },
+  avocado: { baseGrams: 75, maxGrams: 150, unit: "g" },
+  "plain-yogurt": { baseGrams: 150, maxGrams: 300, unit: "g" },
+  "soy-milk": { baseGrams: 250, maxGrams: 375, unit: "ml" },
+};
+
+/** Same threshold `scaleMainProtein` uses — not worth a whole extra
+ * instruction over a rounding-sized difference. */
+const MIN_SIDE_SCALE_KCAL = 20;
+
+/**
+ * Scales up a breakfast plate's non-starch, non-protein side (groundnut,
+ * avocado, plain yogurt, or soy milk — see `MAIN_SIDE_CONFIG`) to help
+ * close `gapKcal` directly, the same idea as `scaleMainProtein` but for the
+ * one real lever a plain-toppings breakfast has (most breakfast plates have
+ * no `MAIN_PROTEIN_BASE_GRAMS` food at all). For a `kidney_disease` profile,
+ * a candidate whose own base serving already carries meaningful protein
+ * (plain yogurt 5.3g, soy milk 7g — both at or above the same
+ * `PROTEIN_CAP_THRESHOLD_G` threshold `guardedCandidate()` uses for extras;
+ * avocado at 1.5g and groundnut... see the exception below) is capped at
+ * exactly its base serving, never scaled past it. Groundnut's base (7.8g)
+ * is also above that threshold, so it is capped the same way for
+ * `kidney_disease` — avocado is the one side that still scales freely for
+ * that profile. Returns null when the plate has no matching side, the gap
+ * is too small to bother, or the food's own calories are unset.
+ */
+export function scaleMainSide(
+  foods: Food[],
+  gapKcal: number,
+  conditions: Condition[],
+): ScaledPortion | null {
+  if (!gapKcal || gapKcal < MIN_SIDE_SCALE_KCAL) return null;
+  const food = foods.find((f) => MAIN_SIDE_CONFIG[f.id] != null);
+  if (!food) return null;
+  const config = MAIN_SIDE_CONFIG[food.id];
+  const capProtein =
+    conditions.includes("kidney_disease") && (food.proteinG ?? 0) >= PROTEIN_CAP_THRESHOLD_G;
+  const maxGrams = capProtein ? config.baseGrams : config.maxGrams;
+  const baseKcal = food.calories ?? 0;
+  if (baseKcal <= 0) return null;
+  const kcalPerGram = baseKcal / config.baseGrams;
+  const targetGrams = config.baseGrams + Math.round(gapKcal / kcalPerGram);
+  const grams = Math.max(config.baseGrams, Math.min(maxGrams, targetGrams));
+  if (grams <= config.baseGrams) return null;
+  const calories = Math.round(grams * kcalPerGram);
+  return {
+    food,
+    name: cleanFoodName(food.name),
+    grams,
+    calories,
+    extraCalories: calories - baseKcal,
+    instruction: `A bigger ${cleanFoodName(food.name).toLowerCase()} serving today: about ${grams}${config.unit}, instead of the usual ${config.baseGrams}${config.unit}. This helps meet your calorie goal, and this size stays safe for your sugar.`,
   };
 }
 
@@ -349,6 +430,11 @@ export interface MealIdea {
    *  `calorieTargetForMeal` was given and `scaleMainProtein` found a real,
    *  safe amount to add. See that function's own doc. */
   scaledProtein?: ScaledProtein | null;
+  /** A breakfast side (groundnut/avocado/plain yogurt/soy milk) scaled up
+   *  the same way, for whatever of the meal's calorie gap is still left
+   *  after `scaledProtein` — see `scaleMainSide`'s own doc. Only ever set
+   *  by `planForDay` under the same conditions as `scaledProtein`. */
+  scaledSide?: ScaledPortion | null;
 }
 
 function resolve(meal: NamedMeal, index: number): MealIdea {
@@ -363,6 +449,24 @@ function resolve(meal: NamedMeal, index: number): MealIdea {
     index,
     count: list.length,
   };
+}
+
+/**
+ * The one true calorie total for a picked plate — its foods' own calories,
+ * plus whatever `scaledProtein`/`scaledSide` added. Both
+ * `lib/useTodaysCalories.ts` (sizing the extras gap) and
+ * `components/TodaysMeal.tsx` (the kcal badge shown on the card) must use
+ * this SAME function, never their own copy of the sum — two call sites
+ * quietly diverging on how a plate's calories are totalled is the exact
+ * class of bug already fixed once in this file's history (see CLAUDE.md's
+ * "Portion/calorie review" section).
+ */
+export function mealIdeaCalories(idea: MealIdea): number {
+  return (
+    idea.foods.reduce((s, f) => s + (f.calories ?? 0), 0) +
+    (idea.scaledProtein?.extraCalories ?? 0) +
+    (idea.scaledSide?.extraCalories ?? 0)
+  );
 }
 
 /** A small, stable hash so a day + an idea has one fixed pseudo-random order. */
@@ -604,14 +708,23 @@ export function planForDay(
   }
   const picked = pool[pos].idea;
   // Try to close part of this meal's own calorie gap directly within the
-  // plate (a bigger, still-safe protein serving) BEFORE extras — see
-  // scaleMainProtein()'s own doc for the safety reasoning and ceiling. Only
+  // plate (a bigger, still-safe protein serving, then a bigger breakfast
+  // side for whatever is still left) BEFORE extras — see scaleMainProtein's
+  // and scaleMainSide's own docs for the safety reasoning and ceilings. Only
   // when a real target was given; null for every existing caller that omits
   // calorieTargetForMeal, which is the exact "omitting it reproduces
   // today's behaviour exactly" promise this whole feature is built on.
+  // scaleMainSide runs against the RESIDUAL gap left after scaleMainProtein
+  // so the two can never double-count the same shortfall — in practice they
+  // never both find a match on the same plate today (the 5 scalable
+  // proteins and the 4 scalable sides never appear together in one plate),
+  // but the residual composition is correct either way, and safe if that
+  // ever changes.
   if (calorieTargetForMeal && calorieTargetForMeal > 0) {
     const gap = Math.max(0, calorieTargetForMeal - pool[pos].planCalories);
     picked.scaledProtein = scaleMainProtein(picked.foods, gap, conditions);
+    const residualGap = Math.max(0, gap - (picked.scaledProtein?.extraCalories ?? 0));
+    picked.scaledSide = scaleMainSide(picked.foods, residualGap, conditions);
   }
   return picked;
 }
@@ -965,6 +1078,21 @@ const MIN_ADD_KCAL = 20;
  * scripts/calorie-ranking-test.ts's full-day walk) this closes within the
  * same 1-2 items as before — nothing changes there. A food is still NEVER
  * repeated within one variant.
+ *
+ * **Tightened 2026-09-08 (later the same day), direct founder instruction,
+ * non-negotiable: "keep extras to less than 2 and preferably nothing...
+ * as long as it is safe based on thorough research about the blue card
+ * meals recommendations."** Two changes came out of that instruction, both
+ * upstream of this constant: `scaleMainProtein` and the new `scaleMainSide`
+ * now close a meaningful part of a meal's gap from the PLATE itself before
+ * extras are even considered (see their own docs), and `buildVariant` below
+ * was rewritten to actively search for the FEWEST items that get close
+ * enough, rather than greedily accumulating from a fixed rotation start —
+ * the greedy top-up described above is now the rare fallback for a gap a
+ * safe 1-or-2-item combination genuinely cannot reach, not the everyday
+ * path. `MAX_EXTRA_ITEMS` itself is unchanged (2 was already the right
+ * number); what changed is that the algorithm now actually tries to stay
+ * at or under it instead of treating it as a soft label.
  */
 export const MAX_EXTRA_ITEMS = 2;
 
@@ -998,50 +1126,83 @@ function sizeExtra(candidate: ExtraCandidate, food: Food, targetKcal: number): E
 }
 
 /**
- * Builds one variant starting with the food at `startIdx`, scaled up to its
- * own safe maximum if the gap needs it, then keeps adding the BEST-FIT
- * DIFFERENT food — the one whose sized serving lands closest to whatever
- * remains — for as long as a real gap remains (`MIN_ADD_KCAL`) and the pool
- * still has an unused candidate. `coreCount` on the result marks how many
- * items are the typical 1-2 (`MAX_EXTRA_ITEMS`, still the number shown as
- * the "normal" set) versus an automatic top-up added past that, only
- * because the typical set alone did not reach the day's real need — see
- * `MAX_EXTRA_ITEMS`'s own doc for why this replaced an earlier hard 2-item
- * stop. A food is never repeated (direct instruction, 2026-08-31: "each
- * recommendation, they should only eat it once ... if 20 nuts is safe ...
- * say so instead of telling them to eat 10 nuts twice").
- *
- * Best-fit (not "the next one in a fixed rotation") is what makes every
- * starting point close a gap as well as the pool genuinely allows — an
- * earlier version that always picked the fixed next neighbour broke once a
- * low-calorie candidate (bitter kola, max ~48kcal) happened to sit next to
- * another already-capped candidate, and that ONE rotation slot could never
- * close even a modest gap while every other slot could.
- *
- * Two variants still use DIFFERENT foods, not a reorder of the same set, in
- * the common case: they start from a different `startIdx`, so their FIRST
- * food always differs. Only once a gap is so large that closing it needs
- * the ENTIRE pool do two variants converge on the same set by necessity —
- * there is no way to offer 2 genuinely different combinations that both use
- * every candidate — and `suggestExtras()`'s own distinctness search already
- * falls back gracefully when that happens.
+ * How close (in kcal) a combination must land to `targetKcal` to count as
+ * "close enough" without needing a further item. Scales with the size of
+ * the gap (whole-unit rounding noise is proportionally bigger for a small
+ * ask than a large one) but never drops below a flat floor. `0.12` was
+ * picked to match the ±60kcal tolerance already proven workable for a
+ * typical 500kcal gap (`scripts/calorie-ranking-test.ts`).
  */
-function buildVariant(
+function acceptableDiff(targetKcal: number): number {
+  return Math.max(40, targetKcal * 0.12);
+}
+
+/**
+ * Looks for the SMALLEST number of distinct foods (1, then 2) from `pool`
+ * that lands within `acceptableDiff` of `targetKcal` — direct founder
+ * instruction, non-negotiable: "keep extras to less than 2 and preferably
+ * nothing." Walks the pool in rotation order starting at `startIdx` so
+ * which food(s) lead still varies day to day and meal to meal, but a
+ * candidate further round the rotation is only ever tried after every
+ * closer-to-`startIdx` single-item option has been checked, so rotation
+ * never costs an extra item when a 1-item answer was available somewhere in
+ * the pool. Returns null if no 1-or-2-item combination gets close enough;
+ * the caller then falls back to `greedyClose` for a gap only a genuinely
+ * large, multi-item combination can reach.
+ */
+function bestSmallCombo(
   pool: { candidate: ExtraCandidate; food: Food }[],
   startIdx: number,
   targetKcal: number,
-): ExtraVariant {
+): ExtraOption[] | null {
+  const n = pool.length;
+  const margin = acceptableDiff(targetKcal);
+
+  for (let step = 0; step < n; step++) {
+    const i = (startIdx + step) % n;
+    const sized = sizeExtra(pool[i].candidate, pool[i].food, targetKcal);
+    if (Math.abs(sized.calories - targetKcal) <= margin) return [sized];
+  }
+
+  for (let step = 0; step < n; step++) {
+    const i = (startIdx + step) % n;
+    const sizedFirst = sizeExtra(pool[i].candidate, pool[i].food, targetKcal);
+    const left = targetKcal - sizedFirst.calories;
+    if (left < MIN_ADD_KCAL) continue;
+    for (let j = 0; j < n; j++) {
+      if (j === i) continue;
+      const sizedSecond = sizeExtra(pool[j].candidate, pool[j].food, left);
+      const total = sizedFirst.calories + sizedSecond.calories;
+      if (Math.abs(total - targetKcal) <= margin) return [sizedFirst, sizedSecond];
+    }
+  }
+  return null;
+}
+
+/**
+ * The exhaustive fallback for a gap no 1-or-2-item combination can safely
+ * reach: keeps adding the next best-fit, never-repeated food from `pool`
+ * until the gap closes or the pool runs out. This is now the RARE path —
+ * see `MAX_EXTRA_ITEMS`'s own doc — reserved for a genuinely demanding
+ * target `bestSmallCombo` truly cannot reach.
+ */
+function greedyClose(
+  pool: { candidate: ExtraCandidate; food: Food }[],
+  startIdx: number,
+  targetKcal: number,
+): ExtraOption[] {
+  const n = pool.length;
   const first = pool[startIdx];
   const sizedFirst = sizeExtra(first.candidate, first.food, targetKcal);
   const items: ExtraOption[] = [sizedFirst];
   const used = new Set<number>([startIdx]);
   let left = targetKcal - sizedFirst.calories;
 
-  while (left >= MIN_ADD_KCAL && used.size < pool.length) {
+  while (left >= MIN_ADD_KCAL && used.size < n) {
     let best: ExtraOption | null = null;
     let bestIdx = -1;
     let bestDiff = Infinity;
-    for (let i = 0; i < pool.length; i++) {
+    for (let i = 0; i < n; i++) {
       if (used.has(i)) continue;
       const { candidate, food } = pool[i];
       const sized = sizeExtra(candidate, food, left);
@@ -1057,6 +1218,36 @@ function buildVariant(
     used.add(bestIdx);
     left -= best.calories;
   }
+  return items;
+}
+
+/**
+ * One real, complete way to close a meal's gap. Tries the FEWEST distinct
+ * foods first (`bestSmallCombo`: 1 item, then 2), only reaching for more
+ * (`greedyClose`) when no 1-or-2-item combination gets close enough — see
+ * `MAX_EXTRA_ITEMS`'s own doc for why this order matters now (direct
+ * founder instruction, non-negotiable: "keep extras to less than 2 and
+ * preferably nothing"). Rotation (`startIdx`) still decides which food(s)
+ * lead, so the same person is not shown an identical pick every day, but it
+ * never overrides the fewest-items-first rule.
+ *
+ * Distinctness between the day's two variants is handled entirely by
+ * `suggestExtras` retrying a DIFFERENT `startIdx` (never by excluding foods
+ * outright) — an earlier version of this function took an `avoid` set to
+ * exclude the first variant's foods from the second, which broke a real
+ * case: once the first variant needs 3+ items to reach a large gap, only a
+ * few foods are left to avoid INTO, and the second variant could no longer
+ * independently reach anywhere near the same target. Retrying the starting
+ * point instead lets the second variant draw on the FULL pool, same as the
+ * first, while still landing on a genuinely different combination in the
+ * common case.
+ */
+function buildVariant(
+  pool: { candidate: ExtraCandidate; food: Food }[],
+  startIdx: number,
+  targetKcal: number,
+): ExtraVariant {
+  const items = bestSmallCombo(pool, startIdx, targetKcal) ?? greedyClose(pool, startIdx, targetKcal);
   return {
     items,
     totalCalories: items.reduce((s, o) => s + o.calories, 0),
@@ -1144,14 +1335,12 @@ export function suggestExtras(
     .map((p) => ({ candidate: guardedCandidate(p.candidate, p.food, capProtein), food: p.food }));
   if (pool.length === 0) return null;
 
-  // At most 2 variants (fewer only if the pool itself is smaller), each
-  // starting its own cycle from a different candidate — so the 2 choices are
-  // genuinely different foods, not a cosmetic reorder of the same one. Which
-  // pair leads rotates by day (dayNumber(dayKey) picks the starting index),
-  // salted per-person the same way planForDay's `pos` is, AND per-meal
-  // (hash(meal), unconditional — see this function's own doc for the real
-  // bug this fixes: breakfast/lunch/dinner used to all start from the same
-  // food on the same day).
+  // At most 2 variants (fewer only if the pool itself is smaller). Which
+  // food(s) lead rotates by day (dayNumber(dayKey) picks the starting
+  // index), salted per-person the same way planForDay's `pos` is, AND
+  // per-meal (hash(meal), unconditional — see this function's own doc for
+  // the real bug this fixes: breakfast/lunch/dinner used to all start from
+  // the same food on the same day).
   const n = pool.length;
   const salt = (personalKey ? hash(personalKey) : 0) + hash(meal);
   const dayStart = (((dayNumber(dayKey) + salt) % n) + n) % n;
@@ -1161,16 +1350,13 @@ export function suggestExtras(
 
   if (numVariants === 2) {
     const firstIds = compositionKey(first);
-    // A genuinely huge gap maxes every candidate out, and "closest fit" for
-    // the second item then has no real distinguishing signal left — with a
-    // small pool this can make the very next starting index land on the
-    // same pair as `first`, just reordered (a real convergence, seen once
-    // the extras pool shrank to 6 foods — see the processed-meat removal
-    // above). Walk forward through every remaining starting index and keep
-    // the first one whose FOOD SET actually differs, so "Try a different
+    // Walk forward through starting indices (never excluding foods
+    // outright — see buildVariant's own doc for why) until the resulting
+    // SET genuinely differs from the first variant's, so "Try a different
     // snack" always shows a real change whenever the pool has more than 2
     // foods to draw from. Falls back to the immediate next index (today's
-    // old behaviour) only if every rotation truly converges — a pool of 2.
+    // old behaviour) only if every rotation truly converges — a pool of 2,
+    // or a gap so large it needs the entire pool either way.
     let second = buildVariant(pool, (dayStart + 1) % n, remainingKcal);
     for (let step = 2; step <= n - 1 && compositionKey(second) === firstIds; step++) {
       second = buildVariant(pool, (dayStart + step) % n, remainingKcal);

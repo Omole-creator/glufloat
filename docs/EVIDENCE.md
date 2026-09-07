@@ -697,3 +697,98 @@ food's own `portionGuidance` shown on its card everywhere else in the app
 are untouched — this is a separate, additive note shown only on
 `components/TodaysMeal.tsx`'s blue card when a real calorie target calls
 for it, never a change to the food's own canonical size.
+
+## 11. Breakfast side scaling: groundnut, avocado, plain yogurt, soy milk
+
+**Same footing as §9/§10 — a house bound, pending dietitian sign-off.**
+Built 2026-09-08 (later the same day as §10), direct follow-up to the same
+founder question: §10's protein scaler only applies to a plate that
+actually contains fish, chicken, turkey, snail or prawns/crayfish — but
+most `BREAKFAST` plates in `lib/nextMeal.ts` have none of those (only
+`beans-porridge` + `fish` does). Breakfast has the tightest real ceiling of
+the three meals (`MEAL_MAX_CALORIES.breakfast`, 425kcal) and the least room
+to close a calorie gap from the plate itself, so it is exactly where a
+second, independent lever matters most.
+
+**The candidates were not invented — §9 already named them.** §9's own
+"considered and rejected" note says `groundnut`, `avocado`, `plain-yogurt`
+and `soy-milk` are real no-cook snacks that were kept OUT of the extras pool
+specifically *because* they are already used as the second item on a
+`BREAKFAST` plate ("never both a meal and an extra"). That reasoning points
+straight at the fix: scale them as part of the meal they already belong to,
+the same way §10 scales a lunch/dinner soup plate's protein.
+
+**Sizing checked against the ADA diabetes exchange list** (fetched live,
+2026-09-07 — see the exchange-list source cited in §9's own verification
+note), not guessed:
+
+| Food | Base (already on the card) | Safe ceiling used | Basis |
+|---|---|---|---|
+| Groundnut | 30g (~20 nuts) | 60g (~40 nuts) | The ADA's fat-exchange serving is 20 small peanuts — the app's own 30g base already equals exactly ONE exchange. 60g matches the same 60g/"1-2oz" ceiling §9 already set for walnut/cashew/tiger-nut, on the same reasoning. |
+| Avocado | 75g (half a medium fruit) | 150g (a whole medium fruit) | The 75g base already exceeds a single ADA fat exchange (1/8 medium fruit). A whole fruit is an ordinary single-sitting real-world amount, not an invented figure. |
+| Plain yogurt | 150g | 300g (~1.25 cups) | The ADA classifies a whole cup (240g/8oz) as one milk exchange. 300g is a modest step past that cup, not a large one. |
+| Soy milk | 250ml | 375ml (1.5x, not 2x) | A full doubling to 500ml is a lot of one beverage in a single sitting. 1.5x mirrors why coconut in §9 got a smaller multiple (1.5x, not 2x) than the nuts — for the same reason: a more modest, more realistic top-up. |
+
+All four carry negligible sodium in their own base serving (groundnut 5mg,
+avocado 5mg, plain yogurt 69mg, soy milk 113mg — `data/foods.json`,
+`table`-grounded for groundnut and avocado), so unlike soup (§12 below),
+scaling any of these does not meaningfully move a person's daily sodium
+budget.
+
+**Kidney disease**: plain yogurt (5.3g protein/base) and soy milk (7g/base)
+both sit at or above `PROTEIN_CAP_THRESHOLD_G` (3g, the same threshold
+`guardedCandidate()` already uses for extras) — capped at exactly their base
+serving for a `kidney_disease` profile, same reasoning §10 applies to the
+main proteins. Groundnut (7.8g/base) is capped the same way. Avocado
+(1.5g/base) is the one side that still scales freely for that profile.
+
+**Composes with §10, never double-counts.** `lib/nextMeal.ts`'s
+`planForDay()` calls `scaleMainSide()` against the RESIDUAL gap left after
+`scaleMainProtein()` — in practice the two never both find a match on the
+same real plate today (the 5 scalable proteins and the 4 scalable sides
+never appear together in one `BREAKFAST`/`LUNCH`/`DINNER` entry, confirmed
+directly against the lists), but the composition is correct either way.
+
+**What this does not change**: same as §10 — the verdict, GI, `baseVerdict`
+and the food's own canonical `portionGuidance` are untouched; this is an
+additive note on `components/TodaysMeal.tsx`'s blue card only.
+
+## 12. Soup scaling: researched, and explicitly rejected
+
+**A parallel idea to §10/§11 that real sodium data rules out — recorded here
+so it is not re-litigated later**, matching this file's own "considered and
+rejected" convention (see §9's groundnut/avocado/soy-milk/yogurt note, and
+the suya/dambu-nama removal note above).
+
+Checked directly against `data/foods.json` for all 22 soups in
+`lib/nextMeal.ts`'s `SWALLOW_SOUPS`: every one of them, `healthNote` or not,
+already carries 300-850mg of sodium and 14-28g of fat in a single normal
+serving. This holds even for soups with **no** `healthNote` today — e.g.
+`efo-riro` (800mg sodium, 20g fat) and `afang-soup` (850mg sodium, 26.8g
+fat) sit as high or higher than several soups that DO carry one
+(`banga-soup` 350mg, `groundnut-soup` 330mg).
+
+Cross-checked against real clinical guidance (AHA, Mayo Clinic, and
+Healthline, fetched live 2026-09-08): the strict recommended sodium ceiling
+for someone with hypertension, diabetes, or kidney disease is **1,500mg for
+the entire day** (2,300mg for the general population). A single soup
+serving at 700-850mg is already 47-57% of the STRICT daily limit from one
+dish. Scaling any soup up further — even a modest multiple, the same idea
+§10/§11 apply to protein and breakfast sides — would push a single food past
+roughly half a day's entire safe sodium allowance. This is a real safety
+reason to reject the idea outright, not a style preference, and it is why no
+`scaleMainSoup()` exists in `lib/nextMeal.ts`.
+
+**A separate, related finding, flagged here but deliberately NOT fixed as
+part of this work**: the fact that `efo-riro`, `edikang-ikong`, `afang-soup`,
+`okra-soup` and `vegetable-soup` carry sodium/fat figures equal to or higher
+than soups that DO carry a `healthNote` looks like the same kind of
+`health-notes.mjs` coverage gap this codebase has hit before (see CLAUDE.md's
+`coconut` and `banga-rice` incidents). Worth a dietitian/founder look on its
+own, separately from calorie scaling — `health-notes.mjs` has its own
+diff-before-running discipline documented in CLAUDE.md, and this should go
+through that process, not be silently patched here.
+
+Sources: [Healthline, "Daily Salt Intake: How Much Sodium Should You Have?"](https://www.healthline.com/nutrition/sodium-per-day),
+[URMC, "Watching Salt When You Have Diabetes"](https://www.urmc.rochester.edu/encyclopedia/content?contenttypeid=85&contentid=P00352),
+[Mayo Clinic, "Sodium: How to tame your salt habit"](https://www.mayoclinic.org/healthy-lifestyle/nutrition-and-healthy-eating/in-depth/sodium/art-20045479).

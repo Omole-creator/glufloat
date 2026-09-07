@@ -20,6 +20,9 @@ import {
   planForDay,
   suggestExtras,
   extraTimingFor,
+  scaleMainProtein,
+  scaleMainSide,
+  mealIdeaCalories,
   MEAL_MAX_CALORIES,
   MAX_EXTRA_ITEMS,
 } from "../lib/nextMeal";
@@ -163,13 +166,19 @@ for (const meal of MEALS) {
         }
         // Continuous scaling should land very close to a moderate, easily
         // achievable gap — much tighter than the old fixed-preset design.
-        // How many items that takes depends on which specific candidate the
-        // day/meal/person rotation happens to start from (a low-ceiling one
-        // like bitter kola can need a 3rd small item to land this close) —
-        // that is expected under the 2026-09-08 automatic top-up, not a
-        // regression, so this only checks CLOSENESS, not a fixed item count.
         if (Math.abs(variant.totalCalories - 500) > 60) {
           fail(`suggestExtras(500, ..., ${meal}) landed at ${variant.totalCalories}kcal, too far from the 500kcal gap`);
+        }
+        // Restored 2026-09-08 (later the same day), direct founder
+        // instruction, non-negotiable: "keep extras to less than 2 and
+        // preferably nothing." buildVariant() was rewritten to actively
+        // search for the fewest items that get close enough (bestSmallCombo)
+        // before ever falling back to the old greedy top-up — a moderate,
+        // easily-closeable gap like this one must never need a 3rd item
+        // regardless of which candidate the day/meal/person rotation starts
+        // from (bitter kola's low ceiling included).
+        if (variant.items.length > MAX_EXTRA_ITEMS) {
+          fail(`suggestExtras(500, ..., ${meal}) needed ${variant.items.length} items for an easily-closeable gap — the typical 1-2 should have been enough`);
         }
       }
     }
@@ -358,11 +367,18 @@ for (const meal of MEALS) {
       // evenly split, not awkward split").
       const mealShare = remainingMealCalorieTarget(dailyTarget, eatenToday, MEALS, meal);
       const idea = planForDay(meal, dayKey, new Map(), 0, [], new Map(), null, mealShare);
-      const plateCal = planCalories(meal, idea.index);
+      // mealIdeaCalories() — the SAME function lib/useTodaysCalories.ts and
+      // components/TodaysMeal.tsx both use — folds in idea.scaledProtein and
+      // idea.scaledSide's own contribution, not just the plate's raw foods.
+      // Using a separate, narrower sum here (as this test used to) would be
+      // exactly the two-call-sites-diverge bug this file's own history
+      // already warns about (see mealIdeaCalories's own doc comment).
+      const plateCal = mealIdeaCalories(idea);
       // Same scoping the real app uses (lib/useTodaysCalories.ts): the
       // extras gap is THIS meal's own fair share minus its real plate
-      // ceiling, not the whole day's remaining — so a big target's extra
-      // eating is spread across all 3 meals, not front-loaded into one.
+      // ceiling (scaling included), not the whole day's remaining — so a
+      // big target's extra eating is spread across all 3 meals, not
+      // front-loaded into one.
       const extrasGap = Math.max(0, mealShare - plateCal);
       const extra = suggestExtras(extrasGap, dayKey, meal);
       // A real person picks ONE variant to eat; both are built to close the
@@ -378,17 +394,16 @@ for (const meal of MEALS) {
   // Realistic targets — the user's own worked example of 2,500, 2,800 /
   // 2,900, and the higher 3,200 / 3,430 (the exact reported bug's raw
   // TDEE), plus 6,000 (a genuinely demanding extra-active/build-muscle
-  // target) — must all close almost exactly now. Before the 2026-09-08
-  // automatic top-up (buildVariant() kept adding real, distinct, safely-
-  // capped foods past the typical 2-item set instead of stopping short —
-  // see MAX_EXTRA_ITEMS's own doc), 3,200/3,430 needed a loosened 400kcal
-  // floor because the pool's old hard 2-item stop capped what a single meal
-  // could ever close. Measured directly against the new code: 2,500 → 4kcal
-  // residual, 2,800 → -6, 2,900 → 2, 3,200 → 1, 3,430 → 1, 6,000 → 17 — a
-  // single tight floor now covers every one of these, including the
-  // previously-loosened targets. Checked across several different days,
-  // since which specific real plate gets served (and so each meal's exact
-  // total) varies day to day via the least-eaten-first rotation.
+  // target) — must all close almost exactly. Re-measured 2026-09-08 (later
+  // the same day) after wiring scaleMainProtein/scaleMainSide into the
+  // walk-through (mealIdeaCalories, not a raw plate sum — see its own call
+  // site above): across 5 different days, the worst residual seen for any
+  // of these 6 targets was 37kcal (2,900kcal target) — comfortably inside
+  // the existing 60kcal floor, which is kept as-is rather than tightened
+  // further, since this floor is a test tolerance, not a user-facing
+  // promise, and the small remaining variance is which specific real plate
+  // the least-eaten-first rotation happens to serve on a given day, not a
+  // gap the app fails to close.
   const TIGHT_FLOOR = 60;
   const days = ["2026-08-01", "2026-08-10", "2026-08-15", "2026-08-20", "2026-08-29"];
   for (const dailyTarget of [2500, 2800, 2900, 3200, 3430, 6000]) {
@@ -474,6 +489,114 @@ for (const meal of MEALS) {
     fail(
       "without kidney_disease, no protein-bearing extra candidate scaled past its base serving under a huge gap — the cap may not be condition-gated correctly",
     );
+  }
+}
+
+// ---- 8. scaleMainSide: the breakfast-side scaler (groundnut, avocado,
+//         plain yogurt, soy milk) — the second, independently-researched
+//         lever added 2026-09-08 (later the same day) alongside the
+//         ≤2-extras rework, since most breakfast plates have no scalable
+//         protein at all. -----------------------------------------------
+{
+  const foodsFor = (ids: string[]) => ids.map((id) => getFood(id)!).filter(Boolean);
+  const oatsGroundnut = foodsFor(["oats", "groundnut"]);
+  const eggsAvocado = foodsFor(["eggs", "avocado"]);
+  const moiMoiSoyMilk = foodsFor(["moi-moi", "soy-milk"]);
+  const oatsPlainYogurt = foodsFor(["oats", "plain-yogurt"]);
+  const noMatch = foodsFor(["fish", "chicken"]);
+
+  if (scaleMainSide(noMatch, 500, []) !== null) {
+    fail("scaleMainSide: a plate with no groundnut/avocado/plain-yogurt/soy-milk should return null");
+  }
+  if (scaleMainSide(oatsGroundnut, 10, []) !== null) {
+    fail("scaleMainSide: a gap under the minimum threshold should return null, not a no-op scale");
+  }
+
+  const groundnutConfigs: [string[], number, number][] = [
+    // [ids, baseGrams, maxGrams]
+    [["oats", "groundnut"], 30, 60],
+    [["eggs", "avocado"], 75, 150],
+    [["moi-moi", "soy-milk"], 250, 375],
+    [["oats", "plain-yogurt"], 150, 300],
+  ];
+  for (const [ids, baseGrams, maxGrams] of groundnutConfigs) {
+    const foods = foodsFor(ids);
+    const modest = scaleMainSide(foods, 100, []);
+    if (!modest) {
+      fail(`scaleMainSide(${ids.join("+")}, 100kcal) should find a real amount to add`);
+    } else {
+      if (modest.grams <= baseGrams) fail(`scaleMainSide(${ids.join("+")}): scaled grams (${modest.grams}) did not grow past the base (${baseGrams})`);
+      if (modest.grams > maxGrams) fail(`scaleMainSide(${ids.join("+")}): scaled grams (${modest.grams}) exceeded its own safe ceiling (${maxGrams})`);
+      if (modest.extraCalories <= 0) fail(`scaleMainSide(${ids.join("+")}): extraCalories should be positive when scaling occurred`);
+    }
+    // A huge gap must still cap at the food's own researched maximum, never
+    // invent a bigger amount.
+    const huge = scaleMainSide(foods, 100000, []);
+    if (!huge || huge.grams !== maxGrams) {
+      fail(`scaleMainSide(${ids.join("+")}, huge gap) should cap at exactly ${maxGrams}g, got ${huge?.grams}`);
+    }
+  }
+
+  // Kidney disease: plain yogurt, soy milk and groundnut all carry meaningful
+  // protein in their own base serving (>= PROTEIN_CAP_THRESHOLD_G) and must
+  // never scale past it for a kidney_disease profile — avocado (1.5g) is the
+  // one side that still scales freely, same reasoning guardedCandidate()
+  // already applies to extras.
+  if (scaleMainSide(oatsGroundnut, 100000, ["kidney_disease"]) !== null) {
+    fail("scaleMainSide: groundnut should never scale past its base serving for a kidney_disease profile");
+  }
+  if (scaleMainSide(moiMoiSoyMilk, 100000, ["kidney_disease"]) !== null) {
+    fail("scaleMainSide: soy milk should never scale past its base serving for a kidney_disease profile");
+  }
+  if (scaleMainSide(oatsPlainYogurt, 100000, ["kidney_disease"]) !== null) {
+    fail("scaleMainSide: plain yogurt should never scale past its base serving for a kidney_disease profile");
+  }
+  if (scaleMainSide(eggsAvocado, 1000, ["kidney_disease"]) === null) {
+    fail("scaleMainSide: avocado should still scale for a kidney_disease profile (low protein, unaffected)");
+  }
+
+  // scaleMainProtein and scaleMainSide together must never double-count a
+  // meal's gap — planForDay applies scaleMainSide to the RESIDUAL left after
+  // scaleMainProtein. Directly checked here since the two never actually
+  // co-occur on one real plate today (confirmed by grep of BREAKFAST/LUNCH/
+  // DINNER above) — this proves the composition is correct regardless.
+  const fishPlate = foodsFor(["beans-porridge", "fish"]);
+  const gap = 400;
+  const protein = scaleMainProtein(fishPlate, gap, []);
+  const residual = Math.max(0, gap - (protein?.extraCalories ?? 0));
+  if (protein && residual >= gap) {
+    fail("scaleMainProtein found a real amount but the residual gap for scaleMainSide did not shrink");
+  }
+
+  // mealIdeaCalories must sum foods + scaledProtein + scaledSide, never just
+  // one or the other — checked directly against a synthetic idea so this
+  // does not depend on which real plate the rotation happens to serve.
+  const synthetic = {
+    foods: oatsGroundnut,
+    names: oatsGroundnut.map((f) => f.name),
+    index: 0,
+    count: 1,
+    scaledProtein: { food: fishPlate[1], name: "Fish", grams: 150, calories: 300, extraCalories: 100, instruction: "" },
+    scaledSide: { food: oatsGroundnut[1], name: "Groundnut", grams: 60, calories: 340, extraCalories: 170, instruction: "" },
+  };
+  const rawSum = oatsGroundnut.reduce((s, f) => s + (f.calories ?? 0), 0);
+  const expected = rawSum + 100 + 170;
+  if (mealIdeaCalories(synthetic) !== expected) {
+    fail(`mealIdeaCalories should sum foods + scaledProtein.extraCalories + scaledSide.extraCalories, got ${mealIdeaCalories(synthetic)}, expected ${expected}`);
+  }
+
+  // End-to-end: planForDay must actually SET scaledSide on a real breakfast
+  // plate somewhere in real use, not just have a working standalone
+  // function — same "sawScaledProtein" pattern already used above for
+  // extras, applied to this new field.
+  let sawScaledSide = false;
+  for (let d = 0; d < 28; d++) {
+    const dayKey = `2026-08-${String(d + 1).padStart(2, "0")}`;
+    const idea = planForDay("breakfast", dayKey, new Map(), 0, [], new Map(), null, 500);
+    if (idea.scaledSide) sawScaledSide = true;
+  }
+  if (!sawScaledSide) {
+    fail("planForDay never set scaledSide on any breakfast plate across 28 days at a 500kcal target — the wiring may be broken");
   }
 }
 
