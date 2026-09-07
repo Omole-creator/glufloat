@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { RefreshCw, ArrowRight, Sunrise, Sun, Moon, Check, Pill } from "lucide-react";
+import { RefreshCw, ArrowRight, Sunrise, Sun, Moon, Check, Pill, Flame } from "lucide-react";
 import {
   currentMeal,
   localDayKey,
@@ -241,7 +241,9 @@ export default function TodaysMeal({
   if (!meal || !idea || idea.foods.length === 0) return null;
 
   const Icon = MEAL_ICON[meal];
-  const mealCalories = idea.foods.reduce((sum, f) => sum + (f.calories ?? 0), 0);
+  const mealCalories =
+    idea.foods.reduce((sum, f) => sum + (f.calories ?? 0), 0) +
+    (idea.scaledProtein?.extraCalories ?? 0);
   const another = () => {
     void trackUsage("meal_reroll");
     // They are walking away from this plate. Remember it, so it is not the one
@@ -316,6 +318,13 @@ export default function TodaysMeal({
           <div className="mt-4 flex items-start gap-2.5 rounded-xl bg-white/10 p-3 ring-1 ring-inset ring-white/15">
             <Pill className="mt-0.5 h-4 w-4 shrink-0 text-white/80" strokeWidth={2.2} />
             <p className="text-sm text-white/90">{medicationTimingCopy(medRelationToFood)}</p>
+          </div>
+        )}
+
+        {idea.scaledProtein && (
+          <div className="mt-4 flex items-start gap-2.5 rounded-xl bg-white/10 p-3 ring-1 ring-inset ring-white/15">
+            <Flame className="mt-0.5 h-4 w-4 shrink-0 text-white/80" strokeWidth={2.2} />
+            <p className="text-sm text-white/90">{idea.scaledProtein.instruction}</p>
           </div>
         )}
 

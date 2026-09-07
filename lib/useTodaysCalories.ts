@@ -191,7 +191,12 @@ export function useTodaysCalories(show: boolean): TodaysCalories {
       personalKey,
     );
     const plateCal = idea.foods.reduce((s, f) => s + (f.calories ?? 0), 0);
-    const extrasGap = Math.max(0, mealShare - plateCal);
+    // A bigger, still-safe protein serving (idea.scaledProtein) closes part
+    // of the gap directly within the plate, before extras — see
+    // scaleMainProtein()'s own doc in lib/nextMeal.ts. Subtract its real
+    // contribution so extras only ever cover what is genuinely still left.
+    const proteinExtraKcal = idea.scaledProtein?.extraCalories ?? 0;
+    const extrasGap = Math.max(0, mealShare - plateCal - proteinExtraKcal);
     const extras = suggestExtras(extrasGap, dayKey, meal, p.conditions, personalKey);
     // The best any variant reaches — usually variants[0] (sized closest to
     // the gap), but take the max in case a later variant ever does better,

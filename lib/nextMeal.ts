@@ -86,6 +86,113 @@ function excludesRiskyProtein(conditions: Condition[]): boolean {
 }
 
 /**
+ * The gram anchor for each scalable main-plate protein's OWN normal serving
+ * — read directly from that food's own `portionGuidance` (data/foods.json),
+ * the same real number already shown on its card, not a separate invented
+ * figure. Deliberately the exact same 5 foods `CONDITION_EXCLUDED_PROTEIN_IDS`
+ * excludes (every `SOUP_PROTEINS` entry with NO healthNote): scaling a
+ * protein that already carries a salt/fat/cardiovascular caution
+ * (beef, goat meat, pomo, shaki, stockfish, smoked fish) would compound an
+ * existing concern, not just add calories, so those are never candidates
+ * here regardless of the calorie math. `eggs` is a real, common main-plate
+ * protein too but is deliberately excluded — its own portionGuidance
+ * ("One to two eggs") has no single clean gram anchor to scale from, and
+ * guessing one would be exactly the kind of invented number this codebase's
+ * history (see CLAUDE.md's `PortionMini` note) has already been burned by.
+ */
+const MAIN_PROTEIN_BASE_GRAMS: Record<string, number> = {
+  fish: 100,
+  chicken: 90,
+  turkey: 90,
+  snail: 90,
+  "prawns-crayfish": 90,
+};
+
+/**
+ * How far a scalable protein's serving may safely grow, researched
+ * 2026-09-08 (a founder question: can the main plate carry more of a
+ * person's calorie need directly, instead of relying on many small
+ * extras?). The honest answer has a real ceiling, not an open one: this
+ * app's OWN base servings already sit at 14-28g protein (roughly the
+ * commonly-cited 20-25g-per-meal target), and multiple sources caution that
+ * eating more than about 75g of protein in one meal can cause a mild,
+ * delayed rise in blood sugar 3-5 hours later — protein itself does not
+ * spike glucose, but a genuinely large amount still has a measurable
+ * gluconeogenesis effect. [Splenda](https://www.splenda.com/blog/the-importance-of-protein-for-people-with-diabetes/),
+ * [DiabetesTeam](https://www.diabetesteam.com/resources/best-protein-for-diabetes-nutrition-and-blood-sugar).
+ * 1.75x keeps every candidate here comfortably under that ceiling even at
+ * its own highest-protein food (chicken, 27.9g base → ~48.8g scaled, still
+ * well short of 75g) while still adding a real, worthwhile amount (roughly
+ * 60-150kcal depending on the food) — genuinely more of the meal's own
+ * calorie need met directly, never a "drastic" increase, because a drastic
+ * one is exactly what the research above says not to do. Documented here,
+ * pending dietitian sign-off, same footing as every other house number in
+ * this file.
+ */
+const MAIN_PROTEIN_MAX_MULTIPLIER = 1.75;
+
+/** How small the calorie gap has to be before scaling the protein up is not
+ * worth the bother — matches the same threshold `MIN_ADD_KCAL` uses for
+ * extras, for the same reason (not worth a whole extra serving instruction
+ * over a rounding-sized difference). */
+const MIN_PROTEIN_SCALE_KCAL = 20;
+
+/** One protein food, scaled up from its own normal serving to help close a
+ * meal's real calorie gap directly, rather than only through extras. */
+export interface ScaledProtein {
+  food: Food;
+  name: string;
+  /** The FULL new serving in grams (not just the added amount). */
+  grams: number;
+  /** The FULL new serving's calories (not just the added amount). */
+  calories: number;
+  /** calories - the food's own normal-serving calories; what this
+   *  contributes toward closing the meal's gap. */
+  extraCalories: number;
+  /** A plain instruction naming the new size against the normal one, so a
+   *  person sees both numbers, never just a bigger one with no anchor. */
+  instruction: string;
+}
+
+/**
+ * Scales up the first scalable protein found in `foods` (a resolved plate)
+ * to help close `gapKcal` of a meal's own calorie share — never past its
+ * own safe ceiling (`MAIN_PROTEIN_MAX_MULTIPLIER`), and never at all for a
+ * `kidney_disease` profile (protein is a real, tight daily budget for
+ * kidney disease — `lib/tdee.ts`'s `proteinCapG` — the same reasoning
+ * `lib/nextMeal.ts`'s own `guardedCandidate` already applies to extras).
+ * Returns null when the plate has no scalable protein, the gap is too
+ * small to bother, or the profile is kidney_disease.
+ */
+export function scaleMainProtein(
+  foods: Food[],
+  gapKcal: number,
+  conditions: Condition[],
+): ScaledProtein | null {
+  if (conditions.includes("kidney_disease")) return null;
+  if (!gapKcal || gapKcal < MIN_PROTEIN_SCALE_KCAL) return null;
+  const food = foods.find((f) => MAIN_PROTEIN_BASE_GRAMS[f.id] != null);
+  if (!food) return null;
+  const baseGrams = MAIN_PROTEIN_BASE_GRAMS[food.id];
+  const baseKcal = food.calories ?? 0;
+  if (baseKcal <= 0) return null;
+  const kcalPerGram = baseKcal / baseGrams;
+  const maxGrams = Math.round(baseGrams * MAIN_PROTEIN_MAX_MULTIPLIER);
+  const targetGrams = baseGrams + Math.round(gapKcal / kcalPerGram);
+  const grams = Math.max(baseGrams, Math.min(maxGrams, targetGrams));
+  if (grams <= baseGrams) return null;
+  const calories = Math.round(grams * kcalPerGram);
+  return {
+    food,
+    name: cleanFoodName(food.name),
+    grams,
+    calories,
+    extraCalories: calories - baseKcal,
+    instruction: `A bigger ${cleanFoodName(food.name).toLowerCase()} serving today: about ${grams}g, instead of the usual ${baseGrams}g. This helps meet your calorie goal, and protein this size stays safe for your sugar.`,
+  };
+}
+
+/**
  * Green soups that are genuinely eaten with a swallow. The stews and sauces
  * (tomato stew, ayamase, ofe akwu, garden egg sauce) are left out on purpose:
  * they are eaten with rice, and there is no green rice in the data, so pairing
@@ -237,6 +344,11 @@ export interface MealIdea {
   names: string[];
   index: number;
   count: number;
+  /** A protein in this plate scaled up to help close the meal's own
+   *  calorie gap directly — only ever set by `planForDay` when a
+   *  `calorieTargetForMeal` was given and `scaleMainProtein` found a real,
+   *  safe amount to add. See that function's own doc. */
+  scaledProtein?: ScaledProtein | null;
 }
 
 function resolve(meal: NamedMeal, index: number): MealIdea {
@@ -473,6 +585,14 @@ export function planForDay(
 
   const m = pool.length;
   const step = stride(m);
+  // Deliberately NOT folding `meal` into this salt (unlike suggestExtras()'s
+  // dayStart below, where it fixes a real, directly reported bug): breakfast,
+  // lunch and dinner already draw from entirely different IDEAS lists, so
+  // this position landing on the same relative slot never produces the same
+  // food — there is no real symptom here to fix, and doing it anyway would
+  // change `pos` unconditionally for every existing caller (including the
+  // ones with no personalKey), breaking the "omitting personalKey reproduces
+  // today's behaviour exactly" promise this parameter was built to keep.
   const salt = personalKey ? hash(personalKey) : 0;
   let pos = (((dayNumber(dayKey) * step + offset + salt) % m) + m) % m;
   if (avoidIndexes.length > 0 && m > avoidIndexes.length) {
@@ -482,7 +602,18 @@ export function planForDay(
       guard += 1;
     }
   }
-  return pool[pos].idea;
+  const picked = pool[pos].idea;
+  // Try to close part of this meal's own calorie gap directly within the
+  // plate (a bigger, still-safe protein serving) BEFORE extras — see
+  // scaleMainProtein()'s own doc for the safety reasoning and ceiling. Only
+  // when a real target was given; null for every existing caller that omits
+  // calorieTargetForMeal, which is the exact "omitting it reproduces
+  // today's behaviour exactly" promise this whole feature is built on.
+  if (calorieTargetForMeal && calorieTargetForMeal > 0) {
+    const gap = Math.max(0, calorieTargetForMeal - pool[pos].planCalories);
+    picked.scaledProtein = scaleMainProtein(picked.foods, gap, conditions);
+  }
+  return picked;
 }
 
 /**
@@ -979,8 +1110,23 @@ function guardedCandidate(candidate: ExtraCandidate, food: Food, capProtein: boo
  * `planForDay` takes (see its own doc) — folded into which candidate a
  * variant starts from, so two different people (or the same person after a
  * real profile change) do not always land on the same starting food purely
- * because they happened to check on the same day. Omitting it reproduces
- * today's behaviour exactly.
+ * because they happened to check on the same day. Omitting it changes
+ * nothing about this specific behaviour (see the next paragraph for what
+ * DOES always change now).
+ *
+ * **`meal` is folded into the starting position too, unconditionally, since
+ * 2026-09-08 — a real, directly reported bug: because `dayStart` used to
+ * depend only on the day, the SAME food (e.g. "Walnut") was the first thing
+ * recommended at breakfast, lunch AND dinner on the same day for the same
+ * person, every time — the exact "too many of the same snack" complaint.**
+ * Unlike `personalKey`, this is NOT behind a default-off parameter: it
+ * changes `dayStart` for every caller, including ones that pass no
+ * `personalKey`, because the bug itself had nothing to do with
+ * personalization — it hit anyone seeing extras more than once a day. No
+ * existing guarantee depends on the OLD specific day-to-food mapping (every
+ * test here checks properties — variety across days, no repeats, safe
+ * grams — never one exact food on one exact day), so this is safe to change
+ * unconditionally.
  */
 export function suggestExtras(
   remainingKcal: number,
@@ -1002,9 +1148,12 @@ export function suggestExtras(
   // starting its own cycle from a different candidate — so the 2 choices are
   // genuinely different foods, not a cosmetic reorder of the same one. Which
   // pair leads rotates by day (dayNumber(dayKey) picks the starting index),
-  // salted per-person the same way planForDay's `pos` is.
+  // salted per-person the same way planForDay's `pos` is, AND per-meal
+  // (hash(meal), unconditional — see this function's own doc for the real
+  // bug this fixes: breakfast/lunch/dinner used to all start from the same
+  // food on the same day).
   const n = pool.length;
-  const salt = personalKey ? hash(personalKey) : 0;
+  const salt = (personalKey ? hash(personalKey) : 0) + hash(meal);
   const dayStart = (((dayNumber(dayKey) + salt) % n) + n) % n;
   const numVariants = Math.min(2, n);
   const first = buildVariant(pool, dayStart, remainingKcal);

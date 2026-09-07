@@ -645,3 +645,55 @@ own canonical `portionGuidance` (the size shown on its own card everywhere
 else in the app) are untouched. This table only governs how far the EXTRAS
 card may scale a food when it is being offered as an add-on snack, never how
 the food is described anywhere else.
+
+## 10. Main-plate protein scaling: how far a serving may safely grow
+
+**Not a research finding on its own — a house bound, same footing as §9,
+pending dietitian sign-off.** Prompted by a direct founder question
+2026-09-08: rather than closing a person's calorie gap through many small
+extras, can the MAIN plate itself carry more of it, by giving a bigger
+protein serving? The honest answer has a real ceiling, same shape as §9's:
+this app's own base protein servings already sit at 14-28g protein (fish
+22g, chicken 27.9g, turkey 26.1g, snail 14.4g, prawns/crayfish 21.6g — all
+close to the commonly-cited 20-25g-per-meal target), and multiple sources
+caution that eating more than about 75g of protein in one sitting can cause
+a mild, DELAYED rise in blood sugar 3-5 hours later through gluconeogenesis
+— protein does not spike glucose the way a starch does, but a genuinely
+large amount still measurably raises it later. [Splenda](https://www.splenda.com/blog/the-importance-of-protein-for-people-with-diabetes/),
+[DiabetesTeam](https://www.diabetesteam.com/resources/best-protein-for-diabetes-nutrition-and-blood-sugar/).
+So "drastically" increasing a protein serving is not what the research
+supports — a modest, bounded increase is.
+
+**`MAIN_PROTEIN_MAX_MULTIPLIER = 1.75`** (`lib/nextMeal.ts`'s
+`scaleMainProtein()`) keeps every candidate below comfortably under the 75g
+ceiling even at its own highest-protein food (chicken: 27.9g base → ~48.8g
+scaled), while still adding a real, worthwhile amount: fish +150kcal
+(100g→175g), chicken +111kcal (90g→157g), turkey +115kcal, snail +61kcal,
+prawns/crayfish +67kcal. Base grams are each food's own real
+`portionGuidance` anchor already shown on its card (`data/foods.json`), not
+a separate invented figure.
+
+**Only 5 foods are candidates, and the set is deliberately the exact same
+one `CONDITION_EXCLUDED_PROTEIN_IDS` already computes** (every
+`SOUP_PROTEINS` entry with NO `healthNote`): fish, chicken, turkey, snail,
+prawns/crayfish. Beef, goat meat, pomo, shaki, stockfish and smoked fish are
+never candidates — scaling a protein that already carries its own salt/fat/
+cardiovascular caution would compound an existing concern, not just add
+calories. Eggs are a real, common main-plate protein too but are
+deliberately excluded: the card's own `portionGuidance` ("One to two eggs")
+has no single clean gram anchor to scale from, and guessing one would be
+exactly the kind of invented number this codebase's history has already
+been burned by (see `PortionMini`'s own note in
+`components/PortionVisual.tsx`).
+
+**Never scaled at all for a `kidney_disease` profile** — protein is a real,
+tight daily budget for kidney disease (`lib/tdee.ts`'s `proteinCapG`, NKF
+KDOQI guidance, as tight as 30-40g for a small person's WHOLE day), and a
+single bigger main-plate serving must never quietly eat into it, same
+reasoning `guardedCandidate()` already applies to extras.
+
+**What this does not change**: the verdict, GI, `baseVerdict`, and the
+food's own `portionGuidance` shown on its card everywhere else in the app
+are untouched — this is a separate, additive note shown only on
+`components/TodaysMeal.tsx`'s blue card when a real calorie target calls
+for it, never a change to the food's own canonical size.
