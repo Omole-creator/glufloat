@@ -646,7 +646,13 @@ const READY_TO_EAT_EXTRAS: ExtraCandidate[] = [
     scalable: true,
     baseUnits: 1,
     baseGrams: 15,
-    maxGrams: 30,
+    // Widened from 30g (2 tbsp) to 45g (3 tbsp) 2026-09-08, the one candidate
+    // with genuine evidence-backed headroom — see docs/EVIDENCE.md §9 for why
+    // the nut/seed candidates were checked and left unchanged (60g already
+    // sits at a well-documented "large handful" figure, and the ADA exchange
+    // list's own nut servings are far smaller than what this pool already
+    // offers, so there was no honest basis to raise them further).
+    maxGrams: 45,
     describe: (units, grams) => `About ${units} tablespoon${units === 1 ? "" : "s"} (about ${grams}g).`,
   },
   {

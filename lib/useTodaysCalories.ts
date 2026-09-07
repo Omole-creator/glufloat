@@ -13,6 +13,16 @@ export interface TodaysCalories {
   target: number | null;
   remaining: number | null;
   extra: ExtraSuggestionSet | null;
+  /**
+   * How much of THIS meal's own calorie gap even the best extras variant
+   * could not reach, once every safe candidate is already at its own capped
+   * maximum (0 when the gap was fully closed, or there was no gap). This is
+   * the honest, plain-spoken alternative to silently repeating the same
+   * numbers once a person's real calorie need is bigger than the app's real,
+   * safe food supply can stretch to in one sitting — see the 2026-09-08 note
+   * below. Never used to invent a bigger serving; it only says the truth.
+   */
+  shortByKcal: number;
 }
 
 /**
@@ -109,17 +119,43 @@ const DAY_END_FLOOR = 200;
  * recommended meals, each already sized with however many extras it takes
  * to hit its own fair share, are what makes a genuinely high target fully
  * closeable, not a smaller, capped promise. See lib/tdee.ts and CLAUDE.md.
+ *
+ * **A real, verified structural ceiling, and `shortByKcal` is the honest
+ * response to it (2026-09-08).** A person reported changing their profile
+ * from a normal weight to obese and seeing the exact same main meal AND the
+ * exact same extras. Traced with real numbers, not assumed: `MEAL_MAX_CALORIES`
+ * (the biggest real plate `lib/nextMeal.ts` has for each meal — breakfast
+ * 425kcal, lunch 725kcal, dinner 674kcal) is smaller than an ordinary adult's
+ * per-meal calorie share long before "obese" enters the picture, so
+ * `planForDay`'s "closest plate to target" narrowing degenerates to "the
+ * single biggest plate available" for almost anyone once their mealShare
+ * exceeds that ceiling — a heavier profile's bigger target does not change
+ * WHICH plate looks closest, only how far short it falls. `suggestExtras()`'s
+ * 2-item safety cap (`MAX_EXTRA_ITEMS`, a deliberate founder limit — "1-2
+ * extras ... not 3, can be overwhelming") then hits its own ceiling too, so
+ * two very different targets can produce identical extras as well once both
+ * saturate it. Rather than silently repeat the same numbers with no
+ * explanation — which is exactly what was reported — `shortByKcal` names the
+ * honest leftover once the best extras variant is already maxed out, so the
+ * UI can say so plainly instead of pretending the gap was closed. This does
+ * NOT invent a bigger serving or loosen the 2-item cap; it only tells the
+ * truth about what the real, safe food supply could not stretch to. See
+ * CLAUDE.md's "Portion/calorie review" section for the full trace and the
+ * two other options (bigger real plates; wider safe-serving ceilings) that
+ * were considered and are still open for later.
  */
 export function useTodaysCalories(show: boolean): TodaysCalories {
   const [target, setTarget] = useState<number | null>(null);
   const [remaining, setRemaining] = useState<number | null>(null);
   const [extra, setExtra] = useState<ExtraSuggestionSet | null>(null);
+  const [shortByKcal, setShortByKcal] = useState(0);
 
   const refresh = useCallback(async () => {
     if (!show) {
       setTarget(null);
       setRemaining(null);
       setExtra(null);
+      setShortByKcal(0);
       return;
     }
     const p = await readPersonalizationProfile();
@@ -127,6 +163,7 @@ export function useTodaysCalories(show: boolean): TodaysCalories {
       setTarget(null);
       setRemaining(null);
       setExtra(null);
+      setShortByKcal(0);
       return;
     }
     const dailyTarget = calorieTarget(
@@ -153,9 +190,17 @@ export function useTodaysCalories(show: boolean): TodaysCalories {
     );
     const plateCal = idea.foods.reduce((s, f) => s + (f.calories ?? 0), 0);
     const extrasGap = Math.max(0, mealShare - plateCal);
+    const extras = suggestExtras(extrasGap, dayKey, meal, p.conditions);
+    // The best any variant reaches — usually variants[0] (sized closest to
+    // the gap), but take the max in case a later variant ever does better,
+    // so this never overstates a shortfall that a variant already covers.
+    const bestVariantKcal = extras
+      ? Math.max(...extras.variants.map((v) => v.totalCalories))
+      : 0;
     setTarget(dailyTarget);
     setRemaining(meal === "dinner" && trueLeft < DAY_END_FLOOR ? 0 : trueLeft);
-    setExtra(suggestExtras(extrasGap, dayKey, meal, p.conditions));
+    setExtra(extras);
+    setShortByKcal(Math.max(0, extrasGap - bestVariantKcal));
   }, [show]);
 
   useEffect(() => {
@@ -170,5 +215,5 @@ export function useTodaysCalories(show: boolean): TodaysCalories {
     };
   }, [refresh]);
 
-  return { target, remaining, extra };
+  return { target, remaining, extra, shortByKcal };
 }

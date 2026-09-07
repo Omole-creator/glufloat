@@ -606,9 +606,24 @@ than eaten alone.
 | Food | Base serving | Safe ceiling used | Basis |
 |---|---|---|---|
 | Walnut (Nigerian, asala/ukpa), cashew nut, tiger nut | ~30g | 60g (about 2oz) | Standard nut serving guidance is 1oz (28g); up to 1-2oz per sitting is the commonly cited safe range for calorie/fat load, not glycaemic risk (nuts are low-GI). [Cleveland Clinic](https://health.clevelandclinic.org/a-diet-tip-for-people-with-type-2-diabetes-eat-more-nuts), [Virta Health](https://www.virtahealth.com/blog/best-nuts-and-seeds-for-diabetes). |
-| Peanut butter | 1 tbsp (15g) | 2 tbsp (30g) | Same nut-serving reasoning; nut butter cited alongside whole nuts in the same guidance. |
+| Peanut butter | 1 tbsp (15g) | 3 tbsp (45g), widened from 2 tbsp 2026-09-08 | 2 tbsp is the commonly cited nut-butter serving alongside whole nuts; 3 tbsp (45g, ~282kcal) is a normal, commonly-used peanut butter serving size elsewhere in general nutrition guidance, and stays well inside a single sensible snack. Widened as the one candidate with genuine headroom, found while investigating why a person's calorie target barely changed their recommended food between a normal-weight and an obese profile (see CLAUDE.md's "Portion/calorie review" section). |
 | Coconut | ~40g (2-3 pieces) | 60g (1.5x base, not 2x) | Higher in saturated fat than the other nuts here, so kept to a smaller multiple. |
 | Bitter kola (orogbo) | 2 seeds (~15g, estimated — the food's own `portionGuidance` gives no gram figure) | ~22g (about 3 seeds) | Kept to a smaller multiple than the nuts above: it is chewed for a mild stimulant effect (kolanin/caffeine-like alkaloids), not a bulk snack, so scaling it up aggressively would not be sensible even though its own frequency is "every day." |
+
+**The walnut/cashew/tiger-nut ceiling was checked, not just left alone,
+2026-09-08, and found already well-supported — do not raise it without new
+evidence.** A behavioural serving-size study (cited via the same search that
+found no stronger source) puts the median real-world "large handful" at
+about 61g — this row's existing 60g ceiling already sits right at that
+figure. The ADA's own diabetes exchange list is, if anything, far SMALLER
+(10 peanuts, 6 cashews/almonds, or 4 pecan halves per "fat exchange" unit,
+meant to be combined in small multiples, not served as one big snack), so
+this pool's ceiling is already generous relative to the strictest clinical
+framework. Coconut and bitter kola were checked too and left alone on
+purpose: both are already capped below the nut ceiling for their OWN
+unrelated safety reasons (coconut's saturated fat, bitter kola's stimulant
+content), not because of a calorie limit, so raising them would contradict
+their own stated reasoning rather than extend it.
 
 **Suya and Dambu Nama were removed from the candidate pool on 2026-09-06,
 after they were added by this table above.** A reviewing dietitian flagged
