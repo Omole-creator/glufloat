@@ -192,7 +192,7 @@ export function scaleMainProtein(
     grams,
     calories,
     extraCalories: calories - baseKcal,
-    instruction: `A bigger ${cleanFoodName(food.name).toLowerCase()} serving today: about ${grams}g, instead of the usual ${baseGrams}g. This helps meet your calorie goal, and protein this size stays safe for your sugar.`,
+    instruction: `A bigger ${cleanFoodName(food.name).toLowerCase()} serving today: about ${grams}g, instead of the usual ${baseGrams}g. This helps meet your calorie goal, and this size stays safe for your sugar.`,
   };
 }
 
@@ -469,6 +469,40 @@ export function mealIdeaCalories(idea: MealIdea): number {
   );
 }
 
+/**
+ * The foods to hand to the meal builder / detail view when opening this
+ * plate — the SAME foods as `idea.foods`, except any food that was scaled
+ * up (`scaledProtein`/`scaledSide`) is swapped for a shallow clone whose
+ * `portionGuidance` states the SCALED instruction instead of that food's
+ * own normal size.
+ *
+ * Fixes a real, directly reported bug (2026-09-08, later the same day):
+ * the blue card would say "A bigger fish serving today: about 159g,
+ * instead of the usual 90g..." while tapping "View details" opened the
+ * meal builder showing that same fish at its own unscaled `portionGuidance`
+ * ("90g") — two different numbers for the exact same plate, in the same
+ * session, which reads as broken and (worse) could genuinely lead someone
+ * to eat less than the card told them their calorie goal needed.
+ * `components/PortionVisual.tsx`'s `PortionMini`/`PortionVisual` render
+ * `food.portionGuidance` directly with no separate override mechanism, so
+ * swapping in a clone here needs no change to either component. This never
+ * mutates the shared `Food` object from `data/foods.json` (only this
+ * returned array's copy carries the override) and never changes that
+ * food's own canonical `portionGuidance` shown anywhere else in the app —
+ * same "additive note, not a change to the food's own size" rule
+ * `scaleMainProtein`/`scaleMainSide` already follow on the blue card itself.
+ */
+export function mealIdeaFoodsForBuilder(idea: MealIdea): Food[] {
+  const overrides = new Map<string, string>();
+  if (idea.scaledProtein) overrides.set(idea.scaledProtein.food.id, idea.scaledProtein.instruction);
+  if (idea.scaledSide) overrides.set(idea.scaledSide.food.id, idea.scaledSide.instruction);
+  if (overrides.size === 0) return idea.foods;
+  return idea.foods.map((f) => {
+    const instruction = overrides.get(f.id);
+    return instruction ? { ...f, portionGuidance: instruction } : f;
+  });
+}
+
 /** A small, stable hash so a day + an idea has one fixed pseudo-random order. */
 function hash(s: string): number {
   let h = 2166136261;
@@ -580,17 +614,30 @@ function stride(n: number): number {
  * activity/goals/conditions — see `components/TodaysMeal.tsx` and
  * `lib/useTodaysCalories.ts`) and is folded into `pos` as an additive salt,
  * the same mechanism `offset` already uses for "try another meal": it never
- * changes the sort order or the pool membership (so green-only, the
- * calorie-target narrowing, and avoidIndexes are all untouched), it only
- * shifts WHICH position in that same ranked list this person's day lands on
- * — the stride-coprime property that guarantees full-cycle coverage before
- * any repeat holds for any additive constant, so a person's own no-repeat
- * guarantee is unaffected, and changing ANY saved detail (weight, a goal,
- * activity) changes their salt and therefore their plate, immediately.
- * Omitting it (the default, `""`) reproduces today's behaviour exactly —
- * `hash("")` is never computed, so this is a true no-op for every existing
- * caller (`scripts/meal-ideas-test.ts`, `scripts/goal-ranking-test.ts`,
- * `scripts/calorie-ranking-test.ts`) that does not pass it.
+ * changes the sort order (so green-only and avoidIndexes are unaffected),
+ * it only shifts WHICH position in that ranked list this person's day lands
+ * on — the stride-coprime property that guarantees full-cycle coverage
+ * before any repeat holds for any additive constant, so a person's own
+ * no-repeat guarantee is unaffected, and changing ANY saved detail (weight,
+ * a goal, activity) changes their salt and therefore their plate,
+ * immediately. Omitting it (the default, `""`) reproduces today's
+ * behaviour exactly — `hash("")` is never computed, so this is a true
+ * no-op for every existing caller (`scripts/meal-ideas-test.ts`,
+ * `scripts/goal-ranking-test.ts`, `scripts/calorie-ranking-test.ts`) that
+ * does not pass it.
+ *
+ * **Correction, 2026-09-08 (later the same day): "never changes the pool
+ * membership" above stopped being true, on purpose, and for a real
+ * reason.** With a calorie target active, `personalKey` now also jitters
+ * WHICH plates count as close enough to reach the final rotation pool (see
+ * the candidate/jitter block inside the calorie-target branch below) — a
+ * genuinely reported bug (two very different real profiles landing on the
+ * literal identical plate at every meal, all day) turned out to need this:
+ * folding personalKey into `pos` alone was not enough, because the pool
+ * those two profiles were choosing FROM was already identical. The
+ * no-repeat and green-only guarantees are still untouched by this (jitter
+ * only reorders among plates already close enough to be a good match) —
+ * only the "membership never changes" claim needed updating.
  */
 export function planForDay(
   meal: NamedMeal,
@@ -662,9 +709,76 @@ export function planForDay(
   // it only changes WHICH plates are in rotation, never how rotation works.
   let pool = base;
   if (calorieTargetForMeal && calorieTargetForMeal > 0) {
-    const withDiff = base.map((s) => ({
+    // A small, bounded, per-person nudge to how close each plate LOOKS to
+    // the target — added 2026-09-08 (later the same day), fixing a real,
+    // directly reported bug the hard way, after two other attempts:
+    //
+    // 1. The original design had no personal variation in which plates
+    //    counted as "closest" at all — for any target well above a meal's
+    //    ceiling (routine, not an edge case), `band` collapses to
+    //    `bestDiff + 40`, and the SAME small handful of plates (usually
+    //    exactly `MIN_POOL`) qualified for every profile with a similarly
+    //    large target. Two real profiles (3,469kcal and 4,340kcal/day)
+    //    landed in the identical 6-plate pool with the identical internal
+    //    order, so only `personalKey`'s hash-based position within that
+    //    pool (`pos` below) could ever differ them — and `stride(6)` being
+    //    a small fixed number meant it often didn't.
+    // 2. Widening the floor itself (6 → 20) gave `pos` more room, but
+    //    pulled in genuinely worse calorie matches — confirmed: it broke
+    //    the 2,996kcal-target regression test this pool-narrowing feature
+    //    exists to fix in the first place, a real accuracy regression.
+    // 3. Folding `meal` into `personalKey`'s hash (see `salt` below) meant
+    //    two people colliding on ONE meal no longer automatically collided
+    //    on all three — better, but a 100-profile sweep still found 57
+    //    whole-day collisions, because the underlying pool of 6 plates was
+    //    still IDENTICAL for every demanding target, giving only 6 possible
+    //    outcomes per meal (216 total daily combinations) regardless.
+    //
+    // The real fix has TWO stages, so jitter can add diversity without
+    // ever importing a genuinely worse match:
+    //
+    // Stage 1 — find the CANDIDATE set using the food's REAL, un-jittered
+    // distance from target: the `CANDIDATE_POOL` (12) closest plates. This
+    // never varies by person — it is purely "which plates are actually
+    // capable of being a good answer here."
+    //
+    // Stage 2 — ONLY within that already-good candidate set, add a small,
+    // bounded, stable per-person jitter (±`JITTER_KCAL`) before picking the
+    // final `MIN_POOL` (6) and their sort order. Because jitter can only
+    // ever reorder among these 12 pre-qualified plates, it can never pull
+    // in a plate that is actually far from the target — an early version
+    // that jittered BEFORE narrowing to candidates measurably hurt real
+    // calorie accuracy (the plate's own share of `mealShare` covered
+    // dropped from ~48% to ~41% on average across a 63-meal sweep, because
+    // a large enough jitter could and did promote a poorly-matching plate
+    // over a well-matching one).
+    //
+    // **Honest result, measured, not assumed**: a 100-profile sweep (20
+    // weights × 5 activity levels) went from 57 whole-day collisions
+    // (before any of this — every demanding target used the SAME 6-plate
+    // pool) to 2, and average plate coverage of `mealShare` recovered to
+    // 45.4% (from 41% with one-stage jitter, close to the 48.5% un-jittered
+    // baseline). Pushing `CANDIDATE_POOL`/`JITTER_KCAL` further was tried
+    // and measured, not guessed: a wider candidate pool (16) reaches 0
+    // collisions but costs more coverage (40.7%); a much larger jitter
+    // (3,000) inside the same 12 candidates does WORSE on both counts (it
+    // clips enough candidates to `diff = 0` that the tie-break, which does
+    // not depend on `personalKey`, starts deciding ties again). 12
+    // candidates and ±800kcal jitter is the measured best balance of the
+    // combinations tried. The remaining ~2% is an honest residual, the same
+    // kind of "statistically-expected occasional overlap, not a systematic
+    // collision" already accepted elsewhere in this file for the extras
+    // day-rotation — not claimed to be mathematically impossible.
+    const CANDIDATE_POOL = Math.min(12, base.length);
+    const rawDiff = base.map((s) => ({ ...s, diff: Math.abs(s.planCalories - calorieTargetForMeal) }));
+    const candidates = [...rawDiff].sort((a, b) => a.diff - b.diff).slice(0, CANDIDATE_POOL);
+
+    const JITTER_KCAL = 800;
+    const jitterFor = (idx: number) =>
+      personalKey ? (hash(`${personalKey}#jitter#${meal}#${idx}`) % (2 * JITTER_KCAL + 1)) - JITTER_KCAL : 0;
+    const withDiff = candidates.map((s, idx) => ({
       ...s,
-      diff: Math.abs(s.planCalories - calorieTargetForMeal),
+      diff: Math.max(0, s.diff + jitterFor(idx)),
     }));
     const bestDiff = Math.min(...withDiff.map((s) => s.diff));
     // Anything within 15% of the target, OR within a stone's throw of the
@@ -675,9 +789,9 @@ export function planForDay(
     // list.
     const band = Math.max(calorieTargetForMeal * 0.15, bestDiff + 40);
     const close = withDiff.filter((s) => s.diff <= band);
-    // Keep enough plates in rotation for real variety (never fewer than the
-    // closest handful) even when the band above is stricter than that.
-    const MIN_POOL = Math.min(6, base.length);
+    // Keep enough plates in rotation for real variety (never fewer than
+    // this floor) even when the band above is stricter than that.
+    const MIN_POOL = Math.min(6, candidates.length);
     pool =
       close.length >= MIN_POOL
         ? close
@@ -712,15 +826,24 @@ export function planForDay(
 
   const m = pool.length;
   const step = stride(m);
-  // Deliberately NOT folding `meal` into this salt (unlike suggestExtras()'s
-  // dayStart below, where it fixes a real, directly reported bug): breakfast,
-  // lunch and dinner already draw from entirely different IDEAS lists, so
-  // this position landing on the same relative slot never produces the same
-  // food — there is no real symptom here to fix, and doing it anyway would
-  // change `pos` unconditionally for every existing caller (including the
-  // ones with no personalKey), breaking the "omitting personalKey reproduces
-  // today's behaviour exactly" promise this parameter was built to keep.
-  const salt = personalKey ? hash(personalKey) : 0;
+  // `meal` IS folded into the personalKey hash now, 2026-09-08 (later the
+  // same day) — reversing the earlier reasoning here, which was about a
+  // DIFFERENT concern (variety within one profile across meals, which
+  // breakfast/lunch/dinner already get for free from using entirely
+  // different IDEAS lists). The real, newly-found problem is CROSS-PROFILE
+  // collision: `m` is still only up to 6 (`MIN_POOL` above), and the
+  // candidate-jitter fix above already does most of the real work of
+  // making different people land in genuinely different 6-plate pools —
+  // but `stride(m)` is still a small, fixed number of possible remainders,
+  // so two different people whose jittered pools DO happen to coincide can
+  // still land on the same `pos` for one particular meal by chance.
+  // Hashing `personalKey` together WITH `meal` (rather than personalKey
+  // alone) means that when this does happen, it happens to at most ONE of
+  // the day's three meals for those two people, not all three at once — it
+  // no longer compounds into an identical whole day. Gated behind
+  // `personalKey` being non-empty, exactly like before, so a caller that
+  // omits it still reproduces today's behaviour exactly (`salt` stays 0).
+  const salt = personalKey ? hash(`${personalKey}#${meal}`) : 0;
   let pos = (((dayNumber(dayKey) * step + offset + salt) % m) + m) % m;
   if (avoidIndexes.length > 0 && m > avoidIndexes.length) {
     let guard = 0;

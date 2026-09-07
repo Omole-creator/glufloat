@@ -23,13 +23,15 @@ import {
   scaleMainProtein,
   scaleMainSide,
   mealIdeaCalories,
+  mealIdeaFoodsForBuilder,
   MEAL_MAX_CALORIES,
   MAX_EXTRA_ITEMS,
 } from "../lib/nextMeal";
 import { getFood } from "../lib/search";
 import { scoreMeal } from "../lib/verdictEngine";
 import type { NamedMeal } from "../lib/mealtime";
-import { calorieTarget, remainingMealCalorieTarget } from "../lib/tdee";
+import { calorieTarget, tdee, bmr, remainingMealCalorieTarget } from "../lib/tdee";
+import { personalRotationKey } from "../lib/personalizationProfile";
 
 const MEALS: NamedMeal[] = ["breakfast", "lunch", "dinner"];
 const problems: string[] = [];
@@ -617,6 +619,92 @@ for (const meal of MEALS) {
   }
   if (!sawScaledSide) {
     fail("planForDay never set scaledSide on any breakfast plate across 28 days at a 500kcal target — the wiring may be broken");
+  }
+}
+
+// ---- 9. mealIdeaFoodsForBuilder: the "View details" consistency fix
+//         (2026-09-08, later the same day) — a real, directly reported bug:
+//         the blue card said "a bigger fish serving today: about 159g" while
+//         tapping "View details" opened the meal builder showing that same
+//         fish at its own unscaled 90g portionGuidance. -----------------
+{
+  const idea = planForDay("lunch", "2026-08-29", new Map(), 0, [], new Map(), null, 900);
+  if (idea.scaledProtein) {
+    const builderFoods = mealIdeaFoodsForBuilder(idea);
+    const scaled = builderFoods.find((f) => f.id === idea.scaledProtein!.food.id);
+    if (!scaled || scaled.portionGuidance !== idea.scaledProtein.instruction) {
+      fail(
+        `mealIdeaFoodsForBuilder: the scaled food's portionGuidance ("${scaled?.portionGuidance}") does not match the blue card's own instruction ("${idea.scaledProtein.instruction}")`,
+      );
+    }
+    // Every OTHER food in the plate must be untouched.
+    for (const f of builderFoods) {
+      if (f.id === idea.scaledProtein.food.id) continue;
+      const original = idea.foods.find((of) => of.id === f.id);
+      if (original && f.portionGuidance !== original.portionGuidance) {
+        fail(`mealIdeaFoodsForBuilder: changed the portionGuidance of ${f.id}, which was never scaled`);
+      }
+    }
+    // The real, shared Food object must never be mutated (only this
+    // returned array's copy carries the override) — the food's OWN
+    // canonical portionGuidance, read fresh via getFood, must be unchanged.
+    const canonical = getFood(idea.scaledProtein.food.id);
+    if (canonical && canonical.portionGuidance === idea.scaledProtein.instruction) {
+      fail(`mealIdeaFoodsForBuilder mutated the shared Food object for ${idea.scaledProtein.food.id} — it must only return a clone`);
+    }
+  } else {
+    fail("mealIdeaFoodsForBuilder test setup: expected a 900kcal lunch target to engage scaleMainProtein on some day/plate");
+  }
+  // No scaling active (no calorie target given) must return the exact same
+  // array reference — no unnecessary cloning for the common case.
+  const plain = planForDay("lunch", "2026-08-29", new Map());
+  if (mealIdeaFoodsForBuilder(plain) !== plain.foods) {
+    fail("mealIdeaFoodsForBuilder should return the same foods array when nothing was scaled");
+  }
+}
+
+// ---- 10. Cross-profile personalization: two different people (or the same
+//          person after changing weight/activity/goals) must not be shown
+//          the identical plate at every meal, all day (2026-09-08, later
+//          the same day — a real, directly reported bug: two real profiles
+//          at 3,469kcal and 4,340kcal/day landed on the literal same plate
+//          for breakfast, lunch AND dinner). A 100-profile sweep (20
+//          weights x 5 activity levels) must keep whole-day collisions rare
+//          — measured at 2/100 after the fix; ceiled here at a generous 10
+//          to catch a real regression without being flaky day to day. -----
+{
+  function personalKeyFor(weightKg: number, activityLevel: string): string {
+    return personalRotationKey({
+      goals: [], activityLevel: activityLevel as any, mealPattern: ["breakfast", "lunch", "dinner"],
+      sex: "male", ageYears: 30, weightKg, heightCm: 180,
+      conditions: [], medDosesPerDay: null, medTimes: [], medRelationToFood: null,
+    });
+  }
+  const dayKey = "2026-09-08";
+  const weights = [55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150];
+  const activities = ["sedentary", "light", "moderate", "very_active", "extra_active"];
+  const signatures = new Set<string>();
+  let collisions = 0;
+  for (const w of weights) {
+    for (const a of activities) {
+      const dailyTarget = calorieTarget(tdee(bmr("male", w, 180, 30), a as any), []);
+      const personalKey = personalKeyFor(w, a);
+      let eatenToday = 0;
+      const row: string[] = [];
+      for (const meal of MEALS) {
+        const mealShare = remainingMealCalorieTarget(dailyTarget, eatenToday, MEALS, meal);
+        const idea = planForDay(meal, dayKey, new Map(), 0, [], new Map(), null, mealShare, [], personalKey);
+        eatenToday += mealIdeaCalories(idea);
+        row.push(idea.names.join("+"));
+      }
+      const sig = row.join("|");
+      if (signatures.has(sig)) collisions++;
+      signatures.add(sig);
+    }
+  }
+  const total = weights.length * activities.length;
+  if (collisions > 10) {
+    fail(`${collisions}/${total} profiles collided on an identical whole day — personalKey is not differentiating people enough (expected ~2, ceiling 10)`);
   }
 }
 

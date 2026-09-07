@@ -7,7 +7,7 @@ import {
   localDayKey,
   type NamedMeal,
 } from "@/lib/mealtime";
-import { planForDay, mealIdeaCalories, type MealIdea } from "@/lib/nextMeal";
+import { planForDay, mealIdeaCalories, mealIdeaFoodsForBuilder, type MealIdea } from "@/lib/nextMeal";
 import { loggedFoodCounts, likedFoodCounts, caloriesEatenToday } from "@/lib/history";
 import { trackUsage } from "@/lib/usage";
 import type { Food } from "@/lib/types";
@@ -337,7 +337,7 @@ export default function TodaysMeal({
           <button
             onClick={() => {
               void trackUsage("check_this_meal");
-              onBuild(idea.foods);
+              onBuild(mealIdeaFoodsForBuilder(idea));
             }}
             className="flex items-center gap-2 rounded-full bg-leaf px-6 py-3.5 text-sm font-bold text-white shadow-[0_10px_24px_-8px_rgba(62,155,79,0.75)] transition-all hover:-translate-y-0.5 hover:bg-leaf-deep"
           >
