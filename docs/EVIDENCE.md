@@ -556,8 +556,11 @@ comorbidity warnings (Q11, "All correct").
 **Not a research finding on its own — a house bound, same footing as the
 weekly-frequency numbers in §1, pending dietitian sign-off.** It answers a
 narrower question than glycaemic index: not "does this food raise sugar"
-(all 8 foods below are already low-GI and green) but "how much of it is
-still a sensible, safe amount to eat in one sitting." `lib/nextMeal.ts`'s
+(every food below is already low-GI and green) but "how much of it is
+still a sensible, safe amount to eat in one sitting." The pool was 8 foods
+when this table was first written; it is 6 today (`lib/nextMeal.ts`'s
+`READY_TO_EAT_EXTRAS`) — see the removal note further down the table for
+why suya and dambu nama were taken out again. `lib/nextMeal.ts`'s
 `EXTRA_CANDIDATES` scales each food continuously up to the `maxGrams` ceiling
 below, so it can land exactly on a person's remaining calorie gap without
 ever repeating the same food twice in one recommendation (direct
@@ -605,9 +608,22 @@ than eaten alone.
 | Walnut (Nigerian, asala/ukpa), cashew nut, tiger nut | ~30g | 60g (about 2oz) | Standard nut serving guidance is 1oz (28g); up to 1-2oz per sitting is the commonly cited safe range for calorie/fat load, not glycaemic risk (nuts are low-GI). [Cleveland Clinic](https://health.clevelandclinic.org/a-diet-tip-for-people-with-type-2-diabetes-eat-more-nuts), [Virta Health](https://www.virtahealth.com/blog/best-nuts-and-seeds-for-diabetes). |
 | Peanut butter | 1 tbsp (15g) | 2 tbsp (30g) | Same nut-serving reasoning; nut butter cited alongside whole nuts in the same guidance. |
 | Coconut | ~40g (2-3 pieces) | 60g (1.5x base, not 2x) | Higher in saturated fat than the other nuts here, so kept to a smaller multiple. |
-| Suya (grilled meat) | 1 stick / ~7 pieces (90g) | 2 sticks / ~180g | "One or two sticks... is safer than large trays" for a diabetic; a standard serving is already cited as ~100g/3 skewers, so 90-180g sits inside normal real-world suya portions. [Addy's Diabetes Health Store](https://addysdiabeteshealthstore.com/can-diabetics-eat-suya/). |
-| Dambu Nama (dried shredded beef) | ~60g (a palm-size handful, the food's own portion) | 120g (2x base) | Same reasoning as suya — a real, everyday-safe meat, doubled to a still-realistic second helping. Gram weight for a countable "tablespoon" unit is an estimate (`nutritionSource: "estimated"` on this food already, same footing), no card-cited source. |
 | Bitter kola (orogbo) | 2 seeds (~15g, estimated — the food's own `portionGuidance` gives no gram figure) | ~22g (about 3 seeds) | Kept to a smaller multiple than the nuts above: it is chewed for a mild stimulant effect (kolanin/caffeine-like alkaloids), not a bulk snack, so scaling it up aggressively would not be sensible even though its own frequency is "every day." |
+
+**Suya and Dambu Nama were removed from the candidate pool on 2026-09-06,
+after they were added by this table above.** A reviewing dietitian flagged
+that both are processed meat, carrying their own cardiovascular/type-2-
+diabetes risk independent of blood sugar ("suya is a highly processed meat
+... you cannot recommend suya for somebody that is having diabetes") — see
+CLAUDE.md's "Processed meat was removed entirely from the extras pool" note
+and the fifth bar above `READY_TO_EAT_EXTRAS` in `lib/nextMeal.ts`. Their two
+rows are kept below, struck through, as a record of why they were considered
+and then removed — not because the sizing research was wrong, but because
+the food category itself is no longer offered here. Do not re-add either
+without addressing the processed-meat concern first.
+
+| ~~Suya (grilled meat)~~ | ~~1 stick / ~7 pieces (90g)~~ | ~~2 sticks / ~180g~~ | ~~"One or two sticks... is safer than large trays" for a diabetic; a standard serving is already cited as ~100g/3 skewers, so 90-180g sits inside normal real-world suya portions.~~ [Addy's Diabetes Health Store](https://addysdiabeteshealthstore.com/can-diabetics-eat-suya/) — **removed 2026-09-06, processed meat.** |
+| ~~Dambu Nama (dried shredded beef)~~ | ~~~60g (a palm-size handful, the food's own portion)~~ | ~~120g (2x base)~~ | ~~Same reasoning as suya — a real, everyday-safe meat, doubled to a still-realistic second helping.~~ **Removed 2026-09-06, processed meat.** |
 
 **What this does not change**: the verdict, GI, `baseVerdict`, and the food's
 own canonical `portionGuidance` (the size shown on its own card everywhere

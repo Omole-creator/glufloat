@@ -2,6 +2,7 @@ import type { Food } from "@/lib/types";
 import { plainFrequency } from "@/lib/frequency";
 import { cleanFoodName } from "@/lib/foodName";
 import { foodShareMessage } from "@/lib/shareMessage";
+import { saferSwaps } from "@/lib/variety";
 import PortionVisual from "./PortionVisual";
 import ShareOnWhatsApp from "./ShareOnWhatsApp";
 import IntakeWarning from "./IntakeWarning";
@@ -31,12 +32,20 @@ const STYLES = {
 export default function VerdictCard({
   food,
   onFix,
+  onSwap,
 }: {
   food: Food;
   /** Opens the meal builder with this food in it, for the readings note below. */
   onFix?: () => void;
+  /** Opens the suggested swap's own card, in place of this one. */
+  onSwap?: (food: Food) => void;
 }) {
   const s = STYLES[food.baseVerdict];
+  // The exchange-list move a dietitian makes in the room: not green, so offer
+  // the closest real same-group food that already is, rather than only
+  // explaining why this one is not. Green foods need no swap.
+  const swap =
+    food.baseVerdict !== "green" ? saferSwaps(food, 1)[0] : undefined;
 
   return (
     <div
@@ -86,6 +95,26 @@ export default function VerdictCard({
             If you take medicine
           </p>
           <p className="mt-1 text-sm text-ink">{food.medicineNote}</p>
+        </div>
+      )}
+
+      {swap && (
+        <div className="mt-3 rounded-xl border border-verdict-green/30 bg-verdict-green/10 p-3">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-leaf-deep">
+            Try this instead
+          </p>
+          <p className="mt-1 text-sm text-ink">
+            {cleanFoodName(swap.name)} is in the same food group and will not
+            push your sugar up as fast.
+          </p>
+          {onSwap && (
+            <button
+              onClick={() => onSwap(swap)}
+              className="mt-2 inline-flex items-center gap-2 rounded-full border border-verdict-green/40 bg-white px-4 py-2 text-sm font-semibold text-leaf-deep transition-colors hover:bg-verdict-green hover:text-white"
+            >
+              See {cleanFoodName(swap.name)}
+            </button>
+          )}
         </div>
       )}
 

@@ -115,6 +115,7 @@ export default function SearchPanel({
           <VerdictCard
             food={picked}
             onFix={onBuildMeal ? () => onBuildMeal(picked) : undefined}
+            onSwap={pick}
           />
           <div className="mt-3 flex flex-col gap-2 sm:flex-row">
             {ate ? (

@@ -9,12 +9,24 @@ import type { Food } from "./types";
  * know, which is a different kind of value than a one-off lookup.
  */
 export function saferSwaps(food: Food, limit = 3): Food[] {
-  return FOODS.filter(
+  const candidates = FOODS.filter(
     (f) =>
       f.id !== food.id &&
       f.category === food.category &&
       f.baseVerdict === "green",
-  ).slice(0, limit);
+  );
+  // When both foods carry a measured carb weight for their own real serving,
+  // prefer the closest match first: a genuine like-for-like swap (the exchange-
+  // list idea a Nigerian dietitian already uses with patients), not just any
+  // green food that happens to share the category.
+  if (food.carbG != null) {
+    candidates.sort((a, b) => {
+      const da = a.carbG == null ? Infinity : Math.abs(a.carbG - food.carbG!);
+      const db = b.carbG == null ? Infinity : Math.abs(b.carbG - food.carbG!);
+      return da - db;
+    });
+  }
+  return candidates.slice(0, limit);
 }
 
 /** The same, found by the food's name (as stored in the history log). */

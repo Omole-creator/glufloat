@@ -399,6 +399,56 @@ for (const meal of MEALS) {
   }
 }
 
+// ---- 7. Kidney disease: suggestExtras must never scale a protein-bearing
+//         candidate (cashew nut, walnut, peanut butter) past its own base
+//         serving, no matter how large the gap is — see PROTEIN_CAP_THRESHOLD_G
+//         in lib/nextMeal.ts. Low-protein candidates (tiger nut, coconut,
+//         bitter kola) are unaffected and may still scale as usual. ----------
+{
+  const dayKey = "2026-08-29";
+  for (const meal of MEALS) {
+    if (!suggestExtras(1_000_000, dayKey, meal, ["kidney_disease"])) {
+      fail(`kidney_disease: ${meal} suggestExtras returned nothing for a huge gap`);
+    }
+  }
+  // A direct check against the known base-gram anchors already on each card,
+  // since ExtraOption does not carry the candidate's baseGrams itself.
+  const BASE_GRAMS: Record<string, number> = { "cashew-nut": 30, walnut: 30, "peanut-butter": 15 };
+  for (const meal of MEALS) {
+    const huge = suggestExtras(1_000_000, dayKey, meal, ["kidney_disease"]);
+    if (!huge) continue;
+    for (const variant of huge.variants) {
+      for (const item of variant.items) {
+        const cap = BASE_GRAMS[item.food.id];
+        if (cap != null && item.grams > cap) {
+          fail(
+            `kidney_disease: ${meal} served ${item.grams}g of ${item.food.id}, which should never scale past its ${cap}g base serving`,
+          );
+        }
+      }
+    }
+  }
+  // Without kidney_disease flagged, the same huge gap should still be free to
+  // scale a protein-bearing candidate past its base serving somewhere across
+  // breakfast/lunch/dinner — proving the cap is condition-gated, not global.
+  let sawScaledProtein = false;
+  for (const meal of MEALS) {
+    const huge = suggestExtras(1_000_000, "2026-08-29", meal);
+    if (!huge) continue;
+    for (const variant of huge.variants) {
+      for (const item of variant.items) {
+        const cap = BASE_GRAMS[item.food.id];
+        if (cap != null && item.grams > cap) sawScaledProtein = true;
+      }
+    }
+  }
+  if (!sawScaledProtein) {
+    fail(
+      "without kidney_disease, no protein-bearing extra candidate scaled past its base serving under a huge gap — the cap may not be condition-gated correctly",
+    );
+  }
+}
+
 if (problems.length) {
   console.error(`\n${problems.length} problem(s):\n`);
   problems.forEach((p) => console.error("  " + p));

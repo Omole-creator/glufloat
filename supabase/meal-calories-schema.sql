@@ -1,0 +1,26 @@
+-- Adds a per-check calorie total to meal_checks. Run once in the Supabase SQL
+-- editor, after meal-history-schema.sql.
+--
+-- Why: "calories eaten today" (lib/history.ts's caloriesEatenToday) used to be
+-- re-derived purely from a check's food NAME, looked up against that food's
+-- flat, single-serving `calories` figure in data/foods.json. That is exactly
+-- right for a single food or a built meal, where the amount eaten really is
+-- the food's own normal serving. It is WRONG for a logged extra-food
+-- suggestion (components/ExtraSuggestionCard.tsx): those are deliberately
+-- scaled up past a food's base serving to close a real calorie gap (e.g. 60g
+-- of cashew nuts, not the base 30g), and the scaled total (`item.calories`,
+-- already computed exactly in lib/nextMeal.ts's sizeExtra()) was being
+-- thrown away at log time, so re-deriving from the name alone silently
+-- under-counted what was actually eaten. That under-count then overstated
+-- how much calorie budget was left for the rest of the day, defeating the
+-- "the day's meals must add up to the calorie goal, never past it" guarantee
+-- (see lib/useTodaysCalories.ts and CLAUDE.md).
+--
+-- This column stores the TRUE amount for a check when the caller already
+-- knows it precisely (extras). It is nullable and read back with a fallback:
+-- a check with no calories on it (every row saved before this migration, and
+-- any caller that has not been updated to pass it) is unaffected and still
+-- falls back to the exact name-based estimate it always used. See
+-- lib/history.ts's caloriesEatenToday() and saveCheck().
+
+alter table public.meal_checks add column if not exists calories integer;

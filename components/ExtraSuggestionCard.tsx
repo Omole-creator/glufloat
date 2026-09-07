@@ -46,7 +46,12 @@ export default function ExtraSuggestionCard({ set }: { set: ExtraSuggestionSet }
     // (scripts/calorie-ranking-test.ts checks this), but the record should
     // never silently hardcode a verdict it did not actually check.
     const { verdict } = scoreMeal(allFoods.map((food) => ({ food, portion: "normal" as const })));
-    void saveCheck("meal", label, verdict);
+    // This variant can be a SCALED serving past a food's normal amount (e.g.
+    // 60g of cashew nuts, not the base 30g) — pass the exact already-computed
+    // total so caloriesEatenToday() credits what was really eaten instead of
+    // re-deriving it from the food's flat base calories and under-counting.
+    // See supabase/meal-calories-schema.sql.
+    void saveCheck("meal", label, verdict, variant.totalCalories);
     void trackUsage("meal_logged");
     showToast("Added to your food");
   };

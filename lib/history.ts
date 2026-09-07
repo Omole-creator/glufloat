@@ -60,11 +60,22 @@ export interface CheckedMeal extends MealCheck {
  * The id is returned so the meal builder can delete the earlier, half-built row
  * when a fuller version of the same meal is saved (see MealBuilder), collapsing a
  * building session into one row instead of one per food added.
+ *
+ * `calories` is optional and only needed when the amount actually eaten is
+ * NOT the food's own normal serving — today that is only
+ * ExtraSuggestionCard's scaled snack servings (see
+ * supabase/meal-calories-schema.sql). Every other caller (a single food, a
+ * built meal) can omit it: caloriesEatenToday() falls back to the exact same
+ * name-based estimate it always used. Retries once without the column if the
+ * migration has not been run yet, same graceful-degradation shape as
+ * lib/subscriptionWrite.ts — a push here is a release, so the code can reach
+ * production before the SQL is pasted into Supabase by hand.
  */
 export async function saveCheck(
   kind: CheckKind,
   label: string,
   verdict: Verdict,
+  calories?: number,
 ): Promise<number | null> {
   try {
     const supabase = createClient();
@@ -72,17 +83,24 @@ export async function saveCheck(
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) return null; // signed out; nothing to save against
-    const { data } = await supabase
-      .from("meal_checks")
-      .insert({ kind, label, verdict })
-      .select("id")
-      .single();
+    const row: { kind: CheckKind; label: string; verdict: Verdict; calories?: number } = {
+      kind,
+      label,
+      verdict,
+    };
+    if (calories != null) row.calories = Math.round(calories);
+    let result = await supabase.from("meal_checks").insert(row).select("id").single();
+    if (result.error && calories != null) {
+      const { calories: _c, ...withoutCalories } = row;
+      void _c;
+      result = await supabase.from("meal_checks").insert(withoutCalories).select("id").single();
+    }
     // What a person has eaten has just changed, and the how-often warning is
     // read from it. Without this, someone who logs a fast-sugar food and then
     // checks a second one in the same sitting is told nothing until they
     // reload, which is exactly the moment the warning is for.
     notifyIntakeChanged();
-    return (data?.id as number) ?? null;
+    return (result.data?.id as number) ?? null;
   } catch {
     /* never break the app over a log write */
     return null;
@@ -269,10 +287,22 @@ const foodCalories = new Map(FOODS.map((f) => [f.name, f.calories ?? 0]));
  * Calories eaten today (Nigerian time), summed from the same saved "I ate
  * this" log everything else here reads — a lookup is not a meal eaten, so
  * this only ever counts what was actually logged, never a search or a
- * suggestion. Splits a meal's comma-joined label the same way
- * lib/mealSize.ts's sizedFoods() does. A food logged before the calorie data
- * existed, or one the log can no longer match by name, simply contributes 0
- * rather than breaking the total.
+ * suggestion.
+ *
+ * A row that carries its own `calories` (see supabase/meal-calories-schema.sql)
+ * uses that EXACT number — this is what an ExtraSuggestionCard log needs,
+ * since it can be a scaled amount past a food's normal serving (e.g. 60g of
+ * cashew nuts, not the base 30g), and re-deriving from the name alone would
+ * silently under-count it. Every other row (no `calories` stored — a single
+ * food, a built meal, or any check saved before this migration) falls back to
+ * the same name-based estimate this always used: split a meal's comma-joined
+ * label the same way lib/mealSize.ts's sizedFoods() does, and sum each food's
+ * own normal-serving `calories`. A food the log can no longer match by name
+ * simply contributes 0 rather than breaking the total.
+ *
+ * Selects with the extra column first and retries without it on error, same
+ * graceful-degradation shape as checkedSince() above, so a database that has
+ * not yet run the migration is unaffected rather than broken.
  */
 export async function caloriesEatenToday(): Promise<number> {
   try {
@@ -281,20 +311,36 @@ export async function caloriesEatenToday(): Promise<number> {
     // 48h of buffer (not 24h) so "today" in WAT is always fully covered
     // regardless of the reader's own clock/timezone.
     const since = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
-    const { data } = await supabase
+    const withCalories = await supabase
       .from("meal_checks")
-      .select("kind,label,checked_at")
+      .select("kind,label,checked_at,calories")
       .gte("checked_at", since);
+    const rows: unknown[] = withCalories.error
+      ? (
+          await supabase
+            .from("meal_checks")
+            .select("kind,label,checked_at")
+            .gte("checked_at", since)
+        ).data ?? []
+      : withCalories.data ?? [];
     let total = 0;
-    for (const r of data ?? []) {
-      const when = new Date(r.checked_at as string).getTime();
+    for (const raw of rows) {
+      const row = raw as {
+        kind: string;
+        label: string;
+        checked_at: string;
+        calories?: number | null;
+      };
+      const when = new Date(row.checked_at).getTime();
       if (watDayKey(wat(when)) !== todayK) continue;
+      if (row.calories != null) {
+        total += row.calories;
+        continue;
+      }
       const names =
-        r.kind === "single"
-          ? [r.label as string]
-          : String(r.label)
-              .split(",")
-              .map((s) => s.trim());
+        row.kind === "single"
+          ? [row.label]
+          : row.label.split(",").map((s) => s.trim());
       for (const n of names) total += foodCalories.get(n) ?? 0;
     }
     return Math.round(total);

@@ -1,11 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { caloriesEatenToday, INTAKE_CHANGED } from "@/lib/history";
+import { caloriesEatenToday, loggedFoodCounts, likedFoodCounts, INTAKE_CHANGED } from "@/lib/history";
 import { readPersonalizationProfile, PERSONALIZATION_CHANGED } from "@/lib/personalizationProfile";
 import { bmr, tdee, calorieTarget, remainingMealCalorieTarget } from "@/lib/tdee";
 import { suggestExtras, planForDay, type ExtraSuggestionSet } from "@/lib/nextMeal";
 import { currentMeal, localDayKey } from "@/lib/mealtime";
+import { biasVector } from "@/lib/personalization";
+import { toAvoid } from "@/lib/mealRotationMemory";
 
 export interface TodaysCalories {
   target: number | null;
@@ -76,6 +78,30 @@ const DAY_END_FLOOR = 200;
  * meal's larger share — the same self-correcting design
  * `remainingMealCalorieTarget` already had.
  *
+ * **`planForDay` is called here with the SAME real signals
+ * `components/TodaysMeal.tsx` uses to pick the plate it actually shows**
+ * (`loggedFoodCounts()`, `likedFoodCounts()`, the goal/activity/condition
+ * bias, and `toAvoid()`'s last-shown/skipped plates) — fixed 2026-09-07,
+ * a real bug found by re-reading both call sites side by side: this hook
+ * used to call `planForDay` with empty counts/liked maps, `bias: null`, and
+ * `avoidIndexes: []`, which are only the SAME inputs `TodaysMeal` uses for a
+ * brand-new user with no history, no goals, and no flagged conditions. For
+ * anyone with real meal history, an active goal/activity bias, or a flagged
+ * condition, `planForDay`'s internal sort (`eaten`, which folds in counts,
+ * liked, and the bias) landed on a DIFFERENT plate than the one on screen,
+ * so "calories remaining today" and the green extras card were silently
+ * computed against a plate the person was not actually looking at —
+ * defeating the exact "the day's meals must add up to the calorie goal"
+ * guarantee this whole file exists to keep. Since both call sites are now
+ * pure functions of the same real inputs, they resolve to the same plate in
+ * the common case. The one remaining, narrower gap: mid-session "Try
+ * another meal" taps advance an ephemeral `offset` that only lives in
+ * `TodaysMeal`'s component state and is not shared here, so a reroll can
+ * still leave this hook one plate behind until its next refresh (60s clock
+ * tick, or an intake/personalization change) — a transient display lag, not
+ * a calorie-math error, and not worth the risk of lifting `offset` into
+ * shared state for.
+ *
  * **Once dinner is under way, a small leftover reads as zero.** Nothing more
  * will be suggested once the true gap drops under `DAY_END_FLOOR`, the
  * number shown is 0 rather than a small, unactionable leftover. `dailyTarget`
@@ -112,12 +138,24 @@ export function useTodaysCalories(show: boolean): TodaysCalories {
     const meal = currentMeal();
     const dayKey = localDayKey();
     const mealShare = remainingMealCalorieTarget(dailyTarget, eatenToday, p.mealPattern, meal);
-    const idea = planForDay(meal, dayKey, new Map(), 0, [], new Map(), null, mealShare, p.conditions);
+    const [counts, liked] = await Promise.all([loggedFoodCounts(), likedFoodCounts()]);
+    const bias = biasVector({ goals: p.goals, activityLevel: p.activityLevel, conditions: p.conditions });
+    const idea = planForDay(
+      meal,
+      dayKey,
+      counts,
+      0,
+      toAvoid(meal, dayKey),
+      liked,
+      bias,
+      mealShare,
+      p.conditions,
+    );
     const plateCal = idea.foods.reduce((s, f) => s + (f.calories ?? 0), 0);
     const extrasGap = Math.max(0, mealShare - plateCal);
     setTarget(dailyTarget);
     setRemaining(meal === "dinner" && trueLeft < DAY_END_FLOOR ? 0 : trueLeft);
-    setExtra(suggestExtras(extrasGap, dayKey, meal));
+    setExtra(suggestExtras(extrasGap, dayKey, meal, p.conditions));
   }, [show]);
 
   useEffect(() => {

@@ -860,6 +860,34 @@ function buildVariant(
 }
 
 /**
+ * Kidney disease caps daily protein at 0.6-0.8g/kg/day (lib/tdee.ts's
+ * `proteinCapG`, NKF KDOQI guidance) — a real restriction, not a preference,
+ * and for a small person that budget can be as tight as 30-40g for the WHOLE
+ * day. A single scaled-up snack must never quietly eat deep into it. So for a
+ * kidney_disease profile, any extra candidate carrying a meaningful amount of
+ * protein in its OWN base serving (cashew nut, walnut, peanut butter — all at
+ * or above this threshold; tiger nut, coconut and bitter kola sit well under
+ * it) is capped at exactly its base serving here: it may never be scaled up
+ * past the normal amount already shown on that food's own card, no matter how
+ * large the calorie gap is. This can leave a kidney_disease profile's gap
+ * honestly a little short on a demanding target — the same deliberate
+ * trade-off already accepted for `MAX_EXTRA_ITEMS` above (a safety-driven cap
+ * on the pool, not a bug to chase). It never blocks a food outright and never
+ * shows a gram number to the person (the dietitian's rule that nobody sees a
+ * remaining protein/carb/fat figure, only calories, is untouched) — it only
+ * bounds how far one serving can scale.
+ */
+const PROTEIN_CAP_THRESHOLD_G = 3;
+
+/** `candidate`, or a copy capped to its own base serving when a kidney_disease
+ * profile should not be offered more than that food's normal amount. */
+function guardedCandidate(candidate: ExtraCandidate, food: Food, capProtein: boolean): ExtraCandidate {
+  if (!capProtein) return candidate;
+  if ((food.proteinG ?? 0) < PROTEIN_CAP_THRESHOLD_G) return candidate;
+  return { ...candidate, maxGrams: candidate.baseGrams };
+}
+
+/**
  * 2 real, swappable ways to close THIS meal's own share of today's calorie
  * gap — each one a real, exactly-sized, NEVER-repeated food (or two, only
  * when one food's safe maximum is not enough on its own). Which pair of
@@ -868,17 +896,24 @@ function buildVariant(
  * visit. Returns null below a small threshold (100kcal) or once nothing in
  * the pool can be resolved (a food renamed or removed — should not happen,
  * never throws).
+ *
+ * `conditions` (optional, default none) is the same free-on-every-tier signal
+ * `planForDay` already takes — see `guardedCandidate` above for what it does
+ * here. Omitting it reproduces today's behaviour exactly.
  */
 export function suggestExtras(
   remainingKcal: number,
   dayKey: string,
   meal: NamedMeal,
+  conditions: Condition[] = [],
 ): ExtraSuggestionSet | null {
   if (!remainingKcal || remainingKcal < MIN_GAP_KCAL) return null;
+  const capProtein = conditions.includes("kidney_disease");
   const pool = EXTRA_CANDIDATES[meal]
     .filter((candidate) => !EXCLUDED_FROM_EXTRAS.has(candidate.id))
     .map((candidate) => ({ candidate, food: getFood(candidate.id) }))
-    .filter((p): p is { candidate: ExtraCandidate; food: Food } => p.food != null);
+    .filter((p): p is { candidate: ExtraCandidate; food: Food } => p.food != null)
+    .map((p) => ({ candidate: guardedCandidate(p.candidate, p.food, capProtein), food: p.food }));
   if (pool.length === 0) return null;
 
   // At most 2 variants (fewer only if the pool itself is smaller), each
