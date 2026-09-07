@@ -406,12 +406,18 @@ for (const meal of MEALS) {
   // Realistic targets — the user's own worked example of 2,500, 2,800 /
   // 2,900, and the higher 3,200 / 3,430 (the exact reported bug's raw
   // TDEE) — must all close almost exactly. Re-measured 2026-09-08 (later
-  // the same day, AFTER the extras hard-cap below) with mealIdeaCalories
-  // (not a raw plate sum — see its own call site above): across 5 different
-  // days, the worst residual seen for any of these 5 targets was 50kcal
-  // (3,200kcal target) — comfortably inside the existing 60kcal floor, kept
-  // as-is since this floor is a test tolerance, not a user-facing promise.
-  const TIGHT_FLOOR = 60;
+  // the same day) with mealIdeaCalories (not a raw plate sum — see its own
+  // call site above). Widened from 60 to 70 the same day, after
+  // scaleMainProtein/scaleMainSide were changed to round to a WHOLE,
+  // nameable real-world unit (a whole piece of fish, a whole groundnut —
+  // see MAIN_PROTEIN_CONFIG's own doc for why: a bare gram number is not a
+  // household measure) instead of a continuous gram figure closest to the
+  // target — whole-unit rounding is a little coarser by nature, the same
+  // trade-off sizeExtra() already accepts for extras. Across 5 different
+  // days, the worst residual seen for any of these 5 targets is now 66kcal
+  // (2,500kcal target) — still a real, small floor, not a loosened one to
+  // hide a regression.
+  const TIGHT_FLOOR = 70;
   const days = ["2026-08-01", "2026-08-10", "2026-08-15", "2026-08-20", "2026-08-29"];
   for (const dailyTarget of [2500, 2800, 2900, 3200, 3430]) {
     const floor = TIGHT_FLOOR;

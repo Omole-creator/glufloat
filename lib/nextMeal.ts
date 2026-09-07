@@ -86,26 +86,79 @@ function excludesRiskyProtein(conditions: Condition[]): boolean {
 }
 
 /**
- * The gram anchor for each scalable main-plate protein's OWN normal serving
- * — read directly from that food's own `portionGuidance` (data/foods.json),
- * the same real number already shown on its card, not a separate invented
- * figure. Deliberately the exact same 5 foods `CONDITION_EXCLUDED_PROTEIN_IDS`
- * excludes (every `SOUP_PROTEINS` entry with NO healthNote): scaling a
- * protein that already carries a salt/fat/cardiovascular caution
- * (beef, goat meat, pomo, shaki, stockfish, smoked fish) would compound an
- * existing concern, not just add calories, so those are never candidates
- * here regardless of the calorie math. `eggs` is a real, common main-plate
- * protein too but is deliberately excluded — its own portionGuidance
- * ("One to two eggs") has no single clean gram anchor to scale from, and
- * guessing one would be exactly the kind of invented number this codebase's
- * history (see CLAUDE.md's `PortionMini` note) has already been burned by.
+ * One food's normal serving, expressed as a whole, countable real-world
+ * unit (not just a gram number) — the same anchor already on that food's
+ * own card, so a scaled-up amount can be described the same honest way a
+ * scale-free household would actually measure it out.
  */
-const MAIN_PROTEIN_BASE_GRAMS: Record<string, number> = {
-  fish: 100,
-  chicken: 90,
-  turkey: 90,
-  snail: 90,
-  "prawns-crayfish": 90,
+interface MainProteinConfig {
+  /** The base serving's grams — read directly from that food's own
+   *  `portionGuidance` (data/foods.json), not a separate invented figure. */
+  baseGrams: number;
+  /** How many of the countable unit make up `baseGrams` (e.g. fish: 1
+   *  palm-size piece = 100g; chicken: 2 medium pieces = 90g). */
+  baseUnits: number;
+  /** Turns a whole unit count + its total grams into the anchored phrase
+   *  a person without a scale can actually picture — matches the singular/
+   *  plural wording already used on that food's own card. */
+  describe: (units: number, grams: number) => string;
+}
+
+/**
+ * The real, countable anchor for each scalable main-plate protein's OWN
+ * normal serving. Deliberately the exact same 5 foods
+ * `CONDITION_EXCLUDED_PROTEIN_IDS` excludes (every `SOUP_PROTEINS` entry
+ * with NO healthNote): scaling a protein that already carries a salt/fat/
+ * cardiovascular caution (beef, goat meat, pomo, shaki, stockfish, smoked
+ * fish) would compound an existing concern, not just add calories, so those
+ * are never candidates here regardless of the calorie math. `eggs` is a
+ * real, common main-plate protein too but is deliberately excluded — its
+ * own portionGuidance ("One to two eggs") has no single clean gram anchor
+ * to scale from, and guessing one would be exactly the kind of invented
+ * number this codebase's history (see CLAUDE.md's `PortionMini` note) has
+ * already been burned by.
+ *
+ * **`describe()` was added 2026-09-08 (a later correction, direct question:
+ * "how will they know what 158g or 90g look like if they don't have a
+ * weighing scale?").** The instruction used to state only a bare gram
+ * number — the exact "no vague sizes... give the real number OR a
+ * household measure" rule this app enforces everywhere else was itself
+ * being broken by this one feature, because a gram figure alone is not a
+ * household measure. Each `describe()` here reuses the SAME countable unit
+ * already on that food's own card (`portionGuidance`), scaled to a whole
+ * number of units — never a fraction of a piece or prawn, matching the
+ * same "always a whole countable unit" rule the extras pool already
+ * follows in `sizeExtra()`.
+ */
+const MAIN_PROTEIN_CONFIG: Record<string, MainProteinConfig> = {
+  fish: {
+    baseGrams: 100,
+    baseUnits: 1,
+    describe: (units, grams) =>
+      units <= 1
+        ? `1 piece of fish, about as wide as your palm (${grams}g)`
+        : `${units} pieces of fish, each about as wide as your palm (${grams}g in total)`,
+  },
+  chicken: {
+    baseGrams: 90,
+    baseUnits: 2,
+    describe: (units, grams) => `${units} medium pieces of chicken, put together (${grams}g)`,
+  },
+  turkey: {
+    baseGrams: 90,
+    baseUnits: 2,
+    describe: (units, grams) => `${units} turkey pieces, put together (${grams}g)`,
+  },
+  snail: {
+    baseGrams: 90,
+    baseUnits: 3,
+    describe: (units, grams) => `${units} medium snails (${grams}g)`,
+  },
+  "prawns-crayfish": {
+    baseGrams: 90,
+    baseUnits: 10,
+    describe: (units, grams) => `${units} prawns (${grams}g)`,
+  },
 };
 
 /**
@@ -120,16 +173,29 @@ const MAIN_PROTEIN_BASE_GRAMS: Record<string, number> = {
  * spike glucose, but a genuinely large amount still has a measurable
  * gluconeogenesis effect. [Splenda](https://www.splenda.com/blog/the-importance-of-protein-for-people-with-diabetes/),
  * [DiabetesTeam](https://www.diabetesteam.com/resources/best-protein-for-diabetes-nutrition-and-blood-sugar).
- * 1.75x keeps every candidate here comfortably under that ceiling even at
- * its own highest-protein food (chicken, 27.9g base → ~48.8g scaled, still
- * well short of 75g) while still adding a real, worthwhile amount (roughly
- * 60-150kcal depending on the food) — genuinely more of the meal's own
- * calorie need met directly, never a "drastic" increase, because a drastic
- * one is exactly what the research above says not to do. Documented here,
- * pending dietitian sign-off, same footing as every other house number in
- * this file.
+ *
+ * **2x (a full doubling), not 1.75x — changed 2026-09-08, a later
+ * correction.** The original 1.75x figure was picked as one shared,
+ * conservative multiplier across all 5 foods; it was never re-checked
+ * against the household-anchor fix this same day required (`describe()`
+ * above — a scaled amount must round to a WHOLE real unit, a whole piece
+ * of fish, never "1.75 pieces"). Rounding a continuous 1.75x target UP to
+ * the next whole piece silently overshot the multiplier itself for the
+ * coarser-grained foods (2 pieces of fish = 200g = 2x, already past
+ * 175g). Rather than round DOWN and quietly lose most of the feature for
+ * those foods (fish's only other option is 1 piece — no scaling at all),
+ * the multiplier was re-derived directly from the research above instead
+ * of picked as a round number: at a full double, protein stays at 44.0g
+ * (fish), 55.8g (chicken, the highest of the 5), 52.2g (turkey), 28.8g
+ * (snail), 43.2g (prawns/crayfish) — every one comfortably under the 75g
+ * effect threshold, checked directly against each food's own real
+ * `proteinG`, not assumed. A full double also happens to be exactly one
+ * more of whatever whole unit that food's own card already uses (2 pieces
+ * of fish, double the chicken/turkey pieces, double the snails/prawns),
+ * so it needs no separate rounding rule at all — the safe ceiling and the
+ * nameable household amount are the same number.
  */
-const MAIN_PROTEIN_MAX_MULTIPLIER = 1.75;
+const MAIN_PROTEIN_MAX_MULTIPLIER = 2;
 
 /** How small the calorie gap has to be before scaling the protein up is not
  * worth the bother — matches the same threshold `MIN_ADD_KCAL` uses for
@@ -175,15 +241,22 @@ export function scaleMainProtein(
 ): ScaledProtein | null {
   if (conditions.includes("kidney_disease")) return null;
   if (!gapKcal || gapKcal < MIN_PROTEIN_SCALE_KCAL) return null;
-  const food = foods.find((f) => MAIN_PROTEIN_BASE_GRAMS[f.id] != null);
+  const food = foods.find((f) => MAIN_PROTEIN_CONFIG[f.id] != null);
   if (!food) return null;
-  const baseGrams = MAIN_PROTEIN_BASE_GRAMS[food.id];
+  const config = MAIN_PROTEIN_CONFIG[food.id];
+  const baseGrams = config.baseGrams;
   const baseKcal = food.calories ?? 0;
   if (baseKcal <= 0) return null;
   const kcalPerGram = baseKcal / baseGrams;
+  const gramsPerUnit = baseGrams / config.baseUnits;
   const maxGrams = Math.round(baseGrams * MAIN_PROTEIN_MAX_MULTIPLIER);
   const targetGrams = baseGrams + Math.round(gapKcal / kcalPerGram);
-  const grams = Math.max(baseGrams, Math.min(maxGrams, targetGrams));
+  const rawGrams = Math.max(baseGrams, Math.min(maxGrams, targetGrams));
+  // Always a WHOLE countable unit — never "1.75 pieces of fish" — the same
+  // rule sizeExtra() already follows for extras. Never rounds below the
+  // base unit count, so this can never quietly shrink the serving.
+  const units = Math.max(config.baseUnits, Math.round(rawGrams / gramsPerUnit));
+  const grams = Math.round(units * gramsPerUnit);
   if (grams <= baseGrams) return null;
   const calories = Math.round(grams * kcalPerGram);
   return {
@@ -192,7 +265,7 @@ export function scaleMainProtein(
     grams,
     calories,
     extraCalories: calories - baseKcal,
-    instruction: `A bigger ${cleanFoodName(food.name).toLowerCase()} serving today: about ${grams}g, instead of the usual ${baseGrams}g. This helps meet your calorie goal, and this size stays safe for your sugar.`,
+    instruction: `A bigger ${cleanFoodName(food.name).toLowerCase()} serving today: about ${config.describe(units, grams)}, instead of the usual ${config.describe(config.baseUnits, baseGrams)}. This helps meet your calorie goal, and this size stays safe for your sugar.`,
   };
 }
 
@@ -216,12 +289,52 @@ export function scaleMainProtein(
  * whole cup of one beverage in a sitting is a lot, a more modest top-up is
  * more realistic. See `docs/EVIDENCE.md`'s breakfast-side-scaling section
  * for the full citations. All four carry negligible sodium (5-113mg base).
+ *
+ * **`describe()` added 2026-09-08 (a later correction — see
+ * `MAIN_PROTEIN_CONFIG`'s own doc for the exact question that prompted
+ * it): a bare gram/ml number is not a household measure.** Avocado and soy
+ * milk are described in halves (a half-fruit, a half-cup) since their real
+ * base servings already are one — a whole fruit or a whole cup would be a
+ * fabricated finer unit neither food's own card uses.
  */
-const MAIN_SIDE_CONFIG: Record<string, { baseGrams: number; maxGrams: number; unit: string }> = {
-  groundnut: { baseGrams: 30, maxGrams: 60, unit: "g" },
-  avocado: { baseGrams: 75, maxGrams: 150, unit: "g" },
-  "plain-yogurt": { baseGrams: 150, maxGrams: 300, unit: "g" },
-  "soy-milk": { baseGrams: 250, maxGrams: 375, unit: "ml" },
+interface MainSideConfig {
+  baseGrams: number;
+  maxGrams: number;
+  /** How many of the countable half/whole unit make up `baseGrams`. */
+  baseUnits: number;
+  describe: (units: number, grams: number) => string;
+}
+
+const MAIN_SIDE_CONFIG: Record<string, MainSideConfig> = {
+  groundnut: {
+    baseGrams: 30,
+    maxGrams: 60,
+    baseUnits: 20,
+    describe: (units, grams) => `${units} groundnuts (${grams}g)`,
+  },
+  avocado: {
+    baseGrams: 75,
+    maxGrams: 150,
+    baseUnits: 1, // 1 half
+    describe: (halves, grams) =>
+      halves <= 1 ? `half of a medium avocado (${grams}g)` : `a whole avocado (${grams}g)`,
+  },
+  "plain-yogurt": {
+    baseGrams: 150,
+    maxGrams: 300,
+    baseUnits: 1, // 1 small cup
+    describe: (cups, grams) =>
+      cups <= 1 ? `1 small cup of yogurt (${grams}g)` : `${cups} small cups of yogurt (${grams}g)`,
+  },
+  "soy-milk": {
+    baseGrams: 250,
+    maxGrams: 375,
+    baseUnits: 2, // 2 half-cups = 1 cup
+    describe: (halfCups, grams) =>
+      halfCups <= 2
+        ? `1 cup of soy milk (${grams}ml)`
+        : `1 and a half cups of soy milk (${grams}ml)`,
+  },
 };
 
 /** Same threshold `scaleMainProtein` uses — not worth a whole extra
@@ -233,7 +346,7 @@ const MIN_SIDE_SCALE_KCAL = 20;
  * avocado, plain yogurt, or soy milk — see `MAIN_SIDE_CONFIG`) to help
  * close `gapKcal` directly, the same idea as `scaleMainProtein` but for the
  * one real lever a plain-toppings breakfast has (most breakfast plates have
- * no `MAIN_PROTEIN_BASE_GRAMS` food at all). For a `kidney_disease` profile,
+ * no `MAIN_PROTEIN_CONFIG` food at all). For a `kidney_disease` profile,
  * a candidate whose own base serving already carries meaningful protein
  * (plain yogurt 5.3g, soy milk 7g — both at or above the same
  * `PROTEIN_CAP_THRESHOLD_G` threshold `guardedCandidate()` uses for extras;
@@ -259,8 +372,14 @@ export function scaleMainSide(
   const baseKcal = food.calories ?? 0;
   if (baseKcal <= 0) return null;
   const kcalPerGram = baseKcal / config.baseGrams;
+  const gramsPerUnit = config.baseGrams / config.baseUnits;
   const targetGrams = config.baseGrams + Math.round(gapKcal / kcalPerGram);
-  const grams = Math.max(config.baseGrams, Math.min(maxGrams, targetGrams));
+  const rawGrams = Math.max(config.baseGrams, Math.min(maxGrams, targetGrams));
+  // Always a whole countable unit (or half-unit, for avocado/soy milk,
+  // matching their own real base serving) — never a fraction that has no
+  // household way to measure it out.
+  const units = Math.max(config.baseUnits, Math.round(rawGrams / gramsPerUnit));
+  const grams = Math.round(units * gramsPerUnit);
   if (grams <= config.baseGrams) return null;
   const calories = Math.round(grams * kcalPerGram);
   return {
@@ -269,7 +388,7 @@ export function scaleMainSide(
     grams,
     calories,
     extraCalories: calories - baseKcal,
-    instruction: `A bigger ${cleanFoodName(food.name).toLowerCase()} serving today: about ${grams}${config.unit}, instead of the usual ${config.baseGrams}${config.unit}. This helps meet your calorie goal, and this size stays safe for your sugar.`,
+    instruction: `A bigger ${cleanFoodName(food.name).toLowerCase()} serving today: about ${config.describe(units, grams)}, instead of the usual ${config.describe(config.baseUnits, config.baseGrams)}. This helps meet your calorie goal, and this size stays safe for your sugar.`,
   };
 }
 
@@ -677,7 +796,7 @@ export function planForDay(
     // can work with — used below (only when a calorie target is active) so
     // the rotation does not leave whether scaling ever fires to chance.
     const hasScalable = idea.foods.some(
-      (f) => MAIN_PROTEIN_BASE_GRAMS[f.id] != null || MAIN_SIDE_CONFIG[f.id] != null,
+      (f) => MAIN_PROTEIN_CONFIG[f.id] != null || MAIN_SIDE_CONFIG[f.id] != null,
     );
     // `diff` defaults to 0 here (no target given) so the pool has a uniform
     // shape whether or not the calorie-target narrowing below runs, and the

@@ -698,6 +698,34 @@ are untouched — this is a separate, additive note shown only on
 `components/TodaysMeal.tsx`'s blue card when a real calorie target calls
 for it, never a change to the food's own canonical size.
 
+**Correction, 2026-09-08 (a later session, direct question: "how will they
+know what 158g or 90g look like if they don't have a weighing scale?").**
+The instruction above only ever stated a bare gram number — no household
+anchor at all, which is the exact "no vague sizes... give the real number
+OR a household measure" rule this app enforces everywhere else, being
+broken by this one feature. Fixed by having `scaleMainProtein()` describe
+the scaled amount in the SAME countable real-world unit already on that
+food's own card (a whole piece of fish, a whole snail, a whole prawn —
+never a fraction of one), which in turn required re-deriving
+`MAIN_PROTEIN_MAX_MULTIPLIER`: **1.75x no longer holds — it is 2x (a full
+doubling) now.** Rounding a continuous 1.75x target UP to the next whole
+unit silently overshot 1.75x itself for the coarser-grained foods (2
+pieces of fish is 200g, already past 175g); rounding DOWN instead would
+have meant fish could never scale at all (its only other option is 1
+piece, no change). Re-checked directly against each food's own real
+`proteinG`, not assumed: even a full double keeps protein at 44.0g (fish),
+55.8g (chicken, the highest of the 5), 52.2g (turkey), 28.8g (snail),
+43.2g (prawns/crayfish) — every one still comfortably under the 75g
+effect threshold this whole section is built on. A full double also
+happens to land exactly on one more of whatever whole unit that food's own
+card already uses, so no separate rounding rule was needed once this was
+corrected — the safe ceiling and the nameable household amount are now the
+same number. The `+150kcal`/`+111kcal`/etc. figures above are superseded —
+real numbers at 2x: fish +200kcal (100g→200g, 2 pieces), chicken +149kcal
+(90g→180g, 4 medium pieces), turkey +153kcal (90g→180g, 4 pieces), snail
++81kcal (90g→180g, 6 snails), prawns/crayfish +89kcal (90g→180g, 20
+prawns).
+
 ## 11. Breakfast side scaling: groundnut, avocado, plain yogurt, soy milk
 
 **Same footing as §9/§10 — a house bound, pending dietitian sign-off.**
