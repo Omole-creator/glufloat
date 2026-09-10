@@ -28,9 +28,9 @@ export default function AdminLogin() {
     <main className="flex min-h-screen items-center justify-center bg-mist px-4">
       <form
         onSubmit={submit}
-        className="w-full max-w-xs rounded-2xl border border-line bg-white p-6 shadow-lg"
+        className="w-full max-w-xs rounded-2xl bg-brand p-6 text-white shadow-[0_10px_36px_-14px_rgba(12,42,71,0.45)]"
       >
-        <h1 className="font-display text-lg font-bold text-ink">
+        <h1 className="font-display text-lg font-bold text-white">
           Glufloat admin
         </h1>
         <input
@@ -38,14 +38,14 @@ export default function AdminLogin() {
           value={pw}
           onChange={(e) => setPw(e.target.value)}
           placeholder="Admin password"
-          className="mt-4 w-full rounded-xl border-2 border-line px-4 py-2.5 text-sm text-ink outline-none focus:border-brand"
+          className="mt-4 w-full rounded-xl border-0 bg-white px-4 py-2.5 text-sm text-ink outline-none ring-1 ring-inset ring-white/25 focus:ring-2 focus:ring-white"
           aria-label="Admin password"
         />
-        {err && <p className="mt-2 text-xs font-medium text-verdict-red">{err}</p>}
+        {err && <p className="mt-2 text-xs font-medium text-v-red">{err}</p>}
         <button
           type="submit"
           disabled={busy}
-          className="mt-4 w-full rounded-full bg-brand px-4 py-2.5 text-sm font-bold text-white hover:bg-brand-deep disabled:opacity-60"
+          className="mt-4 w-full rounded-full bg-leaf px-4 py-2.5 text-sm font-bold text-white hover:bg-leaf-deep disabled:opacity-60"
         >
           {busy ? "..." : "Enter"}
         </button>

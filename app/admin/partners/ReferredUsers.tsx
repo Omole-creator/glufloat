@@ -33,11 +33,11 @@ export default async function ReferredUsers({ partnerId }: { partnerId: string }
           People they brought ({users.length})
         </h3>
         {users.length === 0 ? (
-          <p className="mt-3 rounded-xl border border-line bg-mist p-5 text-sm text-ink-soft">
+          <p className="mt-3 rounded-xl bg-mist p-5 text-sm text-ink-soft">
             Nobody has signed up through their link yet.
           </p>
         ) : (
-          <div className="mt-3 overflow-x-auto rounded-xl border border-line">
+          <div className="mt-3 overflow-x-auto rounded-xl bg-white shadow-[0_6px_28px_-14px_rgba(12,42,71,0.18)] ring-1 ring-ink/[0.05]">
             <table className="w-full min-w-[30rem]">
               <thead className="border-b border-line bg-mist">
                 <tr>
@@ -73,7 +73,7 @@ export default async function ReferredUsers({ partnerId }: { partnerId: string }
       <div>
         <h3 className="font-display text-lg font-bold text-ink">Payouts</h3>
         {payouts.length === 0 ? (
-          <p className="mt-3 rounded-xl border border-line bg-mist p-5 text-sm text-ink-soft">
+          <p className="mt-3 rounded-xl bg-mist p-5 text-sm text-ink-soft">
             You have not paid them anything yet.
           </p>
         ) : (
@@ -81,7 +81,7 @@ export default async function ReferredUsers({ partnerId }: { partnerId: string }
             {payouts.map((p) => (
               <li
                 key={p.id}
-                className="flex items-center justify-between rounded-xl border border-line px-4 py-3"
+                className="flex items-center justify-between rounded-xl bg-white px-4 py-3 shadow-[0_6px_28px_-14px_rgba(12,42,71,0.18)] ring-1 ring-ink/[0.05]"
               >
                 <span>
                   <span className="font-display font-bold text-ink">{naira(p.amount)}</span>

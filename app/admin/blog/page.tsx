@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { Newspaper } from "lucide-react";
 import { ADMIN_COOKIE, adminToken } from "@/lib/adminAuth";
 import { createAdminClient } from "@/lib/supabase/server";
 import AdminLogin from "../AdminLogin";
@@ -24,7 +25,7 @@ export default async function AdminBlogPage() {
   return (
     <AdminShell
       title="Blog posts"
-      intro="Write a post, publish it, and it goes live on the site and into Google straight away."
+      icon={<Newspaper className="h-5 w-5" strokeWidth={2.2} />}
       width="max-w-5xl"
     >
       <>

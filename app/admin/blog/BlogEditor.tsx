@@ -253,7 +253,7 @@ export default function BlogEditor({ initial }: { initial: Post[] }) {
   return (
     <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_20rem]">
       {/* ---- the editor ---- */}
-      <section className="rounded-2xl border border-line bg-white p-6">
+      <section className="rounded-2xl bg-white p-6 shadow-[0_6px_28px_-14px_rgba(12,42,71,0.18)] ring-1 ring-ink/[0.05]">
         <div className="flex items-center justify-between">
           <h2 className="font-display text-xl font-bold text-ink">
             {d.id ? "Edit post" : "New post"}
@@ -520,7 +520,7 @@ export default function BlogEditor({ initial }: { initial: Post[] }) {
             <button
               disabled={busy}
               onClick={() => save("published")}
-              className="rounded-full bg-brand px-7 py-3 font-display font-bold text-white transition-transform hover:scale-105 disabled:opacity-50"
+              className="rounded-full bg-leaf px-7 py-3 font-display font-bold text-white transition-colors hover:bg-leaf-deep disabled:opacity-50"
             >
               {busy ? "Working..." : "Publish"}
             </button>
@@ -546,7 +546,7 @@ export default function BlogEditor({ initial }: { initial: Post[] }) {
       </section>
 
       {/* ---- the list ---- */}
-      <aside className="rounded-2xl border border-line bg-white p-5">
+      <aside className="rounded-2xl bg-white p-5 shadow-[0_6px_28px_-14px_rgba(12,42,71,0.18)] ring-1 ring-ink/[0.05]">
         <h2 className="font-display text-lg font-bold text-ink">
           All posts ({posts.length})
         </h2>

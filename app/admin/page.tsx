@@ -1,9 +1,23 @@
 import { cookies } from "next/headers";
 import Link from "next/link";
+import {
+  BarChart3,
+  RefreshCw,
+  Search,
+  UtensilsCrossed,
+  FileText,
+  CheckCircle2,
+  MessageCircle,
+  Droplet,
+  Users as UsersIcon,
+  Repeat,
+} from "lucide-react";
 import { ADMIN_COOKIE, adminToken } from "@/lib/adminAuth";
 import { createAdminClient } from "@/lib/supabase/server";
 import AdminLogin from "./AdminLogin";
 import AdminShell from "./AdminShell";
+import AdminHero from "./AdminHero";
+import AdminTile from "./AdminTile";
 import ExportButton, { type ExportData } from "./ExportButton";
 import PeriodPicker from "@/components/PeriodPicker";
 import { inPeriod, parsePeriod, type PeriodParams } from "@/lib/period";
@@ -16,16 +30,6 @@ export const dynamic = "force-dynamic";
 const DAY_MS = 24 * 60 * 60 * 1000;
 const naira = (kobo: number) => "N" + Math.round(kobo / 100).toLocaleString();
 const SUB_PRICE_KOBO = 150000; // N1,500
-
-function Tile({ label, value, sub }: { label: string; value: string; sub?: string }) {
-  return (
-    <div className="rounded-2xl border border-line bg-white p-5">
-      <p className="text-xs font-bold uppercase tracking-wider text-ink/50">{label}</p>
-      <p className="mt-1 font-display text-3xl font-bold text-ink">{value}</p>
-      {sub && <p className="mt-1 text-xs text-ink-soft">{sub}</p>}
-    </div>
-  );
-}
 
 export default async function AdminPage({
   searchParams,
@@ -389,126 +393,104 @@ export default async function AdminPage({
   return (
     <AdminShell
       title="The numbers"
-      intro="Live from your database. The PDF holds totals only, no personal data."
+      icon={<BarChart3 className="h-5 w-5" strokeWidth={2.2} />}
       actions={<ExportButton data={exportData} />}
     >
       <>
         {/* Any period, not just the one we happen to be in. */}
         <PeriodPicker period={period} basePath="/admin" />
 
-        <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Tile label={`Signups · ${period.label}`} value={signupsInRange.toLocaleString()} sub={`${signups} all time`} />
-          <Tile label="Active trials" value={P.filter((p) => p.trial_start && (now - new Date(p.trial_start).getTime()) / DAY_MS < TRIAL_DAYS).length.toLocaleString()} sub={`${trialsStarted} started ever`} />
-          <Tile label="Trial → paid" value={`${conversion}%`} sub={`${everSubscribed} converted`} />
-          <Tile label="Active subscribers" value={activeSubs.toLocaleString()} sub="paying right now" />
-          <Tile label="MRR" value={naira(mrr)} sub="active subs × N1,500" />
-          <Tile label={`Revenue · ${period.label}`} value={naira(revenueRange)} sub={`${naira(revenue)} all time`} />
-          <Tile label="Churn (all time)" value={`${churnRateOverall}%`} sub={`${churnedNow} lapsed`} />
-          <Tile label="Total revenue" value={naira(revenue)} />
+        <div className="mt-5">
+          <AdminHero
+            items={[
+              { label: `Signups · ${period.label}`, value: signupsInRange.toLocaleString(), sub: `${signups.toLocaleString()} all time` },
+              { label: "Active subscribers", value: activeSubs.toLocaleString(), sub: "paying right now" },
+              { label: "Trial → paid", value: `${conversion}%`, sub: `${everSubscribed} converted` },
+              { label: "MRR", value: naira(mrr), sub: "active subs × N1,500" },
+            ]}
+          />
         </div>
 
-        {/* How people actually use the app, not just whether they signed up. */}
+        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <AdminTile label="Active trials" value={P.filter((p) => p.trial_start && (now - new Date(p.trial_start).getTime()) / DAY_MS < TRIAL_DAYS).length.toLocaleString()} sub={`${trialsStarted} started ever`} />
+          <AdminTile label={`Revenue · ${period.label}`} value={naira(revenueRange)} sub={`${naira(revenue)} all time`} />
+          <AdminTile label="Churn (all time)" value={`${churnRateOverall}%`} sub={`${churnedNow} lapsed`} />
+          <AdminTile label="Total revenue" value={naira(revenue)} />
+        </div>
+
         <h2 className="mt-10 font-display text-lg font-bold text-ink">
           How people use the app &middot; {period.label}
         </h2>
-        <p className="mt-1 text-sm text-ink-soft">
-          Taps inside the app, in the window you picked at the top. The average
-          per person shows whether people press once or many times. Pick{" "}
-          <strong className="text-ink">All time</strong> up there for the totals
-          since launch.
-        </p>
         <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <Tile
+          <AdminTile
+            icon={RefreshCw}
             label="Change-meal taps"
             value={uReroll.count.toLocaleString()}
             sub={`avg ${uReroll.avg.toFixed(1)} per person · ${uReroll.users} people`}
           />
-          <Tile
+          <AdminTile
+            icon={Search}
             label="Food searches"
             value={uSearch.count.toLocaleString()}
             sub={`avg ${uSearch.avg.toFixed(1)} per person · ${uSearch.users} people`}
           />
-          <Tile
+          <AdminTile
+            icon={UtensilsCrossed}
+            tone="green"
             label="Meals logged (I ate this)"
             value={uLogged.count.toLocaleString()}
             sub={`${uLogged.users} people`}
           />
-          {/* No sugar-test tile here on purpose. It would count TAPS, while the
-              block lower down counts the tests that actually exist, and the two
-              disagree the moment somebody deletes a wrong number: one tile would
-              say four saved while the block said nobody. Two numbers for one
-              thing is worse than one number. The "reading_logged" tap is still
-              recorded, so a run of taps with no rows behind them would show
-              saving is failing. */}
-          <Tile
+          <AdminTile
+            icon={FileText}
             label="Doctor reports made"
             value={uReport.count.toLocaleString()}
-            sub={`${uReport.users} people · are they useful?`}
+            sub={`${uReport.users} people`}
           />
-          <Tile
+          <AdminTile
+            icon={CheckCircle2}
+            tone="green"
             label="Checked a suggested meal"
             value={uCheck.count.toLocaleString()}
             sub={`${uCheck.users} people`}
           />
-          <Tile
+          <AdminTile
+            icon={MessageCircle}
             label="WhatsApp channel joins"
             value={uChannel.count.toLocaleString()}
             sub={`${uChannel.users} people`}
           />
         </div>
 
-        {/*
-          Sugar tests: the one block that says whether the newest feature works.
-
-          The tiles follow the date picker, so "how many tests were saved in
-          July" can be asked. ONE does not, and must not: "people with enough
-          tests" is a state, not something that happened inside a window. Inside
-          a single day nobody has five tests, so a filtered version would read
-          zero and say the feature is dead when it is not. Same reasoning as
-          "owed now" on the partner screen.
-        */}
         <h2 className="mt-10 font-display text-lg font-bold text-ink">
           Are people saving sugar tests? &middot; {period.label}
         </h2>
-        <p className="mt-1 max-w-2xl rounded-2xl border border-brand/20 bg-brand/5 px-4 py-3 text-sm font-semibold text-ink">
+        <p className="mt-3 max-w-2xl rounded-2xl bg-brand px-4 py-3 text-sm font-semibold text-white shadow-[0_6px_28px_-14px_rgba(12,42,71,0.35)]">
           {readingVerdict(healthAll)}
         </p>
-        <p className="mt-2 max-w-2xl text-sm text-ink-soft">
-          These count the tests people have really saved, not button taps, so a
-          number typed wrong and then deleted does not stay here. They follow the
-          window you picked at the top, except the first tile, which is marked
-          all time: whether somebody has enough tests is true today or it is not,
-          and no window changes it.
-        </p>
         <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {/* THE number, and the one that ignores the picker. At zero, the part
-              of the app that speaks up on its own has never spoken to anybody,
-              however healthy the other tiles look. */}
-          <Tile
+          <AdminTile
+            icon={Droplet}
+            tone="green"
             label="People with enough tests · all time"
             value={healthAll.ready.toLocaleString()}
-            sub="the app can show them their own pattern · watch this one"
           />
-          {/* Breadth, not volume. One keen person saving forty makes the total
-              look healthy while nobody else has touched it. */}
-          <Tile
+          <AdminTile
+            icon={UsersIcon}
             label="People using it"
             value={health.people.toLocaleString()}
             sub={`${health.total.toLocaleString()} sugar tests saved · ${healthAll.total.toLocaleString()} all time`}
           />
-          <Tile
+          <AdminTile
+            icon={Repeat}
             label="Saved more than one test"
             value={health.repeat.toLocaleString()}
-            sub="one test is curiosity, two is a habit"
           />
-          <Tile
+          <AdminTile
             label="Tests per person"
             value={health.median.toLocaleString()}
-            sub="the middle person, so one heavy user cannot lift it"
           />
-          {/* Says whether people are linking tests to food, or mostly testing
-              first thing in the morning. Either is fine; this tells you which. */}
-          <Tile
+          <AdminTile
             label="Tests with a meal"
             value={
               health.total
@@ -517,58 +499,42 @@ export default async function AdminPage({
             }
             sub={`${health.attached} with a meal · ${health.loose} with none`}
           />
-          {/* How much of the doctor report actually carries a number. */}
-          <Tile
+          <AdminTile
             label="Saved meals with a test"
             value={
               mealsTotal
                 ? `${Math.round((mealsWithTest / mealsTotal) * 100)}%`
                 : "0%"
             }
-            sub={`${mealsWithTest} of ${(mealsTotal ?? 0).toLocaleString()} meals saved in ${period.label.toLowerCase()}`}
+            sub={`${mealsWithTest} of ${(mealsTotal ?? 0).toLocaleString()} meals · ${period.label.toLowerCase()}`}
           />
         </div>
 
-        {/*
-          Did it become a habit? The tiles above say people tapped things. These
-          say whether they came BACK, which is the only proof a daily companion
-          is what we built and not a thing you look up once.
-        */}
         <h2 className="mt-10 font-display text-lg font-bold text-ink">
           Do they come back? &middot; signed up in {period.label}
         </h2>
-        <p className="mt-1 text-sm text-ink-soft">
-          Of the people who signed up in this window, how many were still using
-          the app a day, a week and a month later. Only people who signed up long
-          enough ago to have had that day are counted.
-        </p>
         <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Tile
+          <AdminTile
             label="Back the next day"
             value={d1.pct === null ? "—" : `${d1.pct}%`}
             sub={`${d1.came} of ${d1.eligible} people`}
           />
-          <Tile
+          <AdminTile
             label="Back after a week"
             value={d7.pct === null ? "—" : `${d7.pct}%`}
             sub={`${d7.came} of ${d7.eligible} people`}
           />
-          <Tile
+          <AdminTile
             label="Back after a month"
             value={d30.pct === null ? "—" : `${d30.pct}%`}
             sub={`${d30.came} of ${d30.eligible} people`}
           />
-          <Tile
+          <AdminTile
             label="Opens per day"
             value={openDays.size ? opensPerDay.toFixed(1) : "—"}
-            sub={`${openCount.toLocaleString()} opens · three a day is the goal`}
+            sub={`${openCount.toLocaleString()} opens`}
           />
         </div>
-        <p className="mt-2 text-xs text-ink-soft">
-          A dash means nobody has been signed up long enough yet, which is not the
-          same as nobody coming back. A phone and a laptop are two devices but one
-          person here, because this counts the account, not the browser.
-        </p>
 
         {/*
           The same numbers again, but split by who the person is.
@@ -585,7 +551,7 @@ export default async function AdminPage({
             see and search everyone
           </Link>
         </h2>
-        <div className="mt-3 overflow-x-auto rounded-2xl border border-line bg-white">
+        <div className="mt-3 overflow-x-auto rounded-2xl bg-white shadow-[0_6px_28px_-14px_rgba(12,42,71,0.18)] ring-1 ring-ink/[0.05]">
           <table className="w-full min-w-[54rem] text-left text-sm">
             <thead className="border-b border-line text-xs uppercase tracking-wider text-ink/50">
               <tr>
@@ -638,11 +604,6 @@ export default async function AdminPage({
             </tbody>
           </table>
         </div>
-        <p className="mt-2 text-xs text-ink-soft">
-          A dash means nobody in that group has got that far yet, which is not the
-          same as zero percent. Everyone who signed up before the question existed
-          sits in Not set, and nobody was guessed into a group.
-        </p>
 
         {/* month on month */}
         <div className="mt-10 flex flex-wrap items-center justify-between gap-3">
@@ -650,7 +611,7 @@ export default async function AdminPage({
             Subscriptions: churn month on month &middot; {year}
           </h2>
         </div>
-        <div className="mt-3 overflow-x-auto rounded-2xl border border-line bg-white">
+        <div className="mt-3 overflow-x-auto rounded-2xl bg-white shadow-[0_6px_28px_-14px_rgba(12,42,71,0.18)] ring-1 ring-ink/[0.05]">
           <table className="w-full text-left text-sm">
             <thead className="border-b border-line text-xs uppercase tracking-wider text-ink/50">
               <tr>
@@ -690,7 +651,7 @@ export default async function AdminPage({
         <h2 className="mt-10 font-display text-lg font-bold text-ink">
           Who churned <span className="text-sm font-normal text-ink-soft">(reach out to ask why)</span>
         </h2>
-        <div className="mt-3 overflow-x-auto rounded-2xl border border-line bg-white">
+        <div className="mt-3 overflow-x-auto rounded-2xl bg-white shadow-[0_6px_28px_-14px_rgba(12,42,71,0.18)] ring-1 ring-ink/[0.05]">
           <table className="w-full text-left text-sm">
             <thead className="border-b border-line text-xs uppercase tracking-wider text-ink/50">
               <tr>
@@ -735,7 +696,7 @@ export default async function AdminPage({
             see and search all {signups.toLocaleString()}
           </Link>
         </h2>
-        <div className="mt-3 overflow-x-auto rounded-2xl border border-line bg-white">
+        <div className="mt-3 overflow-x-auto rounded-2xl bg-white shadow-[0_6px_28px_-14px_rgba(12,42,71,0.18)] ring-1 ring-ink/[0.05]">
           <table className="w-full text-left text-sm">
             <thead className="border-b border-line text-xs uppercase tracking-wider text-ink/50">
               <tr>

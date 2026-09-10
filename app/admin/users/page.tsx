@@ -1,8 +1,11 @@
 import { cookies } from "next/headers";
+import { Users as UsersIcon, CheckCircle2, AlertTriangle } from "lucide-react";
 import { ADMIN_COOKIE, adminToken } from "@/lib/adminAuth";
 import { createAdminClient } from "@/lib/supabase/server";
 import AdminLogin from "../AdminLogin";
 import AdminShell from "../AdminShell";
+import AdminHero from "../AdminHero";
+import AdminTile from "../AdminTile";
 import UsersPanel, { type UserRow } from "./UsersPanel";
 import { isUserType } from "@/lib/userType";
 import { normalizePhone, repeatedPhones } from "@/lib/phone";
@@ -90,78 +93,46 @@ export default async function UsersPage() {
     none: rows.filter((r) => r.userType === null).length,
   };
 
-  const Tile = ({ label, value, sub }: { label: string; value: string; sub?: string }) => (
-    <div className="rounded-2xl border border-line bg-white p-5">
-      <p className="text-xs font-bold uppercase tracking-wider text-ink/50">{label}</p>
-      <p className="mt-1 font-display text-3xl font-bold text-ink">{value}</p>
-      {sub && <p className="mt-1 text-xs text-ink-soft">{sub}</p>}
-    </div>
-  );
-
   const pct = (n: number) =>
     counts.all ? `${Math.round((n / counts.all) * 100)}% of everyone` : "";
 
   return (
-    <AdminShell
-      title="Users"
-      intro="Everyone who has ever signed up. Nobody is hidden and nobody drops off this list."
-    >
+    <AdminShell title="Users" icon={<UsersIcon className="h-5 w-5" strokeWidth={2.2} />}>
       <>
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Tile label="Everyone" value={counts.all.toLocaleString()} sub="all accounts" />
-          <Tile
-            label="Diabetic"
-            value={counts.diabetic.toLocaleString()}
-            sub={pct(counts.diabetic)}
-          />
-          <Tile
-            label="Health professionals"
-            value={counts.health_pro.toLocaleString()}
-            sub={pct(counts.health_pro)}
-          />
-          <Tile
-            label="Family members"
-            value={counts.caregiver.toLocaleString()}
-            sub={pct(counts.caregiver)}
+        <div className="mt-6">
+          <AdminHero
+            items={[
+              { label: "Everyone", value: counts.all.toLocaleString(), sub: "all accounts" },
+              { label: "Diabetic", value: counts.diabetic.toLocaleString(), sub: pct(counts.diabetic) },
+              { label: "Health professionals", value: counts.health_pro.toLocaleString(), sub: pct(counts.health_pro) },
+              { label: "Family members", value: counts.caregiver.toLocaleString(), sub: pct(counts.caregiver) },
+            ]}
           />
         </div>
 
-        <p className="mt-4 rounded-xl bg-white px-4 py-3 text-sm text-ink-soft">
-          <strong className="font-display text-ink">{activeThisWeek}</strong>{" "}
-          {activeThisWeek === 1 ? "person" : "people"} checked their food in the
-          last 7 days. This is who came back, not just who signed up.
-        </p>
-
-        {onSharedNumbers > 0 && (
-          <p className="mt-4 rounded-xl bg-white px-4 py-3 text-sm text-ink-soft">
-            <strong className="font-display text-ink">{onSharedNumbers}</strong>{" "}
-            {onSharedNumbers === 1 ? "account uses" : "accounts use"} a phone
-            number that another account also uses. They are marked{" "}
-            <strong className="text-ink">same number</strong> in the list below.
-            This is not proof of anything: a husband and wife, or a nurse and her
-            patient, share one handset. What to look for is one number with
-            several accounts that each started a free week and none that paid.
-          </p>
-        )}
-
-        {counts.none > 0 && (
-          <p className="mt-4 rounded-xl bg-white px-4 py-3 text-sm text-ink-soft">
-            <strong className="font-display text-ink">{counts.none}</strong>{" "}
-            {counts.none === 1 ? "account" : "accounts"} signed up before this
-            question was asked, so nothing is stored for them. They sit in{" "}
-            <strong className="text-ink">Not set</strong> below. Nobody was
-            guessed into a group. Set them by hand when you find out, or leave
-            them.
-          </p>
-        )}
+        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <AdminTile
+            icon={CheckCircle2}
+            tone="green"
+            label="Active this week"
+            value={activeThisWeek.toLocaleString()}
+            sub="checked their food in the last 7 days"
+          />
+          {onSharedNumbers > 0 && (
+            <AdminTile
+              icon={AlertTriangle}
+              tone="amber"
+              label="Same number"
+              value={onSharedNumbers.toLocaleString()}
+              sub="accounts sharing a phone number"
+            />
+          )}
+          {counts.none > 0 && (
+            <AdminTile label="Not set" value={counts.none.toLocaleString()} sub="signed up before we asked" />
+          )}
+        </div>
 
         <UsersPanel rows={rows} counts={counts} />
-
-        <p className="mt-6 text-xs text-ink-soft">
-          What a person picked does not change anything they see in the app. It is
-          only here, for your numbers and for sending a mail to one group. Every
-          new sign-up must pick one.
-        </p>
       </>
     </AdminShell>
   );

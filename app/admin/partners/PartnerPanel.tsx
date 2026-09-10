@@ -162,12 +162,8 @@ export default function PartnerPanel({
   return (
     <>
       {/* ---- add a partner ---- */}
-      <section className="mt-8 rounded-2xl border border-line bg-white p-6">
+      <section className="mt-8 rounded-2xl bg-white p-6 shadow-[0_6px_28px_-14px_rgba(12,42,71,0.18)] ring-1 ring-ink/[0.05]">
         <h2 className="font-display text-xl font-bold text-ink">Add a health professional</h2>
-        <p className="mt-1 text-sm text-ink-soft">
-          Their link is made for you. Send it to them, and anyone who signs up
-          after clicking it belongs to them.
-        </p>
 
         <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div>
@@ -213,7 +209,7 @@ export default function PartnerPanel({
         <button
           onClick={add}
           disabled={busy || !name.trim() || !email.trim()}
-          className="mt-5 rounded-full bg-brand px-7 py-3 font-display font-bold text-white transition-transform hover:scale-105 disabled:opacity-50"
+          className="mt-5 rounded-full bg-leaf px-7 py-3 font-display font-bold text-white transition-colors hover:bg-leaf-deep disabled:opacity-50"
         >
           {busy ? "Working..." : "Save and make their link"}
         </button>
@@ -221,7 +217,7 @@ export default function PartnerPanel({
 
       {/* ---- edit one ---- */}
       {edit && (
-        <section className="mt-8 rounded-2xl border-2 border-brand bg-white p-6">
+        <section className="mt-8 rounded-2xl bg-white p-6 shadow-[0_6px_28px_-14px_rgba(12,42,71,0.18)] ring-2 ring-brand/30">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="font-display text-xl font-bold text-ink">Edit {edit.name}</h2>
             <button
@@ -269,15 +265,13 @@ export default function PartnerPanel({
           */}
           <p className="mt-4 rounded-xl bg-mist px-4 py-3 text-sm text-ink-soft">
             Their link stays{" "}
-            <strong className="text-brand">/r/{rows.find((r) => r.id === edit.id)?.code}</strong>{" "}
-            even if you change the name. It is already out there with people, and
-            changing it would break every copy of it and stop crediting them.
+            <strong className="text-brand">/r/{rows.find((r) => r.id === edit.id)?.code}</strong>.
           </p>
 
           <button
             onClick={saveEdit}
             disabled={busy}
-            className="mt-5 rounded-full bg-brand px-7 py-3 font-display font-bold text-white transition-transform hover:scale-105 disabled:opacity-50"
+            className="mt-5 rounded-full bg-leaf px-7 py-3 font-display font-bold text-white transition-colors hover:bg-leaf-deep disabled:opacity-50"
           >
             {busy ? "Saving..." : "Save changes"}
           </button>
@@ -296,11 +290,11 @@ export default function PartnerPanel({
         )}
 
         {rows.length === 0 ? (
-          <p className="mt-4 rounded-2xl border border-line bg-white p-6 text-center text-ink-soft">
+          <p className="mt-4 rounded-2xl bg-white p-6 text-center text-ink-soft shadow-[0_6px_28px_-14px_rgba(12,42,71,0.18)] ring-1 ring-ink/[0.05]">
             No partners yet. Add your first one above.
           </p>
         ) : (
-          <div className="mt-4 overflow-x-auto rounded-2xl border border-line bg-white">
+          <div className="mt-4 overflow-x-auto rounded-2xl bg-white shadow-[0_6px_28px_-14px_rgba(12,42,71,0.18)] ring-1 ring-ink/[0.05]">
             <table className="w-full min-w-[62rem]">
               <thead className="border-b border-line bg-mist">
                 <tr>
