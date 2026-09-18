@@ -67,6 +67,21 @@ export default function VerdictCard({
         </span>
       </div>
 
+      {/* Carbs leads calories, same order as TodaysMeal's pills — this is
+          the number that matters for insulin dosing (carb counting). */}
+      {(food.carbG ?? 0) > 0 && (
+        <div className="mt-2 flex flex-wrap gap-2">
+          <span className="inline-flex items-center rounded-full bg-mist px-3 py-1 text-xs font-bold text-ink">
+            {food.carbG}g carbs
+          </span>
+          {(food.calories ?? 0) > 0 && (
+            <span className="inline-flex items-center rounded-full bg-mist px-3 py-1 text-xs font-semibold text-ink-soft">
+              {food.calories} kcal
+            </span>
+          )}
+        </div>
+      )}
+
       <p className="mt-3 text-sm leading-relaxed text-ink-soft">
         {food.logicNote}
       </p>

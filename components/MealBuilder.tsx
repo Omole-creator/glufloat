@@ -78,6 +78,16 @@ export default function MealBuilder({
   const results = useMemo(() => searchFoods(query, 6), [query]);
   const result = useMemo(() => scoreMeal(items), [items]);
   const often = useMemo(() => mealFrequency(items), [items]);
+  // Each food's own normal-serving figures, summed — same caveat as
+  // PortionMini: there is no per-food halved/enlarged gram figure in the
+  // data, so this does not change with the Small/Normal/Large tap.
+  const totals = useMemo(
+    () => ({
+      carbG: items.reduce((s, i) => s + (i.food.carbG ?? 0), 0),
+      calories: items.reduce((s, i) => s + (i.food.calories ?? 0), 0),
+    }),
+    [items],
+  );
 
   // Medication timing, free on every tier. There is no meal-slot picker in
   // the builder, so the current clock meal (same 3-band clock as TodaysMeal)
@@ -261,6 +271,21 @@ export default function MealBuilder({
             <p className="text-base font-semibold text-ink">
               {result.headline}
             </p>
+
+            {/* Carbs leads calories, same order as the search card and
+                TodaysMeal — the number that matters for insulin dosing. */}
+            {showVerdict && totals.carbG > 0 && (
+              <div className="mt-2 flex flex-wrap gap-2">
+                <span className="inline-flex items-center rounded-full bg-mist px-3 py-1 text-xs font-bold text-ink">
+                  {totals.carbG}g carbs
+                </span>
+                {totals.calories > 0 && (
+                  <span className="inline-flex items-center rounded-full bg-mist px-3 py-1 text-xs font-semibold text-ink-soft">
+                    {totals.calories} kcal
+                  </span>
+                )}
+              </div>
+            )}
 
             {/* What this person's own meter said the last time they ate one of
                 these. No "make this meal better" button here: they are already
