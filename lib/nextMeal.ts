@@ -217,6 +217,13 @@ export interface ScaledPortion {
   /** calories - the food's own normal-serving calories; what this
    *  contributes toward closing the meal's gap. */
   extraCalories: number;
+  /** The FULL new serving's carbohydrate in grams, scaled by the same
+   *  grams ratio as calories (same food, same concentration per gram) —
+   *  needed so somebody dosing insulin sees the real carb count for the
+   *  size actually being served, not the food's normal-serving figure. */
+  carbG: number;
+  /** carbG - the food's own normal-serving carbG; what this scaling adds. */
+  extraCarbG: number;
   /** A plain instruction naming the new size against the normal one, so a
    *  person sees both numbers, never just a bigger one with no anchor. */
   instruction: string;
@@ -259,12 +266,16 @@ export function scaleMainProtein(
   const grams = Math.round(units * gramsPerUnit);
   if (grams <= baseGrams) return null;
   const calories = Math.round(grams * kcalPerGram);
+  const baseCarb = food.carbG ?? 0;
+  const carbG = Math.round((baseCarb * grams) / baseGrams);
   return {
     food,
     name: cleanFoodName(food.name),
     grams,
     calories,
     extraCalories: calories - baseKcal,
+    carbG,
+    extraCarbG: carbG - baseCarb,
     instruction: `A bigger ${cleanFoodName(food.name).toLowerCase()} serving today: about ${config.describe(units, grams)}, instead of the usual ${config.describe(config.baseUnits, baseGrams)}. This helps meet your calorie goal, and this size stays safe for your sugar.`,
   };
 }
@@ -382,12 +393,16 @@ export function scaleMainSide(
   const grams = Math.round(units * gramsPerUnit);
   if (grams <= config.baseGrams) return null;
   const calories = Math.round(grams * kcalPerGram);
+  const baseCarb = food.carbG ?? 0;
+  const carbG = Math.round((baseCarb * grams) / config.baseGrams);
   return {
     food,
     name: cleanFoodName(food.name),
     grams,
     calories,
     extraCalories: calories - baseKcal,
+    carbG,
+    extraCarbG: carbG - baseCarb,
     instruction: `A bigger ${cleanFoodName(food.name).toLowerCase()} serving today: about ${config.describe(units, grams)}, instead of the usual ${config.describe(config.baseUnits, config.baseGrams)}. This helps meet your calorie goal, and this size stays safe for your sugar.`,
   };
 }
@@ -585,6 +600,22 @@ export function mealIdeaCalories(idea: MealIdea): number {
     idea.foods.reduce((s, f) => s + (f.calories ?? 0), 0) +
     (idea.scaledProtein?.extraCalories ?? 0) +
     (idea.scaledSide?.extraCalories ?? 0)
+  );
+}
+
+/**
+ * The one true carbohydrate total for a picked plate, the same shape and
+ * same reasoning as `mealIdeaCalories` (see its own doc) — a plate's foods'
+ * own `carbG`, plus whatever `scaledProtein`/`scaledSide` added by scaling
+ * up a serving. This is the number that matters most for somebody dosing
+ * insulin (carb counting), not the calorie total, so it is surfaced
+ * alongside it everywhere a plate's calories are already shown.
+ */
+export function mealIdeaCarbs(idea: MealIdea): number {
+  return (
+    idea.foods.reduce((s, f) => s + (f.carbG ?? 0), 0) +
+    (idea.scaledProtein?.extraCarbG ?? 0) +
+    (idea.scaledSide?.extraCarbG ?? 0)
   );
 }
 
@@ -1271,6 +1302,9 @@ export interface ExtraOption {
   units: number;
   grams: number;
   calories: number;
+  /** This exact serving's carbohydrate in grams, scaled by the same grams
+   *  ratio as calories — the number that matters for insulin carb counting. */
+  carbG: number;
   instruction: string;
 }
 
@@ -1283,6 +1317,8 @@ export interface ExtraOption {
 export interface ExtraVariant {
   items: ExtraOption[];
   totalCalories: number;
+  /** The whole variant's carbohydrate in grams, for insulin carb counting. */
+  totalCarbG: number;
   /**
    * How many of `items`, counting from the start, are the typical 1-2
    * shown by default (`MAX_EXTRA_ITEMS`). Any further items are an
@@ -1367,6 +1403,7 @@ export const MAX_EXTRA_ITEMS = 2;
  */
 function sizeExtra(candidate: ExtraCandidate, food: Food, targetKcal: number): ExtraOption {
   const baseKcal = food.calories ?? 0;
+  const baseCarb = food.carbG ?? 0;
   if (!candidate.scalable) {
     return {
       food,
@@ -1374,6 +1411,7 @@ function sizeExtra(candidate: ExtraCandidate, food: Food, targetKcal: number): E
       units: candidate.baseUnits,
       grams: candidate.baseGrams,
       calories: baseKcal,
+      carbG: baseCarb,
       instruction: candidate.describe(candidate.baseUnits, candidate.baseGrams),
     };
   }
@@ -1384,7 +1422,8 @@ function sizeExtra(candidate: ExtraCandidate, food: Food, targetKcal: number): E
   const units = Math.max(1, Math.min(maxUnits, Math.round(cappedTarget / kcalPerUnit)));
   const grams = Math.round(units * gramsPerUnit);
   const calories = Math.round(units * kcalPerUnit);
-  return { food, name: cleanFoodName(food.name), units, grams, calories, instruction: candidate.describe(units, grams) };
+  const carbG = Math.round((baseCarb * grams) / candidate.baseGrams);
+  return { food, name: cleanFoodName(food.name), units, grams, calories, carbG, instruction: candidate.describe(units, grams) };
 }
 
 /**
@@ -1477,6 +1516,7 @@ function finishVariant(items: ExtraOption[]): ExtraVariant {
   return {
     items,
     totalCalories: items.reduce((s, o) => s + o.calories, 0),
+    totalCarbG: items.reduce((s, o) => s + o.carbG, 0),
     coreCount: Math.min(MAX_EXTRA_ITEMS, items.length),
   };
 }

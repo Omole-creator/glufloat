@@ -23,6 +23,7 @@ import {
   scaleMainProtein,
   scaleMainSide,
   mealIdeaCalories,
+  mealIdeaCarbs,
   mealIdeaFoodsForBuilder,
   MEAL_MAX_CALORIES,
   MAX_EXTRA_ITEMS,
@@ -596,21 +597,27 @@ for (const meal of MEALS) {
     fail("scaleMainProtein found a real amount but the residual gap for scaleMainSide did not shrink");
   }
 
-  // mealIdeaCalories must sum foods + scaledProtein + scaledSide, never just
-  // one or the other — checked directly against a synthetic idea so this
-  // does not depend on which real plate the rotation happens to serve.
+  // mealIdeaCalories/mealIdeaCarbs must sum foods + scaledProtein +
+  // scaledSide, never just one or the other — checked directly against a
+  // synthetic idea so this does not depend on which real plate the rotation
+  // happens to serve.
   const synthetic = {
     foods: oatsGroundnut,
     names: oatsGroundnut.map((f) => f.name),
     index: 0,
     count: 1,
-    scaledProtein: { food: fishPlate[1], name: "Fish", grams: 150, calories: 300, extraCalories: 100, instruction: "" },
-    scaledSide: { food: oatsGroundnut[1], name: "Groundnut", grams: 60, calories: 340, extraCalories: 170, instruction: "" },
+    scaledProtein: { food: fishPlate[1], name: "Fish", grams: 150, calories: 300, extraCalories: 100, carbG: 0, extraCarbG: 0, instruction: "" },
+    scaledSide: { food: oatsGroundnut[1], name: "Groundnut", grams: 60, calories: 340, extraCalories: 170, carbG: 12, extraCarbG: 6, instruction: "" },
   };
   const rawSum = oatsGroundnut.reduce((s, f) => s + (f.calories ?? 0), 0);
   const expected = rawSum + 100 + 170;
   if (mealIdeaCalories(synthetic) !== expected) {
     fail(`mealIdeaCalories should sum foods + scaledProtein.extraCalories + scaledSide.extraCalories, got ${mealIdeaCalories(synthetic)}, expected ${expected}`);
+  }
+  const rawCarbSum = oatsGroundnut.reduce((s, f) => s + (f.carbG ?? 0), 0);
+  const expectedCarbs = rawCarbSum + 0 + 6;
+  if (mealIdeaCarbs(synthetic) !== expectedCarbs) {
+    fail(`mealIdeaCarbs should sum foods' carbG + scaledProtein.extraCarbG + scaledSide.extraCarbG, got ${mealIdeaCarbs(synthetic)}, expected ${expectedCarbs}`);
   }
 
   // End-to-end: planForDay must actually SET scaledSide on a real breakfast

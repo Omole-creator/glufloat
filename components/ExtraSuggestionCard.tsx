@@ -15,7 +15,10 @@ function ExtraRow({ item, meal }: { item: ExtraOption; meal: NamedMeal }) {
     <li className="rounded-xl bg-white/70 p-3">
       <div className="flex items-start justify-between gap-3">
         <p className="font-semibold text-ink">{item.name}</p>
-        <p className="shrink-0 font-display text-sm font-bold text-leaf-deep">{item.calories} kcal</p>
+        <p className="shrink-0 text-right font-display text-sm font-bold text-leaf-deep">
+          {item.carbG}g carbs
+          <span className="block text-xs font-semibold text-ink-soft">{item.calories} kcal</span>
+        </p>
       </div>
       <p className="mt-1 text-xs leading-snug text-ink-soft">{item.instruction}</p>
       {extraTimingFor(item.food.id, meal) && (
@@ -135,7 +138,8 @@ export default function ExtraSuggestionCard({ set }: { set: ExtraSuggestionSet }
 
       <div className="mt-3 flex items-center justify-between border-t border-leaf/15 pt-3">
         <p className="text-sm font-semibold text-ink-soft">
-          Total: <span className="text-ink">{variant.totalCalories} kcal</span>
+          Total: <span className="text-ink">{variant.totalCarbG}g carbs</span>{" "}
+          <span className="text-ink-soft">({variant.totalCalories} kcal)</span>
         </p>
         <button
           type="button"

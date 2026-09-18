@@ -7,7 +7,7 @@ import {
   localDayKey,
   type NamedMeal,
 } from "@/lib/mealtime";
-import { planForDay, mealIdeaCalories, mealIdeaFoodsForBuilder, type MealIdea } from "@/lib/nextMeal";
+import { planForDay, mealIdeaCalories, mealIdeaCarbs, mealIdeaFoodsForBuilder, type MealIdea } from "@/lib/nextMeal";
 import { loggedFoodCounts, likedFoodCounts, caloriesEatenToday } from "@/lib/history";
 import { trackUsage } from "@/lib/usage";
 import type { Food } from "@/lib/types";
@@ -242,6 +242,7 @@ export default function TodaysMeal({
 
   const Icon = MEAL_ICON[meal];
   const mealCalories = mealIdeaCalories(idea);
+  const mealCarbs = mealIdeaCarbs(idea);
   const another = () => {
     void trackUsage("meal_reroll");
     // They are walking away from this plate. Remember it, so it is not the one
@@ -304,7 +305,13 @@ export default function TodaysMeal({
           </span>
           {/* Shown up front, not only after "I ate this" — someone deciding
               whether to eat this plate wants the number before they commit
-              to it, not after. */}
+              to it, not after. Carbs leads: it is the number that matters
+              for insulin dosing (carb counting), calories is second. */}
+          {mealCarbs > 0 && (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3.5 py-1.5 text-sm font-semibold text-white ring-1 ring-inset ring-white/25">
+              {mealCarbs}g carbs
+            </span>
+          )}
           {mealCalories > 0 && (
             <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3.5 py-1.5 text-sm font-semibold text-white ring-1 ring-inset ring-white/20">
               {mealCalories} kcal
