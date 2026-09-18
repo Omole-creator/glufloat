@@ -78,12 +78,23 @@ export default function MealBuilder({
   const results = useMemo(() => searchFoods(query, 6), [query]);
   const result = useMemo(() => scoreMeal(items), [items]);
   const often = useMemo(() => mealFrequency(items), [items]);
-  // Each food's own normal-serving figures, summed — same caveat as
-  // PortionMini: there is no per-food halved/enlarged gram figure in the
-  // data, so this does not change with the Small/Normal/Large tap.
+  // Each food's own normal-serving figures, summed. Deliberately fixed
+  // across the Small/Normal/Large tap, same as PortionMini's own
+  // portionGuidance text below it: there is only one real, dietitian-sourced
+  // size per food, and the tap only nudges scoreMeal()'s score (a stated-
+  // intention signal), never the physical amount described anywhere on the
+  // card. Scaling this total would invent an unsourced gram figure AND
+  // disagree with what logEaten() actually logs (by food name only, no
+  // portion), the same two-numbers-for-one-plate bug this codebase has
+  // already hit and fixed twice elsewhere (see CLAUDE.md).
+  // carbG is rounded at the end, not per-food: it carries a decimal on over
+  // half the foods (calories never does), and summing several real
+  // decimals in JS floating point can land on something like
+  // 30.799999999999997 (confirmed: White Rice 25.2 + Green Beans 5.6) — a
+  // real display bug, not a hypothetical.
   const totals = useMemo(
     () => ({
-      carbG: items.reduce((s, i) => s + (i.food.carbG ?? 0), 0),
+      carbG: Math.round(items.reduce((s, i) => s + (i.food.carbG ?? 0), 0)),
       calories: items.reduce((s, i) => s + (i.food.calories ?? 0), 0),
     }),
     [items],

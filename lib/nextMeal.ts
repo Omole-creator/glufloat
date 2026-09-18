@@ -610,12 +610,21 @@ export function mealIdeaCalories(idea: MealIdea): number {
  * up a serving. This is the number that matters most for somebody dosing
  * insulin (carb counting), not the calorie total, so it is surfaced
  * alongside it everywhere a plate's calories are already shown.
+ *
+ * Rounded at the very end, not per-food: `calories` is always stored as a
+ * whole number so summing it is exact, but `carbG` carries a decimal on
+ * over half the foods (e.g. white-rice 25.2), and summing several real
+ * decimals in JS floating point can land on something like
+ * 30.799999999999997 — a real, confirmed case (White Rice + Green Beans),
+ * not a hypothetical. Rounding only the final total (never an intermediate)
+ * keeps this exact for the common case (one decimal food) and only ever
+ * off by a fraction of a gram for the rare multi-decimal-food plate.
  */
 export function mealIdeaCarbs(idea: MealIdea): number {
-  return (
+  return Math.round(
     idea.foods.reduce((s, f) => s + (f.carbG ?? 0), 0) +
-    (idea.scaledProtein?.extraCarbG ?? 0) +
-    (idea.scaledSide?.extraCarbG ?? 0)
+      (idea.scaledProtein?.extraCarbG ?? 0) +
+      (idea.scaledSide?.extraCarbG ?? 0),
   );
 }
 
@@ -1516,7 +1525,10 @@ function finishVariant(items: ExtraOption[]): ExtraVariant {
   return {
     items,
     totalCalories: items.reduce((s, o) => s + o.calories, 0),
-    totalCarbG: items.reduce((s, o) => s + o.carbG, 0),
+    // Rounded for the same reason mealIdeaCarbs() is — an item's own carbG
+    // can carry a decimal, and summing two real decimals in JS floating
+    // point can produce visible noise (e.g. 30.799999999999997).
+    totalCarbG: Math.round(items.reduce((s, o) => s + o.carbG, 0)),
     coreCount: Math.min(MAX_EXTRA_ITEMS, items.length),
   };
 }

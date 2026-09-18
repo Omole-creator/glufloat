@@ -615,9 +615,46 @@ for (const meal of MEALS) {
     fail(`mealIdeaCalories should sum foods + scaledProtein.extraCalories + scaledSide.extraCalories, got ${mealIdeaCalories(synthetic)}, expected ${expected}`);
   }
   const rawCarbSum = oatsGroundnut.reduce((s, f) => s + (f.carbG ?? 0), 0);
-  const expectedCarbs = rawCarbSum + 0 + 6;
+  // Rounded, same as mealIdeaCarbs() itself — carbG carries real decimals
+  // (oats is 20, groundnut is 4.8 here), so the raw sum need not be a whole
+  // number even though the function's contract is to always return one.
+  const expectedCarbs = Math.round(rawCarbSum + 0 + 6);
   if (mealIdeaCarbs(synthetic) !== expectedCarbs) {
     fail(`mealIdeaCarbs should sum foods' carbG + scaledProtein.extraCarbG + scaledSide.extraCarbG, got ${mealIdeaCarbs(synthetic)}, expected ${expectedCarbs}`);
+  }
+
+  // Real bug, confirmed 2026-09-18 (founder question: "are you sure the
+  // carbs are correct?"): calories are always a whole number in the data,
+  // but carbG carries a decimal on over half of it (White Rice is 25.2,
+  // for instance), and JS floating-point summing of several real decimals
+  // can land on visible noise like 30.799999999999997 instead of 30.8. Walk
+  // every real meal-idea plate (with and without a calorie-target scaling
+  // pass, since that path sums an extra scaledProtein/scaledSide carbG too)
+  // and require an exact integer every time.
+  for (const meal of MEALS) {
+    for (let index = 0; index < ideasFor(meal).length; index++) {
+      const idea = planForDay(meal, "2026-09-18", new Map(), index, [], new Map(), null, 900);
+      const carbs = mealIdeaCarbs(idea);
+      if (!Number.isInteger(carbs)) {
+        fail(`mealIdeaCarbs must round to a whole gram, got ${carbs} for ${meal} plate ${idea.names.join("+")}`);
+      }
+    }
+  }
+
+  // Same integer check for the extras card's totalCarbG (an item's own
+  // carbG can be an unrounded decimal in the non-scalable branch of
+  // sizeExtra(), so the SUM in finishVariant() is the thing that needs
+  // rounding, not just each item).
+  for (const meal of MEALS) {
+    for (const gap of [150, 300, 500, 900, 2000]) {
+      const set = suggestExtras(gap, "2026-09-18", meal);
+      if (!set) continue;
+      for (const variant of set.variants) {
+        if (!Number.isInteger(variant.totalCarbG)) {
+          fail(`suggestExtras totalCarbG must round to a whole gram, got ${variant.totalCarbG} for ${meal} gap=${gap}`);
+        }
+      }
+    }
   }
 
   // End-to-end: planForDay must actually SET scaledSide on a real breakfast
