@@ -868,6 +868,34 @@ export function planForDay(
   // it only changes WHICH plates are in rotation, never how rotation works.
   let pool = base;
   if (calorieTargetForMeal && calorieTargetForMeal > 0) {
+    // **Saturation guard, added 2026-09-18.** Once a target is FAR beyond
+    // anything this meal can supply, "closest to target" degenerates into
+    // "highest calories, full stop" — every plate falls short by nearly the
+    // same huge margin, so ranking by distance-from-target becomes
+    // TARGET-MAGNITUDE-INVARIANT (a 1,600kcal target and a 4,200kcal target,
+    // both far past a 674kcal dinner ceiling, sort the same 33 dinner plates
+    // into the identical order by raw calories alone). That means the
+    // CANDIDATE_POOL/jitter/MIN_POOL machinery below — built and tuned for
+    // real, moderately-demanding targets — was handing every such profile
+    // the same fixed 6-plate pool, and `stride(6)` then gave only a 1-in-6
+    // chance of avoiding an identical `pos` for any two of them. Confirmed
+    // with a real simulation (5 distinct weight/goal/activity profiles, 14
+    // days): several genuinely different profiles landed on the byte-
+    // identical dinner plate on multiple real days.
+    //
+    // There is no real accuracy to protect once this far gone — every plate
+    // is "equally bad" relative to the target — so instead of narrowing at
+    // all, rotate over the FULL eligible pool. A much bigger `m` in the
+    // stride/salt math below cuts the residual collision chance roughly in
+    // proportion (1-in-6 becomes 1-in-20 to 1-in-33, meal depending),
+    // without touching the tuned, tested narrowing path for any target that
+    // is merely demanding rather than genuinely unreachable.
+    const SATURATION_MULTIPLIER = 2.5;
+    const mealCeiling = MEAL_MAX_CALORIES[meal];
+    const saturated = mealCeiling > 0 && calorieTargetForMeal > SATURATION_MULTIPLIER * mealCeiling;
+    if (saturated) {
+      pool = base.map((s) => ({ ...s, diff: Math.abs(s.planCalories - calorieTargetForMeal) }));
+    } else {
     // A small, bounded, per-person nudge to how close each plate LOOKS to
     // the target — added 2026-09-08 (later the same day), fixing a real,
     // directly reported bug the hard way, after two other attempts:
@@ -955,6 +983,7 @@ export function planForDay(
       close.length >= MIN_POOL
         ? close
         : [...withDiff].sort((a, b) => a.diff - b.diff).slice(0, MIN_POOL);
+    }
   }
 
   // `eaten` (least-eaten-first, the variety/no-repeat guarantee) stays the
@@ -1517,6 +1546,18 @@ function buildVariant(
 
   // Nothing landed within the margin — take whichever of the best single or
   // best pair honestly gets closer, never more than 2 items either way.
+  //
+  // (Investigated 2026-09-18 whether `startIdx` should also influence this
+  // fallback, since it is otherwise a fully deterministic, exhaustive
+  // best-of-the-whole-pool search with no dependence on where the walk
+  // started. Left as-is: `scripts/calorie-ranking-test.ts` deliberately
+  // asserts that a gap beyond the pool's 2-item reach converges on the
+  // SAME real ceiling regardless of the exact (over-large) target — e.g. a
+  // 900kcal ask must land on the identical total a 100,000kcal ask does,
+  // for the same starting point. A tolerance-based near-best pick was
+  // tried and broke that invariant. This convergence at a genuinely
+  // unreachable gap is intentional, documented behaviour, not the bug —
+  // see that test's own comments.)
   if (bestPair && (!bestSingle || bestPairDiff <= bestSingleDiff)) return finishVariant(bestPair);
   return finishVariant(bestSingle ? [bestSingle] : []);
 }
