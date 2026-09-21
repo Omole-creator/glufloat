@@ -40,7 +40,13 @@ keys are in Vercel, the app code (which I'm building) takes over.
    quietly failing and the meal came back next time the card was opened.
 2. **Authentication → Providers → Email**: enable it, and **turn OFF
    "Confirm email"** (so no confirmation email is sent — your requirement).
-3. **Project Settings → API**: copy these three values for step 3 below:
+3. **Authentication → URL Configuration → Redirect URLs**: add
+   `https://www.glufloat.com/reset-password` (and, for local testing,
+   `http://localhost:3000/reset-password`). This is required for "Forgot your
+   password?" on `/signin`: Supabase refuses to redirect a reset link to any
+   URL not on this list, so without it every reset email link 404s or bounces
+   back to Supabase's own default page instead of `/reset-password`.
+4. **Project Settings → API**: copy these three values for §3 below:
    - Project URL
    - `anon` public key
    - `service_role` secret key (server-only — never shipped to the browser)

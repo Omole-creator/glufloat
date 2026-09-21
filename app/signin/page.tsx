@@ -78,6 +78,11 @@ export default function SignInPage() {
                 {showPw ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
               </button>
             </div>
+            <p className="text-right text-sm">
+              <Link href="/forgot-password" className="font-semibold text-brand hover:underline">
+                Forgot your password?
+              </Link>
+            </p>
             {err && (
               <p className="text-sm font-medium text-verdict-red">{err}</p>
             )}
