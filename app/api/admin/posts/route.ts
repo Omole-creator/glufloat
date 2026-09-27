@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { pingIndexNow } from "@/lib/indexnow";
 import { ADMIN_COOKIE, adminToken } from "@/lib/adminAuth";
 import { createAdminClient } from "@/lib/supabase/server";
 import { slugify } from "@/lib/blog";
@@ -31,11 +32,14 @@ async function requireAdmin(): Promise<boolean> {
  * database and never appear on the site. The sitemap and feed must be rebuilt
  * too, or the post exists but is never announced.
  */
-function rebuild(slug: string) {
+function rebuild(slug: string, published = false) {
   revalidatePath("/blog");
   revalidatePath(`/blog/${slug}`);
   revalidatePath("/sitemap.xml");
   revalidatePath("/blog/rss.xml");
+  // Tell Bing straight away (ChatGPT search leans on Bing's index). Only for
+  // a live post: a draft has no page for the engine to read.
+  if (published) void pingIndexNow([`/blog/${slug}`, "/blog"]);
 }
 
 type Body = {
@@ -136,7 +140,7 @@ export async function POST(request: Request) {
     }
     // Rebuild the old slug too, or a renamed post lingers at its old address.
     if (existing && data.slug !== slug) rebuild(data.slug);
-    rebuild(slug);
+    rebuild(slug, status === "published");
     return NextResponse.json({ post: data });
   }
 
@@ -152,7 +156,7 @@ export async function POST(request: Request) {
   if (error) {
     return NextResponse.json({ error: friendly(error.message) }, { status: 400 });
   }
-  rebuild(slug);
+  rebuild(slug, status === "published");
   return NextResponse.json({ post: data });
 }
 

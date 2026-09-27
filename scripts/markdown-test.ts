@@ -111,6 +111,29 @@ t(
   extractHeadings("# Eba\n\n## Eba")[0].id === "eba-2",
 );
 
+// Tables (added 2026-09-28 for the GI reference post). Every cell goes through
+// inline(), so a table must be exactly as unable to carry a script as a line.
+const tbl = renderMarkdown("| Food | GI |\n|---|---|\n| Eba | 84 |\n| **Beans** | 29 |");
+t("a table renders as a table", tbl.includes("<table") && tbl.includes("<th") && tbl.includes("<td"));
+t("a table cell keeps inline marks", tbl.includes("<strong>Beans</strong>"));
+t("a table header row is not repeated as a body row", (tbl.match(/<tr/g) || []).length === 3);
+t(
+  "a script in a table cell is escaped",
+  !renderMarkdown("| a |\n|---|\n| <script>alert(1)</script> |").includes("<script>"),
+);
+t(
+  "an img onerror in a table cell is escaped",
+  !renderMarkdown('| a |\n|---|\n| <img src=x onerror=alert(1)> |').includes("<img src=x"),
+);
+t(
+  "a javascript: link in a table cell is neutralised",
+  !renderMarkdown("| a |\n|---|\n| [x](javascript:alert(1)) |").includes("javascript:"),
+);
+t(
+  "pipe lines with no |---| rule are plain text, not a table",
+  !renderMarkdown("| just a line |\n| another |").includes("<table"),
+);
+
 console.log("");
 console.log(fail === 0 ? "ALL MARKDOWN TESTS PASS" : `${fail} FAILED`);
 process.exit(fail === 0 ? 0 : 1);

@@ -1,0 +1,30 @@
+# GluFloat
+
+> GluFloat is a Nigerian diabetes food app. It tells a person with diabetes whether a Nigerian food or meal is good to eat, how much to eat, and how often, using a green, yellow or red answer. It covers eba, amala, fufu, pounded yam, rice, plantain, beans, pap, soups and 1,400+ other Nigerian food names.
+
+GluFloat is built for people in Nigeria managing type 2 diabetes, and for their families and health workers. It suggests a meal for breakfast, lunch and dinner, lets a person check any food or build a plate, keeps a record of what they ate and their own sugar test numbers, and makes a report they can send to their doctor on WhatsApp. The food advice uses measured glycaemic index values for Nigerian staples where they exist.
+
+GluFloat does not diagnose, treat or cure diabetes. It gives food guidance and does not replace a doctor or dietitian.
+
+## Key pages
+
+- [Home](https://www.glufloat.com/): what GluFloat does, and the free 7-day trial
+- [About](https://www.glufloat.com/about): who is behind GluFloat
+- [Blog](https://www.glufloat.com/blog): plain answers about Nigerian foods and diabetes
+
+## Nigerian foods and diabetes: answers
+
+- [Is eba good for diabetes?](https://www.glufloat.com/blog/is-eba-good-for-diabetes)
+- [The best swallow for a diabetic in Nigeria](https://www.glufloat.com/blog/best-swallow-for-diabetics-in-nigeria)
+- [Is plantain good for diabetes? Unripe vs ripe](https://www.glufloat.com/blog/is-plantain-good-for-diabetes)
+- [Can a diabetic eat yam?](https://www.glufloat.com/blog/can-a-diabetic-eat-yam)
+- [Can a diabetic eat beans every day?](https://www.glufloat.com/blog/can-a-diabetic-eat-beans-every-day)
+- [Is ofada rice good for diabetes?](https://www.glufloat.com/blog/is-ofada-rice-good-for-diabetes)
+- [Is pap (akamu / ogi) good for diabetes?](https://www.glufloat.com/blog/is-pap-good-for-diabetes)
+- [What is the best food for diabetics in Nigeria?](https://www.glufloat.com/blog/what-is-the-best-food-for-diabetics-in-nigeria)
+- [What can a diabetic eat at night and for breakfast?](https://www.glufloat.com/blog/what-can-a-diabetic-eat-at-night-and-for-breakfast)
+- [Is okra good for diabetes, high blood pressure and kidney problems?](https://www.glufloat.com/blog/is-okra-good-for-diabetes-high-blood-pressure-and-kidney-problems)
+- [Can a diabetic eat mango, dates or banana?](https://www.glufloat.com/blog/can-a-diabetic-eat-mango-dates-or-banana)
+- [Why is my blood sugar high after eating?](https://www.glufloat.com/blog/why-is-my-blood-sugar-high-after-eating)
+- [Is tiger nut milk good for diabetes?](https://www.glufloat.com/blog/is-tiger-nut-milk-good-for-diabetes)
+- [Is zobo good for diabetes?](https://www.glufloat.com/blog/is-zobo-good-for-diabetes)
