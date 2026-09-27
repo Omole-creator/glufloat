@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
   GRAINS,
   MONTH_NAMES,
@@ -55,39 +56,47 @@ export default function PeriodPicker({
     });
   }
 
-  const chip = (on: boolean) =>
-    `rounded-full px-4 py-1.5 text-sm font-display font-bold transition-colors ${
-      on
-        ? "bg-brand text-white"
-        : "border border-line bg-white text-ink hover:border-brand"
-    }`;
-
-  const select =
-    "rounded-xl border-2 border-line bg-white px-3 py-1.5 text-sm font-semibold text-ink outline-none focus:border-brand";
-
+  // One toolbar: the window size as a segmented control, then which window,
+  // on the same line. It wraps to a second line only on a narrow phone.
+  const control =
+    "h-9 rounded-lg border border-[#e3e9f1] bg-white px-2.5 text-sm font-semibold text-ink outline-none transition-colors hover:border-brand/40 focus:border-brand";
   const arrow =
-    "rounded-full border border-line bg-white px-3 py-1.5 font-display font-bold text-ink hover:border-brand disabled:opacity-30";
+    "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[#e3e9f1] bg-white text-ink transition-colors hover:border-brand/40 hover:text-brand";
 
   return (
-    <div className="mt-6 space-y-3">
+    <div className="mt-5 flex flex-wrap items-center gap-2 rounded-2xl border border-[#e3e9f1] bg-white p-1.5 lg:flex-nowrap">
       {/* how big a window */}
-      <div className="flex flex-wrap items-center gap-2">
-        {GRAINS.map((g) => (
-          <button key={g.key} onClick={() => setGrain(g.key)} className={chip(g.key === period.grain)}>
-            {g.label}
-          </button>
-        ))}
+      <div
+        role="group"
+        aria-label="How big a period"
+        className="flex w-full rounded-xl bg-[#f2f5f9] p-1 sm:w-auto sm:shrink-0"
+      >
+        {GRAINS.map((g) => {
+          const on = g.key === period.grain;
+          return (
+            <button
+              key={g.key}
+              onClick={() => setGrain(g.key)}
+              aria-pressed={on}
+              className={`flex-1 whitespace-nowrap rounded-lg px-1.5 py-1.5 font-display text-[13px] font-bold transition-colors sm:flex-none sm:px-3 sm:text-sm ${
+                on ? "bg-white text-brand shadow-[0_1px_3px_rgba(12,42,71,0.15)]" : "text-ink-soft hover:text-ink"
+              }`}
+            >
+              {g.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* which window */}
       {period.grain !== "all" && (
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex min-w-0 items-center gap-1.5 lg:ml-auto">
           <button
             onClick={() => go(step(period, -1) as Record<string, string>)}
             className={arrow}
             aria-label="The period before this one"
           >
-            &lsaquo;
+            <ChevronLeft className="h-4 w-4" />
           </button>
 
           {(period.grain === "day" || period.grain === "week") && (
@@ -95,7 +104,7 @@ export default function PeriodPicker({
               type="date"
               value={period.d}
               onChange={(e) => go({ grain: period.grain, d: e.target.value })}
-              className={select}
+              className={control}
               aria-label="Pick a date"
             />
           )}
@@ -104,7 +113,7 @@ export default function PeriodPicker({
             <select
               value={period.m}
               onChange={(e) => go({ grain: "month", y: String(period.y), m: e.target.value })}
-              className={select}
+              className={control}
               aria-label="Pick a month"
             >
               {MONTH_NAMES.map((name, i) => (
@@ -117,7 +126,7 @@ export default function PeriodPicker({
             <select
               value={period.q}
               onChange={(e) => go({ grain: "quarter", y: String(period.y), q: e.target.value })}
-              className={select}
+              className={control}
               aria-label="Pick a quarter"
             >
               {[1, 2, 3, 4].map((q) => (
@@ -139,7 +148,7 @@ export default function PeriodPicker({
                   q: String(period.q),
                 })
               }
-              className={select}
+              className={control}
               aria-label="Pick a year"
             >
               {selectableYears().map((y) => (
@@ -153,13 +162,8 @@ export default function PeriodPicker({
             className={arrow}
             aria-label="The period after this one"
           >
-            &rsaquo;
+            <ChevronRight className="h-4 w-4" />
           </button>
-
-          {/* Say plainly which window you are looking at. */}
-          <span className="ml-1 rounded-full bg-mist px-4 py-1.5 font-display text-sm font-bold text-ink">
-            {period.label}
-          </span>
         </div>
       )}
     </div>

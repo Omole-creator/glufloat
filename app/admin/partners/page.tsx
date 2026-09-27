@@ -46,7 +46,7 @@ export default async function PartnersPage({
   };
 
   return (
-    <AdminShell title="Partners" icon={<Handshake className="h-5 w-5" strokeWidth={2.2} />}>
+    <AdminShell title="Partners" subtitle={period.label} icon={<Handshake className="h-5 w-5" strokeWidth={2.2} />}>
       <>
         <PeriodPicker period={period} basePath="/admin/partners" keep={["partner"]} />
 
