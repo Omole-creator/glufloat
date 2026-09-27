@@ -12,6 +12,17 @@ import {
   type UserType,
 } from "@/lib/userType";
 import { normalizePhone } from "@/lib/phone";
+import { Download } from "lucide-react";
+
+
+/** Phone-width names, so all five groups fit on one line. */
+const SHORT_LABEL: Record<Group, string> = {
+  all: "All",
+  diabetic: "Diabetic",
+  health_pro: "Health pro",
+  caregiver: "Family",
+  none: "Not set",
+};
 
 export type UserRow = {
   id: string;
@@ -144,26 +155,41 @@ export default function UsersPanel({
 
   return (
     <section className="mt-8">
-      {/* ---- the groups, and the file ---- */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap gap-2">
-          {GROUPS.map((g) => (
-            <button
-              key={g}
-              onClick={() => setGroup(g)}
-              className={`rounded-full border-2 px-4 py-2 font-display text-sm font-bold transition-colors ${
-                group === g
-                  ? "border-brand bg-brand text-white"
-                  : "border-line bg-white text-ink hover:border-brand"
-              }`}
-            >
-              {groupLabel(g)}{" "}
-              <span className={group === g ? "text-white/70" : "text-ink-soft"}>
-                {counts[g]}
-              </span>
-            </button>
-          ))}
+      {/* ---- the groups, the search and the file: one toolbar, same shape as
+          the period picker. One row on a wide screen; on a phone the groups
+          take the full width and use short names so all five fit. ---- */}
+      <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-[#e3e9f1] bg-white p-1.5 xl:flex-nowrap">
+        <div
+          role="group"
+          aria-label="Who to show"
+          className="flex w-full rounded-xl bg-[#f2f5f9] p-1 sm:w-auto sm:shrink-0"
+        >
+          {GROUPS.map((g) => {
+            const on = group === g;
+            return (
+              <button
+                key={g}
+                onClick={() => setGroup(g)}
+                aria-pressed={on}
+                className={`flex-1 whitespace-nowrap rounded-lg px-1.5 py-1.5 font-display text-[12px] font-bold transition-colors sm:flex-none sm:px-3 sm:text-sm ${
+                  on ? "bg-white text-brand shadow-[0_1px_3px_rgba(12,42,71,0.15)]" : "text-ink-soft hover:text-ink"
+                }`}
+              >
+                <span className="sm:hidden">{SHORT_LABEL[g]}</span>
+                <span className="hidden sm:inline">{groupLabel(g)}</span>{" "}
+                <span className={on ? "text-brand/60" : "text-ink-soft/70"}>{counts[g]}</span>
+              </button>
+            );
+          })}
         </div>
+
+        <input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Search name, email, phone"
+          aria-label="Search by name, email or phone"
+          className="h-9 min-w-[12rem] flex-1 rounded-lg border border-[#e3e9f1] bg-white px-3 text-sm text-ink outline-none transition-colors focus:border-brand"
+        />
 
         {/*
           A plain link, not a fetch. The browser downloads the file itself, and
@@ -172,19 +198,13 @@ export default function UsersPanel({
         */}
         <a
           href={`/api/admin/users/export?group=${group}`}
-          className="rounded-full bg-leaf px-5 py-2.5 font-display text-sm font-bold text-white transition-transform hover:scale-105"
+          aria-label={`Download ${groupLabel(group).toLowerCase()} for Excel`}
+          className="flex h-9 shrink-0 items-center gap-1.5 rounded-lg bg-leaf px-3.5 font-display text-sm font-bold text-white transition-colors hover:bg-leaf-deep"
         >
-          Download {groupLabel(group).toLowerCase()} for Excel
+          <Download className="h-4 w-4" />
+          Download for Excel
         </a>
       </div>
-
-      <input
-        value={q}
-        onChange={(e) => setQ(e.target.value)}
-        placeholder="Search by name, email or phone"
-        aria-label="Search by name, email or phone"
-        className="mt-4 w-full max-w-md rounded-xl border-2 border-line bg-white px-4 py-2.5 text-ink outline-none transition-colors focus:border-brand"
-      />
 
       {error && (
         <p className="mt-3 rounded-xl bg-v-red/10 px-4 py-3 text-sm font-semibold text-v-red">
