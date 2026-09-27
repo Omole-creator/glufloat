@@ -22,7 +22,7 @@ export interface TimedText {
   text: string;
 }
 
-type Progress = (stage: "model" | "decode" | "transcribe", pct: number | null) => void;
+type Progress = (stage: "model" | "decode" | "transcribe", pct: number | null, detail?: string) => void;
 
 const MODEL = "onnx-community/whisper-base.en";
 
@@ -46,14 +46,30 @@ async function toSamples(blob: Blob): Promise<Float32Array> {
   }
 }
 
+/** How long the model download may go with no new bytes before it is stuck. */
+const STALL_MS = 60_000;
+/**
+ * Once the model files are in, the tool fetches its own engine (about 20MB)
+ * and reports no progress while it does. On slow mobile data that alone can
+ * take minutes, so it gets a much longer allowance before it counts as stuck.
+ */
+const ENGINE_MS = 5 * 60_000;
+
 export async function transcribeAudio(blob: Blob, onProgress: Progress): Promise<TimedText[]> {
-  onProgress("model", 0);
+  onProgress("model", 0, "Starting");
   const { pipeline } = await import("@huggingface/transformers");
+
   // The model is several files downloading at once, each reporting its own
-  // progress. Add them up so the bar only ever moves forward.
+  // progress. Add them up (in MB) so the bar only ever moves forward, and
+  // note when the last new bytes arrived, so a stuck download can be told
+  // apart from a slow one.
   const files = new Map<string, { loaded: number; total: number }>();
   let shown = 0;
+  let lastBytesAt = Date.now();
+  let filesDone = false;
+  const mb = (n: number) => (n / (1024 * 1024)).toFixed(0);
   const progress_callback = (p: { status?: string; file?: string; loaded?: number; total?: number }) => {
+    lastBytesAt = Date.now();
     if (p.status !== "progress" || !p.file || !p.total) return;
     files.set(p.file, { loaded: p.loaded ?? 0, total: p.total });
     let loaded = 0;
@@ -63,30 +79,33 @@ export async function transcribeAudio(blob: Blob, onProgress: Progress): Promise
       total += f.total;
     }
     shown = Math.max(shown, Math.floor((loaded / total) * 100));
-    onProgress("model", shown);
+    filesDone = loaded >= total;
+    onProgress("model", shown, `${mb(loaded)} of ${mb(total)} MB`);
   };
-  // The graphics chip is much faster where it works; the ordinary processor
-  // works everywhere. A browser can SAY it has one (navigator.gpu) and still
-  // hand back no usable chip, so ask for a real adapter before choosing it,
-  // and if the chip still fails on the first real run, redo it on the
-  // processor.
-  const load = (device: "webgpu" | "wasm") =>
-    pipeline("automatic-speech-recognition", MODEL, {
-      device,
-      dtype: device === "webgpu" ? { encoder_model: "fp32", decoder_model_merged: "q4" } : "q8",
-      progress_callback,
-    });
-  let useGpu = false;
+
+  // ALWAYS the ordinary processor (wasm). The graphics-chip path (WebGPU)
+  // hung for ever on the founder's Android phone AND laptop, on mobile data
+  // and Wi-Fi alike, while the processor path worked on the live site. It is
+  // slower, but it finishes. Do not bring WebGPU back without testing it on
+  // a real phone that has a graphics chip.
+  const loading = pipeline("automatic-speech-recognition", MODEL, {
+    device: "wasm",
+    dtype: "q8",
+    progress_callback,
+  });
+  let watchdog: ReturnType<typeof setInterval> | undefined;
+  const stalled = new Promise<never>((_, reject) => {
+    watchdog = setInterval(() => {
+      if (Date.now() - lastBytesAt > (filesDone ? ENGINE_MS : STALL_MS)) {
+        reject(new Error("The download stopped. Check your internet and tap the button again."));
+      }
+    }, 5000);
+  });
+  let asr;
   try {
-    const nav = navigator as Navigator & { gpu?: { requestAdapter: () => Promise<unknown> } };
-    useGpu = !!(await nav.gpu?.requestAdapter());
-  } catch {
-    useGpu = false;
-  }
-  let asr = useGpu ? await load("webgpu").catch(() => null) : null;
-  if (!asr) {
-    useGpu = false;
-    asr = await load("wasm");
+    asr = await Promise.race([loading, stalled]);
+  } finally {
+    clearInterval(watchdog);
   }
 
   onProgress("decode", null);
@@ -101,18 +120,7 @@ export async function transcribeAudio(blob: Blob, onProgress: Progress): Promise
     onProgress("transcribe", Math.round((start / samples.length) * 100));
     const slice = samples.subarray(start, Math.min(samples.length, start + WINDOW));
     if (slice.length < RATE / 2) break;
-    let raw;
-    try {
-      raw = await asr(slice, { return_timestamps: true });
-    } catch (e) {
-      if (!useGpu) throw e;
-      // The chip gave out; carry on with the processor from this window.
-      useGpu = false;
-      await asr.dispose?.();
-      asr = await load("wasm");
-      raw = await asr(slice, { return_timestamps: true });
-    }
-    const res = raw as {
+    const res = (await asr(slice, { return_timestamps: true })) as {
       text: string;
       chunks?: { timestamp: [number, number | null]; text: string }[];
     };

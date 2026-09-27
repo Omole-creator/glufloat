@@ -7,6 +7,7 @@ import {
   CallPeer,
   LiveTranscriber,
   keepAwake,
+  liveWordsSafe,
   transcriptionSupported,
 } from "@/lib/callClient";
 import { clock } from "@/lib/recordingTypes";
@@ -145,8 +146,13 @@ export default function CustomerCall({ token }: { token: string }) {
           if (!started) {
             started = true;
             setStartedAt(Date.now());
-            if (transcriptionSupported()) startWords();
-            else peer.send({ type: "stt", available: false });
+            // Never on a phone: it takes the microphone away from the call.
+            // Their voice is recorded on its own instead and written down after.
+            if (liveWordsSafe()) startWords();
+            else {
+              sttOk.current = false;
+              peer.send({ type: "stt", available: false });
+            }
           } else {
             peer.send({ type: "stt", available: sttOk.current });
           }
@@ -172,7 +178,7 @@ export default function CustomerCall({ token }: { token: string }) {
     if (next) {
       sttRef.current?.stop();
       sttRef.current = null;
-    } else if (transcriptionSupported() && sttOk.current !== false) {
+    } else if (liveWordsSafe() && sttOk.current !== false) {
       startWords();
     }
   }

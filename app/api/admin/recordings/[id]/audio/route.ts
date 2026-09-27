@@ -21,7 +21,8 @@ export async function POST(request: Request, ctx: Ctx) {
   // The customer's voice alone, saved only when their phone could not write
   // their words down live. The normal recording sends no track at all, so it
   // keeps working on a database that has not run the newer columns.
-  const track = params.get("track") === "customer" ? "customer" : null;
+  const t = params.get("track");
+  const track = t === "customer" || t === "glufloat" ? t : null;
   const startMs = Math.max(0, Math.round(Number(params.get("start_ms") ?? 0)) || 0);
   if (!Number.isInteger(seq) || seq < 0) {
     return NextResponse.json({ error: "Bad piece number" }, { status: 400 });
@@ -34,7 +35,7 @@ export async function POST(request: Request, ctx: Ctx) {
 
   const admin = createAdminClient();
   const ext = mime.includes("mp4") ? "m4a" : mime.includes("ogg") ? "ogg" : "webm";
-  const path = `${id}/${track ? "customer-" : ""}${String(seq).padStart(7, "0")}.${ext}`;
+  const path = `${id}/${track ? `${track}-` : ""}${String(seq).padStart(7, "0")}.${ext}`;
   const { error } = await admin.storage
     .from(AUDIO_BUCKET)
     .upload(path, buf, { contentType: mime, upsert: true });

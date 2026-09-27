@@ -23,7 +23,7 @@ import {
   LiveTranscriber,
   VoiceRecorder,
   keepAwake,
-  transcriptionSupported,
+  liveWordsSafe,
 } from "@/lib/callClient";
 import { transcribeAudio } from "@/lib/audioTranscribe";
 import {
@@ -97,14 +97,20 @@ export default function CallRoom({ id }: { id: string }) {
   const sttRef = useRef<LiveTranscriber | null>(null);
   const releaseRef = useRef<() => void>(() => {});
   const remoteAudioRef = useRef<HTMLAudioElement | null>(null);
-  // The customer's voice alone, recorded only when their phone cannot write
-  // their words down live, so they can be written down after the call.
-  const voiceRef = useRef<VoiceRecorder | null>(null);
+  // Each voice ALONE, recorded whenever that side's words cannot be written
+  // down live (always on a phone), so they can be written down after the call
+  // with the right name on every line.
+  const voicesRef = useRef<Record<"glufloat" | "customer", VoiceRecorder | null>>({
+    glufloat: null,
+    customer: null,
+  });
+  const voiceNumbers = useRef<Record<"glufloat" | "customer", { seq: number; segment: number } | null>>({
+    glufloat: null,
+    customer: null,
+  });
+  const localRef = useRef<MediaStream | null>(null);
   const remoteStreamRef = useRef<MediaStream | null>(null);
-  const theirSpeechRef = useRef<boolean | null>(null);
   const connectedAtRef = useRef<number | null>(null);
-  const voiceSeq = useRef<number | null>(null);
-  const voiceSegment = useRef<number | null>(null);
   const startedRef = useRef(false);
   const endingRef = useRef(false);
   const tempId = useRef(-1);
@@ -174,7 +180,10 @@ export default function CallRoom({ id }: { id: string }) {
         });
       },
       setInterim,
-      setMySpeech,
+      (ok) => {
+        setMySpeech(ok);
+        if (!ok) startVoice("glufloat");
+      },
     );
     stt.start();
     sttRef.current = stt;
@@ -188,9 +197,13 @@ export default function CallRoom({ id }: { id: string }) {
     setInterim("");
     peerRef.current?.hangUp();
     peerRef.current = null;
-    await Promise.all([recRef.current?.stop(), voiceRef.current?.stop()]);
+    await Promise.all([
+      recRef.current?.stop(),
+      voicesRef.current.glufloat?.stop(),
+      voicesRef.current.customer?.stop(),
+    ]);
     recRef.current = null;
-    voiceRef.current = null;
+    voicesRef.current = { glufloat: null, customer: null };
     releaseRef.current();
     await fetch(`/api/admin/recordings/${id}`, {
       method: "PATCH",
@@ -202,27 +215,33 @@ export default function CallRoom({ id }: { id: string }) {
     router.refresh();
   }
 
-  /** Start (or restart after a reconnect) the customer-voice recording. */
-  function startVoice() {
-    const stream = remoteStreamRef.current;
-    if (!stream || stream.getAudioTracks().length === 0 || theirSpeechRef.current !== false) return;
-    const theirs = audio.filter((a) => a.track === "customer");
-    if (voiceSeq.current === null) {
-      voiceSeq.current = theirs.length ? Math.max(...theirs.map((a) => a.seq)) + 1 : 1_000_000;
-      voiceSegment.current = theirs.length ? Math.max(...theirs.map((a) => a.segment)) + 1 : 1000;
+  /**
+   * Start (or restart after a reconnect) recording one voice alone. Piece
+   * numbers are kept apart per voice (customer from 1,000,000, GluFloat from
+   * 2,000,000) and a restart never reuses one.
+   */
+  function startVoice(track: "glufloat" | "customer") {
+    const stream = track === "glufloat" ? localRef.current : remoteStreamRef.current;
+    if (!stream || stream.getAudioTracks().length === 0) return;
+    const base = track === "customer" ? 1_000_000 : 2_000_000;
+    if (!voiceNumbers.current[track]) {
+      const mine = audio.filter((a) => a.track === track);
+      voiceNumbers.current[track] = {
+        seq: mine.length ? Math.max(...mine.map((a) => a.seq)) + 1 : base,
+        segment: mine.length ? Math.max(...mine.map((a) => a.segment)) + 1 : base / 1000,
+      };
     }
-    const segment = voiceSegment.current!;
-    voiceSegment.current = segment + 1;
+    const n = voiceNumbers.current[track]!;
+    const segment = n.segment;
+    const firstSeq = n.seq;
+    voiceNumbers.current[track] = { seq: firstSeq + 100_000, segment: segment + 1 };
     // When this recording starts, measured from the start of the call, so the
     // written-down lines land at the right time in the transcript.
     const startMs = connectedAtRef.current ? Date.now() - connectedAtRef.current : 0;
-    void voiceRef.current?.stop();
-    const firstSeq = voiceSeq.current!;
-    // A restart never reuses a piece number.
-    voiceSeq.current = firstSeq + 100_000;
-    voiceRef.current = new VoiceRecorder(stream, firstSeq, async (seq, blob) => {
+    void voicesRef.current[track]?.stop();
+    voicesRef.current[track] = new VoiceRecorder(stream, firstSeq, async (seq, blob) => {
       const r = await fetch(
-        `/api/admin/recordings/${id}/audio?seq=${seq}&segment=${segment}&track=customer&start_ms=${startMs}`,
+        `/api/admin/recordings/${id}/audio?seq=${seq}&segment=${segment}&track=${track}&start_ms=${startMs}`,
         { method: "POST", headers: { "content-type": blob.type || "audio/webm" }, body: blob },
       ).catch(() => null);
       return !!r?.ok;
@@ -242,20 +261,23 @@ export default function CallRoom({ id }: { id: string }) {
     }
     releaseRef.current = await keepAwake();
     endingRef.current = false;
+    localRef.current = local;
 
-    // If Chrome's speech recognition takes the microphone away from the call
-    // (some Android phones do), the call matters more: stop the live words.
+    // If speech recognition takes the microphone away from the call anyway,
+    // the call matters more: stop the live words and record this voice alone.
     local.getAudioTracks()[0]?.addEventListener("mute", () => {
       if (sttRef.current) {
         sttRef.current.stop();
         sttRef.current = null;
         setMySpeech(false);
+        startVoice("glufloat");
       }
     });
 
     // New recorder segment if audio was already saved (a reload mid-call).
-    const nextSeq = audio.length ? Math.max(...audio.map((a) => a.seq)) + 1 : 0;
-    const segment = audio.length ? Math.max(...audio.map((a) => a.segment)) + 1 : 0;
+    const mixed = audio.filter((a) => a.track === "mix");
+    const nextSeq = mixed.length ? Math.max(...mixed.map((a) => a.seq)) + 1 : 0;
+    const segment = mixed.length ? Math.max(...mixed.map((a) => a.segment)) + 1 : 0;
     const recorder = new CallRecorder(
       local,
       async (seq, blob) => {
@@ -283,8 +305,13 @@ export default function CallRoom({ id }: { id: string }) {
             body: JSON.stringify({ action: "start" }),
           }).then(() => load());
           recorder.start(nextSeq);
-          if (transcriptionSupported()) startTranscriber();
-          else setMySpeech(false);
+          // Live words only on a computer. On a phone they take the
+          // microphone from the call, so record this voice alone instead.
+          if (liveWordsSafe()) startTranscriber();
+          else {
+            setMySpeech(false);
+            startVoice("glufloat");
+          }
         }
       },
       onRemoteStream: (stream) => {
@@ -295,16 +322,15 @@ export default function CallRoom({ id }: { id: string }) {
         recorder.setRemote(stream);
         remoteStreamRef.current = stream;
         // A reconnect brings a new stream: keep recording their voice.
-        if (voiceRef.current) startVoice();
+        if (voicesRef.current.customer) startVoice("customer");
       },
       onPeerLine: (text) => addLocalLine("customer", text),
       onPeerTranscriber: (ok) => {
         setTheirSpeech(ok);
-        theirSpeechRef.current = ok;
-        if (!ok && !voiceRef.current) startVoice();
-        if (ok && voiceRef.current) {
-          void voiceRef.current.stop();
-          voiceRef.current = null;
+        if (!ok && !voicesRef.current.customer) startVoice("customer");
+        if (ok && voicesRef.current.customer) {
+          void voicesRef.current.customer.stop();
+          voicesRef.current.customer = null;
         }
       },
       onBye: () => void finish(),
@@ -323,7 +349,7 @@ export default function CallRoom({ id }: { id: string }) {
       sttRef.current?.stop();
       sttRef.current = null;
       setInterim("");
-    } else if (mySpeech !== false && transcriptionSupported()) {
+    } else if (mySpeech !== false && liveWordsSafe()) {
       startTranscriber();
     }
   }
@@ -422,7 +448,7 @@ export default function CallRoom({ id }: { id: string }) {
   async function loadAudio() {
     setAudioBusy(true);
     try {
-      const mix = audio.filter((a) => a.track !== "customer");
+      const mix = audio.filter((a) => a.track === "mix");
       const segments = [...new Set(mix.map((a) => a.segment))].sort((a, b) => a - b);
       const out = [];
       for (const seg of segments) {
@@ -443,56 +469,100 @@ export default function CallRoom({ id }: { id: string }) {
     }
   }
 
-  // ---- writing down the customer's words from their recorded voice ----
-  const theirVoice = audio.filter((a) => a.track === "customer");
+  // ---- writing the call down from each voice's own recording ------------
+  const voiceTracks = (["glufloat", "customer"] as const).filter((t) => audio.some((a) => a.track === t));
 
   async function writeFromAudio() {
     if (!session) return;
-    const already = lines.some((l) => l.speaker === "customer");
-    if (
-      already &&
-      !confirm(
-        `There are already lines from ${session.customer_name}. Write their words down from the audio anyway? You may get some lines twice.`,
-      )
-    ) {
-      return;
+    const who = (t: Speaker) => speakerName(t, session.customer_name);
+    // A voice that already has lines is only done again if asked.
+    let tracks = voiceTracks.filter((t) => !lines.some((l) => l.speaker === t));
+    if (tracks.length === 0) {
+      if (!confirm("Every voice already has lines. Write the whole call down again from the audio? You may get lines twice.")) {
+        return;
+      }
+      tracks = [...voiceTracks];
     }
     setWriting("Getting ready...");
     try {
-      const segments = [...new Set(theirVoice.map((a) => a.segment))].sort((a, b) => a - b);
       let saved = 0;
-      for (const [n, seg] of segments.entries()) {
-        const parts = theirVoice.filter((a) => a.segment === seg).sort((a, b) => a.seq - b.seq);
-        const blobs = await Promise.all(parts.map((p) => fetch(p.url).then((r) => r.blob())));
-        const blob = new Blob(blobs, { type: parts[0]?.mime || "audio/webm" });
-        const offset = parts[0]?.start_ms ?? 0;
-        const label = segments.length > 1 ? ` (part ${n + 1} of ${segments.length})` : "";
-        const found = await transcribeAudio(blob, (stage, pct) => {
-          if (stage === "model") {
-            setWriting(`Downloading the speech tool, first time only${pct !== null ? `: ${Math.round(pct)}%` : "..."}`);
-          } else if (stage === "decode") {
-            setWriting(`Opening the audio${label}...`);
-          } else {
-            setWriting(`Writing down their words${label}: ${pct ?? 0}%`);
-          }
-        });
-        for (const t of found) {
-          const r = await fetch(`/api/admin/recordings/${id}/lines`, {
-            method: "POST",
-            headers: { "content-type": "application/json" },
-            body: JSON.stringify({ text: t.text, speaker: "customer", t_ms: offset + t.startMs }),
+      for (const track of tracks) {
+        const mine = audio.filter((a) => a.track === track);
+        const segments = [...new Set(mine.map((a) => a.segment))].sort((a, b) => a - b);
+        for (const [n, seg] of segments.entries()) {
+          const parts = mine.filter((a) => a.segment === seg).sort((a, b) => a.seq - b.seq);
+          const blobs = await Promise.all(parts.map((p) => fetch(p.url).then((r) => r.blob())));
+          const blob = new Blob(blobs, { type: parts[0]?.mime || "audio/webm" });
+          const offset = parts[0]?.start_ms ?? 0;
+          const label = `${who(track)}${segments.length > 1 ? `, part ${n + 1} of ${segments.length}` : ""}`;
+          const found = await transcribeAudio(blob, (stage, pct, detail) => {
+            if (stage === "model") {
+              setWriting(`Getting the speech tool ready (the download is first time only)${detail ? `: ${detail}` : "..."}`);
+            } else if (stage === "decode") {
+              setWriting(`Opening the audio (${label})...`);
+            } else {
+              setWriting(`Writing down ${label}: ${pct ?? 0}%`);
+            }
           });
-          if (r.ok) saved += 1;
+          for (const t of found) {
+            const r = await fetch(`/api/admin/recordings/${id}/lines`, {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({ text: t.text, speaker: track, t_ms: offset + t.startMs }),
+            });
+            if (r.ok) saved += 1;
+          }
         }
       }
       await load();
       setWriting(null);
-      alert(saved ? `Added ${saved} lines from ${session.customer_name}.` : "No words were found in the audio.");
+      alert(saved ? `Added ${saved} lines to the transcript.` : "No words were found in the audio.");
     } catch (e) {
       setWriting(null);
-      alert(`That did not work: ${e instanceof Error ? e.message : "unknown error"}. Try again on a laptop in Chrome.`);
+      alert(`That did not work: ${e instanceof Error ? e.message : "unknown error"}. Try again.`);
     }
   }
+
+  /** Close a call that is still open here (the other side left, or a reload). */
+  async function endStale() {
+    if (!confirm("End this call? The link will stop working.")) return;
+    await fetch(`/api/admin/recordings/${id}`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ action: "end" }),
+    });
+    await load();
+    router.refresh();
+  }
+
+  /** Join the recording's pieces and save it as a file, in one tap. */
+  async function downloadRecording() {
+    if (!session) return;
+    let files = audioUrls;
+    if (!files) {
+      wantDownload.current = true;
+      await loadAudio();
+      return; // loadAudio sets audioUrls; the effect below finishes the download
+    }
+    const base = `glufloat-call-${session.customer_name.replace(/\W+/g, "-").toLowerCase()}`;
+    files.forEach((f, i) => {
+      const a = document.createElement("a");
+      a.href = f.url;
+      a.download = `${base}${files!.length > 1 ? `-part-${i + 1}` : ""}.${f.ext}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    });
+  }
+
+  const wantDownload = useRef(false);
+  useEffect(() => {
+    if (audioUrls && wantDownload.current) {
+      wantDownload.current = false;
+      void downloadRecording();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [audioUrls]);
 
   async function copyLink() {
     if (!session) return;
@@ -601,6 +671,11 @@ export default function CallRoom({ id }: { id: string }) {
                   Send on WhatsApp
                 </a>
               </div>
+              {session.status !== "waiting" && (
+                <p className="mt-4 rounded-lg bg-v-yellow/15 px-3 py-2 text-xs font-semibold text-ink">
+                  This call is still marked as open. If it is over, end it here.
+                </p>
+              )}
               <button
                 onClick={start}
                 className="mt-5 flex w-full items-center justify-center gap-2 rounded-full bg-leaf px-6 py-3.5 font-display text-base font-bold text-white transition-colors hover:bg-leaf-deep sm:w-auto"
@@ -610,6 +685,12 @@ export default function CallRoom({ id }: { id: string }) {
               <p className="mt-2 text-xs text-ink-soft">
                 Use Chrome. Keep this page open and the screen on until the call ends.
               </p>
+              <button
+                onClick={endStale}
+                className="mt-3 flex items-center gap-1.5 rounded-full border border-v-red/40 px-4 py-2 text-sm font-bold text-v-red hover:bg-v-red/5"
+              >
+                <PhoneOff className="h-4 w-4" /> End this call
+              </button>
               {problem && <p className="mt-2 text-sm font-semibold text-v-red">{problem}</p>}
             </>
           )}
@@ -622,18 +703,13 @@ export default function CallRoom({ id }: { id: string }) {
               </div>
               <p className="mt-3 font-display text-4xl font-bold text-ink">{clock(elapsed)}</p>
               <p className="mt-1 text-xs text-ink-soft">Audio saved so far: {sizeLabel(savedBytes)}</p>
-              {mySpeech === false && (
-                <p className="mt-3 rounded-lg bg-v-yellow/15 px-3 py-2 text-xs font-semibold text-ink">
-                  Your words are not being written down on this phone. The audio is still recorded, and you can add lines after
-                  the call.
+              {(mySpeech === false || theirSpeech === false) && (
+                <p className="mt-3 rounded-lg bg-brand/5 px-3 py-2 text-xs font-semibold text-ink">
+                  On a phone, words are written down after the call, not during it. Each voice is being saved on its own.
+                  When the call ends, tap &ldquo;Write down the call from the audio&rdquo;.
                 </p>
               )}
-              {theirSpeech === false && (
-                <p className="mt-2 rounded-lg bg-v-yellow/15 px-3 py-2 text-xs font-semibold text-ink">
-                  The customer&apos;s phone cannot write down their words live (it may be an iPhone). Their voice is being
-                  saved on its own, so you can write their words down after the call.
-                </p>
-              )}
+
               <div className="mt-5 flex gap-3">
                 <button onClick={toggleMute} className="flex items-center gap-2 rounded-full border border-[#e3e9f1] px-5 py-3 text-sm font-bold text-ink">
                   {muted ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
@@ -673,6 +749,9 @@ export default function CallRoom({ id }: { id: string }) {
                   className={small}
                 >
                   <Pencil className="h-3.5 w-3.5" /> Edit
+                </button>
+                <button onClick={() => void downloadRecording()} disabled={audioBusy} className={small}>
+                  <Download className="h-3.5 w-3.5" /> {audioBusy ? "Preparing..." : "Download recording"}
                 </button>
                 <button onClick={deleteAudioFiles} className={`${small} hover:border-v-red hover:text-v-red`}>
                   <Trash2 className="h-3.5 w-3.5" /> Delete audio
@@ -728,9 +807,13 @@ export default function CallRoom({ id }: { id: string }) {
               <button onClick={() => setAdding(true)} className={small}>
                 <Plus className="h-3.5 w-3.5" /> Add a line
               </button>
-              {theirVoice.length > 0 && (
-                <button onClick={writeFromAudio} disabled={!!writing} className={`${small} disabled:opacity-50`}>
-                  <Mic className="h-3.5 w-3.5" /> Write down {session.customer_name}&apos;s words from the audio
+              {voiceTracks.length > 0 && (
+                <button
+                  onClick={writeFromAudio}
+                  disabled={!!writing}
+                  className="flex items-center gap-1.5 rounded-lg bg-leaf px-3 py-1.5 text-xs font-bold text-white hover:bg-leaf-deep disabled:opacity-50"
+                >
+                  <Mic className="h-3.5 w-3.5" /> Write down the call from the audio
                 </button>
               )}
               {sorted.length > 0 && (

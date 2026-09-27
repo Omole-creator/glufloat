@@ -36,9 +36,10 @@ export interface AudioPart {
   url: string;
   bytes: number;
   mime: string;
-  /** "mix" is the call as heard (both voices). "customer" is their voice
-   *  alone, saved only when their phone could not write their words down. */
-  track: "mix" | "customer";
+  /** "mix" is the call as heard (both voices). "customer" and "glufloat"
+   *  are each voice ALONE, saved whenever that side's words cannot be written
+   *  down live (always on a phone), so they can be written down after. */
+  track: "mix" | "customer" | "glufloat";
   /** When this piece's recording began, from the start of the call. */
   start_ms: number | null;
 }

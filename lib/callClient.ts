@@ -238,6 +238,24 @@ type SR = {
   onend: (() => void) | null;
 };
 
+/**
+ * Whether it is SAFE to write words down live on this device during a call.
+ *
+ * Not on a phone. On Android, Chrome's speech recognition takes the
+ * microphone away from the call: the founder's first real call sent silence
+ * from the Android phone for its whole length (the customer kept saying "I
+ * can't hear you"), and none of that voice was recorded either. On an iPhone
+ * it is not available at all. So on a phone the words are written down AFTER
+ * the call, from each voice's own recording, and live words run only on a
+ * computer, where recognition and the call share the microphone fine.
+ */
+export function liveWordsSafe(): boolean {
+  if (!transcriptionSupported()) return false;
+  const ua = navigator.userAgent;
+  const iPadOS = /Macintosh/.test(ua) && navigator.maxTouchPoints > 1;
+  return !(/Android|iPhone|iPad|iPod|Mobile/i.test(ua) || iPadOS);
+}
+
 export function transcriptionSupported(): boolean {
   if (typeof window === "undefined") return false;
   const w = window as unknown as { SpeechRecognition?: unknown; webkitSpeechRecognition?: unknown };

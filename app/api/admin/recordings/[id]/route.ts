@@ -34,7 +34,7 @@ export async function GET(_req: Request, ctx: Ctx) {
     url: string;
     bytes: number;
     mime: string;
-    track: "mix" | "customer";
+    track: "mix" | "customer" | "glufloat";
     start_ms: number | null;
   }[] = [];
   for (const p of parts ?? []) {
@@ -48,7 +48,7 @@ export async function GET(_req: Request, ctx: Ctx) {
         url: data.signedUrl,
         bytes: p.bytes as number,
         mime: p.mime as string,
-        track: (p as { track?: string }).track === "customer" ? "customer" : "mix",
+        track: ((t) => (t === "customer" || t === "glufloat" ? t : "mix"))((p as { track?: string }).track),
         start_ms: ((p as { start_ms?: number | null }).start_ms ?? null) as number | null,
       });
     }
