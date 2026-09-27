@@ -251,9 +251,9 @@ export default function BlogEditor({ initial }: { initial: Post[] }) {
   }
 
   return (
-    <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_20rem]">
+    <div className="grid gap-8 lg:grid-cols-[1fr_20rem]">
       {/* ---- the editor ---- */}
-      <section className="rounded-2xl bg-white p-6 shadow-[0_6px_28px_-14px_rgba(12,42,71,0.18)] ring-1 ring-ink/[0.05]">
+      <section className="rounded-2xl bg-white p-6 border border-[#e3e9f1]">
         <div className="flex items-center justify-between">
           <h2 className="font-display text-xl font-bold text-ink">
             {d.id ? "Edit post" : "New post"}
@@ -546,7 +546,7 @@ export default function BlogEditor({ initial }: { initial: Post[] }) {
       </section>
 
       {/* ---- the list ---- */}
-      <aside className="rounded-2xl bg-white p-5 shadow-[0_6px_28px_-14px_rgba(12,42,71,0.18)] ring-1 ring-ink/[0.05]">
+      <aside className="rounded-2xl bg-white p-5 border border-[#e3e9f1]">
         <h2 className="font-display text-lg font-bold text-ink">
           All posts ({posts.length})
         </h2>

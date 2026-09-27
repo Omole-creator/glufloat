@@ -19,6 +19,23 @@ import type { NamedMeal } from "./mealtime";
 
 export type MedTime = "morning" | "afternoon" | "evening";
 
+/**
+ * Which diabetes medicine (profiles.med_types, data-collection-schema.sql).
+ * Stored only: it changes no advice and no meal. It is kept because metformin,
+ * the sugar-lowering tablets and insulin move blood sugar very differently, so
+ * a sugar test means little later without knowing which one was taken.
+ */
+export type MedType = "metformin" | "sulfonylurea" | "insulin" | "other" | "unknown";
+
+export const MED_TYPE_OPTIONS: { value: MedType; label: string }[] = [
+  { value: "metformin", label: "Metformin" },
+  { value: "sulfonylurea", label: "Glimepiride, gliclazide or glibenclamide" },
+  { value: "insulin", label: "Insulin injection" },
+  { value: "other", label: "Another medicine" },
+  { value: "unknown", label: "I don't know the name" },
+];
+const VALID_MED_TYPES = new Set<string>(MED_TYPE_OPTIONS.map((o) => o.value));
+
 export interface PersonalizationProfile {
   goals: Goal[];
   activityLevel: ActivityLevel | null;
@@ -31,6 +48,7 @@ export interface PersonalizationProfile {
   medDosesPerDay: number | null;
   medTimes: MedTime[];
   medRelationToFood: "before" | "after" | null;
+  medTypes: MedType[];
 }
 
 const EMPTY: PersonalizationProfile = {
@@ -45,6 +63,7 @@ const EMPTY: PersonalizationProfile = {
   medDosesPerDay: null,
   medTimes: [],
   medRelationToFood: null,
+  medTypes: [],
 };
 
 const VALID_GOALS = new Set<string>(["maintain", "lose_weight", "gain_weight", "build_muscle"]);
@@ -98,6 +117,16 @@ export async function readPersonalizationProfile(): Promise<PersonalizationProfi
         ).data ?? null)
       : fullResult.data;
     if (!data) return EMPTY;
+    // Its own read, so a database without data-collection-schema.sql loses
+    // only this one field, never the rest of the profile.
+    let medTypes: MedType[] = [];
+    try {
+      const mt = await supabase.from("profiles").select("med_types").eq("id", user.id).single();
+      const raw = (mt.data as { med_types?: unknown } | null)?.med_types;
+      medTypes = (Array.isArray(raw) ? raw : []).filter((t): t is MedType => VALID_MED_TYPES.has(t));
+    } catch {
+      /* column not there yet */
+    }
     const goals = (Array.isArray(data.goals) ? data.goals : []).filter(
       (g): g is Goal => VALID_GOALS.has(g),
     );
@@ -123,6 +152,7 @@ export async function readPersonalizationProfile(): Promise<PersonalizationProfi
       medDosesPerDay: typeof data.med_doses_per_day === "number" ? data.med_doses_per_day : null,
       medTimes,
       medRelationToFood,
+      medTypes,
     };
   } catch {
     return EMPTY;
@@ -161,6 +191,16 @@ export async function savePersonalizationProfile(p: PersonalizationProfile): Pro
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) return false;
+    // The weight before this save, so a change can be kept in weight_history
+    // (profiles.weight_kg is overwritten, and the old number would be lost).
+    let previousWeight: number | null = null;
+    try {
+      const prev = await supabase.from("profiles").select("weight_kg").eq("id", user.id).single();
+      const w = (prev.data as { weight_kg?: unknown } | null)?.weight_kg;
+      previousWeight = typeof w === "number" ? w : null;
+    } catch {
+      /* unknown: treated as a change below */
+    }
     const full = {
       goals: p.goals,
       activity_level: p.activityLevel,
@@ -174,7 +214,14 @@ export async function savePersonalizationProfile(p: PersonalizationProfile): Pro
       med_times: p.medTimes,
       med_relation_to_food: p.medRelationToFood,
     };
-    let { error } = await supabase.from("profiles").update(full).eq("id", user.id);
+    let { error } = await supabase
+      .from("profiles")
+      .update({ ...full, med_types: p.medTypes })
+      .eq("id", user.id);
+    if (error) {
+      // data-collection-schema.sql not run yet: save everything but med_types.
+      ({ error } = await supabase.from("profiles").update(full).eq("id", user.id));
+    }
     if (error) {
       // Tolerate a database that has not yet run health-profile-schema.sql —
       // same reasoning as lib/subscriptionWrite.ts: without this fallback, the
@@ -187,6 +234,13 @@ export async function savePersonalizationProfile(p: PersonalizationProfile): Pro
         .eq("id", user.id));
     }
     if (error) return false;
+    if (p.weightKg != null && p.weightKg !== previousWeight) {
+      try {
+        await supabase.from("weight_history").insert({ weight_kg: p.weightKg });
+      } catch {
+        /* history is best effort; the profile itself saved */
+      }
+    }
     notifyChanged();
     return true;
   } catch {

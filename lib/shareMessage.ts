@@ -74,6 +74,7 @@ export function monthReportMessage(
     readings: Reading[];
   }[],
   loose: Reading[] = [],
+  hba1c: string | null = null,
 ): string {
   const blocks: string[] = ["My food this month, from Glufloat."];
 
@@ -140,6 +141,11 @@ export function monthReportMessage(
           .map((r) => `- ${formatBoth(r.mgdl)}, ${readingWhen(r.takenAt)}`),
       ].join("\n"),
     );
+  }
+
+  // The 3-month sugar test, already formatted ("7.2% (tested 12 Sep 2026)").
+  if (hba1c) {
+    blocks.push(`My 3-month sugar test (HbA1c): ${hba1c}`);
   }
 
   blocks.push(CTA);

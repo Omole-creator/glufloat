@@ -9,6 +9,7 @@ import AdminTile from "../AdminTile";
 import UsersPanel, { type UserRow } from "./UsersPanel";
 import { isUserType } from "@/lib/userType";
 import { normalizePhone, repeatedPhones } from "@/lib/phone";
+import { isInternalEmail } from "@/lib/internalAccounts";
 
 export const dynamic = "force-dynamic";
 
@@ -69,9 +70,12 @@ export default async function UsersPage() {
    * Counted on the NORMALISED number, so +234 and 0 forms group together even
    * on accounts made before sign-up started storing one shape.
    */
-  const repeats = repeatedPhones(profiles ?? []);
+  // Our own QA and demo accounts are not users; leave them out of the list and
+  // every count (see lib/internalAccounts.ts).
+  const people = (profiles ?? []).filter((p) => !isInternalEmail(p.email));
+  const repeats = repeatedPhones(people);
 
-  const rows: UserRow[] = (profiles ?? []).map((p) => ({
+  const rows: UserRow[] = people.map((p) => ({
     id: p.id,
     name: p.name ?? "",
     email: p.email,

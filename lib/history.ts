@@ -76,6 +76,7 @@ export async function saveCheck(
   label: string,
   verdict: Verdict,
   calories?: number,
+  detail?: { foodIds: string[]; sizes: string[] },
 ): Promise<number | null> {
   try {
     const supabase = createClient();
@@ -83,17 +84,19 @@ export async function saveCheck(
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) return null; // signed out; nothing to save against
-    const row: { kind: CheckKind; label: string; verdict: Verdict; calories?: number } = {
-      kind,
-      label,
-      verdict,
-    };
-    if (calories != null) row.calories = Math.round(calories);
-    let result = await supabase.from("meal_checks").insert(row).select("id").single();
-    if (result.error && calories != null) {
-      const { calories: _c, ...withoutCalories } = row;
-      void _c;
-      result = await supabase.from("meal_checks").insert(withoutCalories).select("id").single();
+    const base: { kind: CheckKind; label: string; verdict: Verdict } = { kind, label, verdict };
+    const withCalories = calories != null ? { ...base, calories: Math.round(calories) } : base;
+    // Which foods and how much (supabase/data-collection-schema.sql). The label
+    // stays the display text; these are what a model would read. Each step
+    // down drops a column whose migration may not have run yet, so the meal
+    // itself is always saved.
+    const attempts: Record<string, unknown>[] = [];
+    if (detail) attempts.push({ ...withCalories, food_ids: detail.foodIds, sizes: detail.sizes });
+    attempts.push(withCalories);
+    if (calories != null) attempts.push(base);
+    let result = await supabase.from("meal_checks").insert(attempts[0]).select("id").single();
+    for (let i = 1; result.error && i < attempts.length; i++) {
+      result = await supabase.from("meal_checks").insert(attempts[i]).select("id").single();
     }
     // What a person has eaten has just changed, and the how-often warning is
     // read from it. Without this, someone who logs a fast-sugar food and then

@@ -727,7 +727,7 @@ for (const meal of MEALS) {
     return personalRotationKey({
       goals: [], activityLevel: activityLevel as any, mealPattern: ["breakfast", "lunch", "dinner"],
       sex: "male", ageYears: 30, weightKg, heightCm: 180,
-      conditions: [], medDosesPerDay: null, medTimes: [], medRelationToFood: null,
+      conditions: [], medDosesPerDay: null, medTimes: [], medRelationToFood: null, medTypes: [],
     });
   }
   const dayKey = "2026-09-08";

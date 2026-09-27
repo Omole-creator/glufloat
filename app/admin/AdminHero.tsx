@@ -1,36 +1,32 @@
 /**
- * The headline-numbers band — solid brand blue, white text, dividers between
- * items. Same colour and shape as the "Your daily calorie target" box on
- * PersonalizationSettings ("Fit me"): one flat blue surface carrying the
- * numbers that matter most, instead of every stat looking the same weight.
+ * A page's headline numbers: a row of white stat cards, the same card as
+ * AdminTile, laid out to fit however many numbers the page leads with.
  */
 export default function AdminHero({
   items,
 }: {
   items: { label: string; value: string; sub?: string }[];
 }) {
+  const cols =
+    items.length >= 5
+      ? "sm:grid-cols-2 lg:grid-cols-5"
+      : items.length === 4
+        ? "sm:grid-cols-2 lg:grid-cols-4"
+        : "sm:grid-cols-3";
   return (
-    <div className="rounded-2xl bg-brand p-5 text-white shadow-[0_10px_36px_-14px_rgba(12,42,71,0.45)] sm:p-6">
-      <div
-        className={`grid gap-5 ${
-          items.length >= 4 ? "sm:grid-cols-2 lg:grid-cols-4" : "sm:grid-cols-2"
-        }`}
-      >
-        {items.map((it, i) => (
-          <div
-            key={i}
-            className={i > 0 ? "sm:border-l sm:border-white/20 sm:pl-5" : ""}
-          >
-            <p className="text-xs font-semibold uppercase tracking-wide text-white/70">
-              {it.label}
-            </p>
-            <p className="mt-1 font-display text-2xl font-bold leading-tight sm:text-3xl">
-              {it.value}
-            </p>
-            {it.sub && <p className="mt-1 text-xs text-white/70">{it.sub}</p>}
-          </div>
-        ))}
-      </div>
+    <div className={`grid grid-cols-2 gap-3 sm:gap-4 ${cols}`}>
+      {items.map((it, i) => (
+        <div
+          key={i}
+          className="min-w-0 rounded-2xl border border-[#e3e9f1] bg-white p-4 sm:p-5"
+        >
+          <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-ink/50">
+            {it.label}
+          </p>
+          <p className="mt-2 font-display text-2xl font-bold leading-none sm:text-3xl text-ink">{it.value}</p>
+          {it.sub && <p className="mt-2 text-xs text-ink-soft">{it.sub}</p>}
+        </div>
+      ))}
     </div>
   );
 }

@@ -90,7 +90,10 @@ export default function ExtraSuggestionCard({ set }: { set: ExtraSuggestionSet }
     // total so caloriesEatenToday() credits what was really eaten instead of
     // re-deriving it from the food's flat base calories and under-counting.
     // See supabase/meal-calories-schema.sql.
-    void saveCheck("meal", label, verdict, variant.totalCalories);
+    void saveCheck("meal", label, verdict, variant.totalCalories, {
+      foodIds: variant.items.map((o) => o.food.id),
+      sizes: variant.items.map((o) => `${Math.round(o.grams)}g`),
+    });
     void trackUsage("meal_logged");
     showToast("Added to your food");
   };

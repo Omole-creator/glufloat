@@ -26,6 +26,7 @@ keys are in Vercel, the app code (which I'm building) takes over.
    | 13 | `health-profile-schema.sql` | `profiles.sex/.age_years/.weight_kg/.height_cm/.conditions/.med_doses_per_day/.med_times/.med_relation_to_food` — must run AFTER #11, since it widens the `activity_level` check constraint #11 first created |
    | 14 | `dietitian-partner-routing-schema.sql` | Lets a partner (e.g. `angela14`) have her own dedicated dietitian instead of the generic round-robin — `inhouse_dietitians.reserved_for_partner_code`, and an extended `assign_dietitian()`. Must run AFTER #12, since it replaces that function. Idempotent, safe to re-paste. |
    | 15 | `meal-calories-schema.sql` | `meal_checks.calories` — lets a scaled extra-food log (ExtraSuggestionCard) credit its real, scaled calorie total instead of being silently under-counted from the food's base serving. Must run AFTER #7. Nullable, safe to re-paste; the app degrades gracefully (falls back to name-based estimate) until this runs. |
+   | 16 | `data-collection-schema.sql` | `meal_checks.food_ids/.sizes`, `meal_impressions` (blue-card shown/skipped/opened/eaten), `weight_history`, `glucose_readings.context` (before/after a meal), `profiles.med_types`, and `hba1c_results`. Must run AFTER #15. Idempotent; every write degrades gracefully until it runs. |
 
    Two things worth knowing about that order. **Five of these files each contain
    their own `create or replace function public.handle_new_user()`**, and the last

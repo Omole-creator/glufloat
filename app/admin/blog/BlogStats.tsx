@@ -22,10 +22,8 @@ export default async function BlogStats({ posts }: { posts: Post[] }) {
   const td = "px-3 py-3 text-sm text-ink";
 
   return (
-    <section className="mt-8">
-      <h2 className="font-display text-xl font-bold text-ink">How the blog is doing</h2>
-
-      <div className="mt-4">
+    <section>
+      <div>
         <AdminHero
           items={[
             { label: "People who opened a post", value: totals.opened.toLocaleString() },
@@ -37,11 +35,11 @@ export default async function BlogStats({ posts }: { posts: Post[] }) {
       </div>
 
       {published.length === 0 ? (
-        <p className="mt-6 rounded-2xl bg-white p-6 text-center text-ink-soft shadow-[0_6px_28px_-14px_rgba(12,42,71,0.18)] ring-1 ring-ink/[0.05]">
+        <p className="mt-6 rounded-2xl bg-white p-6 text-center text-ink-soft border border-[#e3e9f1]">
           Nothing published yet, so there is nothing to measure.
         </p>
       ) : (
-        <div className="mt-6 overflow-x-auto rounded-2xl bg-white shadow-[0_6px_28px_-14px_rgba(12,42,71,0.18)] ring-1 ring-ink/[0.05]">
+        <div className="mt-6 overflow-x-auto rounded-2xl bg-white border border-[#e3e9f1]">
           <table className="w-full min-w-[52rem]">
             <thead className="border-b border-line bg-mist">
               <tr>

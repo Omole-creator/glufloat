@@ -26,6 +26,7 @@ import DashboardSnapshot from "@/components/DashboardSnapshot";
 import FirstStepsChecklist from "@/components/FirstStepsChecklist";
 import TodaysExtras from "@/components/TodaysExtras";
 import LogReading from "@/components/LogReading";
+import LogHbA1c from "@/components/LogHbA1c";
 import ReadingNudge from "@/components/ReadingNudge";
 import TypewriterHeadline from "@/components/TypewriterHeadline";
 import CollapsibleCard from "@/components/CollapsibleCard";
@@ -510,6 +511,9 @@ export default function AppPage() {
                   nothing about their own body until they do. */}
               <div id="log-reading" className="scroll-mt-24">
                 <LogReading />
+                <div className="mt-2.5">
+                  <LogHbA1c />
+                </div>
               </div>
 
               {/* Their own average when it is high, else where to spend the

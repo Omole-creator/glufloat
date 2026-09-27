@@ -198,11 +198,11 @@ export default function UsersPanel({
       </p>
 
       {shown.length === 0 ? (
-        <p className="mt-4 rounded-2xl bg-white p-6 text-center text-ink-soft shadow-[0_6px_28px_-14px_rgba(12,42,71,0.18)] ring-1 ring-ink/[0.05]">
+        <p className="mt-4 rounded-2xl bg-white p-6 text-center text-ink-soft border border-[#e3e9f1]">
           Nobody here.
         </p>
       ) : (
-        <div className="mt-3 overflow-x-auto rounded-2xl bg-white shadow-[0_6px_28px_-14px_rgba(12,42,71,0.18)] ring-1 ring-ink/[0.05]">
+        <div className="mt-3 overflow-x-auto rounded-2xl bg-white border border-[#e3e9f1]">
           <table className="w-full min-w-[60rem]">
             <thead className="border-b border-line bg-mist">
               <tr>

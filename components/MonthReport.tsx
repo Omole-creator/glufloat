@@ -21,6 +21,7 @@ import {
   deleteReading,
   looseMonthReadings,
 } from "@/lib/glucoseLog";
+import { type Hba1c, deleteHba1c, formatHba1c, latestHba1c } from "@/lib/hba1c";
 import CollapsibleCard from "./CollapsibleCard";
 
 // Glufloat brand colours (from app/globals.css), as RGB for jsPDF.
@@ -66,6 +67,9 @@ export default function MonthReport({
 }) {
   const [items, setItems] = useState<CheckedMeal[] | null>(null);
   const [loose, setLoose] = useState<Reading[]>([]);
+  // The newest 3-month sugar test, whenever it was taken: it covers months,
+  // not days, so it is not cut to this month like everything else here.
+  const [hba1c, setHba1c] = useState<Hba1c | null>(null);
   const [busy, setBusy] = useState(false);
 
   /**
@@ -84,6 +88,7 @@ export default function MonthReport({
     const load = () => {
       void monthChecks().then(setItems);
       void looseMonthReadings().then(setLoose);
+      void latestHba1c().then(setHba1c);
     };
     load();
     window.addEventListener(READINGS_CHANGED, load);
@@ -99,9 +104,9 @@ export default function MonthReport({
   const list = items ?? [];
   // A reading on its own is a report too. Somebody who tests first thing in the
   // morning and logs nothing else still has something worth handing over.
-  const hasData = list.length > 0 || loose.length > 0;
+  const hasData = list.length > 0 || loose.length > 0 || hba1c !== null;
   const anyReadings =
-    loose.length > 0 || list.some((i) => i.readings.length > 0);
+    loose.length > 0 || hba1c !== null || list.some((i) => i.readings.length > 0);
   const tally = (items: CheckedMeal[]) => ({
     total: items.length,
     green: items.filter((i) => i.verdict === "green").length,
@@ -343,6 +348,22 @@ export default function MonthReport({
       y += 4;
     }
 
+    // The 3-month sugar test, as a plain number with its date. Never graded.
+    if (hba1c) {
+      nextPageIfNeeded(265);
+      fill([235, 242, 250]);
+      doc.roundedRect(M - 2, y - 5, 182, 9, 1.5, 1.5, "F");
+      ink(BRAND);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.text("My 3-month sugar test (HbA1c)", M + 1, y + 1);
+      y += 12;
+      doc.setFontSize(9);
+      doc.text(formatHba1c(hba1c), M + 6, y);
+      doc.setFont("helvetica", "normal");
+      y += 9;
+    }
+
     doc.setFontSize(8);
     doc.setTextColor(150);
     doc.text(
@@ -389,6 +410,7 @@ export default function MonthReport({
           readings: i.readings,
         })),
         loose,
+        hba1c ? formatHba1c(hba1c) : null,
       );
       window.open(
         `https://wa.me/?text=${encodeURIComponent(text)}`,
@@ -561,6 +583,28 @@ export default function MonthReport({
                 </div>
               );
             })}
+
+            {hba1c && (
+              <div>
+                <p className="font-display text-sm font-bold text-brand">
+                  My 3-month sugar test (HbA1c)
+                </p>
+                <div className="mt-1 flex items-center gap-2 px-1 py-1.5 text-xs font-semibold text-brand">
+                  <Droplet className="h-3 w-3 shrink-0" />
+                  {formatHba1c(hba1c)}
+                  <button
+                    onClick={() => {
+                      void deleteHba1c(hba1c.id);
+                      setHba1c(null);
+                    }}
+                    aria-label={`Remove the ${hba1c.percent}% 3-month sugar test`}
+                    className="ml-auto shrink-0 rounded-full p-0.5 text-ink-soft/50 transition-colors hover:bg-verdict-red/10 hover:text-verdict-red"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Readings that follow no meal. On the record in their own right,
                 because for somebody who tests first thing in the morning these

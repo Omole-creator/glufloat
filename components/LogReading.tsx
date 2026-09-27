@@ -67,6 +67,9 @@ export default function LogReading() {
   const [typed, setTyped] = useState("");
   const [meals, setMeals] = useState<AskedMeal[]>([]);
   const [mealId, setMealId] = useState<number | null>(null);
+  // "I have not eaten yet": a test before a meal. Paired later with the test
+  // after it, this is what says how much a meal raised the number.
+  const [beforeEating, setBeforeEating] = useState(false);
   const [needConsent, setNeedConsent] = useState(false);
   const [agreed, setAgreed] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -98,6 +101,7 @@ export default function LogReading() {
       setTyped("");
       setMeals((cur) => [meal, ...cur.filter((c) => c.id !== meal.id)]);
       setMealId(meal.id);
+      setBeforeEating(false);
       setOpen(true);
       setTimeout(() => {
         document
@@ -115,6 +119,7 @@ export default function LogReading() {
   const reset = () => {
     setTyped("");
     setMealId(null);
+    setBeforeEating(false);
     setProblem("");
     setSaved(null);
   };
@@ -137,6 +142,7 @@ export default function LogReading() {
       parsed.unit,
       parsed.mgdl,
       mealId,
+      mealId !== null ? "after_meal" : beforeEating ? "before_meal" : "other",
     );
     setBusy(false);
     if (!row) {
@@ -263,47 +269,70 @@ export default function LogReading() {
         </p>
       )}
 
-      {meals.length > 0 && (
-        <>
-          <p className="mt-5 font-display text-base font-semibold text-ink">
-            Which meal gave you this number after 2 or more hours?
-          </p>
-          <div className="mt-2 flex flex-col gap-2">
-            {meals.map((m) => (
-              <button
-                key={m.id}
-                onClick={() => setMealId(m.id)}
-                aria-pressed={mealId === m.id}
-                className={`rounded-2xl border-2 px-4 py-2.5 text-left text-sm font-semibold transition-colors ${
-                  mealId === m.id
-                    ? "border-brand bg-brand/5 text-ink"
-                    : "border-line bg-white text-ink hover:border-brand/40"
-                }`}
-              >
-                {displayLabel(m.label)}
-                <span className="block text-xs font-normal text-ink-soft">
-                  {whenLabel(m.checkedAt)}
-                </span>
-              </button>
-            ))}
-            {/* An ordinary answer, not a failure. See the note at the top. */}
+      <>
+        <p className="mt-5 font-display text-base font-semibold text-ink">
+          {meals.length > 0
+            ? "Which meal gave you this number after 2 or more hours?"
+            : "When did you take this test?"}
+        </p>
+        <div className="mt-2 flex flex-col gap-2">
+          {meals.map((m) => (
             <button
-              onClick={() => setMealId(null)}
-              aria-pressed={mealId === null}
+              key={m.id}
+              onClick={() => {
+                setMealId(m.id);
+                setBeforeEating(false);
+              }}
+              aria-pressed={mealId === m.id}
               className={`rounded-2xl border-2 px-4 py-2.5 text-left text-sm font-semibold transition-colors ${
-                mealId === null
+                mealId === m.id
                   ? "border-brand bg-brand/5 text-ink"
                   : "border-line bg-white text-ink hover:border-brand/40"
               }`}
             >
-              None of these meals
+              {displayLabel(m.label)}
               <span className="block text-xs font-normal text-ink-soft">
-                It is my first test today
+                {whenLabel(m.checkedAt)}
               </span>
             </button>
-          </div>
-        </>
-      )}
+          ))}
+          <button
+            onClick={() => {
+              setMealId(null);
+              setBeforeEating(true);
+            }}
+            aria-pressed={mealId === null && beforeEating}
+            className={`rounded-2xl border-2 px-4 py-2.5 text-left text-sm font-semibold transition-colors ${
+              mealId === null && beforeEating
+                ? "border-brand bg-brand/5 text-ink"
+                : "border-line bg-white text-ink hover:border-brand/40"
+            }`}
+          >
+            I have not eaten yet
+            <span className="block text-xs font-normal text-ink-soft">
+              This test is before my meal
+            </span>
+          </button>
+          {/* An ordinary answer, not a failure. See the note at the top. */}
+          <button
+            onClick={() => {
+              setMealId(null);
+              setBeforeEating(false);
+            }}
+            aria-pressed={mealId === null && !beforeEating}
+            className={`rounded-2xl border-2 px-4 py-2.5 text-left text-sm font-semibold transition-colors ${
+              mealId === null && !beforeEating
+                ? "border-brand bg-brand/5 text-ink"
+                : "border-line bg-white text-ink hover:border-brand/40"
+            }`}
+          >
+            None of these meals
+            <span className="block text-xs font-normal text-ink-soft">
+              It is my first test today
+            </span>
+          </button>
+        </div>
+      </>
 
       {needConsent && (
         <label className="mt-5 flex cursor-pointer items-start gap-3 rounded-2xl border border-line bg-mist px-4 py-3">

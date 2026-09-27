@@ -18,3 +18,16 @@ export async function POST(request: Request) {
   });
   return res;
 }
+
+/** Log out: clear the admin cookie. */
+export async function DELETE() {
+  const res = NextResponse.json({ ok: true });
+  res.cookies.set(ADMIN_COOKIE, "", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 0,
+  });
+  return res;
+}

@@ -1,5 +1,7 @@
 "use client";
 
+import { ChevronDown } from "lucide-react";
+
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -162,8 +164,13 @@ export default function PartnerPanel({
   return (
     <>
       {/* ---- add a partner ---- */}
-      <section className="mt-8 rounded-2xl bg-white p-6 shadow-[0_6px_28px_-14px_rgba(12,42,71,0.18)] ring-1 ring-ink/[0.05]">
-        <h2 className="font-display text-xl font-bold text-ink">Add a health professional</h2>
+      <details className="group mt-8 rounded-2xl border border-[#e3e9f1] bg-white p-6">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
+          <h2 className="font-display text-xl font-bold text-ink">Add a health professional</h2>
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#e3e9f1] text-ink-soft transition-transform group-open:rotate-180">
+            <ChevronDown className="h-4 w-4" />
+          </span>
+        </summary>
 
         <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div>
@@ -213,7 +220,7 @@ export default function PartnerPanel({
         >
           {busy ? "Working..." : "Save and make their link"}
         </button>
-      </section>
+      </details>
 
       {/* ---- edit one ---- */}
       {edit && (
@@ -290,11 +297,11 @@ export default function PartnerPanel({
         )}
 
         {rows.length === 0 ? (
-          <p className="mt-4 rounded-2xl bg-white p-6 text-center text-ink-soft shadow-[0_6px_28px_-14px_rgba(12,42,71,0.18)] ring-1 ring-ink/[0.05]">
+          <p className="mt-4 rounded-2xl bg-white p-6 text-center text-ink-soft border border-[#e3e9f1]">
             No partners yet. Add your first one above.
           </p>
         ) : (
-          <div className="mt-4 overflow-x-auto rounded-2xl bg-white shadow-[0_6px_28px_-14px_rgba(12,42,71,0.18)] ring-1 ring-ink/[0.05]">
+          <div className="mt-4 overflow-x-auto rounded-2xl bg-white border border-[#e3e9f1]">
             <table className="w-full min-w-[62rem]">
               <thead className="border-b border-line bg-mist">
                 <tr>

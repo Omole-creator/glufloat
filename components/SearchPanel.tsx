@@ -46,7 +46,10 @@ export default function SearchPanel({
   };
 
   const logEaten = (food: Food) => {
-    void saveCheck("single", food.name, food.baseVerdict);
+    void saveCheck("single", food.name, food.baseVerdict, undefined, {
+      foodIds: [food.id],
+      sizes: ["normal"],
+    });
     void trackUsage("meal_logged");
     setAte(true);
   };

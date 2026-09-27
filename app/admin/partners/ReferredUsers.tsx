@@ -37,7 +37,7 @@ export default async function ReferredUsers({ partnerId }: { partnerId: string }
             Nobody has signed up through their link yet.
           </p>
         ) : (
-          <div className="mt-3 overflow-x-auto rounded-xl bg-white shadow-[0_6px_28px_-14px_rgba(12,42,71,0.18)] ring-1 ring-ink/[0.05]">
+          <div className="mt-3 overflow-x-auto rounded-xl bg-white border border-[#e3e9f1]">
             <table className="w-full min-w-[30rem]">
               <thead className="border-b border-line bg-mist">
                 <tr>
@@ -81,7 +81,7 @@ export default async function ReferredUsers({ partnerId }: { partnerId: string }
             {payouts.map((p) => (
               <li
                 key={p.id}
-                className="flex items-center justify-between rounded-xl bg-white px-4 py-3 shadow-[0_6px_28px_-14px_rgba(12,42,71,0.18)] ring-1 ring-ink/[0.05]"
+                className="flex items-center justify-between rounded-xl bg-white px-4 py-3 border border-[#e3e9f1]"
               >
                 <span>
                   <span className="font-display font-bold text-ink">{naira(p.amount)}</span>

@@ -23,6 +23,7 @@ import { biasVector, type PlateAxes } from "@/lib/personalization";
 import { bmr, tdee, calorieTarget, remainingMealCalorieTarget } from "@/lib/tdee";
 import { medicationAppliesToMeal, medicationTimingCopy } from "@/lib/medicationTiming";
 import { toAvoid, writeShown, writeSkipped } from "@/lib/mealRotationMemory";
+import { logImpression, rememberSuggested, type ImpressionPlate } from "@/lib/mealImpressions";
 
 const NO_PROFILE: PersonalizationProfile = {
   goals: [],
@@ -36,6 +37,7 @@ const NO_PROFILE: PersonalizationProfile = {
   medDosesPerDay: null,
   medTimes: [],
   medRelationToFood: null,
+  medTypes: [],
 };
 
 const MEAL_ICON = {
@@ -43,6 +45,29 @@ const MEAL_ICON = {
   lunch: Sun,
   dinner: Moon,
 } as const;
+
+function impressionPlate(
+  meal: NamedMeal,
+  dayKey: string,
+  idea: MealIdea,
+  calorieTarget: number | null,
+): ImpressionPlate {
+  return {
+    meal,
+    dayKey,
+    plateIndex: idea.index,
+    foodIds: idea.foods.map((f) => f.id),
+    calorieTarget,
+  };
+}
+
+/** The servings the blue card made bigger today, food id → grams. */
+function scaledGrams(idea: MealIdea): Record<string, number> {
+  const out: Record<string, number> = {};
+  if (idea.scaledProtein) out[idea.scaledProtein.food.id] = Math.round(idea.scaledProtein.grams);
+  if (idea.scaledSide) out[idea.scaledSide.food.id] = Math.round(idea.scaledSide.grams);
+  return out;
+}
 
 /** Join clean food names into one plain line: "A, B and C". */
 function line(names: string[]): string {
@@ -138,6 +163,9 @@ export default function TodaysMeal({
     [personalize],
   );
 
+  // This meal's calorie share at the last plan, kept for the impression log.
+  const calTargetRef = useRef<number | null>(null);
+
   const plan = useCallback(
     async (
       m: NamedMeal,
@@ -147,6 +175,7 @@ export default function TodaysMeal({
       b: PlateAxes | null,
     ) => {
       const calTarget = await calorieTargetFor(m);
+      calTargetRef.current = calTarget;
       const next = planForDay(
         m,
         dk,
@@ -238,6 +267,19 @@ export default function TodaysMeal({
     return () => window.removeEventListener(PERSONALIZATION_CHANGED, onChanged);
   }, [plan, bias]);
 
+  /**
+   * "shown" is recorded once a plate has stayed on screen for 3 seconds. The
+   * card plans twice on open (once straight away, once when the profile
+   * lands), and the first plate is often replaced within a second; counting
+   * it as shown would say people skipped plates they never saw.
+   */
+  useEffect(() => {
+    if (!meal || !idea || idea.foods.length === 0 || !dayKey) return;
+    const plate = impressionPlate(meal, dayKey, idea, calTargetRef.current);
+    const t = setTimeout(() => logImpression(plate, "shown"), 3000);
+    return () => clearTimeout(t);
+  }, [meal, idea, dayKey]);
+
   if (!meal || !idea || idea.foods.length === 0) return null;
 
   const Icon = MEAL_ICON[meal];
@@ -245,12 +287,14 @@ export default function TodaysMeal({
   const mealCarbs = mealIdeaCarbs(idea);
   const another = () => {
     void trackUsage("meal_reroll");
+    logImpression(impressionPlate(meal, dayKey, idea, calTargetRef.current), "skipped");
     // They are walking away from this plate. Remember it, so it is not the one
     // we hand them tomorrow.
     writeSkipped(meal, idea.index);
     const n = offset + 1;
     setOffset(n);
     calorieTargetFor(meal).then((calTarget) => {
+      calTargetRef.current = calTarget;
       const next = planForDay(
         meal,
         dayKey,
@@ -344,6 +388,9 @@ export default function TodaysMeal({
           <button
             onClick={() => {
               void trackUsage("check_this_meal");
+              const plate = impressionPlate(meal, dayKey, idea, calTargetRef.current);
+              logImpression(plate, "details");
+              rememberSuggested(plate, scaledGrams(idea));
               onBuild(mealIdeaFoodsForBuilder(idea));
             }}
             className="flex items-center gap-2 rounded-full bg-leaf px-6 py-3.5 text-sm font-bold text-white shadow-[0_10px_24px_-8px_rgba(62,155,79,0.75)] transition-all hover:-translate-y-0.5 hover:bg-leaf-deep"

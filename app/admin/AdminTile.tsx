@@ -3,17 +3,15 @@ import type { LucideIcon } from "lucide-react";
 type Tone = "blue" | "green" | "amber" | "red";
 
 const TONE: Record<Tone, string> = {
-  blue: "bg-brand/10 text-brand ring-brand/15",
-  green: "bg-leaf/10 text-leaf-deep ring-leaf/15",
-  amber: "bg-v-yellow/20 text-ink ring-v-yellow/30",
-  red: "bg-v-red/10 text-v-red ring-v-red/20",
+  blue: "bg-brand/10 text-brand",
+  green: "bg-leaf/10 text-leaf-deep",
+  amber: "bg-v-yellow/20 text-ink",
+  red: "bg-v-red/10 text-v-red",
 };
 
 /**
- * The one stat-tile look for every admin screen — a soft-shadow white card
- * with an optional tinted icon chip, same visual language as the app's own
- * PersonalizationSettings ("Fit me") and DashboardSnapshot tiles, instead of
- * a plain hairline-bordered box.
+ * The one stat card for every admin screen: white, a hairline border, a small
+ * uppercase label, one big number, and an optional line under it.
  */
 export default function AdminTile({
   label,
@@ -29,19 +27,17 @@ export default function AdminTile({
   tone?: Tone;
 }) {
   return (
-    <div className="rounded-2xl bg-white p-5 shadow-[0_6px_28px_-14px_rgba(12,42,71,0.18)] ring-1 ring-ink/[0.05]">
+    <div className="min-w-0 rounded-2xl border border-[#e3e9f1] bg-white p-4 sm:p-5">
       <div className="flex items-center gap-2">
         {Icon && (
-          <span
-            className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 ring-inset ${TONE[tone]}`}
-          >
+          <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${TONE[tone]}`}>
             <Icon className="h-3.5 w-3.5" strokeWidth={2.4} />
           </span>
         )}
-        <p className="text-xs font-bold uppercase tracking-wider text-ink/50">{label}</p>
+        <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-ink/50">{label}</p>
       </div>
-      <p className="mt-2 font-display text-3xl font-bold text-ink">{value}</p>
-      {sub && <p className="mt-1 text-xs text-ink-soft">{sub}</p>}
+      <p className="mt-2 font-display text-2xl font-bold leading-none sm:text-3xl text-ink">{value}</p>
+      {sub && <p className="mt-2 text-xs text-ink-soft">{sub}</p>}
     </div>
   );
 }

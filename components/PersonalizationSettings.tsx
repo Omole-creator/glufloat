@@ -26,7 +26,9 @@ import {
 import {
   readPersonalizationProfile,
   savePersonalizationProfile,
+  MED_TYPE_OPTIONS,
   type MedTime,
+  type MedType,
 } from "@/lib/personalizationProfile";
 import type { NamedMeal } from "@/lib/mealtime";
 import { showToast } from "@/components/Toast";
@@ -165,6 +167,7 @@ export default function PersonalizationSettings({
   const [medDosesPerDay, setMedDosesPerDay] = useState<number | null>(null);
   const [medTimes, setMedTimes] = useState<MedTime[]>([]);
   const [medRelationToFood, setMedRelationToFood] = useState<"before" | "after" | null>(null);
+  const [medTypes, setMedTypes] = useState<MedType[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [saved, setSaved] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
@@ -183,6 +186,7 @@ export default function PersonalizationSettings({
       setMedDosesPerDay(p.medDosesPerDay);
       setMedTimes(p.medTimes);
       setMedRelationToFood(p.medRelationToFood);
+      setMedTypes(p.medTypes);
       setLoaded(true);
     });
   }, []);
@@ -195,6 +199,14 @@ export default function PersonalizationSettings({
 
   const toggleMedTime = (t: MedTime) =>
     setMedTimes((cur) => (cur.includes(t) ? cur.filter((x) => x !== t) : [...cur, t]));
+
+  // "I don't know the name" stands alone; picking a name clears it.
+  const toggleMedType = (t: MedType) =>
+    setMedTypes((cur) => {
+      if (cur.includes(t)) return cur.filter((x) => x !== t);
+      if (t === "unknown") return ["unknown"];
+      return [...cur.filter((x) => x !== "unknown"), t];
+    });
 
   const save = async () => {
     setSaved(false);
@@ -211,6 +223,7 @@ export default function PersonalizationSettings({
       medDosesPerDay,
       medTimes,
       medRelationToFood,
+      medTypes,
     });
     if (ok) {
       setSaved(true);
@@ -289,6 +302,7 @@ export default function PersonalizationSettings({
                 if (o.value === 0) {
                   setMedTimes([]);
                   setMedRelationToFood(null);
+                  setMedTypes([]);
                 }
               }}
             >
@@ -325,6 +339,16 @@ export default function PersonalizationSettings({
               >
                 After eating
               </OptionRow>
+            </div>
+
+            <p className="mt-4 text-sm font-semibold text-white">Which medicine do you take?</p>
+            <p className="mt-0.5 text-xs text-white/70">Select all that apply.</p>
+            <div className="mt-2 space-y-2">
+              {MED_TYPE_OPTIONS.map((o) => (
+                <OptionRow key={o.value} active={medTypes.includes(o.value)} onClick={() => toggleMedType(o.value)}>
+                  {o.label}
+                </OptionRow>
+              ))}
             </div>
           </>
         )}

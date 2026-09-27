@@ -113,6 +113,17 @@ await check("disclaimer gate visible on first open", async () =>
 await page.screenshot({ path: `${OUT}/app-disclaimer.png` });
 await page.getByRole("button", { name: "I understand" }).click();
 
+// The one-time "Fit me" hint (app/app/page.tsx, gf_fitme_hint_seen) opens in
+// the middle of the screen for a Plus/Dietitian account on a fresh device, and
+// its backdrop sits over everything below. Close it the way a person would.
+const fitMeHint = page.getByRole("button", { name: "Dismiss" });
+try {
+  await fitMeHint.first().waitFor({ state: "visible", timeout: 8000 });
+  await fitMeHint.first().click();
+} catch {
+  /* not shown on this device; nothing to close */
+}
+
 // The QA account is a subscriber with a far-future period end, so /app shows
 // the evergreen membership badge rather than a day count. The badge names the
 // actual tier (see lib/pricing.ts TIER_LABEL). The QA account was moved to

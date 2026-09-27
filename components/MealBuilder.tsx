@@ -13,6 +13,7 @@ import IntakeWarning from "./IntakeWarning";
 import ReadingRecall from "./ReadingRecall";
 import { events } from "@/lib/analytics";
 import { saveCheck } from "@/lib/history";
+import { logImpression, suggestedFor } from "@/lib/mealImpressions";
 import { trackUsage } from "@/lib/usage";
 import { cleanFoodName } from "@/lib/foodName";
 import { currentMeal } from "@/lib/mealtime";
@@ -135,7 +136,16 @@ export default function MealBuilder({
   const logEaten = () => {
     if (items.length === 0) return;
     const label = items.map((i) => i.food.name).join(", ");
-    void saveCheck("meal", label, result.verdict);
+    const foodIds = items.map((i) => i.food.id);
+    // If this is the plate the blue card suggested, tie the log back to it and
+    // keep the bigger serving it asked for instead of "normal".
+    const suggested = suggestedFor(foodIds);
+    const sizes = items.map((i) => {
+      const g = suggested?.scaledGrams[i.food.id];
+      return g && i.portion === "normal" ? `${g}g` : i.portion;
+    });
+    void saveCheck("meal", label, result.verdict, undefined, { foodIds, sizes });
+    if (suggested) logImpression(suggested, "eaten");
     setAte(true);
   };
 

@@ -1,69 +1,90 @@
 import Link from "next/link";
-import AdminTabs from "./AdminTabs";
+import Image from "next/image";
+import {
+  AdminMobileLogOut,
+  AdminMobileNav,
+  AdminSidebarFoot,
+  AdminSidebarNav,
+} from "./AdminTabs";
 
 /**
  * The frame every admin screen sits in.
  *
- * One bar, always in the same place, with the four screens as tabs and the
- * current one marked. Anything a page can DO (download, pick a period) lives
- * in the page body, never in the nav. Navigation is one thing, actions are
- * another, and they must not look the same.
- *
- * The masthead is solid brand blue with white text — the same colour
- * language as PersonalizationSettings ("Fit me") and TodaysMeal's hero card
- * — so the tool this data comes FROM and the screen you read it ON share one
- * identity, instead of a generic grey admin chrome.
+ * A deep brand-blue sidebar on the left (a row of tabs on a phone), a light
+ * page, and white cards on it. Navigation lives in the sidebar; anything a page
+ * can DO (download, pick a period) sits with that page's title, never in the
+ * nav, so the two never look alike.
  */
 export default function AdminShell({
   title,
+  subtitle,
   icon,
   actions,
   children,
   width = "max-w-6xl",
 }: {
   title: string;
-  /** A rendered lucide icon element, shown in a tinted chip beside the title. */
+  /** One short line under the title, e.g. the period on screen. */
+  subtitle?: string;
+  /** Kept for existing callers; the sidebar already marks the screen. */
   icon?: React.ReactNode;
   /** Buttons that belong to THIS screen. They sit with the title, not in the nav. */
   actions?: React.ReactNode;
   children: React.ReactNode;
   width?: string;
 }) {
+  void icon;
   return (
-    <div className="min-h-screen bg-mist">
-      {/* The bar. Sticky, because the tables below it are long. */}
-      <header className="sticky top-0 z-30 bg-brand shadow-[0_4px_20px_-8px_rgba(12,42,71,0.4)]">
-        <div className={`mx-auto flex ${width} flex-wrap items-center gap-x-8 gap-y-3 px-5 py-3`}>
-          <Link href="/admin" className="flex items-center gap-2">
-            <span className="font-display text-lg font-bold tracking-tight text-white">
-              Glufloat
-            </span>
-            <span className="rounded-md bg-white/15 px-2 py-0.5 font-display text-xs font-bold uppercase tracking-wider text-white/90 ring-1 ring-inset ring-white/25">
+    <div className="min-h-screen bg-[#f2f5f9]">
+      {/* Sidebar, from lg up. */}
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col bg-[#0b2e59] px-4 py-5 lg:flex">
+        <Link href="/admin" className="flex items-center gap-2.5 px-1.5">
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white">
+            <Image src="/logo-mark.png" alt="" width={28} height={28} className="h-7 w-7" />
+          </span>
+          <span className="font-display text-lg font-bold tracking-tight text-white">
+            Glufloat
+            <span className="block text-[10px] font-bold uppercase tracking-[0.18em] text-white/55">
               Admin
             </span>
-          </Link>
-          <AdminTabs />
+          </span>
+        </Link>
+        <div className="mt-8 flex-1">
+          <AdminSidebarNav />
         </div>
+        <div className="border-t border-white/10 pt-4">
+          <AdminSidebarFoot />
+        </div>
+      </aside>
+
+      {/* Top bar, under lg. */}
+      <header className="sticky top-0 z-30 bg-[#0b2e59] lg:hidden">
+        <div className="flex items-center justify-between px-4 py-3">
+          <Link href="/admin" className="flex items-center gap-2">
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white">
+              <Image src="/logo-mark.png" alt="" width={22} height={22} className="h-5.5 w-5.5" />
+            </span>
+            <span className="font-display text-base font-bold text-white">Glufloat admin</span>
+          </Link>
+          <AdminMobileLogOut />
+        </div>
+        <AdminMobileNav />
       </header>
 
-      <main className={`mx-auto ${width} px-5 pb-16 pt-8`}>
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div className="flex items-center gap-3">
-            {icon && (
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand/10 text-brand ring-1 ring-inset ring-brand/15">
-                {icon}
-              </span>
-            )}
-            <h1 className="font-display text-3xl font-bold tracking-tight text-ink">
-              {title}
-            </h1>
+      <main className="lg:pl-60">
+        <div className={`mx-auto ${width} px-4 pb-16 pt-6 sm:px-6 lg:px-8 lg:pt-9`}>
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="min-w-0">
+              <h1 className="font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl">
+                {title}
+              </h1>
+              {subtitle && <p className="mt-1 text-sm text-ink-soft">{subtitle}</p>}
+            </div>
+            {actions && <div className="flex flex-wrap items-center gap-3">{actions}</div>}
           </div>
-          {actions && (
-            <div className="flex flex-wrap items-center gap-3">{actions}</div>
-          )}
-        </div>
 
-        {children}
+          {children}
+        </div>
       </main>
     </div>
   );

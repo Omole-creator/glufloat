@@ -103,7 +103,7 @@ export default async function PartnersPage({
 
         {/* one partner, opened */}
         {open && (
-          <section className="mt-8 rounded-2xl bg-white p-6 shadow-[0_6px_28px_-14px_rgba(12,42,71,0.18)] ring-1 ring-ink/[0.05]">
+          <section className="mt-8 rounded-2xl bg-white p-6 border border-[#e3e9f1]">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <h2 className="font-display text-xl font-bold text-ink">

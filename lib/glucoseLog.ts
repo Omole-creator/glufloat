@@ -78,6 +78,7 @@ export async function saveReading(
   unit: Reading["unit"],
   mgdl: number,
   mealCheckId: number | null,
+  context?: "before_meal" | "after_meal" | "other",
 ): Promise<Reading | null> {
   try {
     const supabase = createClient();
@@ -85,16 +86,24 @@ export async function saveReading(
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) return null; // signed out; nothing to save against
-    const { data } = await supabase
+    const base: Record<string, unknown> = {
+      value_raw: valueRaw,
+      unit,
+      mgdl,
+      meal_check_id: mealCheckId,
+    };
+    const cols = "id,meal_check_id,value_raw,unit,mgdl,taken_at";
+    // `context` (before/after a meal) needs data-collection-schema.sql. If it
+    // is not there yet, save the number without it rather than lose it.
+    let result = await supabase
       .from("glucose_readings")
-      .insert({
-        value_raw: valueRaw,
-        unit,
-        mgdl,
-        meal_check_id: mealCheckId,
-      })
-      .select("id,meal_check_id,value_raw,unit,mgdl,taken_at")
+      .insert(context ? { ...base, context } : base)
+      .select(cols)
       .single();
+    if (result.error && context) {
+      result = await supabase.from("glucose_readings").insert(base).select(cols).single();
+    }
+    const data = result.data;
     if (!data) return null;
     notifyReadingsChanged();
     return row(data as Record<string, unknown>);
