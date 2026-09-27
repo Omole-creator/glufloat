@@ -56,6 +56,22 @@ function parseClock(v: string): number | null {
   return ((h * 60 + m) * 60 + s) * 1000;
 }
 
+/**
+ * Chrome's recorder writes webm with no length in it, so the player shows no
+ * total and cannot jump ahead. Asking it to seek to the far end makes it work
+ * the length out; then it goes back to the start.
+ */
+function fixDuration(e: React.SyntheticEvent<HTMLAudioElement>) {
+  const el = e.currentTarget;
+  if (el.duration !== Infinity && !Number.isNaN(el.duration)) return;
+  const back = () => {
+    el.removeEventListener("timeupdate", back);
+    el.currentTime = 0;
+  };
+  el.addEventListener("timeupdate", back);
+  el.currentTime = 1e101;
+}
+
 export default function CallRoom({ id }: { id: string }) {
   const router = useRouter();
   const [session, setSession] = useState<CallSession | null>(null);
@@ -559,7 +575,7 @@ export default function CallRoom({ id }: { id: string }) {
                 {audioUrls.map((a, i) => (
                   <div key={a.segment}>
                     {audioUrls.length > 1 && <p className="mb-1 text-xs font-semibold text-ink-soft">Part {i + 1}</p>}
-                    <audio controls src={a.url} className="w-full" />
+                    <audio controls src={a.url} className="w-full" onLoadedMetadata={fixDuration} />
                     <a
                       href={a.url}
                       download={`glufloat-call-${session.customer_name.replace(/\W+/g, "-").toLowerCase()}${audioUrls.length > 1 ? `-part-${i + 1}` : ""}.${a.ext}`}
@@ -663,11 +679,11 @@ export default function CallRoom({ id }: { id: string }) {
                 </div>
                 {isEditing ? (
                   <div className="mt-2 grid gap-2">
-                    <select className={`${field} w-auto`} value={lineSpeaker} onChange={(e) => setLineSpeaker(e.target.value as Speaker)} aria-label="Who said it">
+                    <select className={`${field} w-auto`} value={lineSpeaker} onChange={(e) => setLineSpeaker(e.target.value as Speaker)} aria-label="Change who said this line">
                       <option value="customer">{session.customer_name}</option>
                       <option value="glufloat">GluFloat</option>
                     </select>
-                    <textarea className={field} rows={3} value={lineText} onChange={(e) => setLineText(e.target.value)} aria-label="What was said" />
+                    <textarea className={field} rows={3} value={lineText} onChange={(e) => setLineText(e.target.value)} aria-label="Change what was said" />
                     <div className="flex gap-2">
                       <button onClick={() => saveLine(l)} className="rounded-lg bg-leaf px-3 py-1.5 text-xs font-bold text-white">Save</button>
                       <button onClick={() => setEditingLine(null)} className="flex items-center gap-1 rounded-lg border border-[#e3e9f1] px-3 py-1.5 text-xs font-bold text-ink">

@@ -37,7 +37,7 @@ export function iceServers(): RTCIceServer[] {
 }
 
 type Signal =
-  | { type: "hello"; from: Role }
+  | { type: "hello"; from: Role; sid: string }
   | { type: "offer"; sdp: RTCSessionDescriptionInit }
   | { type: "answer"; sdp: RTCSessionDescriptionInit }
   | { type: "ice"; from: Role; candidate: RTCIceCandidateInit }
@@ -58,6 +58,13 @@ export class CallPeer {
   private pc: RTCPeerConnection | null = null;
   private queuedIce: RTCIceCandidateInit[] = [];
   private ended = false;
+  /** This page load. A reload is a new sid, so the other side knows to start over. */
+  private sid = Math.random().toString(36).slice(2, 10);
+  /** The other side's page load we are (or were) talking to. */
+  private peerSid: string | null = null;
+  private connected = false;
+  private offeredAt = 0;
+  private helloTimer: ReturnType<typeof setInterval> | null = null;
 
   constructor(
     private token: string,
@@ -80,7 +87,18 @@ export class CallPeer {
       });
     });
     this.ev.onState?.("waiting");
-    this.send({ type: "hello", from: this.role });
+    this.sayHello();
+    // Keep saying hello until connected. If both phones join at the same
+    // instant, each can miss the other's first hello and wait forever; a
+    // repeat every few seconds makes that impossible.
+    this.helloTimer = setInterval(() => {
+      if (this.ended) return;
+      if (!this.connected) this.sayHello();
+    }, 3000);
+  }
+
+  private sayHello(): void {
+    this.send({ type: "hello", from: this.role, sid: this.sid });
   }
 
   send(msg: Signal): void {
@@ -102,9 +120,13 @@ export class CallPeer {
     pc.onconnectionstatechange = () => {
       if (this.ended) return;
       const s = pc.connectionState;
-      if (s === "connected") this.ev.onState?.("connected");
+      if (s === "connected") {
+        this.connected = true;
+        this.ev.onState?.("connected");
+      }
       else if (s === "connecting" || s === "new") this.ev.onState?.("connecting");
       else if (s === "disconnected" || s === "failed") {
+        this.connected = false;
         this.ev.onState?.("reconnecting");
         // The GluFloat phone leads the reconnect: a fresh offer, which the
         // customer's phone answers exactly as it did the first time.
@@ -116,6 +138,7 @@ export class CallPeer {
   }
 
   private async makeOffer(): Promise<void> {
+    this.offeredAt = Date.now();
     const pc = this.newPeer();
     const offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
@@ -125,14 +148,26 @@ export class CallPeer {
   private async handle(msg: Signal): Promise<void> {
     if (this.ended) return;
     switch (msg.type) {
-      case "hello":
+      case "hello": {
         if (msg.from === this.role) return;
-        this.ev.onState?.("connecting");
-        // The GluFloat phone always makes the offer; the customer's phone
-        // only says hello back, so neither ever waits on the other.
-        if (this.role === "admin") await this.makeOffer();
-        else this.send({ type: "hello", from: this.role });
+        const fresh = msg.sid !== this.peerSid; // a new page on the other side
+        this.peerSid = msg.sid;
+        if (this.role === "admin") {
+          // The GluFloat phone always makes the offer. It makes a new one for
+          // a new page on the other side, or when the last offer got no answer
+          // within 6 seconds, and otherwise leaves a call in progress alone.
+          const stale = !this.connected && Date.now() - this.offeredAt > 6000;
+          if (fresh || stale) {
+            this.ev.onState?.("connecting");
+            await this.makeOffer();
+          }
+        } else if (fresh) {
+          // The customer's phone only answers hellos; a new GluFloat page
+          // (a reload) gets one straight back so it can offer at once.
+          this.sayHello();
+        }
         return;
+      }
       case "offer": {
         if (this.role !== "customer") return;
         const pc = this.newPeer();
@@ -179,6 +214,7 @@ export class CallPeer {
 
   close(): void {
     this.ended = true;
+    if (this.helloTimer) clearInterval(this.helloTimer);
     this.ev.onState?.("ended");
     this.pc?.close();
     this.pc = null;

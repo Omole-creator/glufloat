@@ -282,14 +282,14 @@ export default function RecordingsPanel({
                       </td>
                       <td className="px-4 py-3 font-semibold text-ink">
                         {isEditing ? (
-                          <input className={field} value={editName} onChange={(e) => setEditName(e.target.value)} aria-label="Customer name" />
+                          <input className={field} value={editName} onChange={(e) => setEditName(e.target.value)} aria-label="Edit customer name" />
                         ) : (
                           s.customer_name
                         )}
                       </td>
                       <td className="max-w-xs px-4 py-3 text-ink-soft">
                         {isEditing ? (
-                          <input className={field} value={editPurpose} onChange={(e) => setEditPurpose(e.target.value)} aria-label="Purpose of the call" />
+                          <input className={field} value={editPurpose} onChange={(e) => setEditPurpose(e.target.value)} aria-label="Edit purpose of the call" />
                         ) : (
                           s.purpose
                         )}
