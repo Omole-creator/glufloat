@@ -78,6 +78,7 @@ export default function CallRoom({ id }: { id: string }) {
   const [lines, setLines] = useState<CallLine[]>([]);
   const [audio, setAudio] = useState<AudioPart[]>([]);
   const [loadError, setLoadError] = useState("");
+  const iceRef = useRef<RTCIceServer[]>([]);
 
   const [state, setState] = useState<CallState>("idle");
   const [problem, setProblem] = useState("");
@@ -104,7 +105,13 @@ export default function CallRoom({ id }: { id: string }) {
       setLoadError(r.status === 404 ? "This call does not exist any more." : "Could not load this call.");
       return null;
     }
-    const j = (await r.json()) as { session: CallSession; lines: CallLine[]; audio: AudioPart[] };
+    const j = (await r.json()) as {
+      session: CallSession;
+      lines: CallLine[];
+      audio: AudioPart[];
+      ice?: RTCIceServer[];
+    };
+    iceRef.current = j.ice ?? [];
     setSession(j.session);
     setLines(j.lines);
     setAudio(j.audio);
@@ -251,7 +258,7 @@ export default function CallRoom({ id }: { id: string }) {
       onPeerLine: (text) => addLocalLine("customer", text),
       onPeerTranscriber: setTheirSpeech,
       onBye: () => void finish(),
-    });
+    }, iceRef.current);
     peerRef.current = peer;
     setState("waiting");
     await peer.join();

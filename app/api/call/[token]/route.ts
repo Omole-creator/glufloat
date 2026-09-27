@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
-import { sessionByToken } from "@/lib/recordings";
+import { sessionByToken, turnServers } from "@/lib/recordings";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +19,8 @@ export async function GET(_req: Request, ctx: Ctx) {
     purpose: s.purpose,
     status: s.status,
     consented: !!s.consent_at,
+    // Relay login only for a call that can still happen.
+    ice: s.status === "ended" ? [] : turnServers(),
   });
 }
 

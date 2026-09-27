@@ -21,6 +21,20 @@ export async function isAdmin(): Promise<boolean> {
   return !!process.env.ADMIN_PASSWORD && c.get(ADMIN_COOKIE)?.value === adminToken();
 }
 
+/**
+ * The relay (TURN) servers, from SERVER-ONLY env vars. They are handed to a
+ * browser only inside a call: to the admin, or to someone holding a live call
+ * link. Never bundled into the site's public JavaScript, where anyone could
+ * copy them and use up the free monthly relay allowance.
+ */
+export function turnServers(): { urls: string[]; username: string; credential: string }[] {
+  const urls = (process.env.TURN_URLS ?? "").split(",").map((u) => u.trim()).filter(Boolean);
+  const username = process.env.TURN_USERNAME ?? "";
+  const credential = process.env.TURN_CREDENTIAL ?? "";
+  if (!urls.length || !username || !credential) return [];
+  return [{ urls, username, credential }];
+}
+
 /** An unguessable link secret. The link is the only key a customer holds. */
 export function newToken(): string {
   return crypto.randomBytes(18).toString("base64url");

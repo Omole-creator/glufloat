@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
-import { AUDIO_BUCKET, deleteAudio, isAdmin } from "@/lib/recordings";
+import { AUDIO_BUCKET, deleteAudio, isAdmin, turnServers } from "@/lib/recordings";
 
 export const dynamic = "force-dynamic";
 
@@ -33,7 +33,7 @@ export async function GET(_req: Request, ctx: Ctx) {
       });
     }
   }
-  return NextResponse.json({ session, lines: lines ?? [], audio });
+  return NextResponse.json({ session, lines: lines ?? [], audio, ice: turnServers() });
 }
 
 /**

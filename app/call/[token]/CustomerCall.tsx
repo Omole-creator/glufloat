@@ -11,7 +11,12 @@ import {
 } from "@/lib/callClient";
 import { clock } from "@/lib/recordingTypes";
 
-type Info = { customer_name: string; purpose: string; status: "waiting" | "live" | "ended" };
+type Info = {
+  customer_name: string;
+  purpose: string;
+  status: "waiting" | "live" | "ended";
+  ice?: RTCIceServer[];
+};
 type Stage = "loading" | "bad" | "closed" | "ask" | "call" | "done";
 
 const STATE_LINE = {
@@ -154,7 +159,7 @@ export default function CustomerCall({ token }: { token: string }) {
         }
       },
       onBye: endHere,
-    });
+    }, info?.ice ?? []);
     peerRef.current = peer;
     setStage("call");
     await peer.join();

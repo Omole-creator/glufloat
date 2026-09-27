@@ -20,20 +20,16 @@ import { createClient } from "@/lib/supabase/client";
 
 export type Role = "admin" | "customer";
 
-/** STUN is free and public. TURN (a relay) is optional and set by env. */
-export function iceServers(): RTCIceServer[] {
-  const servers: RTCIceServer[] = [
-    { urls: ["stun:stun.l.google.com:19302", "stun:stun1.l.google.com:19302"] },
+/**
+ * STUN is free and public. The relay (TURN) servers come from the server with
+ * the call itself (see turnServers() in lib/recordings.ts), so their login is
+ * never in the site's public code.
+ */
+export function iceServers(turn: RTCIceServer[] = []): RTCIceServer[] {
+  return [
+    { urls: ["stun:stun.l.google.com:19302", "stun:stun.relay.metered.ca:80"] },
+    ...turn,
   ];
-  const urls = process.env.NEXT_PUBLIC_TURN_URLS;
-  if (urls) {
-    servers.push({
-      urls: urls.split(",").map((u) => u.trim()).filter(Boolean),
-      username: process.env.NEXT_PUBLIC_TURN_USERNAME,
-      credential: process.env.NEXT_PUBLIC_TURN_CREDENTIAL,
-    });
-  }
-  return servers;
 }
 
 type Signal =
@@ -71,6 +67,7 @@ export class CallPeer {
     private role: Role,
     private local: MediaStream,
     private ev: CallEvents,
+    private turn: RTCIceServer[] = [],
   ) {}
 
   async join(): Promise<void> {
@@ -108,7 +105,7 @@ export class CallPeer {
   private newPeer(): RTCPeerConnection {
     this.pc?.close();
     this.queuedIce = [];
-    const pc = new RTCPeerConnection({ iceServers: iceServers() });
+    const pc = new RTCPeerConnection({ iceServers: iceServers(this.turn) });
     for (const t of this.local.getTracks()) pc.addTrack(t, this.local);
     pc.onicecandidate = (e) => {
       if (e.candidate) this.send({ type: "ice", from: this.role, candidate: e.candidate.toJSON() });
