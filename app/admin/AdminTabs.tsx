@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, Users, Handshake, PenLine, ExternalLink, LogOut } from "lucide-react";
+import { BarChart3, Users, Handshake, PenLine, Mic, ExternalLink, LogOut } from "lucide-react";
 
 /**
  * The admin screens. Navigation only: anything a page can DO (download, pick a
@@ -16,6 +16,7 @@ const TABS = [
   { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/partners", label: "Partners", icon: Handshake },
   { href: "/admin/blog", label: "Blog", icon: PenLine },
+  { href: "/admin/recordings", label: "Recordings", icon: Mic },
 ];
 
 function useHere() {
