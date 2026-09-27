@@ -15,10 +15,28 @@ export async function GET(_req: Request, ctx: Ctx) {
   const [{ data: session }, { data: lines }, { data: parts }] = await Promise.all([
     admin.from("call_sessions").select("*").eq("id", id).maybeSingle(),
     admin.from("call_lines").select("*").eq("session_id", id).order("t_ms").order("id"),
-    admin.from("call_audio_parts").select("seq,segment,path,bytes,mime").eq("session_id", id).order("seq"),
+    admin
+      .from("call_audio_parts")
+      .select("seq,segment,path,bytes,mime,track,start_ms")
+      .eq("session_id", id)
+      .order("seq")
+      .then(async (r) =>
+        // A database without the newer track columns still lists its audio.
+        r.error
+          ? admin.from("call_audio_parts").select("seq,segment,path,bytes,mime").eq("session_id", id).order("seq")
+          : r,
+      ),
   ]);
   if (!session) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  const audio: { seq: number; segment: number; url: string; bytes: number; mime: string }[] = [];
+  const audio: {
+    seq: number;
+    segment: number;
+    url: string;
+    bytes: number;
+    mime: string;
+    track: "mix" | "customer";
+    start_ms: number | null;
+  }[] = [];
   for (const p of parts ?? []) {
     const { data } = await admin.storage
       .from(AUDIO_BUCKET)
@@ -30,6 +48,8 @@ export async function GET(_req: Request, ctx: Ctx) {
         url: data.signedUrl,
         bytes: p.bytes as number,
         mime: p.mime as string,
+        track: (p as { track?: string }).track === "customer" ? "customer" : "mix",
+        start_ms: ((p as { start_ms?: number | null }).start_ms ?? null) as number | null,
       });
     }
   }

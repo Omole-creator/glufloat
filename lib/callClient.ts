@@ -418,3 +418,52 @@ export async function keepAwake(): Promise<() => void> {
     return () => {};
   }
 }
+
+/**
+ * The customer's voice ALONE, in 30-second pieces. Used only when their phone
+ * cannot write their words down live (an iPhone, say), so their words can be
+ * written down after the call from this clean, single-voice recording.
+ */
+export class VoiceRecorder {
+  private rec: MediaRecorder | null = null;
+  private seq: number;
+  private queue: Promise<void> = Promise.resolve();
+
+  constructor(
+    stream: MediaStream,
+    firstSeq: number,
+    private upload: (seq: number, blob: Blob) => Promise<boolean>,
+  ) {
+    this.seq = firstSeq;
+    const mime = pickMime();
+    const rec = new MediaRecorder(stream, {
+      ...(mime ? { mimeType: mime } : {}),
+      audioBitsPerSecond: 16000,
+    });
+    rec.ondataavailable = (e) => {
+      if (!e.data || e.data.size === 0) return;
+      const seq = this.seq++;
+      const blob = e.data;
+      this.queue = this.queue.then(async () => {
+        for (let attempt = 0; attempt < 4; attempt++) {
+          if (await this.upload(seq, blob)) return;
+          await new Promise((r) => setTimeout(r, 2000 * (attempt + 1)));
+        }
+      });
+    };
+    rec.start(30_000);
+    this.rec = rec;
+  }
+
+  async stop(): Promise<void> {
+    const rec = this.rec;
+    this.rec = null;
+    if (rec && rec.state !== "inactive") {
+      await new Promise<void>((resolve) => {
+        rec.addEventListener("stop", () => resolve(), { once: true });
+        rec.stop();
+      });
+    }
+    await this.queue;
+  }
+}

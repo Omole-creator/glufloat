@@ -56,3 +56,12 @@ alter table public.call_audio_parts enable row level security;
 
 -- For a database that ran an earlier copy of this file.
 alter table public.call_audio_parts add column if not exists segment integer not null default 0;
+
+-- Added 2026-09-27: when the customer's phone cannot write their words down
+-- live (an iPhone, say), the GluFloat phone also saves THEIR voice alone
+-- ('customer' track), so it can be written down after the call. The normal
+-- recording is the 'mix' track. start_ms is when that piece's recording began,
+-- measured from the start of the call, so written-down lines land at the
+-- right time.
+alter table public.call_audio_parts add column if not exists track text not null default 'mix';
+alter table public.call_audio_parts add column if not exists start_ms integer;

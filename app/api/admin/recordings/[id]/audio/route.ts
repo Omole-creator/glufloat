@@ -18,6 +18,11 @@ export async function POST(request: Request, ctx: Ctx) {
   const params = new URL(request.url).searchParams;
   const seq = Number(params.get("seq"));
   const segment = Math.max(0, Math.floor(Number(params.get("segment") ?? 0)) || 0);
+  // The customer's voice alone, saved only when their phone could not write
+  // their words down live. The normal recording sends no track at all, so it
+  // keeps working on a database that has not run the newer columns.
+  const track = params.get("track") === "customer" ? "customer" : null;
+  const startMs = Math.max(0, Math.round(Number(params.get("start_ms") ?? 0)) || 0);
   if (!Number.isInteger(seq) || seq < 0) {
     return NextResponse.json({ error: "Bad piece number" }, { status: 400 });
   }
@@ -29,13 +34,19 @@ export async function POST(request: Request, ctx: Ctx) {
 
   const admin = createAdminClient();
   const ext = mime.includes("mp4") ? "m4a" : mime.includes("ogg") ? "ogg" : "webm";
-  const path = `${id}/${String(seq).padStart(5, "0")}.${ext}`;
+  const path = `${id}/${track ? "customer-" : ""}${String(seq).padStart(7, "0")}.${ext}`;
   const { error } = await admin.storage
     .from(AUDIO_BUCKET)
     .upload(path, buf, { contentType: mime, upsert: true });
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  await admin.from("call_audio_parts").upsert({ session_id: id, seq, segment, path, bytes: buf.byteLength, mime });
+  const row: Record<string, unknown> = { session_id: id, seq, segment, path, bytes: buf.byteLength, mime };
+  if (track) Object.assign(row, { track, start_ms: startMs });
+  const { error: rowError } = await admin.from("call_audio_parts").upsert(row);
+  if (rowError) {
+    await admin.storage.from(AUDIO_BUCKET).remove([path]);
+    return NextResponse.json({ error: rowError.message }, { status: 500 });
+  }
   const { data: parts } = await admin.from("call_audio_parts").select("bytes").eq("session_id", id);
   const total = (parts ?? []).reduce((n, p) => n + Number(p.bytes), 0);
   await admin

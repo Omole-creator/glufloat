@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
-import { sessionByToken, turnServers } from "@/lib/recordings";
+import { linkUsable, sessionByToken, turnServers } from "@/lib/recordings";
 
 export const dynamic = "force-dynamic";
 
@@ -14,13 +14,15 @@ export async function GET(_req: Request, ctx: Ctx) {
   const { token } = await ctx.params;
   const s = await sessionByToken(token);
   if (!s) return NextResponse.json({ error: "This link does not work." }, { status: 404 });
+  const usable = linkUsable(s);
   return NextResponse.json({
     customer_name: s.customer_name,
     purpose: s.purpose,
-    status: s.status,
+    // An expired link reads as a finished call to the customer.
+    status: usable ? s.status : "ended",
     consented: !!s.consent_at,
     // Relay login only for a call that can still happen.
-    ice: s.status === "ended" ? [] : turnServers(),
+    ice: usable ? turnServers() : [],
   });
 }
 
@@ -29,7 +31,7 @@ export async function POST(request: Request, ctx: Ctx) {
   const { token } = await ctx.params;
   const s = await sessionByToken(token);
   if (!s) return NextResponse.json({ error: "This link does not work." }, { status: 404 });
-  if (s.status === "ended") return NextResponse.json({ error: "This call has ended." }, { status: 410 });
+  if (!linkUsable(s)) return NextResponse.json({ error: "This call has ended." }, { status: 410 });
   const body = await request.json().catch(() => ({}));
   if (body.action !== "consent") return NextResponse.json({ error: "Unknown action" }, { status: 400 });
   if (!s.consent_at) {

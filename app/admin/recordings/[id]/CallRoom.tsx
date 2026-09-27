@@ -21,9 +21,11 @@ import {
   CallPeer,
   CallRecorder,
   LiveTranscriber,
+  VoiceRecorder,
   keepAwake,
   transcriptionSupported,
 } from "@/lib/callClient";
+import { transcribeAudio } from "@/lib/audioTranscribe";
 import {
   callLength,
   clock,
@@ -95,6 +97,14 @@ export default function CallRoom({ id }: { id: string }) {
   const sttRef = useRef<LiveTranscriber | null>(null);
   const releaseRef = useRef<() => void>(() => {});
   const remoteAudioRef = useRef<HTMLAudioElement | null>(null);
+  // The customer's voice alone, recorded only when their phone cannot write
+  // their words down live, so they can be written down after the call.
+  const voiceRef = useRef<VoiceRecorder | null>(null);
+  const remoteStreamRef = useRef<MediaStream | null>(null);
+  const theirSpeechRef = useRef<boolean | null>(null);
+  const connectedAtRef = useRef<number | null>(null);
+  const voiceSeq = useRef<number | null>(null);
+  const voiceSegment = useRef<number | null>(null);
   const startedRef = useRef(false);
   const endingRef = useRef(false);
   const tempId = useRef(-1);
@@ -178,8 +188,9 @@ export default function CallRoom({ id }: { id: string }) {
     setInterim("");
     peerRef.current?.hangUp();
     peerRef.current = null;
-    await recRef.current?.stop();
+    await Promise.all([recRef.current?.stop(), voiceRef.current?.stop()]);
     recRef.current = null;
+    voiceRef.current = null;
     releaseRef.current();
     await fetch(`/api/admin/recordings/${id}`, {
       method: "PATCH",
@@ -189,6 +200,33 @@ export default function CallRoom({ id }: { id: string }) {
     setState("ended");
     await load();
     router.refresh();
+  }
+
+  /** Start (or restart after a reconnect) the customer-voice recording. */
+  function startVoice() {
+    const stream = remoteStreamRef.current;
+    if (!stream || stream.getAudioTracks().length === 0 || theirSpeechRef.current !== false) return;
+    const theirs = audio.filter((a) => a.track === "customer");
+    if (voiceSeq.current === null) {
+      voiceSeq.current = theirs.length ? Math.max(...theirs.map((a) => a.seq)) + 1 : 1_000_000;
+      voiceSegment.current = theirs.length ? Math.max(...theirs.map((a) => a.segment)) + 1 : 1000;
+    }
+    const segment = voiceSegment.current!;
+    voiceSegment.current = segment + 1;
+    // When this recording starts, measured from the start of the call, so the
+    // written-down lines land at the right time in the transcript.
+    const startMs = connectedAtRef.current ? Date.now() - connectedAtRef.current : 0;
+    void voiceRef.current?.stop();
+    const firstSeq = voiceSeq.current!;
+    // A restart never reuses a piece number.
+    voiceSeq.current = firstSeq + 100_000;
+    voiceRef.current = new VoiceRecorder(stream, firstSeq, async (seq, blob) => {
+      const r = await fetch(
+        `/api/admin/recordings/${id}/audio?seq=${seq}&segment=${segment}&track=customer&start_ms=${startMs}`,
+        { method: "POST", headers: { "content-type": blob.type || "audio/webm" }, body: blob },
+      ).catch(() => null);
+      return !!r?.ok;
+    });
   }
 
   async function start() {
@@ -238,6 +276,7 @@ export default function CallRoom({ id }: { id: string }) {
         setState(s);
         if (s === "connected" && !startedRef.current) {
           startedRef.current = true;
+          connectedAtRef.current = Date.now();
           void fetch(`/api/admin/recordings/${id}`, {
             method: "PATCH",
             headers: { "content-type": "application/json" },
@@ -254,9 +293,20 @@ export default function CallRoom({ id }: { id: string }) {
           void remoteAudioRef.current.play().catch(() => {});
         }
         recorder.setRemote(stream);
+        remoteStreamRef.current = stream;
+        // A reconnect brings a new stream: keep recording their voice.
+        if (voiceRef.current) startVoice();
       },
       onPeerLine: (text) => addLocalLine("customer", text),
-      onPeerTranscriber: setTheirSpeech,
+      onPeerTranscriber: (ok) => {
+        setTheirSpeech(ok);
+        theirSpeechRef.current = ok;
+        if (!ok && !voiceRef.current) startVoice();
+        if (ok && voiceRef.current) {
+          void voiceRef.current.stop();
+          voiceRef.current = null;
+        }
+      },
       onBye: () => void finish(),
     }, iceRef.current);
     peerRef.current = peer;
@@ -291,6 +341,7 @@ export default function CallRoom({ id }: { id: string }) {
   const [dPurpose, setDPurpose] = useState("");
   const [audioUrls, setAudioUrls] = useState<{ segment: number; url: string; bytes: number; ext: string }[] | null>(null);
   const [audioBusy, setAudioBusy] = useState(false);
+  const [writing, setWriting] = useState<string | null>(null);
 
   async function saveLine(l: CallLine) {
     const r = await fetch(`/api/admin/recordings/${id}/lines`, {
@@ -371,10 +422,11 @@ export default function CallRoom({ id }: { id: string }) {
   async function loadAudio() {
     setAudioBusy(true);
     try {
-      const segments = [...new Set(audio.map((a) => a.segment))].sort((a, b) => a - b);
+      const mix = audio.filter((a) => a.track !== "customer");
+      const segments = [...new Set(mix.map((a) => a.segment))].sort((a, b) => a - b);
       const out = [];
       for (const seg of segments) {
-        const parts = audio.filter((a) => a.segment === seg).sort((a, b) => a.seq - b.seq);
+        const parts = mix.filter((a) => a.segment === seg).sort((a, b) => a.seq - b.seq);
         const blobs = await Promise.all(parts.map((p) => fetch(p.url).then((r) => r.blob())));
         const type = parts[0]?.mime || "audio/webm";
         const blob = new Blob(blobs, { type });
@@ -388,6 +440,57 @@ export default function CallRoom({ id }: { id: string }) {
       setAudioUrls(out);
     } finally {
       setAudioBusy(false);
+    }
+  }
+
+  // ---- writing down the customer's words from their recorded voice ----
+  const theirVoice = audio.filter((a) => a.track === "customer");
+
+  async function writeFromAudio() {
+    if (!session) return;
+    const already = lines.some((l) => l.speaker === "customer");
+    if (
+      already &&
+      !confirm(
+        `There are already lines from ${session.customer_name}. Write their words down from the audio anyway? You may get some lines twice.`,
+      )
+    ) {
+      return;
+    }
+    setWriting("Getting ready...");
+    try {
+      const segments = [...new Set(theirVoice.map((a) => a.segment))].sort((a, b) => a - b);
+      let saved = 0;
+      for (const [n, seg] of segments.entries()) {
+        const parts = theirVoice.filter((a) => a.segment === seg).sort((a, b) => a.seq - b.seq);
+        const blobs = await Promise.all(parts.map((p) => fetch(p.url).then((r) => r.blob())));
+        const blob = new Blob(blobs, { type: parts[0]?.mime || "audio/webm" });
+        const offset = parts[0]?.start_ms ?? 0;
+        const label = segments.length > 1 ? ` (part ${n + 1} of ${segments.length})` : "";
+        const found = await transcribeAudio(blob, (stage, pct) => {
+          if (stage === "model") {
+            setWriting(`Downloading the speech tool, first time only${pct !== null ? `: ${Math.round(pct)}%` : "..."}`);
+          } else if (stage === "decode") {
+            setWriting(`Opening the audio${label}...`);
+          } else {
+            setWriting(`Writing down their words${label}: ${pct ?? 0}%`);
+          }
+        });
+        for (const t of found) {
+          const r = await fetch(`/api/admin/recordings/${id}/lines`, {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ text: t.text, speaker: "customer", t_ms: offset + t.startMs }),
+          });
+          if (r.ok) saved += 1;
+        }
+      }
+      await load();
+      setWriting(null);
+      alert(saved ? `Added ${saved} lines from ${session.customer_name}.` : "No words were found in the audio.");
+    } catch (e) {
+      setWriting(null);
+      alert(`That did not work: ${e instanceof Error ? e.message : "unknown error"}. Try again on a laptop in Chrome.`);
     }
   }
 
@@ -527,7 +630,8 @@ export default function CallRoom({ id }: { id: string }) {
               )}
               {theirSpeech === false && (
                 <p className="mt-2 rounded-lg bg-v-yellow/15 px-3 py-2 text-xs font-semibold text-ink">
-                  The customer&apos;s phone cannot write down their words (it may not be Chrome). The audio is still recorded.
+                  The customer&apos;s phone cannot write down their words live (it may be an iPhone). Their voice is being
+                  saved on its own, so you can write their words down after the call.
                 </p>
               )}
               <div className="mt-5 flex gap-3">
@@ -607,6 +711,11 @@ export default function CallRoom({ id }: { id: string }) {
           <div>
             <h2 className="font-display text-lg font-bold text-ink">Transcript</h2>
             <p className="mt-0.5 text-xs text-ink-soft">{sorted.length} lines</p>
+            {writing && (
+              <p className="mt-2 rounded-lg bg-brand/5 px-3 py-2 text-xs font-semibold text-brand">
+                {writing} Keep this page open.
+              </p>
+            )}
           </div>
           {!onCall && (
             <div className="flex flex-wrap gap-2">
@@ -619,6 +728,11 @@ export default function CallRoom({ id }: { id: string }) {
               <button onClick={() => setAdding(true)} className={small}>
                 <Plus className="h-3.5 w-3.5" /> Add a line
               </button>
+              {theirVoice.length > 0 && (
+                <button onClick={writeFromAudio} disabled={!!writing} className={`${small} disabled:opacity-50`}>
+                  <Mic className="h-3.5 w-3.5" /> Write down {session.customer_name}&apos;s words from the audio
+                </button>
+              )}
               {sorted.length > 0 && (
                 <button onClick={deleteTranscript} className={`${small} hover:border-v-red hover:text-v-red`}>
                   <Trash2 className="h-3.5 w-3.5" /> Delete transcript

@@ -15,11 +15,18 @@ export async function POST(request: Request) {
   if (!customer_name || !purpose) {
     return NextResponse.json({ error: "Add the customer's name and the purpose." }, { status: 400 });
   }
-  const { data, error } = await createAdminClient()
-    .from("call_sessions")
-    .insert({ customer_name, purpose, token: newToken() })
-    .select("*")
-    .single();
+  // The link ends in one number and one letter, so two customers with the
+  // same name can land on the same one. Try another ending if so.
+  let data = null;
+  let error = null;
+  for (let attempt = 0; attempt < 12; attempt++) {
+    ({ data, error } = await createAdminClient()
+      .from("call_sessions")
+      .insert({ customer_name, purpose, token: newToken(customer_name) })
+      .select("*")
+      .single());
+    if (!error || error.code !== "23505") break;
+  }
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ session: data });
 }

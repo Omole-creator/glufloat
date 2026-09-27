@@ -36,6 +36,11 @@ export interface AudioPart {
   url: string;
   bytes: number;
   mime: string;
+  /** "mix" is the call as heard (both voices). "customer" is their voice
+   *  alone, saved only when their phone could not write their words down. */
+  track: "mix" | "customer";
+  /** When this piece's recording began, from the start of the call. */
+  start_ms: number | null;
 }
 
 /** "3:07" or "1:02:45". */

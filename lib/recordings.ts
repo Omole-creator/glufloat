@@ -35,9 +35,43 @@ export function turnServers(): { urls: string[]; username: string; credential: s
   return [{ urls, username, credential }];
 }
 
-/** An unguessable link secret. The link is the only key a customer holds. */
-export function newToken(): string {
-  return crypto.randomBytes(18).toString("base64url");
+/**
+ * The link's last part, in the founder's chosen shape: the customer's name,
+ * then one number and one letter, e.g. "ada-okafor-7k".
+ *
+ * That short ending gives only 260 links per name, so it is NOT the privacy
+ * on its own: a link also stops working once its call has ended, and after
+ * LINK_DAYS if nobody ever joined (see linkUsable). The link never changes
+ * when the name is edited, because it is already in the customer's WhatsApp.
+ */
+export function newToken(name: string): string {
+  const slug =
+    name
+      .normalize("NFKD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 40)
+      .replace(/-+$/g, "") || "customer";
+  const [d, l] = crypto.randomBytes(2);
+  const digit = String(d % 10);
+  const letter = "abcdefghijklmnopqrstuvwxyz"[l % 26];
+  return `${slug}-${digit}${letter}`;
+}
+
+/** An unused link stops working after this many days. */
+export const LINK_DAYS = 7;
+
+/**
+ * Whether a customer may still use this link: the call has not ended, and
+ * either they already agreed (a call in progress, or a reload) or the link is
+ * less than LINK_DAYS old.
+ */
+export function linkUsable(s: Pick<CallSession, "status" | "consent_at" | "created_at">): boolean {
+  if (s.status === "ended") return false;
+  if (s.consent_at) return true;
+  return Date.now() - new Date(s.created_at).getTime() < LINK_DAYS * 24 * 60 * 60 * 1000;
 }
 
 export async function sessionByToken(token: string): Promise<CallSession | null> {
