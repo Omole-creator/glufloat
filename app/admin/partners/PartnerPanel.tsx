@@ -198,11 +198,11 @@ export default function PartnerPanel({
         </div>
 
         {error && (
-          <p className="mt-4 rounded-xl bg-v-red/10 px-4 py-3 text-sm font-semibold text-v-red">{error}</p>
+          <p className="mt-4 rounded-xl bg-verdict-red/10 px-4 py-3 text-sm font-semibold text-verdict-red">{error}</p>
         )}
 
         {made && (
-          <div className="mt-4 rounded-xl border-2 border-leaf bg-v-green/10 p-4">
+          <div className="mt-4 rounded-xl border-2 border-leaf bg-verdict-green/10 p-4">
             <p className="font-display font-bold text-ink">{made.name} is added. Here is their link:</p>
             <div className="mt-2 flex flex-wrap items-center gap-3">
               <code className="rounded-lg bg-white px-3 py-2 text-sm font-bold text-brand">{made.link}</code>
@@ -291,7 +291,7 @@ export default function PartnerPanel({
 
         {/* Errors from Edit / Delete / Mark paid land here, next to the table. */}
         {error && !made && (
-          <p className="mt-3 rounded-xl bg-v-red/10 px-4 py-3 text-sm font-semibold text-v-red">
+          <p className="mt-3 rounded-xl bg-verdict-red/10 px-4 py-3 text-sm font-semibold text-verdict-red">
             {error}
           </p>
         )}
@@ -352,7 +352,7 @@ export default function PartnerPanel({
                     <td
                       className={`${td} ${
                         r.pending > 0
-                          ? "font-display font-bold text-v-red"
+                          ? "font-display font-bold text-verdict-red"
                           : "text-ink-soft"
                       }`}
                     >
@@ -399,7 +399,7 @@ export default function PartnerPanel({
                         </button>
                         <button
                           onClick={() => removePartner(r.id, r.name)}
-                          className="text-xs text-v-red underline"
+                          className="text-xs text-verdict-red underline"
                         >
                           Delete
                         </button>

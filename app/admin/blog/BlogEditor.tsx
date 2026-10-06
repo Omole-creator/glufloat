@@ -353,7 +353,7 @@ export default function BlogEditor({ initial }: { initial: Post[] }) {
                 />
                 <button
                   onClick={() => set("cover_url", "")}
-                  className="mt-2 text-sm text-v-red underline"
+                  className="mt-2 text-sm text-verdict-red underline"
                 >
                   Remove picture
                 </button>
@@ -506,12 +506,12 @@ export default function BlogEditor({ initial }: { initial: Post[] }) {
           </div>
 
           {error && (
-            <p className="rounded-xl bg-v-red/10 px-4 py-3 text-sm font-semibold text-v-red">
+            <p className="rounded-xl bg-verdict-red/10 px-4 py-3 text-sm font-semibold text-verdict-red">
               {error}
             </p>
           )}
           {note && (
-            <p className="rounded-xl bg-v-green/10 px-4 py-3 text-sm font-semibold text-ink">
+            <p className="rounded-xl bg-verdict-green/10 px-4 py-3 text-sm font-semibold text-ink">
               {note}
             </p>
           )}
@@ -572,8 +572,8 @@ export default function BlogEditor({ initial }: { initial: Post[] }) {
                 <span
                   className={`mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-bold ${
                     p.status === "published"
-                      ? "bg-v-green/15 text-ink"
-                      : "bg-v-yellow/20 text-ink"
+                      ? "bg-verdict-green/15 text-ink"
+                      : "bg-verdict-yellow/20 text-ink"
                   }`}
                 >
                   {p.status === "published" ? "Live" : "Draft"}
@@ -586,7 +586,7 @@ export default function BlogEditor({ initial }: { initial: Post[] }) {
               </button>
               <button
                 onClick={() => remove(p.id, p.title)}
-                className="mt-2 text-xs text-v-red underline"
+                className="mt-2 text-xs text-verdict-red underline"
               >
                 Delete
               </button>

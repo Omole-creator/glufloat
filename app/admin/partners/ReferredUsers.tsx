@@ -9,9 +9,9 @@ const longDate = (iso: string) =>
   });
 
 const BADGE: Record<string, string> = {
-  paying: "bg-v-green/20 text-ink",
-  trial: "bg-v-yellow/25 text-ink",
-  expired: "bg-v-red/15 text-ink",
+  paying: "bg-verdict-green/20 text-ink",
+  trial: "bg-verdict-yellow/25 text-ink",
+  expired: "bg-verdict-red/15 text-ink",
   "signed up": "bg-mist text-ink-soft",
 };
 
@@ -90,7 +90,7 @@ export default async function ReferredUsers({ partnerId }: { partnerId: string }
                   </span>
                 </span>
                 <span className="text-right">
-                  <span className="rounded-full bg-v-green/20 px-2.5 py-1 text-xs font-bold text-ink">
+                  <span className="rounded-full bg-verdict-green/20 px-2.5 py-1 text-xs font-bold text-ink">
                     paid
                   </span>
                   <span className="mt-1 block text-xs text-ink-soft">{longDate(p.paid_at)}</span>

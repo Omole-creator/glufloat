@@ -49,7 +49,7 @@ export default function AdminShell({
             </span>
           </span>
         </Link>
-        <div className="mt-8 flex-1">
+        <div className="-mx-1 mt-8 min-h-0 flex-1 overflow-y-auto px-1">
           <AdminSidebarNav />
         </div>
         <div className="border-t border-white/10 pt-4">

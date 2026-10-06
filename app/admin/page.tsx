@@ -11,8 +11,13 @@ import BarList from "./BarList";
 import DailyBars from "./DailyBars";
 import ExportButton, { type ExportData } from "./ExportButton";
 import PeriodPicker from "@/components/PeriodPicker";
-import { inPeriod, parsePeriod, type Period, type PeriodParams } from "@/lib/period";
-import { GROUPS, groupLabel, inGroup, typeLabel, type Group } from "@/lib/userType";
+import { inPeriod, parsePeriod, periodBuckets, type PeriodParams } from "@/lib/period";
+import { groupLabel, typeLabel } from "@/lib/userType";
+import { subscriptionReport } from "@/lib/subscriptionReport";
+import { loadFinance } from "@/lib/financeData";
+import { pnl, shareLabel } from "@/lib/finance";
+import { nairaWhole as nairaExact } from "@/lib/financeConfig";
+import { Wallet, TrendingUp, TrendingDown, Repeat } from "lucide-react";
 import { readingHealth, readingVerdict } from "@/lib/glucosePattern";
 import { TRIAL_DAYS } from "@/lib/trial";
 import { isInternalEmail } from "@/lib/internalAccounts";
@@ -37,36 +42,6 @@ const USAGE_LABEL: Record<string, string> = {
   doctor_report: "Made a doctor's report",
 };
 
-/**
- * The buckets for the daily chart: one per day for a day, week or month, one
- * per week for a quarter, one per month for a year or all time. Counted on the
- * Nigerian day, like everything else the app counts.
- */
-function buckets(period: Period, launch: Date) {
-  const from = period.from ?? launch;
-  const to = period.to ?? new Date();
-  const out: { start: number; end: number; label: string }[] = [];
-  const fmt = (d: Date, o: Intl.DateTimeFormatOptions) => d.toLocaleDateString("en-GB", o);
-  if (period.grain === "year" || period.grain === "all") {
-    const d = new Date(from.getFullYear(), from.getMonth(), 1);
-    while (d < to) {
-      const next = new Date(d.getFullYear(), d.getMonth() + 1, 1);
-      out.push({ start: d.getTime(), end: next.getTime(), label: fmt(d, { month: "short", year: "2-digit" }) });
-      d.setMonth(d.getMonth() + 1);
-    }
-  } else {
-    const step = period.grain === "quarter" ? 7 : 1;
-    for (let t = from.getTime(); t < to.getTime(); t += step * DAY_MS) {
-      out.push({
-        start: t,
-        end: Math.min(t + step * DAY_MS, to.getTime()),
-        label: fmt(new Date(t), { day: "numeric", month: "short" }),
-      });
-    }
-  }
-  return out;
-}
-
 export default async function AdminPage({
   searchParams,
 }: {
@@ -77,10 +52,10 @@ export default async function AdminPage({
     !!process.env.ADMIN_PASSWORD && c.get(ADMIN_COOKIE)?.value === adminToken();
   if (!authed) return <AdminLogin />;
 
-  const period = parsePeriod(await searchParams);
+  const sp = await searchParams;
+  const period = parsePeriod(sp);
   const nowD = new Date();
   const now = nowD.getTime();
-  const year = period.y;
   const LAUNCH = new Date(2026, 6, 1);
 
   const admin = createAdminClient();
@@ -147,9 +122,6 @@ export default async function AdminPage({
   const allReadings = readingRowsRaw.filter((r) => real(r.user_id));
   const checks = checksRaw.filter((r) => real(r.user_id));
 
-  const profById = new Map(P.map((p) => [p.id, p]));
-  const profByEmail = new Map(P.map((p) => [p.email.toLowerCase(), p]));
-
   // ---- Sugar tests -------------------------------------------------------
   const toReading = (r: (typeof allReadings)[number]) => {
     const meal = r.meal_checks as { kind?: string; label?: string } | null;
@@ -171,47 +143,16 @@ export default async function AdminPage({
   ).size;
 
   // ---- Money and people ---------------------------------------------------
-  const isLive = (s: (typeof S)[number]) =>
-    (s.status === "active" || s.status === "non-renewing") &&
-    !!s.current_period_end &&
-    new Date(s.current_period_end).getTime() > now;
+  // The subscription numbers live in lib/subscriptionReport.ts so the finance
+  // screen reads exactly the same ones. "all" is first in GROUPS.
+  const { byType, all, monthly } = subscriptionReport({ P, S, Y, period, now, launch: LAUNCH });
 
-  const payerType = (p: (typeof Y)[number]) =>
-    (p.user_id ? profById.get(p.user_id) : undefined)?.user_type ??
-    (p.email ? profByEmail.get(p.email.toLowerCase()) : undefined)?.user_type ??
-    null;
-  const subType = (s: (typeof S)[number]) => profById.get(s.user_id)?.user_type ?? null;
-
-  function metricsFor(g: Group) {
-    const people = P.filter((p) => inGroup(p.user_type, g));
-    const theirSubs = S.filter((s) => inGroup(subType(s), g));
-    const theirPay = Y.filter((p) => inGroup(payerType(p), g));
-    const trialsStarted = people.filter((p) => p.trial_start).length;
-    const live = theirSubs.filter(isLive);
-    const everSubscribed = theirSubs.length;
-    return {
-      group: g,
-      signups: people.length,
-      signupsInRange: people.filter((p) => inPeriod(p.created_at, period)).length,
-      trialsStarted,
-      activeSubs: live.length,
-      everSubscribed,
-      churnedNow: everSubscribed - live.length,
-      conversion: trialsStarted ? Math.round((everSubscribed / trialsStarted) * 100) : 0,
-      churnRate: everSubscribed
-        ? Math.round(((everSubscribed - live.length) / everSubscribed) * 100)
-        : 0,
-      revenue: theirPay.reduce((n, p) => n + (p.amount || 0), 0),
-      revenueInRange: theirPay
-        .filter((p) => inPeriod(p.paid_at, period))
-        .reduce((n, p) => n + (p.amount || 0), 0),
-      // What the live subscriptions are worth a month, at the price each one
-      // actually pays (Basic, Plus or Dietitian), not one flat price.
-      monthly: live.reduce((n, s) => n + (s.amount || 0), 0),
-    };
-  }
-  const byType = GROUPS.map(metricsFor);
-  const all = byType[0]; // "all" is first in GROUPS
+  // Money in and out for the period on screen. The full picture is /admin/finance.
+  const { input: financeInput } = await loadFinance();
+  const money = pnl(financeInput, {
+    from: period.from?.getTime() ?? null,
+    to: period.to?.getTime() ?? null,
+  });
   const activeTrials = P.filter(
     (p) => p.trial_start && (now - new Date(p.trial_start).getTime()) / DAY_MS < TRIAL_DAYS,
   ).length;
@@ -246,7 +187,7 @@ export default async function AdminPage({
   }
 
   // ---- Charts and lists ---------------------------------------------------
-  const B = buckets(period, LAUNCH);
+  const B = periodBuckets(period, LAUNCH);
   const signupsByDay = B.map((b) => ({
     label: b.label,
     value: P.filter((p) => {
@@ -334,51 +275,6 @@ export default async function AdminPage({
     rows.filter((r) => real(r.user_id ?? r.id)).length;
   const waiting = "waiting for the database update";
 
-  // ---- Subscriptions, month on month ---------------------------------------
-  const firstPaid = new Map<string, number>();
-  for (const p of Y) {
-    if (!p.email || !p.paid_at) continue;
-    const t = new Date(p.paid_at).getTime();
-    const cur = firstPaid.get(p.email);
-    if (cur === undefined || t < cur) firstPaid.set(p.email, t);
-  }
-  const curMonthStart = new Date(nowD.getFullYear(), nowD.getMonth(), 1).getTime();
-  const monthly = [];
-  for (let m = 0; m < 12; m++) {
-    const mStart = new Date(year, m, 1).getTime();
-    const mEnd = new Date(year, m + 1, 1).getTime();
-    if (mStart < LAUNCH.getTime() || mStart > curMonthStart) continue;
-    const churned = S.filter((s) => {
-      if (!s.current_period_end) return false;
-      const end = new Date(s.current_period_end).getTime();
-      return end >= mStart && end < mEnd && end < now && !isLive(s);
-    }).length;
-    const activeStart = S.filter(
-      (s) => s.current_period_end && new Date(s.current_period_end).getTime() >= mStart,
-    ).length;
-    const churnRate = activeStart ? Math.round((churned / activeStart) * 100) : 0;
-    monthly.push({
-      month: new Date(mStart).toLocaleDateString("en", { month: "short", year: "numeric" }),
-      newSubs: [...firstPaid.values()].filter((t) => t >= mStart && t < mEnd).length,
-      churned,
-      activeEnd: S.filter(
-        (s) => s.current_period_end && new Date(s.current_period_end).getTime() >= mEnd,
-      ).length,
-      churnRate,
-      retention: activeStart ? 100 - churnRate : 0,
-    });
-  }
-
-  const churnedList = S.filter(
-    (s) => s.current_period_end && new Date(s.current_period_end).getTime() < now && !isLive(s),
-  )
-    .map((s) => ({
-      email: profById.get(s.user_id)?.email ?? "—",
-      name: profById.get(s.user_id)?.name ?? "—",
-      ended: s.current_period_end as string,
-    }))
-    .sort((a, b) => new Date(b.ended).getTime() - new Date(a.ended).getTime());
-
   const recent = [...P]
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     .slice(0, 8);
@@ -407,6 +303,10 @@ export default async function AdminPage({
     monthly,
   };
 
+  const periodQuery = `?${new URLSearchParams(
+    Object.entries(sp).filter((e): e is [string, string] => typeof e[1] === "string"),
+  )}`;
+
   const th = "px-5 py-3 text-[11px] font-bold uppercase tracking-[0.08em] text-ink/50";
   const td = "px-5 py-3 text-ink-soft";
 
@@ -420,12 +320,12 @@ export default async function AdminPage({
 
       <AdminJump
         items={[
+          { id: "money", label: "Money" },
           { id: "growth", label: "Growth" },
           { id: "usage", label: "How they use it" },
           { id: "comeback", label: "Do they come back?" },
           { id: "sugar", label: "Sugar tests" },
           { id: "data", label: "Data for AI" },
-          { id: "money", label: "Money" },
           { id: "people", label: "People" },
         ]}
       />
@@ -441,6 +341,39 @@ export default async function AdminPage({
           ]}
         />
       </div>
+
+      <AdminSection id="money" title="Money" sub={`${period.label}. The full picture is on Finance.`}>
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+          <AdminTile icon={TrendingUp} tone="blue" label="Revenue" value={nairaExact(money.revenue)} sub={`${money.payments} payment${money.payments === 1 ? "" : "s"}`} />
+          <AdminTile icon={Wallet} tone="amber" label="Expenses" value={nairaExact(money.totalExpenses)} sub="including fees and commissions" />
+          <AdminTile
+            icon={money.net >= 0 ? TrendingUp : TrendingDown}
+            tone={money.net >= 0 ? "green" : "red"}
+            label={money.net >= 0 ? "Profit" : "Loss"}
+            value={nairaExact(money.net)}
+            sub={money.netMargin === null ? "no revenue to measure against" : `${shareLabel(money.netMargin)} net margin`}
+          />
+          <AdminTile icon={Repeat} tone="green" label="Monthly recurring" value={naira(all.monthly)} sub={`${all.activeSubs} paying now`} />
+        </div>
+        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          {[
+            { href: `/admin/finance${periodQuery}`, title: "Finance", sub: "Profit and loss, growth, margins, investor numbers" },
+            { href: `/admin/finance/expenses${periodQuery}`, title: "Expenses", sub: "Record and review what was spent" },
+            { href: `/admin/finance/loans${periodQuery}`, title: "Founder loans", sub: "What Omole and Favour have put in" },
+          ].map((l) => (
+            <a
+              key={l.href}
+              href={l.href}
+              className="group rounded-2xl border border-[#e3e9f1] bg-white px-4 py-3.5 transition-colors hover:border-brand/40"
+            >
+              <span className="flex items-center justify-between font-display text-sm font-bold text-ink group-hover:text-brand">
+                {l.title} <span aria-hidden>&rarr;</span>
+              </span>
+              <span className="mt-0.5 block text-xs text-ink-soft">{l.sub}</span>
+            </a>
+          ))}
+        </div>
+      </AdminSection>
 
       <AdminSection id="growth" title="Growth" sub="New people, and where they came from">
         <div className="grid gap-4 lg:grid-cols-[1.6fr_1fr]">
@@ -527,110 +460,6 @@ export default async function AdminPage({
           <AdminTile label="Weights recorded" value={weights.ok ? realCount(weights.rows).toLocaleString() : "—"} sub={weights.ok ? "each change is kept" : waiting} />
           <AdminTile label="3-month sugar tests" value={hba1c.ok ? realCount(hba1c.rows).toLocaleString() : "—"} sub={hba1c.ok ? "HbA1c results saved" : waiting} />
           <AdminTile label="Named their medicine" value={medTypes.ok ? realCount(medTypes.rows).toLocaleString() : "—"} sub={medTypes.ok ? "people, all time" : waiting} />
-        </div>
-      </AdminSection>
-
-      <AdminSection id="money" title="Money" sub="Subscriptions, by who pays and month by month">
-        <AdminCard title="By who they are" flush>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[40rem] text-left text-sm">
-              <thead className="border-y border-[#e3e9f1] bg-[#f8fafc]">
-                <tr>
-                  <th className={th}>Who</th>
-                  <th className={th}>Sign-ups</th>
-                  <th className={th}>Trials</th>
-                  <th className={th}>Trial to paid</th>
-                  <th className={th}>Paying now</th>
-                  <th className={th}>Revenue · {period.label}</th>
-                  <th className={th}>Revenue, all time</th>
-                </tr>
-              </thead>
-              <tbody>
-                {byType.map((m) => (
-                  <tr
-                    key={m.group}
-                    className={`border-b border-[#eef2f7] last:border-0 ${m.group === "all" ? "font-bold text-ink" : ""}`}
-                  >
-                    <td className="px-5 py-3 text-ink">{groupLabel(m.group)}</td>
-                    <td className={td}>{m.signups}</td>
-                    <td className={td}>{m.trialsStarted}</td>
-                    <td className={td}>{m.trialsStarted ? `${m.conversion}%` : "—"}</td>
-                    <td className={td}>{m.activeSubs}</td>
-                    <td className={td}>{naira(m.revenueInRange)}</td>
-                    <td className={td}>{naira(m.revenue)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </AdminCard>
-
-        <div className="mt-4 grid gap-4 lg:grid-cols-2">
-          <AdminCard title={`Month by month · ${year}`} flush>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead className="border-y border-[#e3e9f1] bg-[#f8fafc]">
-                  <tr>
-                    <th className={th}>Month</th>
-                    <th className={th}>New</th>
-                    <th className={th}>Lapsed</th>
-                    <th className={th}>Active at end</th>
-                    <th className={th}>Kept</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {monthly.map((m) => (
-                    <tr key={m.month} className="border-b border-[#eef2f7] last:border-0">
-                      <td className="px-5 py-3 text-ink">{m.month}</td>
-                      <td className={td}>{m.newSubs}</td>
-                      <td className={td}>{m.churned}</td>
-                      <td className={td}>{m.activeEnd}</td>
-                      <td className={td}>{m.activeEnd || m.churned ? `${m.retention}%` : "—"}</td>
-                    </tr>
-                  ))}
-                  {monthly.length === 0 && (
-                    <tr>
-                      <td className="px-5 py-8 text-center text-ink-soft" colSpan={5}>
-                        Nothing for {year} yet.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </AdminCard>
-
-          <AdminCard title="Who stopped paying" sub="Reach out and ask why" flush>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead className="border-y border-[#e3e9f1] bg-[#f8fafc]">
-                  <tr>
-                    <th className={th}>Name</th>
-                    <th className={th}>Email</th>
-                    <th className={th}>Ended</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {churnedList.map((u, i) => (
-                    <tr key={i} className="border-b border-[#eef2f7] last:border-0">
-                      <td className="px-5 py-3 text-ink">{u.name}</td>
-                      <td className="px-5 py-3">
-                        <a href={`mailto:${u.email}`} className="text-brand hover:underline">{u.email}</a>
-                      </td>
-                      <td className={td}>{new Date(u.ended).toLocaleDateString("en-GB")}</td>
-                    </tr>
-                  ))}
-                  {churnedList.length === 0 && (
-                    <tr>
-                      <td className="px-5 py-8 text-center text-ink-soft" colSpan={3}>
-                        Nobody has stopped paying.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </AdminCard>
         </div>
       </AdminSection>
 

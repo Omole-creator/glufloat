@@ -5,8 +5,8 @@ type Tone = "blue" | "green" | "amber" | "red";
 const TONE: Record<Tone, string> = {
   blue: "bg-brand/10 text-brand",
   green: "bg-leaf/10 text-leaf-deep",
-  amber: "bg-v-yellow/20 text-ink",
-  red: "bg-v-red/10 text-v-red",
+  amber: "bg-verdict-yellow/20 text-ink",
+  red: "bg-verdict-red/10 text-verdict-red",
 };
 
 /**

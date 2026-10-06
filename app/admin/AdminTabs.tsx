@@ -1,27 +1,61 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, Users, Handshake, PenLine, Mic, ExternalLink, LogOut } from "lucide-react";
+import {
+  BarChart3,
+  Users,
+  Handshake,
+  PenLine,
+  Mic,
+  ExternalLink,
+  LogOut,
+  LineChart,
+  Receipt,
+  Landmark,
+} from "lucide-react";
 
 /**
- * The admin screens. Navigation only: anything a page can DO (download, pick a
- * period) lives in the page, never here.
+ * The admin screens, in four groups so the sidebar reads as a map of the
+ * business rather than a flat list: how it is doing, the money, the people,
+ * and what we publish and hear. Navigation only: anything a page can DO
+ * (download, pick a period) lives in the page, never here.
  *
- * `/admin` is matched exactly. Every other screen lives under it, so a
- * startsWith test would light up the dashboard on every page.
+ * `exact` screens light up only on their own address. Without it the Finance
+ * tab would also light up on /admin/finance/expenses, and the Dashboard on
+ * every page.
  */
-const TABS = [
-  { href: "/admin", label: "Dashboard", icon: BarChart3 },
-  { href: "/admin/users", label: "Users", icon: Users },
-  { href: "/admin/partners", label: "Partners", icon: Handshake },
-  { href: "/admin/blog", label: "Blog", icon: PenLine },
-  { href: "/admin/recordings", label: "Recordings", icon: Mic },
+const GROUPS = [
+  { title: "Overview", tabs: [{ href: "/admin", label: "Dashboard", icon: BarChart3, exact: true }] },
+  {
+    title: "Money",
+    tabs: [
+      { href: "/admin/finance", label: "Finance", icon: LineChart, exact: true },
+      { href: "/admin/finance/expenses", label: "Expenses", icon: Receipt },
+      { href: "/admin/finance/loans", label: "Founder loans", icon: Landmark },
+    ],
+  },
+  {
+    title: "People",
+    tabs: [
+      { href: "/admin/users", label: "Users", icon: Users },
+      { href: "/admin/partners", label: "Partners", icon: Handshake },
+    ],
+  },
+  {
+    title: "Content",
+    tabs: [
+      { href: "/admin/blog", label: "Blog", icon: PenLine },
+      { href: "/admin/recordings", label: "Recordings", icon: Mic },
+    ],
+  },
 ];
+const TABS = GROUPS.flatMap((g) => g.tabs);
 
 function useHere() {
   const path = usePathname();
-  return (href: string) => (href === "/admin" ? path === "/admin" : path.startsWith(href));
+  return (href: string, exact?: boolean) => (exact ? path === href : path.startsWith(href));
 }
 
 async function logOut() {
@@ -33,24 +67,31 @@ async function logOut() {
 export function AdminSidebarNav() {
   const here = useHere();
   return (
-    <nav className="flex flex-col gap-1">
-      {TABS.map(({ href, label, icon: Icon }) => {
-        const on = here(href);
-        return (
-          <Link
-            key={href}
-            href={href}
-            aria-current={on ? "page" : undefined}
-            className={`relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 font-display text-sm font-semibold transition-colors ${
-              on ? "bg-white/12 text-white" : "text-white/70 hover:bg-white/[0.07] hover:text-white"
-            }`}
-          >
-            {on && <span className="absolute inset-y-2 left-0 w-1 rounded-full bg-leaf" />}
-            <Icon className="h-4.5 w-4.5 shrink-0" strokeWidth={2.2} />
-            {label}
-          </Link>
-        );
-      })}
+    <nav className="flex flex-col gap-5">
+      {GROUPS.map((g) => (
+        <div key={g.title}>
+          <p className="px-3.5 pb-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-white/40">{g.title}</p>
+          <div className="flex flex-col gap-0.5">
+            {g.tabs.map(({ href, label, icon: Icon, ...t }) => {
+              const on = here(href, "exact" in t && t.exact);
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  aria-current={on ? "page" : undefined}
+                  className={`relative flex items-center gap-3 rounded-xl px-3.5 py-2 font-display text-sm font-semibold transition-colors ${
+                    on ? "bg-white/12 text-white" : "text-white/70 hover:bg-white/[0.07] hover:text-white"
+                  }`}
+                >
+                  {on && <span className="absolute inset-y-2 left-0 w-1 rounded-full bg-leaf" />}
+                  <Icon className="h-4.5 w-4.5 shrink-0" strokeWidth={2.2} />
+                  {label}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      ))}
     </nav>
   );
 }
@@ -78,10 +119,15 @@ export function AdminSidebarFoot() {
 /** Under `lg`: one row of tabs you can swipe, and a small log-out link. */
 export function AdminMobileNav() {
   const here = useHere();
+  const nav = useRef<HTMLElement>(null);
+  // With nine screens the row is wider than a phone: bring the current one into view.
+  useEffect(() => {
+    nav.current?.querySelector('[aria-current="page"]')?.scrollIntoView({ block: "nearest", inline: "center" });
+  });
   return (
-    <nav className="flex items-center gap-1 overflow-x-auto px-4 pb-2.5">
-      {TABS.map(({ href, label, icon: Icon }) => {
-        const on = here(href);
+    <nav ref={nav} className="flex items-center gap-1 overflow-x-auto px-4 pb-2.5">
+      {TABS.map(({ href, label, icon: Icon, ...t }) => {
+        const on = here(href, "exact" in t && t.exact);
         return (
           <Link
             key={href}

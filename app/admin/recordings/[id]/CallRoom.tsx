@@ -642,7 +642,7 @@ export default function CallRoom({ id }: { id: string }) {
               >
                 <Pencil className="h-3.5 w-3.5" /> Edit details
               </button>
-              <button onClick={deleteCall} className={`${small} hover:border-v-red hover:text-v-red`}>
+              <button onClick={deleteCall} className={`${small} hover:border-verdict-red hover:text-verdict-red`}>
                 <Trash2 className="h-3.5 w-3.5" /> Delete call
               </button>
             </div>
@@ -672,7 +672,7 @@ export default function CallRoom({ id }: { id: string }) {
                 </a>
               </div>
               {session.status !== "waiting" && (
-                <p className="mt-4 rounded-lg bg-v-yellow/15 px-3 py-2 text-xs font-semibold text-ink">
+                <p className="mt-4 rounded-lg bg-verdict-yellow/15 px-3 py-2 text-xs font-semibold text-ink">
                   This call is still marked as open. If it is over, end it here.
                 </p>
               )}
@@ -687,18 +687,18 @@ export default function CallRoom({ id }: { id: string }) {
               </p>
               <button
                 onClick={endStale}
-                className="mt-3 flex items-center gap-1.5 rounded-full border border-v-red/40 px-4 py-2 text-sm font-bold text-v-red hover:bg-v-red/5"
+                className="mt-3 flex items-center gap-1.5 rounded-full border border-verdict-red/40 px-4 py-2 text-sm font-bold text-verdict-red hover:bg-verdict-red/5"
               >
                 <PhoneOff className="h-4 w-4" /> End this call
               </button>
-              {problem && <p className="mt-2 text-sm font-semibold text-v-red">{problem}</p>}
+              {problem && <p className="mt-2 text-sm font-semibold text-verdict-red">{problem}</p>}
             </>
           )}
 
           {onCall && (
             <div>
               <div className="flex items-center gap-2">
-                <span className={`h-2.5 w-2.5 rounded-full ${state === "connected" ? "animate-pulse bg-v-red" : "bg-ink/30"}`} />
+                <span className={`h-2.5 w-2.5 rounded-full ${state === "connected" ? "animate-pulse bg-verdict-red" : "bg-ink/30"}`} />
                 <p className="text-sm font-semibold text-ink">{STATE_LINE[state]}</p>
               </div>
               <p className="mt-3 font-display text-4xl font-bold text-ink">{clock(elapsed)}</p>
@@ -715,7 +715,7 @@ export default function CallRoom({ id }: { id: string }) {
                   {muted ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
                   {muted ? "Unmute" : "Mute"}
                 </button>
-                <button onClick={() => void finish()} className="flex items-center gap-2 rounded-full bg-v-red px-5 py-3 text-sm font-bold text-white">
+                <button onClick={() => void finish()} className="flex items-center gap-2 rounded-full bg-verdict-red px-5 py-3 text-sm font-bold text-white">
                   <PhoneOff className="h-4 w-4" /> End the call
                 </button>
               </div>
@@ -753,7 +753,7 @@ export default function CallRoom({ id }: { id: string }) {
                 <button onClick={() => void downloadRecording()} disabled={audioBusy} className={small}>
                   <Download className="h-3.5 w-3.5" /> {audioBusy ? "Preparing..." : "Download recording"}
                 </button>
-                <button onClick={deleteAudioFiles} className={`${small} hover:border-v-red hover:text-v-red`}>
+                <button onClick={deleteAudioFiles} className={`${small} hover:border-verdict-red hover:text-verdict-red`}>
                   <Trash2 className="h-3.5 w-3.5" /> Delete audio
                 </button>
               </div>
@@ -817,7 +817,7 @@ export default function CallRoom({ id }: { id: string }) {
                 </button>
               )}
               {sorted.length > 0 && (
-                <button onClick={deleteTranscript} className={`${small} hover:border-v-red hover:text-v-red`}>
+                <button onClick={deleteTranscript} className={`${small} hover:border-verdict-red hover:text-verdict-red`}>
                   <Trash2 className="h-3.5 w-3.5" /> Delete transcript
                 </button>
               )}
@@ -874,7 +874,7 @@ export default function CallRoom({ id }: { id: string }) {
                       <button
                         onClick={() => deleteLine(l)}
                         aria-label={`Delete the line at ${clock(l.t_ms)}`}
-                        className="rounded-md p-1 text-ink-soft hover:bg-v-red/10 hover:text-v-red"
+                        className="rounded-md p-1 text-ink-soft hover:bg-verdict-red/10 hover:text-verdict-red"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>

@@ -60,7 +60,7 @@ export default function AdminLogin() {
             {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </button>
         </div>
-        {err && <p className="mt-2 text-xs font-semibold text-v-red">{err}</p>}
+        {err && <p className="mt-2 text-xs font-semibold text-verdict-red">{err}</p>}
         <button
           type="submit"
           disabled={busy}

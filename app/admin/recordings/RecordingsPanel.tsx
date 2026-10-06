@@ -176,7 +176,7 @@ export default function RecordingsPanel({
             <Link2 className="h-4 w-4" /> {busy ? "Making..." : "Make the link"}
           </button>
         </form>
-        {error && <p className="mt-3 text-sm font-semibold text-v-red">{error}</p>}
+        {error && <p className="mt-3 text-sm font-semibold text-verdict-red">{error}</p>}
 
         {made && (
           <div className="mt-4 rounded-xl bg-leaf/5 p-4 ring-1 ring-inset ring-leaf/20">
@@ -337,7 +337,7 @@ export default function RecordingsPanel({
                             <button
                               onClick={() => remove(s)}
                               aria-label={`Delete the call with ${s.customer_name}`}
-                              className="rounded-lg border border-[#e3e9f1] p-1.5 text-ink-soft hover:border-v-red hover:text-v-red"
+                              className="rounded-lg border border-[#e3e9f1] p-1.5 text-ink-soft hover:border-verdict-red hover:text-verdict-red"
                             >
                               <Trash2 className="h-3.5 w-3.5" />
                             </button>

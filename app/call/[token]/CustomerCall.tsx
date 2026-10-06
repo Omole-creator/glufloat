@@ -237,14 +237,14 @@ export default function CustomerCall({ token }: { token: string }) {
         >
           I agree. Join the call
         </button>
-        {problem && <p className="mt-3 text-sm font-semibold text-v-red">{problem}</p>}
+        {problem && <p className="mt-3 text-sm font-semibold text-verdict-red">{problem}</p>}
       </>,
     );
 
   return shell(
     <>
       <div className="mt-5 flex items-center justify-center gap-2">
-        <span className={`h-2.5 w-2.5 rounded-full ${state === "connected" ? "animate-pulse bg-v-red" : "bg-ink/30"}`} />
+        <span className={`h-2.5 w-2.5 rounded-full ${state === "connected" ? "animate-pulse bg-verdict-red" : "bg-ink/30"}`} />
         <p className="text-xs font-semibold text-ink-soft">{state === "connected" ? "Recording" : "Not connected yet"}</p>
       </div>
       <p className="mt-3 text-base font-semibold text-ink">{STATE_LINE[state]}</p>
@@ -265,7 +265,7 @@ export default function CustomerCall({ token }: { token: string }) {
             peerRef.current?.hangUp();
             endHere();
           }}
-          className="flex h-16 w-16 items-center justify-center rounded-full bg-v-red text-white"
+          className="flex h-16 w-16 items-center justify-center rounded-full bg-verdict-red text-white"
           aria-label="End the call"
         >
           <PhoneOff className="h-6 w-6" />

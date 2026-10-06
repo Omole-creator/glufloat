@@ -190,3 +190,35 @@ export const MONTH_NAMES = MONTHS;
 function clamp(n: number, lo: number, hi: number): number {
   return Math.min(hi, Math.max(lo, n));
 }
+
+const BUCKET_DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * The buckets for a chart over a period: one per day for a day, week or month,
+ * one per week for a quarter, one per month for a year or all time. `launch`
+ * is where "all time" starts. Shared by the dashboard and the finance screen.
+ */
+export function periodBuckets(period: Period, launch: Date) {
+  const from = period.from ?? launch;
+  const to = period.to ?? new Date();
+  const out: { start: number; end: number; label: string }[] = [];
+  const fmt = (d: Date, o: Intl.DateTimeFormatOptions) => d.toLocaleDateString("en-GB", o);
+  if (period.grain === "year" || period.grain === "all") {
+    const d = new Date(from.getFullYear(), from.getMonth(), 1);
+    while (d < to) {
+      const next = new Date(d.getFullYear(), d.getMonth() + 1, 1);
+      out.push({ start: d.getTime(), end: next.getTime(), label: fmt(d, { month: "short", year: "2-digit" }) });
+      d.setMonth(d.getMonth() + 1);
+    }
+  } else {
+    const stepDays = period.grain === "quarter" ? 7 : 1;
+    for (let t = from.getTime(); t < to.getTime(); t += stepDays * BUCKET_DAY_MS) {
+      out.push({
+        start: t,
+        end: Math.min(t + stepDays * BUCKET_DAY_MS, to.getTime()),
+        label: fmt(new Date(t), { day: "numeric", month: "short" }),
+      });
+    }
+  }
+  return out;
+}

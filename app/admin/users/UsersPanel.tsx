@@ -207,7 +207,7 @@ export default function UsersPanel({
       </div>
 
       {error && (
-        <p className="mt-3 rounded-xl bg-v-red/10 px-4 py-3 text-sm font-semibold text-v-red">
+        <p className="mt-3 rounded-xl bg-verdict-red/10 px-4 py-3 text-sm font-semibold text-verdict-red">
           {error}
         </p>
       )}
@@ -287,7 +287,7 @@ export default function UsersPanel({
                         {r.sharesPhone > 1 && (
                           <span
                             title={`${r.sharesPhone} accounts use this number`}
-                            className="ml-2 whitespace-nowrap rounded-full bg-v-yellow/25 px-2 py-0.5 text-xs font-bold text-ink"
+                            className="ml-2 whitespace-nowrap rounded-full bg-verdict-yellow/25 px-2 py-0.5 text-xs font-bold text-ink"
                           >
                             same number ×{r.sharesPhone}
                           </span>
@@ -304,7 +304,7 @@ export default function UsersPanel({
                       onChange={(e) => setType(r.id, e.target.value)}
                       aria-label={`What ${r.name || r.email} is`}
                       className={`rounded-lg border-2 bg-white px-2 py-1.5 text-sm outline-none transition-colors focus:border-brand disabled:opacity-50 ${
-                        r.userType ? "border-line text-ink" : "border-v-yellow text-ink-soft"
+                        r.userType ? "border-line text-ink" : "border-verdict-yellow text-ink-soft"
                       }`}
                     >
                       <option value="">Not set</option>
@@ -356,7 +356,7 @@ export default function UsersPanel({
                         <button
                           onClick={() => deleteUser(r)}
                           disabled={deletingId === r.id}
-                          className="rounded-lg border border-v-red/30 bg-white px-3 py-1.5 text-xs font-bold text-v-red transition-opacity hover:bg-v-red/10 disabled:opacity-50"
+                          className="rounded-lg border border-verdict-red/30 bg-white px-3 py-1.5 text-xs font-bold text-verdict-red transition-opacity hover:bg-verdict-red/10 disabled:opacity-50"
                         >
                           {deletingId === r.id ? "Deleting…" : "Delete"}
                         </button>

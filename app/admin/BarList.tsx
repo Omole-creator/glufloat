@@ -7,10 +7,13 @@ export default function BarList({
   rows,
   empty = "Nothing yet.",
   max: maxRows = 8,
+  format = (n: number) => n.toLocaleString(),
 }: {
   rows: { label: string; value: number; note?: string }[];
   empty?: string;
   max?: number;
+  /** How a value is written, e.g. as naira. Defaults to a plain count. */
+  format?: (n: number) => string;
 }) {
   const shown = [...rows].sort((a, b) => b.value - a.value).slice(0, maxRows);
   const top = Math.max(1, ...shown.map((r) => r.value));
@@ -18,11 +21,11 @@ export default function BarList({
   return (
     <ul className="space-y-3.5">
       {shown.map((r) => (
-        <li key={r.label} title={`${r.label}: ${r.value.toLocaleString()}`}>
+        <li key={r.label} title={`${r.label}: ${format(r.value)}`}>
           <div className="flex items-baseline justify-between gap-3 text-[13px]">
             <span className="min-w-0 truncate text-ink">{r.label}</span>
             <span className="shrink-0 font-display font-bold text-ink">
-              {r.value.toLocaleString()}
+              {format(r.value)}
               {r.note && <span className="ml-1.5 font-sans text-xs font-normal text-ink-soft">{r.note}</span>}
             </span>
           </div>
