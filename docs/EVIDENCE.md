@@ -646,6 +646,24 @@ else in the app) are untouched. This table only governs how far the EXTRAS
 card may scale a food when it is being offered as an add-on snack, never how
 the food is described anywhere else.
 
+**Added 2026-10-07: garden egg and cucumber.** Founder asked for more snack
+choices. Both are eaten raw and alone in Nigeria, cheap everywhere, green with
+"You can eat this every day" on their own cards, and in no meal plate, so they
+pass all five bars. Ceiling is twice each card's own amount (6 garden eggs,
+180g; 2 cucumbers, 300g): both are almost all water with about 5g of starch a
+serving, so the limit is fullness, not sugar. For a kidney_disease profile
+they stay at the card's own amount, because each serving carries about 200mg
+of potassium. They give little energy (about 23 kcal a serving), so the
+engine mostly picks them as the second item beside a nut. Nothing else in
+the food list passes all five bars today (checked every green food).
+
+**Added 2026-10-07, same day: apple and guava, on the founder's word.** They
+break bar 5 (their cards say "About 3 times a week", not every day), so each
+carries `weeklyLimit: 3`: once the person has logged that fruit 3 times in the
+last 7 days, from any screen, the snack card stops offering it. Never scaled
+past the card's own one small fruit (fruit is sugar). Timing line: with the
+meal or just after, not on an empty stomach.
+
 ## 10. Main-plate protein scaling: how far a serving may safely grow
 
 **Not a research finding on its own — a house bound, same footing as §9,

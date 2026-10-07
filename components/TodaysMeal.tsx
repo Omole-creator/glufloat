@@ -69,6 +69,14 @@ function scaledGrams(idea: MealIdea): Record<string, number> {
   return out;
 }
 
+/** The same servings' calories, food id -> kcal. */
+function scaledKcal(idea: MealIdea): Record<string, number> {
+  const out: Record<string, number> = {};
+  if (idea.scaledProtein) out[idea.scaledProtein.food.id] = Math.round(idea.scaledProtein.calories);
+  if (idea.scaledSide) out[idea.scaledSide.food.id] = Math.round(idea.scaledSide.calories);
+  return out;
+}
+
 /** Join clean food names into one plain line: "A, B and C". */
 function line(names: string[]): string {
   if (names.length <= 1) return names[0] ?? "";
@@ -390,7 +398,7 @@ export default function TodaysMeal({
               void trackUsage("check_this_meal");
               const plate = impressionPlate(meal, dayKey, idea, calTargetRef.current);
               logImpression(plate, "details");
-              rememberSuggested(plate, scaledGrams(idea));
+              rememberSuggested(plate, scaledGrams(idea), scaledKcal(idea));
               onBuild(mealIdeaFoodsForBuilder(idea));
             }}
             className="flex items-center gap-2 rounded-full bg-leaf px-6 py-3.5 text-sm font-bold text-white shadow-[0_10px_24px_-8px_rgba(62,155,79,0.75)] transition-all hover:-translate-y-0.5 hover:bg-leaf-deep"

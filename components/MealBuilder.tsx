@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Check, AlertTriangle, X, Plus, Utensils } from "lucide-react";
 import { searchFoods } from "@/lib/search";
 import { scoreMeal } from "@/lib/verdictEngine";
-import type { Food, MealItem, PortionSize } from "@/lib/types";
+import type { Food, MealItem } from "@/lib/types";
 import { PortionMini } from "./PortionVisual";
 import { mealFrequency } from "@/lib/frequency";
 import { mealShareMessage } from "@/lib/shareMessage";
@@ -24,12 +24,6 @@ import {
 } from "@/lib/personalizationProfile";
 import { medicationAppliesToMeal, medicationTimingCopy } from "@/lib/medicationTiming";
 import { Pill } from "lucide-react";
-
-const PORTIONS: { key: PortionSize; label: string }[] = [
-  { key: "half", label: "Small" },
-  { key: "normal", label: "Normal" },
-  { key: "large", label: "Large" },
-];
 
 const DOT = {
   green: "bg-verdict-green",
@@ -79,15 +73,12 @@ export default function MealBuilder({
   const results = useMemo(() => searchFoods(query, 6), [query]);
   const result = useMemo(() => scoreMeal(items), [items]);
   const often = useMemo(() => mealFrequency(items), [items]);
-  // Each food's own normal-serving figures, summed. Deliberately fixed
-  // across the Small/Normal/Large tap, same as PortionMini's own
-  // portionGuidance text below it: there is only one real, dietitian-sourced
-  // size per food, and the tap only nudges scoreMeal()'s score (a stated-
-  // intention signal), never the physical amount described anywhere on the
-  // card. Scaling this total would invent an unsourced gram figure AND
-  // disagree with what logEaten() actually logs (by food name only, no
-  // portion), the same two-numbers-for-one-plate bug this codebase has
-  // already hit and fixed twice elsewhere (see CLAUDE.md).
+  // Each food's own GluFloat-size figures, summed. There is only one real,
+  // dietitian-sourced size per food, so there is no size picker here: a
+  // Small/Normal/Large tap used to sit on the starch and changed the colour
+  // but not these numbers, which the co-founder dietitian flagged as the
+  // data contradicting itself (2026-10-07). The person says how much they
+  // really ate in StartMealSheet instead, where it is recorded, not scored.
   // carbG is rounded at the end, not per-food: it carries a decimal on over
   // half the foods (calories never does), and summing several real
   // decimals in JS floating point can land on something like
@@ -155,8 +146,6 @@ export default function MealBuilder({
     setItems([...items, { food, portion: "normal" }]);
     setQuery("");
   };
-  const setPortion = (id: string, portion: PortionSize) =>
-    setItems(items.map((i) => (i.food.id === id ? { ...i, portion } : i)));
   const remove = (id: string) =>
     setItems(items.filter((i) => i.food.id !== id));
 
@@ -212,24 +201,6 @@ export default function MealBuilder({
                 {cleanFoodName(i.food.name)}
               </span>
 
-              {i.food.role === "starch" && (
-                <div className="flex rounded-full bg-mist p-1">
-                  {PORTIONS.map((p) => (
-                    <button
-                      key={p.key}
-                      onClick={() => setPortion(i.food.id, p.key)}
-                      className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
-                        i.portion === p.key
-                          ? "bg-brand text-white"
-                          : "text-ink-soft hover:text-ink"
-                      }`}
-                    >
-                      {p.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-
               <button
                 onClick={() => remove(i.food.id)}
                 aria-label={`Remove ${i.food.name}`}
@@ -239,19 +210,13 @@ export default function MealBuilder({
               </button>
             </div>
           ))}
-          {items.some((i) => i.food.role === "starch") && (
-            <p className="px-1 text-xs text-ink-soft">
-              Tap Small, Normal, or Large to change how much swallow or rice you
-              are eating.
-            </p>
-          )}
         </div>
       </div>
 
       {/* right: the answer, made obvious */}
       <div>
         <div
-          key={`${result.verdict}-${items.length}-${items.map((i) => i.portion).join()}`}
+          key={`${result.verdict}-${items.length}`}
           className={`overflow-hidden rounded-2xl border-2 shadow-[0_16px_40px_-18px_rgba(12,42,71,0.35)] ${
             showVerdict ? ui.card : "border-line bg-white"
           }`}
@@ -306,6 +271,9 @@ export default function MealBuilder({
                     {totals.calories} kcal
                   </span>
                 )}
+                <span className="basis-full text-xs text-ink-soft">
+                  For the GluFloat size of each food, shown below.
+                </span>
               </div>
             )}
 
@@ -441,7 +409,7 @@ export default function MealBuilder({
                 </p>
                 <div className="mt-3 space-y-3">
                   {items.map((i) => (
-                    <PortionMini key={i.food.id} food={i.food} portion={i.portion} />
+                    <PortionMini key={i.food.id} food={i.food} />
                   ))}
                 </div>
               </div>
@@ -484,6 +452,7 @@ export default function MealBuilder({
                     portion: i.portion,
                     // Keep the blue card's bigger serving instead of "normal".
                     grams: suggested?.scaledGrams[i.food.id],
+                    calories: suggested?.scaledKcal[i.food.id],
                   }))}
                   kind="meal"
                   label={mealLabel}

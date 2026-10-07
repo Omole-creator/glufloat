@@ -22,6 +22,7 @@ import {
   mostLogged,
   observations,
   portionWords,
+  sizeFactor,
   type ObservedTest,
 } from "../lib/mealResponse";
 
@@ -142,6 +143,10 @@ ok("large reads as more", portionWords("large", guide) === "more than the GluFlo
 ok("grams stay grams", portionWords("163g", guide) === "163g");
 ok("no guidance falls back", portionWords("normal", "") === "the GluFloat size");
 ok("ate more is spotted", ateMore(["normal", "large"]) && !ateMore(["normal", "half"]) && !ateMore(null));
+ok("how much more reads plainly", portionWords("more:2", guide) === "about double the GluFloat size");
+ok("how much less reads plainly", portionWords("less:0.5", guide) === "about half the GluFloat size");
+ok("ate more spots the measured kind", ateMore(["normal", "more:1.5"]) && !ateMore(["less:0.75"]));
+ok("size factor", sizeFactor("more:3") === 3 && sizeFactor("less:0.75") === 0.75 && sizeFactor("163g") === 1 && sizeFactor("large") === 1 && sizeFactor(null) === 1);
 
 // ---- stats --------------------------------------------------------------------
 {

@@ -201,15 +201,42 @@ export function beforeToLink(loose: Reading[], mealTime: string): Reading | null
 /* ---- How much was eaten --------------------------------------------------- */
 
 /**
+ * How much less or more, when somebody did not eat the GluFloat size
+ * (founder + dietitian, 2026-10-07: "More" alone could not tell a doctor
+ * whether it was a little more rice or three times as much, and the calorie
+ * count kept the normal size). Asked in plain words, never in grams, because
+ * most people have no kitchen scale. Stored in `meal_checks.sizes` as the
+ * key below; the number after the colon is how many times the GluFloat size.
+ * This is a record of what was eaten. It is never advice.
+ */
+export const LESS_AMOUNTS = [
+  { key: "less:0.75", label: "A little less", words: "a little less than the GluFloat size" },
+  { key: "less:0.5", label: "About half", words: "about half the GluFloat size" },
+] as const;
+export const MORE_AMOUNTS = [
+  { key: "more:1.5", label: "A little more", words: "a little more than the GluFloat size" },
+  { key: "more:2", label: "About double", words: "about double the GluFloat size" },
+  { key: "more:3", label: "More than double", words: "more than double the GluFloat size" },
+] as const;
+
+/** How many times the GluFloat size a saved size is. Unknown or grams: 1. */
+export function sizeFactor(size: string | null | undefined): number {
+  const m = /^(less|more):(\d+(\.\d+)?)$/.exec((size ?? "").trim());
+  return m ? Number(m[2]) : 1;
+}
+
+/**
  * What one saved size means, in words a doctor and a patient both follow.
  *
  * The app gives ONE size per food (the dietitian's). A person records what they
  * really ate as that size, less, or more; the blue card's bigger serving is
- * stored as grams. "half" and "large" are the meal builder's own words for less
- * and more (lib/types.ts PortionSize).
+ * stored as grams. "half" and "large" are the older, unmeasured words for less
+ * and more (rows saved before the how-much question existed).
  */
 export function portionWords(size: string | null | undefined, guidance: string): string {
   const s = (size ?? "normal").trim();
+  const known = [...LESS_AMOUNTS, ...MORE_AMOUNTS].find((a) => a.key === s);
+  if (known) return known.words;
   if (s === "half") return "less than the GluFloat size";
   if (s === "large") return "more than the GluFloat size";
   if (/^\d+(\.\d+)?g$/.test(s)) return s;
@@ -226,7 +253,7 @@ export function firstSentence(text: string): string {
 
 /** Did the person eat more than the GluFloat size of anything on this plate? */
 export function ateMore(sizes: string[] | null | undefined): boolean {
-  return (sizes ?? []).some((s) => s === "large");
+  return (sizes ?? []).some((s) => s === "large" || s.startsWith("more:"));
 }
 
 /* ---- The month, for the doctor -------------------------------------------- */

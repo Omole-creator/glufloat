@@ -80,13 +80,16 @@ export function logImpression(p: ImpressionPlate, action: ImpressionAction): voi
  * Module state, not React state: the blue card and the builder are siblings,
  * and this only needs to live for the visit.
  */
-let lastSuggested: (ImpressionPlate & { scaledGrams: Record<string, number> }) | null = null;
+let lastSuggested:
+  | (ImpressionPlate & { scaledGrams: Record<string, number>; scaledKcal: Record<string, number> })
+  | null = null;
 
 export function rememberSuggested(
   p: ImpressionPlate,
   scaledGrams: Record<string, number>,
+  scaledKcal: Record<string, number> = {},
 ): void {
-  lastSuggested = { ...p, scaledGrams };
+  lastSuggested = { ...p, scaledGrams, scaledKcal };
 }
 
 export function suggestedFor(foodIds: string[]) {

@@ -1149,6 +1149,20 @@ interface ExtraCandidate {
   maxGrams: number;
   /** The exact line shown for a given (units, grams) — always a whole real amount. */
   describe: (units: number, grams: number) => string;
+  /**
+   * Keep to the base serving for a kidney_disease profile even though the
+   * food has little body-building food in it. Used for the raw vegetables,
+   * whose potassium (about 200mg a serving) adds up when the serving grows.
+   */
+  kidneyBaseOnly?: boolean;
+  /**
+   * The most times in any 7 days this food may be eaten, from its own card's
+   * "About N times a week". Once the person has logged it that many times
+   * (anywhere in the app, not only from this card), it is left out of the
+   * snack card until the oldest of those falls out of the 7 days. Unset means
+   * "every day", which is every other candidate.
+   */
+  weeklyLimit?: number;
 }
 
 /**
@@ -1270,12 +1284,84 @@ const READY_TO_EAT_EXTRAS: ExtraCandidate[] = [
     maxGrams: 22,
     describe: (units, grams) => `About ${units} seeds (about ${grams}g).`,
   },
+  // Added 2026-10-07 (founder: the snack list was too short). Both pass all
+  // five bars above: eaten raw and alone, one named food, cheap in any
+  // Nigerian market, green with "every day" on their own cards, and in no
+  // meal plate. Very little sugar or energy, so they mostly show as the
+  // second item next to a nut. Ceilings: twice the card's own amount. See
+  // docs/EVIDENCE.md §9.
+  {
+    id: "garden-egg",
+    scalable: true,
+    baseUnits: 3,
+    baseGrams: 90,
+    maxGrams: 180,
+    kidneyBaseOnly: true,
+    describe: (units, grams) => `About ${units} whole garden eggs (${grams}g).`,
+  },
+  {
+    id: "cucumber",
+    scalable: true,
+    baseUnits: 1,
+    baseGrams: 150,
+    maxGrams: 300,
+    kidneyBaseOnly: true,
+    describe: (units, grams) =>
+      units === 1 ? `One whole cucumber (${grams}g).` : `${units} whole cucumbers (${grams}g).`,
+  },
+  // Added 2026-10-07 on the founder's word, as the one exception to bar 5
+  // ("every day" only): their cards say "About 3 times a week", so each
+  // carries weeklyLimit 3 and drops out of the card once it has been eaten 3
+  // times in 7 days. Never scaled: fruit is sugar, and the card's own size is
+  // one small fruit. Both are cheap, eaten raw and alone, and in no meal plate.
+  {
+    id: "apple",
+    scalable: false,
+    baseUnits: 1,
+    baseGrams: 120,
+    maxGrams: 120,
+    weeklyLimit: 3,
+    describe: () => "One small apple, about the size of a big egg (120g).",
+  },
+  {
+    id: "guava",
+    scalable: false,
+    baseUnits: 1,
+    baseGrams: 55,
+    maxGrams: 55,
+    weeklyLimit: 3,
+    describe: () => "One small guava (about 55g).",
+  },
 ];
 
+/**
+ * The order the day's rotation walks the pool in. The low-energy foods
+ * (garden egg, cucumber, apple, guava, bitter kola) sit BETWEEN the nuts, not
+ * together at the end: buildVariant() walks on from the day's starting food
+ * until one can close the gap, so a run of low-energy foods at the end made
+ * every day that started on one of them wrap round to walnut (found
+ * 2026-10-07, when the fruit was added: 5 days in a row led with walnut).
+ */
+const EXTRA_ORDER = [
+  "walnut",
+  "garden-egg",
+  "cashew-nut",
+  "apple",
+  "tiger-nut",
+  "cucumber",
+  "coconut",
+  "guava",
+  "peanut-butter",
+  "bitter-kola",
+];
+const ORDERED_EXTRAS = [...READY_TO_EAT_EXTRAS].sort(
+  (a, b) => EXTRA_ORDER.indexOf(a.id) - EXTRA_ORDER.indexOf(b.id),
+);
+
 const EXTRA_CANDIDATES: Record<NamedMeal, ExtraCandidate[]> = {
-  breakfast: READY_TO_EAT_EXTRAS,
-  lunch: READY_TO_EAT_EXTRAS,
-  dinner: READY_TO_EAT_EXTRAS,
+  breakfast: ORDERED_EXTRAS,
+  lunch: ORDERED_EXTRAS,
+  dinner: ORDERED_EXTRAS,
 };
 
 /**
@@ -1294,6 +1380,9 @@ const PRE_MEAL_NUTS = new Set([
   "peanut-butter",
   "bitter-kola",
 ]);
+
+const RAW_VEG_EXTRAS = new Set(["garden-egg", "cucumber"]);
+const FRUIT_EXTRAS = new Set(["apple", "guava"]);
 
 const MEAL_WORD: Record<NamedMeal, string> = {
   breakfast: "breakfast",
@@ -1329,6 +1418,15 @@ const MEAL_WORD: Record<NamedMeal, string> = {
 export function extraTimingFor(id: string, meal: NamedMeal): string {
   if (PRE_MEAL_NUTS.has(id)) {
     return `Eat this 15 to 30 minutes before your ${MEAL_WORD[meal]}. It slows down how fast that meal pushes your sugar up.`;
+  }
+  // Raw vegetables first, then the meal: eating vegetables before the
+  // starch is one of the plainest ways to slow the sugar from it.
+  if (RAW_VEG_EXTRAS.has(id)) {
+    return `Eat this just before your ${MEAL_WORD[meal]}. Eating vegetables first slows down how fast the meal pushes your sugar up.`;
+  }
+  // Fruit is sugar. With food, not on an empty stomach, so it goes up slower.
+  if (FRUIT_EXTRAS.has(id)) {
+    return `Eat this with your ${MEAL_WORD[meal]} or just after it, not on an empty stomach.`;
   }
   return "";
 }
@@ -1598,6 +1696,7 @@ const PROTEIN_CAP_THRESHOLD_G = 3;
  * profile should not be offered more than that food's normal amount. */
 function guardedCandidate(candidate: ExtraCandidate, food: Food, capProtein: boolean): ExtraCandidate {
   if (!capProtein) return candidate;
+  if (candidate.kidneyBaseOnly) return { ...candidate, maxGrams: candidate.baseGrams };
   if ((food.proteinG ?? 0) < PROTEIN_CAP_THRESHOLD_G) return candidate;
   return { ...candidate, maxGrams: candidate.baseGrams };
 }
@@ -1644,11 +1743,14 @@ export function suggestExtras(
   meal: NamedMeal,
   conditions: Condition[] = [],
   personalKey = "",
+  weekCounts: Map<string, number> = new Map(),
 ): ExtraSuggestionSet | null {
   if (!remainingKcal || remainingKcal < MIN_GAP_KCAL) return null;
   const capProtein = conditions.includes("kidney_disease");
   const pool = EXTRA_CANDIDATES[meal]
     .filter((candidate) => !EXCLUDED_FROM_EXTRAS.has(candidate.id))
+    // A food with a weekly limit already reached is left out (weeklyLimit).
+    .filter((candidate) => !candidate.weeklyLimit || (weekCounts.get(candidate.id) ?? 0) < candidate.weeklyLimit)
     .map((candidate) => ({ candidate, food: getFood(candidate.id) }))
     .filter((p): p is { candidate: ExtraCandidate; food: Food } => p.food != null)
     .map((p) => ({ candidate: guardedCandidate(p.candidate, p.food, capProtein), food: p.food }));

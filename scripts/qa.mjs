@@ -214,19 +214,13 @@ await page.screenshot({ path: `${OUT}/meal-before-fix.png` });
 await check("meal starts yellow (normal rice + veg + fish)", async () =>
   visible(page.getByText("Almost there. One small change makes it green.")),
 );
-await page.getByRole("button", { name: "Small" }).first().click();
-await page.waitForTimeout(400);
-await check("small size turns meal green", async () =>
-  visible(page.getByText("This food is good. Enjoy it.")),
+// There is no Small/Normal/Large picker any more (dietitian, 2026-10-07):
+// one real size per food. The fix tells them the size instead.
+await check("no size picker in the meal builder", async () =>
+  (await page.getByRole("button", { name: "Small" }).filter({ visible: true }).count()) === 0,
 );
-// Scoped to the meal answer: today's meal card at the top of the page also
-// carries a "Good to eat" pill, and an unscoped locator matches both.
-await check("green answer word is obvious", async () =>
-  visible(
-    // Visible only: the doctor's report (a hidden tab) carries a "Good to eat"
-    // tile whenever the QA account has logged a meal this month.
-    page.locator("main").getByText("Good to eat", { exact: true }).filter({ visible: true }).last(),
-  ),
+await check("yellow meal names the safe size as its fix", async () =>
+  visible(page.getByText("Eat less", { exact: false }).filter({ visible: true }).first()),
 );
 
 // The meal builder answers "how often", the way a single food card does. The

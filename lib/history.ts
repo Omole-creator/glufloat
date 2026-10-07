@@ -332,6 +332,40 @@ async function foodCounts(verdict?: Verdict): Promise<Map<string, number>> {
   return counts;
 }
 
+const foodIdByName = new Map(FOODS.map((f) => [f.name, f.id]));
+
+/**
+ * How many times each food (by id) was logged as eaten in the last 7 days,
+ * counting every "I ate this", whatever screen it came from. The snack card
+ * reads it to keep a 3-times-a-week fruit to 3 times a week. Uses the saved
+ * `food_ids` when the row has them, else the names in the label. Empty on
+ * any failure, so the worst case is the old behaviour.
+ */
+export async function foodCountsThisWeek(): Promise<Map<string, number>> {
+  const counts = new Map<string, number>();
+  try {
+    const supabase = createClient();
+    const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    const withIds = await supabase.from("meal_checks").select("kind,label,food_ids").gte("checked_at", since);
+    const rows: unknown[] = withIds.error
+      ? ((await supabase.from("meal_checks").select("kind,label").gte("checked_at", since)).data ?? [])
+      : (withIds.data ?? []);
+    for (const raw of rows) {
+      const r = raw as { kind: string; label: string; food_ids?: string[] | null };
+      const ids =
+        Array.isArray(r.food_ids) && r.food_ids.length > 0
+          ? r.food_ids
+          : (r.kind === "single" ? [r.label] : String(r.label).split(",").map((x) => x.trim()))
+              .map((n) => foodIdByName.get(n))
+              .filter((x): x is string => !!x);
+      for (const id of new Set(ids)) counts.set(id, (counts.get(id) ?? 0) + 1);
+    }
+  } catch {
+    /* empty map on failure */
+  }
+  return counts;
+}
+
 /** A date shifted into Nigerian time (WAT, GMT+1), same helper as lib/intake.ts,
  *  so "today" agrees with the rest of the app's meal-time/day logic. */
 function wat(ms: number): Date {

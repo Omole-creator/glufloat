@@ -7,7 +7,7 @@ import { cleanFoodName } from "@/lib/foodName";
 import { dangerLine, echoLine, formatBoth, parseReading } from "@/lib/glucose";
 import { giveHealthConsent, hasHealthConsent } from "@/lib/glucoseLog";
 import { saveCheck } from "@/lib/history";
-import { dueAt, firstSentence, timeLabel } from "@/lib/mealResponse";
+import { LESS_AMOUNTS, MORE_AMOUNTS, dueAt, firstSentence, sizeFactor, timeLabel } from "@/lib/mealResponse";
 import { pendingBeforeTest, startMealTest } from "@/lib/mealTestLog";
 import { enablePush, pushConfigured, pushPermission, pushSupported } from "@/lib/push";
 import { showToast } from "./Toast";
@@ -17,6 +17,8 @@ export interface SheetItem {
   portion: PortionSize;
   /** The blue card's bigger serving, in grams, when this plate came from it. */
   grams?: number;
+  /** That bigger serving's calories. Without it, the food's own calories. */
+  calories?: number;
 }
 
 const AMOUNTS: { key: PortionSize; label: string; aria: string }[] = [
@@ -69,6 +71,8 @@ export default function StartMealSheet({
   const [step, setStep] = useState<Step>("when");
   const [eatingNow, setEatingNow] = useState(true);
   const [amounts, setAmounts] = useState<PortionSize[]>([]);
+  // After "Less" or "More": how much less or more (lib/mealResponse.ts).
+  const [howMuch, setHowMuch] = useState<(string | null)[]>([]);
   const [typed, setTyped] = useState("");
   const [needConsent, setNeedConsent] = useState(false);
   const [agreed, setAgreed] = useState(false);
@@ -84,6 +88,7 @@ export default function StartMealSheet({
     setStep("when");
     setEatingNow(true);
     setAmounts(items.map((i) => i.portion));
+    setHowMuch(items.map(() => null));
     setTyped("");
     setAgreed(false);
     setProblem("");
@@ -100,8 +105,26 @@ export default function StartMealSheet({
   const refer = parsed ? dangerLine(parsed.mgdl) : null;
   const sizes = items.map((it, i) => {
     const a = amounts[i] ?? it.portion;
-    return a === "normal" && it.grams ? `${it.grams}g` : a;
+    if (a === "normal") return it.grams ? `${it.grams}g` : a;
+    return howMuch[i] ?? a;
   });
+  // Calories as really eaten: today's size of each food, times how much
+  // less or more. Saved on the meal so "calories left today" is true.
+  const calories = Math.round(
+    items.reduce((sum, it, i) => sum + (it.calories ?? it.food.calories ?? 0) * sizeFactor(sizes[i]), 0),
+  );
+  // A "Less" or "More" with no "how much" picked yet.
+  const missingHowMuch = items.findIndex((it, i) => {
+    const a = amounts[i] ?? it.portion;
+    return a !== "normal" && !howMuch[i];
+  });
+  const askHowMuch = () => {
+    if (missingHowMuch === -1) return true;
+    const a = amounts[missingHowMuch] ?? items[missingHowMuch].portion;
+    const name = cleanFoodName(items[missingHowMuch].food.name);
+    setProblem(`Tap how much ${a === "large" ? "more" : "less"} ${name} you ate.`);
+    return false;
+  };
   const foodIds = items.map((i) => i.food.id);
   const ateMore = amounts.some((a) => a === "large");
 
@@ -117,8 +140,9 @@ export default function StartMealSheet({
   };
 
   const saveEaten = async () => {
+    if (!askHowMuch()) return;
     setBusy(true);
-    const id = await saveCheck(kind, label, verdict, undefined, { foodIds, sizes });
+    const id = await saveCheck(kind, label, verdict, calories, { foodIds, sizes });
     setBusy(false);
     if (id === null) {
       setProblem("This did not save. Check your internet and try again.");
@@ -142,7 +166,7 @@ export default function StartMealSheet({
     setBusy(true);
     setProblem("");
     if (before && needConsent && agreed) await giveHealthConsent();
-    const res = await startMealTest({ kind, label, verdict, foodIds, sizes, before });
+    const res = await startMealTest({ kind, label, verdict, foodIds, sizes, calories, before });
     setBusy(false);
     if (!res) {
       setProblem("This did not save. Check your internet and try again.");
@@ -258,13 +282,19 @@ export default function StartMealSheet({
                             <button
                               key={a.key}
                               type="button"
-                              onClick={() =>
+                              onClick={() => {
+                                setProblem("");
                                 setAmounts((cur) => {
                                   const next = [...cur];
                                   next[i] = a.key;
                                   return next;
-                                })
-                              }
+                                });
+                                setHowMuch((cur) => {
+                                  const next = [...cur];
+                                  next[i] = null;
+                                  return next;
+                                });
+                              }}
                               aria-pressed={active}
                               aria-label={`${a.aria} ${name}`}
                               className={`rounded-full py-2 text-xs font-bold transition-colors ${
@@ -276,6 +306,39 @@ export default function StartMealSheet({
                           );
                         })}
                       </div>
+                      {current !== "normal" && (
+                        <div className="mt-2.5">
+                          <p className="text-xs font-semibold text-ink">
+                            About how much {current === "large" ? "more" : "less"}?
+                          </p>
+                          <div className="mt-1.5 flex flex-wrap gap-1.5">
+                            {(current === "large" ? MORE_AMOUNTS : LESS_AMOUNTS).map((h) => {
+                              const on = howMuch[i] === h.key;
+                              return (
+                                <button
+                                  key={h.key}
+                                  type="button"
+                                  onClick={() => {
+                                    setProblem("");
+                                    setHowMuch((cur) => {
+                                      const next = [...cur];
+                                      next[i] = h.key;
+                                      return next;
+                                    });
+                                  }}
+                                  aria-pressed={on}
+                                  aria-label={`${h.label} ${name}`}
+                                  className={`rounded-full px-3 py-1.5 text-xs font-bold ring-1 transition-colors ${
+                                    on ? "bg-brand text-white ring-brand" : "bg-white text-ink-soft ring-line hover:text-ink"
+                                  }`}
+                                >
+                                  {h.label}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -287,7 +350,7 @@ export default function StartMealSheet({
               )}
               {problem && <p className="mt-3 text-sm font-semibold text-verdict-red">{problem}</p>}
               {eatingNow ? (
-                <button type="button" onClick={() => setStep("test")} className={`${primary} mt-6`}>
+                <button type="button" onClick={() => askHowMuch() && setStep("test")} className={`${primary} mt-6`}>
                   Next
                 </button>
               ) : (

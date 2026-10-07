@@ -758,6 +758,39 @@ for (const meal of MEALS) {
   }
 }
 
+// ---- Weekly-limited fruit (apple, guava: 3 times a week) -------------------
+// Founder, 2026-10-07: once a person has eaten one 3 times in 7 days, the
+// snack card must stop offering it. Under the limit, it must still appear.
+{
+  const full = new Map([["apple", 3], ["guava", 3]]);
+  const seenUnder = new Set<string>();
+  for (const gap of [100, 150, 250, 400, 700]) {
+    for (let d = 1; d <= 28; d++) {
+      for (const meal of ["breakfast", "lunch", "dinner"] as const) {
+        const day = `2026-10-${String(d).padStart(2, "0")}`;
+        for (const v of suggestExtras(gap, day, meal, [], "", full)?.variants ?? []) {
+          for (const it of v.items) {
+            if (it.food.id === "apple" || it.food.id === "guava") {
+              fail(`${it.food.id} offered after 3 times this week (${meal}, ${day}, gap ${gap})`);
+            }
+          }
+        }
+        for (const v of suggestExtras(gap, day, meal, [], "", new Map([["apple", 2]]))?.variants ?? []) {
+          for (const it of v.items) {
+            seenUnder.add(it.food.id);
+            if ((it.food.id === "apple" || it.food.id === "guava") && it.units !== 1) {
+              fail(`${it.food.id} scaled past one fruit`);
+            }
+          }
+        }
+      }
+    }
+  }
+  if (!seenUnder.has("apple") && !seenUnder.has("guava")) {
+    fail("apple and guava never offered even under their weekly limit");
+  }
+}
+
 if (problems.length) {
   console.error(`\n${problems.length} problem(s):\n`);
   problems.forEach((p) => console.error("  " + p));
