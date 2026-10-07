@@ -1,18 +1,18 @@
 import { NextResponse } from "next/server";
 import { isAdmin } from "@/lib/adminSession";
-import { addContact, mailerliteConfigured, GROUP_NAME } from "@/lib/mailerlite";
+import { addContact, mailyteConfigured, GROUP_NAME } from "@/lib/mailyte";
 
 export const dynamic = "force-dynamic";
 
 /**
- * Add one person by hand, straight into a MailerLite group: somebody met at a
+ * Add one person by hand, straight onto a Mailyte list: somebody met at a
  * clinic or an event who agreed to get emails. Only with their yes, which the
  * form makes you tick. They are not added to GluFloat's own user list.
  */
 export async function POST(request: Request) {
   if (!(await isAdmin())) return NextResponse.json({ error: "Not signed in." }, { status: 401 });
-  if (!mailerliteConfigured()) {
-    return NextResponse.json({ error: "Add MAILERLITE_API_KEY in Vercel first." }, { status: 400 });
+  if (!mailyteConfigured()) {
+    return NextResponse.json({ error: "Add MAILYTE_API_KEY in Vercel first." }, { status: 400 });
   }
   const b = (await request.json().catch(() => ({}))) as {
     email?: string;

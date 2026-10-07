@@ -1,7 +1,7 @@
--- #20: Whether a person said yes to GluFloat emails (MailerLite).
+-- #20: Whether a person said yes to GluFloat emails (Mailyte).
 --
--- MailerLite only lets us email people who said yes, and the law (NDPA) says
--- the same. Sign-up never asked, so nobody is assumed to have said yes.
+-- Mailyte and the law (NDPA) only let us email people who said yes.
+-- Sign-up never asked, so nobody is assumed to have said yes.
 --   null  = not asked yet
 --   true  = yes, email me
 --   false = no (or stopped)

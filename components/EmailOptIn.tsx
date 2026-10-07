@@ -6,7 +6,7 @@ import { readEmailConsent, saveEmailConsent } from "@/lib/emailConsent";
 import { showToast } from "./Toast";
 
 /**
- * "Can we email you?" on the My details tab. MailerLite (and the law) only
+ * "Can we email you?" on the My details tab. Mailyte (and the law) only
  * let us email people who said yes, and sign-up never asked. /admin/email
  * sends only the people who tapped yes here. Renders nothing until the SQL
  * (supabase/email-consent-schema.sql) has been run.

@@ -11,12 +11,12 @@ export default function SyncButton({ disabled }: { disabled: boolean }) {
     setBusy(true);
     setMsg(null);
     try {
-      const res = await fetch("/api/admin/mailerlite", { method: "POST" });
+      const res = await fetch("/api/admin/mailyte", { method: "POST" });
       const body = await res.json();
       if (!res.ok) {
         setMsg({ ok: false, text: body.error ?? "It did not work. Try again." });
       } else {
-        const parts = [`${body.sent} sent to MailerLite`];
+        const parts = [`${body.sent} sent to Mailyte`];
         if (body.stopped) parts.push(`${body.stopped} marked unsubscribed`);
         if (body.failed) parts.push(`${body.failed} failed`);
         setMsg({ ok: !body.failed, text: `Done. ${parts.join(", ")}.` });
@@ -36,7 +36,7 @@ export default function SyncButton({ disabled }: { disabled: boolean }) {
         className="inline-flex items-center gap-2 rounded-full bg-leaf px-5 py-2.5 text-sm font-bold text-white hover:bg-leaf-deep disabled:opacity-50"
       >
         <RefreshCw className={`h-4 w-4 ${busy ? "animate-spin" : ""}`} />
-        {busy ? "Sending..." : "Send list to MailerLite"}
+        {busy ? "Sending..." : "Send list to Mailyte"}
       </button>
       {msg && <p className={`text-sm font-semibold ${msg.ok ? "text-leaf-deep" : "text-verdict-red"}`}>{msg.text}</p>}
     </div>

@@ -12,7 +12,7 @@ const BOM = String.fromCharCode(0xfeff);
 const GROUPS = ["diabetic", "health_pro", "caregiver", "unset", "all"] as const;
 
 /**
- * The email list as a CSV that Excel opens and MailerLite imports.
+ * The email list as a CSV that Excel opens and Mailyte imports.
  * ?group=diabetic|health_pro|caregiver|unset|all, and ?only=yes for just the
  * people who said yes to emails (the only ones you may email).
  */

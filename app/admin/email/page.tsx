@@ -3,7 +3,7 @@ import { isAdmin } from "@/lib/adminSession";
 import { createAdminClient } from "@/lib/supabase/server";
 import { isInternalEmail } from "@/lib/internalAccounts";
 import { isUserType } from "@/lib/userType";
-import { GROUP_NAME, mailerliteConfigured } from "@/lib/mailerlite";
+import { GROUP_NAME, mailyteConfigured } from "@/lib/mailyte";
 import AdminLogin from "../AdminLogin";
 import AdminShell from "../AdminShell";
 import AdminCard from "../AdminCard";
@@ -21,8 +21,8 @@ const ROWS: { key: keyof typeof GROUP_NAME; label: string }[] = [
 ];
 
 /**
- * Emails to users, through MailerLite. This screen sends the list (who said
- * yes, grouped by who they are); the email itself is written in MailerLite.
+ * Emails to users, through Mailyte. This screen sends the list (who said
+ * yes, grouped by who they are); the email itself is written in Mailyte.
  */
 export default async function EmailPage() {
   if (!(await isAdmin())) return <AdminLogin />;
@@ -46,10 +46,10 @@ export default async function EmailPage() {
     table[k].total += 1;
     if (v === true) table[k].yes += 1;
   }
-  const keyOn = mailerliteConfigured();
+  const keyOn = mailyteConfigured();
 
   return (
-    <AdminShell title="Email" subtitle="Send your users' list to MailerLite, sorted by who they are.">
+    <AdminShell title="Email" subtitle="Send your users' list to Mailyte, sorted by who they are.">
       {!ready && (
         <div className="mb-4 rounded-2xl border border-verdict-yellow/60 bg-verdict-yellow/10 p-4 text-sm text-ink">
           Waiting for the database update. Run <code>supabase/email-consent-schema.sql</code> in Supabase.
@@ -57,7 +57,7 @@ export default async function EmailPage() {
       )}
       {!keyOn && (
         <div className="mb-4 rounded-2xl border border-verdict-yellow/60 bg-verdict-yellow/10 p-4 text-sm text-ink">
-          MailerLite is not connected. Add <code>MAILERLITE_API_KEY</code> in Vercel, then deploy again.
+          Mailyte is not connected. Add <code>MAILYTE_API_KEY</code> in Vercel, then deploy again.
         </div>
       )}
 
@@ -67,12 +67,12 @@ export default async function EmailPage() {
         <AdminTile label="Said no" value={String(count.no)} sub="Marked unsubscribed" icon={XCircle} tone="red" />
       </div>
 
-      <AdminCard className="mt-4" title="Groups in MailerLite" sub="Each person goes into one group." flush>
+      <AdminCard className="mt-4" title="Lists in Mailyte" sub="Each person goes on one list." flush>
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-line text-left text-xs uppercase tracking-wider text-ink-soft">
               <th className="px-5 py-2 sm:px-6">Who</th>
-              <th className="px-3 py-2">Group name</th>
+              <th className="px-3 py-2">List name</th>
               <th className="px-3 py-2 text-right">Said yes</th>
               <th className="px-3 py-2 text-right">All users</th>
               <th className="px-5 py-2 text-right sm:px-6">List</th>
@@ -87,7 +87,7 @@ export default async function EmailPage() {
                 <td className="px-3 py-3 text-right text-ink-soft">{table[r.key].total}</td>
                 <td className="px-5 py-3 text-right sm:px-6">
                   <a
-                    href={`/api/admin/mailerlite/export?group=${r.key}&only=yes`}
+                    href={`/api/admin/mailyte/export?group=${r.key}&only=yes`}
                     aria-label={`Download ${r.label.toLowerCase()} who said yes`}
                     className="font-bold text-leaf-deep hover:underline"
                   >
@@ -99,10 +99,10 @@ export default async function EmailPage() {
           </tbody>
         </table>
         <div className="flex flex-wrap gap-x-5 gap-y-2 border-t border-line px-5 py-4 text-sm sm:px-6">
-          <a href="/api/admin/mailerlite/export?group=all&only=yes" className="font-bold text-leaf-deep hover:underline">
+          <a href="/api/admin/mailyte/export?group=all&only=yes" className="font-bold text-leaf-deep hover:underline">
             Download everyone who said yes
           </a>
-          <a href="/api/admin/mailerlite/export?group=all" className="font-bold text-ink-soft hover:underline">
+          <a href="/api/admin/mailyte/export?group=all" className="font-bold text-ink-soft hover:underline">
             Download all users, with their answer
           </a>
         </div>
@@ -110,24 +110,24 @@ export default async function EmailPage() {
 
       <AdminCard className="mt-4" title="Send an email">
         <ol className="list-decimal space-y-1.5 pl-5 text-sm text-ink">
-          <li>Press the button to send the latest list to MailerLite.</li>
+          <li>Press the button to send the latest list to Mailyte.</li>
           <li>
-            In MailerLite, make a new campaign and write your email. Send it from one of our addresses:
+            In Mailyte, make a new campaign and write your email. Send it from one of our addresses:
             <span className="font-semibold"> care@glufloat.com</span> for diabetics and caregivers,
             <span className="font-semibold"> omole@glufloat.com</span> for health professionals, and
             <span className="font-semibold"> support@glufloat.com</span> as the reply address.
           </li>
-          <li>Pick the group to send it to: diabetics, health professionals, or caregivers.</li>
+          <li>Pick the list to send it to: diabetics, health professionals, or caregivers.</li>
         </ol>
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <SyncButton disabled={!ready || !keyOn} />
           <a
-            href="https://dashboard.mailerlite.com"
+            href="https://app.mailyte.com"
             target="_blank"
             rel="noreferrer"
             className="text-sm font-bold text-leaf-deep hover:underline"
           >
-            Open MailerLite &rarr;
+            Open Mailyte &rarr;
           </a>
         </div>
       </AdminCard>
@@ -135,7 +135,7 @@ export default async function EmailPage() {
       <AdminCard
         className="mt-4"
         title="Add a contact"
-        sub="Someone who is not a GluFloat user yet, but asked for our emails. Goes straight into MailerLite."
+        sub="Someone who is not a GluFloat user yet, but asked for our emails. Goes straight into Mailyte."
       >
         <AddContact disabled={!keyOn} />
       </AdminCard>

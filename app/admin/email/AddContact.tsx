@@ -13,7 +13,7 @@ const WHO = [
 const field =
   "w-full rounded-xl border border-line bg-white px-3.5 py-2.5 text-sm text-ink outline-none focus:border-brand";
 
-/** Add one person straight into a MailerLite group. */
+/** Add one person straight onto a Mailyte list. */
 export default function AddContact({ disabled }: { disabled: boolean }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -27,7 +27,7 @@ export default function AddContact({ disabled }: { disabled: boolean }) {
     setBusy(true);
     setMsg(null);
     try {
-      const res = await fetch("/api/admin/mailerlite/contact", {
+      const res = await fetch("/api/admin/mailyte/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, group, agreed }),
