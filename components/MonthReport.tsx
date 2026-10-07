@@ -22,7 +22,11 @@ import {
   looseMonthReadings,
 } from "@/lib/glucoseLog";
 import { type Hba1c, deleteHba1c, formatHba1c, latestHba1c } from "@/lib/hba1c";
+import { formatChange, mealTestNumber, minutesLabel } from "@/lib/mealResponse";
+import { mealTestReport, periodLabel, trendPoints } from "@/lib/mealTestReport";
+import { accessOnce } from "@/lib/useAccess";
 import CollapsibleCard from "./CollapsibleCard";
+import SugarTrend from "./SugarTrend";
 
 // Glufloat brand colours (from app/globals.css), as RGB for jsPDF.
 const BRAND = [27, 95, 170] as const; // --blue
@@ -71,6 +75,14 @@ export default function MonthReport({
   // not days, so it is not cut to this month like everything else here.
   const [hba1c, setHba1c] = useState<Hba1c | null>(null);
   const [busy, setBusy] = useState(false);
+  // The patient's name heads the report (founder's call, 2026-10-07): it goes
+  // to their own doctor, who needs to know whose numbers these are.
+  const [patient, setPatient] = useState<string | null>(null);
+  useEffect(() => {
+    void accessOnce()
+      .then((a) => setPatient(a.name))
+      .catch(() => setPatient(null));
+  }, []);
 
   /**
    * Re-read whenever the record changes, not only on mount.
@@ -106,7 +118,13 @@ export default function MonthReport({
   // morning and logs nothing else still has something worth handing over.
   const hasData = list.length > 0 || loose.length > 0 || hba1c !== null;
   const anyReadings =
-    loose.length > 0 || hba1c !== null || list.some((i) => i.readings.length > 0);
+    loose.length > 0 ||
+    hba1c !== null ||
+    list.some((i) => i.readings.length > 0 || i.beforeReadings.length > 0);
+  // The dietitian's Meal–Glucose Report: one builder for screen, PDF and text.
+  const report = mealTestReport(list);
+  const points = trendPoints(list, loose);
+  const period = periodLabel();
   const tally = (items: CheckedMeal[]) => ({
     total: items.length,
     green: items.filter((i) => i.verdict === "green").length,
@@ -137,6 +155,7 @@ export default function MonthReport({
         ? cur.map((i) => ({
             ...i,
             readings: i.readings.filter((r) => r.id !== id),
+            beforeReadings: i.beforeReadings.filter((r) => r.id !== id),
           }))
         : cur,
     );
@@ -179,7 +198,11 @@ export default function MonthReport({
     doc.text("Glufloat", M, 15);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(11);
-    doc.text("Food record for the doctor", M, 23);
+    doc.text(
+      report.rows.length > 0 ? "Meal-Glucose Report for the doctor" : "Food record for the doctor",
+      M,
+      23,
+    );
 
     ink(INK);
     doc.setFont("helvetica", "bold");
@@ -193,6 +216,8 @@ export default function MonthReport({
     );
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
+    ink(INK);
+    doc.text(patient ? `Patient: ${patient}    Period: ${period}` : `Period: ${period}`, M, 51);
     doc.setTextColor(110);
     doc.text(
       `${counts.total} ${counts.total === 1 ? "meal" : "meals"}  ·  prepared ${new Date().toLocaleDateString(
@@ -200,13 +225,13 @@ export default function MonthReport({
         { day: "numeric", month: "long", year: "numeric" },
       )}`,
       M,
-      51,
+      57,
     );
 
     // Three colour count boxes.
     const boxW = 58;
     const gap = 6;
-    const boxY = 58;
+    const boxY = 64;
     const boxes: [keyof typeof V, number][] = [
       ["green", counts.green],
       ["yellow", counts.yellow],
@@ -228,8 +253,169 @@ export default function MonthReport({
       doc.text(MEANING[k], x + 5, boxY + 18);
     });
 
+    let y = 98;
+    const nextPageIfNeeded = (limit: number) => {
+      if (y > limit) {
+        doc.addPage();
+        y = 20;
+      }
+    };
+    const band = (title: string, note?: string) => {
+      nextPageIfNeeded(255);
+      fill([235, 242, 250]);
+      doc.roundedRect(M - 2, y - 5, 182, 9, 1.5, 1.5, "F");
+      ink(BRAND);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.text(title, M + 1, y + 1);
+      if (note) {
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(8);
+        doc.setTextColor(90);
+        doc.text(note, M + 75, y + 1);
+      }
+      y += 12;
+    };
+
+    // ---- The Meal-Glucose Report (the dietitian's design) -----------------
+    // Each meal with its own sugar before, 2 hours after, and the change. Only
+    // numbers: no colour on a test and no word about whether it is good.
+    if (report.rows.length > 0) {
+      band(
+        "Meals with sugar tests",
+        `${report.stats.meals} ${report.stats.meals === 1 ? "meal" : "meals"} recorded  ·  ${report.stats.complete} complete meal and sugar ${report.stats.complete === 1 ? "record" : "records"}`,
+      );
+      const col = { date: M, meal: M + 20, before: 124, after: 146, change: 172 };
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8);
+      doc.setTextColor(90);
+      doc.text("Date", col.date, y);
+      doc.text("Meal and how much", col.meal, y);
+      doc.text("Before", col.before, y);
+      doc.text("2h after", col.after, y);
+      doc.text("Change", col.change, y);
+      y += 2;
+      doc.setDrawColor(220);
+      doc.line(M, y, M + 180, y);
+      y += 5;
+      for (const r of report.rows) {
+        const mealLines = (doc.splitTextToSize(r.shown, 100) as string[]).slice(0, 2);
+        const portionLines = (doc.splitTextToSize(r.portion, 100) as string[]).slice(0, 2);
+        nextPageIfNeeded(280 - (mealLines.length + portionLines.length) * 4);
+        const top = y;
+        ink(INK);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9);
+        doc.text(r.date, col.date, top);
+        doc.setFontSize(7.5);
+        doc.setTextColor(120);
+        doc.text(r.time, col.date, top + 4);
+        ink(INK);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(9);
+        mealLines.forEach((l, k) => doc.text(l, col.meal, top + k * 4.2));
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(7.5);
+        doc.setTextColor(110);
+        portionLines.forEach((l, k) =>
+          doc.text(l, col.meal, top + mealLines.length * 4.2 + k * 3.6),
+        );
+        ink(INK);
+        doc.setFontSize(9);
+        doc.text(r.before !== null ? String(Math.round(r.before)) : "-", col.before, top);
+        doc.text(r.after !== null ? String(Math.round(r.after)) : "-", col.after, top);
+        if (r.after !== null && !r.complete && r.minutesAfter !== null) {
+          doc.setFontSize(7.5);
+          doc.setTextColor(120);
+          doc.text(`at ${minutesLabel(r.minutesAfter)}`, col.after, top + 4);
+          ink(INK);
+          doc.setFontSize(9);
+        }
+        doc.setFont("helvetica", "bold");
+        doc.text(r.change !== null ? formatChange(r.change).replace(" mg/dL", "") : "-", col.change, top);
+        doc.setFont("helvetica", "normal");
+        y = top + Math.max(8, mealLines.length * 4.2 + portionLines.length * 3.6 + 2);
+        doc.setDrawColor(238);
+        doc.line(M, y - 3, M + 180, y - 3);
+        y += 1;
+      }
+      doc.setFontSize(7.5);
+      doc.setTextColor(120);
+      doc.text("All sugar numbers in mg/dL. A dash means no test was saved.", M, y);
+      y += 8;
+    }
+
+    // ---- The sugar trend, every test this month as one line -------------
+    if (points.length >= 2) {
+      nextPageIfNeeded(215);
+      band("My sugar tests this month", `${points.length} tests, mg/dL`);
+      const gx = M + 12;
+      const gw = 166;
+      const gh = 40;
+      const gy = y;
+      const ts = points.map((p) => new Date(p.takenAt).getTime());
+      const t0 = Math.min(...ts);
+      const t1 = Math.max(...ts);
+      const vs = points.map((p) => p.mgdl);
+      const lo = Math.floor((Math.min(...vs) - 10) / 20) * 20;
+      const hi = Math.ceil((Math.max(...vs) + 10) / 20) * 20;
+      const px = (t: number) => gx + ((t - t0) / Math.max(1, t1 - t0)) * gw;
+      const py = (v: number) => gy + (1 - (v - lo) / Math.max(1, hi - lo)) * gh;
+      doc.setDrawColor(225);
+      doc.setLineWidth(0.2);
+      doc.setFontSize(7);
+      doc.setTextColor(120);
+      for (const v of [lo, Math.round((lo + hi) / 2), hi]) {
+        doc.line(gx, py(v), gx + gw, py(v));
+        doc.text(String(v), gx - 2, py(v) + 1, { align: "right" });
+      }
+      doc.setDrawColor(BRAND[0], BRAND[1], BRAND[2]);
+      doc.setLineWidth(0.6);
+      for (let k = 1; k < points.length; k++) {
+        doc.line(px(ts[k - 1]), py(vs[k - 1]), px(ts[k]), py(vs[k]));
+      }
+      fill(BRAND);
+      for (let k = 0; k < points.length; k++) doc.circle(px(ts[k]), py(vs[k]), 0.9, "F");
+      doc.setLineWidth(0.2);
+      doc.setTextColor(120);
+      doc.text(readingWhen(points[0].takenAt), gx, gy + gh + 5);
+      doc.text(readingWhen(points[points.length - 1].takenAt), gx + gw, gy + gh + 5, { align: "right" });
+      y = gy + gh + 13;
+    }
+
+    // ---- Meal pattern and observations ------------------------------------
+    if (report.rows.length > 0 && report.pattern.length > 0) {
+      band("Meals logged most often");
+      doc.setFontSize(9);
+      ink(INK);
+      for (const p of report.pattern) {
+        nextPageIfNeeded(285);
+        doc.text(`${p.shown}: ${p.count} ${p.count === 1 ? "time" : "times"}`, M + 2, y);
+        y += 5;
+      }
+      y += 4;
+    }
+    if (report.observations.length > 0) {
+      band("What the records show");
+      doc.setFontSize(9);
+      report.observations.forEach((o, k) => {
+        const last = k === report.observations.length - 1;
+        doc.setTextColor(last ? 120 : 40);
+        doc.setFont("helvetica", last ? "italic" : "normal");
+        for (const line of doc.splitTextToSize(o, 176) as string[]) {
+          nextPageIfNeeded(285);
+          doc.text(line, M + 2, y);
+          y += 4.6;
+        }
+        y += 1.5;
+      });
+      doc.setFont("helvetica", "normal");
+      y += 4;
+    }
+
     // The food list, each meal with the size of every food in it.
-    let y = 92;
+    nextPageIfNeeded(250);
+
     ink(INK);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(12);
@@ -241,13 +427,6 @@ export default function MonthReport({
       y,
     );
     y += 9;
-
-    const nextPageIfNeeded = (limit: number) => {
-      if (y > limit) {
-        doc.addPage();
-        y = 20;
-      }
-    };
 
     for (const week of weeks) {
       const wc = tally(week.items);
@@ -303,9 +482,18 @@ export default function MonthReport({
         // thing on the page that came from the patient's own body rather than
         // from us. Deliberately NOT graded, coloured or commented on. The number
         // and the timing, and the doctor reads it.
+        for (const r of it.beforeReadings) {
+          nextPageIfNeeded(285);
+          ink(BRAND);
+          doc.setFont("helvetica", "bold");
+          doc.text(`Sugar test before eating: ${formatBoth(r.mgdl)}`, M + 8, y);
+          doc.setFont("helvetica", "normal");
+          doc.setTextColor(90);
+          y += 5;
+        }
         for (const r of it.readings) {
           nextPageIfNeeded(285);
-          const gap = gapLabel(it.checkedAt, r.takenAt);
+          const gap = gapLabel(it.startedAt ?? it.checkedAt, r.takenAt);
           const line = `Sugar test: ${formatBoth(r.mgdl)}${gap ? `, ${gap}` : ""}`;
           ink(BRAND);
           doc.setFont("helvetica", "bold");
@@ -408,9 +596,12 @@ export default function MonthReport({
           kind: i.kind,
           checkedAt: i.checkedAt,
           readings: i.readings,
+          beforeReadings: i.beforeReadings,
+          startedAt: i.startedAt,
         })),
         loose,
         hba1c ? formatHba1c(hba1c) : null,
+        { patient, period, report },
       );
       window.open(
         `https://wa.me/?text=${encodeURIComponent(text)}`,
@@ -500,6 +691,74 @@ export default function MonthReport({
             <Tile n={counts.red} label={MEANING.red} dot={DOT.red} />
           </div>
 
+          {/* The Meal-Glucose Report on screen: the same rows, counts and
+              observations as the PDF and the WhatsApp text
+              (lib/mealTestReport.ts), so all three tell one story. */}
+          {report.rows.length > 0 && (
+            <div className="mt-4 rounded-2xl p-3 ring-1 ring-brand/15">
+              <p className="font-display text-sm font-bold text-brand">Meals with sugar tests</p>
+              <p className="text-xs text-ink-soft">
+                {report.stats.meals} {report.stats.meals === 1 ? "meal" : "meals"} recorded ·{" "}
+                {report.stats.complete} complete meal and sugar{" "}
+                {report.stats.complete === 1 ? "record" : "records"}
+              </p>
+              <ul className="mt-2 max-h-72 space-y-2 overflow-y-auto">
+                {[...report.rows].reverse().map((r) => (
+                  <li key={r.id} className="rounded-xl bg-mist/70 px-3 py-2.5">
+                    <p className="text-xs text-ink-soft">
+                      {r.date}, {r.time} · Record {mealTestNumber(r.id)}
+                    </p>
+                    <p className="text-sm font-bold text-ink">{r.shown}</p>
+                    <p className="text-xs text-ink-soft">{r.portion}</p>
+                    <div className="mt-1.5 grid grid-cols-3 gap-1 text-center">
+                      <div>
+                        <p className="text-[10px] font-semibold uppercase tracking-wide text-ink-soft">Before</p>
+                        <p className="text-sm font-bold text-ink">{r.before !== null ? Math.round(r.before) : "-"}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-semibold uppercase tracking-wide text-ink-soft">
+                          {r.after !== null && !r.complete && r.minutesAfter !== null
+                            ? `${minutesLabel(r.minutesAfter)} after`
+                            : "2h after"}
+                        </p>
+                        <p className="text-sm font-bold text-ink">{r.after !== null ? Math.round(r.after) : "-"}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-semibold uppercase tracking-wide text-ink-soft">Change</p>
+                        <p className="text-sm font-bold text-ink">
+                          {r.change !== null ? formatChange(r.change).replace(" mg/dL", "") : "-"}
+                        </p>
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-2 text-[11px] text-ink-soft">
+                Numbers in mg/dL. A dash means no test was saved.
+              </p>
+            </div>
+          )}
+
+          {points.length >= 2 && (
+            <div className="mt-4 rounded-2xl p-3 ring-1 ring-brand/15">
+              <SugarTrend points={points} />
+            </div>
+          )}
+
+          {report.observations.length > 0 && (
+            <div className="mt-4 rounded-2xl p-3 ring-1 ring-brand/15">
+              <p className="font-display text-sm font-bold text-brand">What your records show</p>
+              <ul className="mt-1.5 space-y-1.5 text-sm text-ink">
+                {report.observations.slice(0, -1).map((o) => (
+                  <li key={o}>{o}</li>
+                ))}
+              </ul>
+              <p className="mt-2 text-xs italic text-ink-soft">
+                {report.observations[report.observations.length - 1]}
+              </p>
+            </div>
+          )}
+
           <div className="mt-4 max-h-64 space-y-4 overflow-y-auto border-t border-line pt-3 text-sm">
             {weeks.map((w) => {
               const wc = tally(w.items);
@@ -531,9 +790,20 @@ export default function MonthReport({
                             <Trash2 className="h-4 w-4" />
                           </button>
                         </div>
+                        {i.beforeReadings.map((r) => (
+                          <p
+                            key={r.id}
+                            className="ml-5 mt-0.5 flex items-center gap-1.5 text-xs font-semibold text-brand"
+                          >
+                            <Droplet className="h-3 w-3 shrink-0" />
+                            {formatBoth(r.mgdl)}
+                            <span className="font-normal text-ink-soft">before eating</span>
+                            <ReadingBin r={r} />
+                          </p>
+                        ))}
                         {/* Their own number, said plainly, with no verdict on it. */}
                         {i.readings.map((r) => {
-                          const gap = gapLabel(i.checkedAt, r.takenAt);
+                          const gap = gapLabel(i.startedAt ?? i.checkedAt, r.takenAt);
                           return (
                             <p
                               key={r.id}

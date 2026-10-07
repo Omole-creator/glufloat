@@ -189,7 +189,10 @@ await page.waitForTimeout(400);
 await page.getByLabel("Search a food").fill("eba");
 // Names shown to a user go through cleanFoodName, which reads a slash as "or".
 // The stored name is still "Garri / Eba (cassava swallow)"; the screen is not.
-await page.getByText("Garri or Eba (cassava swallow)").first().click();
+// Visible only: the same name can sit in a hidden tab (a "you eat this a lot"
+// nudge on Today's meal) once the QA account has logged eba, and the first
+// match would then be one nobody can click.
+await page.getByText("Garri or Eba (cassava swallow)").filter({ visible: true }).first().click();
 await page.waitForTimeout(400);
 await check("eba verdict yellow", async () =>
   visible(page.getByText("Yellow. Eat with care.")),
@@ -220,7 +223,9 @@ await check("small size turns meal green", async () =>
 // carries a "Good to eat" pill, and an unscoped locator matches both.
 await check("green answer word is obvious", async () =>
   visible(
-    page.locator("main").getByText("Good to eat", { exact: true }).last(),
+    // Visible only: the doctor's report (a hidden tab) carries a "Good to eat"
+    // tile whenever the QA account has logged a meal this month.
+    page.locator("main").getByText("Good to eat", { exact: true }).filter({ visible: true }).last(),
   ),
 );
 

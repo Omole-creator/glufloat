@@ -34,7 +34,16 @@ export interface Reading {
   /** The canonical number. Every comparison in the app uses this one. */
   mgdl: number;
   takenAt: string; // ISO
+  /**
+   * Before or after a meal, when known (data-collection-schema.sql). Optional:
+   * rows written before that column existed, and reads that did not fetch it,
+   * leave it out. Only "before_meal" changes anything: a test taken BEFORE a
+   * meal is never shown or counted as that meal's result (lib/mealResponse.ts).
+   */
+  context?: ReadingContext | null;
 }
+
+export type ReadingContext = "before_meal" | "after_meal" | "other";
 
 /**
  * The conversion factor, derived rather than remembered.

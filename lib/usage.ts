@@ -16,7 +16,11 @@ export type UsageEvent =
   | "channel_join" // tapped the WhatsApp channel link
   | "check_this_meal" // tapped "check this meal for full details"
   | "reading_logged" // saved a blood sugar reading
-  | "hba1c_logged"; // saved a 3-month sugar test (HbA1c)
+  | "hba1c_logged" // saved a 3-month sugar test (HbA1c)
+  | "meal_test_started" // tapped "Start my meal" (a meal test, lib/mealResponse.ts)
+  | "meal_test_no_before" // ...and started it without a test before eating
+  | "meal_test_completed" // saved the 2-hour test on a started meal
+  | "meal_test_skipped"; // pressed "I will not test this time" on the 2-hour check
 
 export async function trackUsage(event: UsageEvent): Promise<void> {
   try {

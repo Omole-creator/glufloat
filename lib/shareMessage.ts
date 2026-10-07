@@ -5,6 +5,8 @@ import { cleanFoodName, displayLabel } from "./foodName";
 import { groupByWeek } from "./weeks";
 import { type Reading, formatBoth, gapLabel, readingWhen } from "./glucose";
 import { SITE_URL } from "./site";
+import { formatChange, mealTestNumber, minutesLabel } from "./mealResponse";
+import type { MealTestReport } from "./mealTestReport";
 
 /**
  * Turns a verdict card (or a whole meal) into a plain text message a person can
@@ -72,11 +74,50 @@ export function monthReportMessage(
     kind: "single" | "meal";
     checkedAt: string;
     readings: Reading[];
+    beforeReadings?: Reading[];
+    startedAt?: string | null;
   }[],
   loose: Reading[] = [],
   hba1c: string | null = null,
+  mealTests: { patient: string | null; period: string; report: MealTestReport } | null = null,
 ): string {
   const blocks: string[] = ["My food this month, from Glufloat."];
+
+  // The Meal-Glucose Report first, when there is one: it is what the doctor
+  // came for. Same rows, counts and observations as the screen and the PDF.
+  if (mealTests) {
+    const { patient, period, report } = mealTests;
+    blocks.push(
+      [
+        "GLUFLOAT MEAL-GLUCOSE REPORT",
+        ...(patient ? [`Patient: ${patient}`] : []),
+        `Period: ${period}`,
+      ].join("\n"),
+    );
+    if (report.rows.length > 0) {
+      const lines = [
+        `Meals recorded: ${report.stats.meals}`,
+        `Complete meal and sugar records: ${report.stats.complete}`,
+        "",
+      ];
+      for (const r of report.rows.slice(-30)) {
+        const after =
+          r.after === null
+            ? "-"
+            : `${Math.round(r.after)}${!r.complete && r.minutesAfter !== null ? ` (at ${minutesLabel(r.minutesAfter)})` : ""}`;
+        lines.push(
+          `${r.date}, ${r.time} (record ${mealTestNumber(r.id)}): ${r.shown}`,
+          `    How much: ${r.portion}`,
+          `    Before: ${r.before !== null ? Math.round(r.before) : "-"}  2h after: ${after}  Change: ${r.change !== null ? formatChange(r.change).replace(" mg/dL", "") : "-"}`,
+        );
+      }
+      lines.push("", "All sugar numbers in mg/dL. A dash means no test was saved.");
+      blocks.push(lines.join("\n"));
+    }
+    if (report.observations.length > 0) {
+      blocks.push(["What the records show:", ...report.observations.map((o) => `- ${o}`)].join("\n"));
+    }
+  }
 
   blocks.push(
     [
@@ -113,8 +154,11 @@ export function monthReportMessage(
         // Their own reading after this meal. Both units, the gap when it means
         // something, and no comment on the number. Same as the screen and the
         // PDF, which is the rule: all three tell the doctor one story.
+        for (const r of i.beforeReadings ?? []) {
+          lines.push(`    Sugar test before eating: ${formatBoth(r.mgdl)}`);
+        }
         for (const r of i.readings) {
-          const gap = gapLabel(i.checkedAt, r.takenAt);
+          const gap = gapLabel(i.startedAt ?? i.checkedAt, r.takenAt);
           lines.push(
             `    Sugar test: ${formatBoth(r.mgdl)}${gap ? `, ${gap}` : ""}`,
           );

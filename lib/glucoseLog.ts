@@ -63,6 +63,7 @@ function row(r: Record<string, unknown>): Reading {
     unit: r.unit as Reading["unit"],
     mgdl: Number(r.mgdl),
     takenAt: r.taken_at as string,
+    context: (r.context as Reading["context"]) ?? null,
   };
 }
 
@@ -112,6 +113,25 @@ export async function saveReading(
   }
 }
 
+/**
+ * Tie an existing test to a meal: a before-meal test saved in the sugar test box
+ * ("I have not eaten yet") just before the person started that meal. Uses the
+ * update rule glucose-schema.sql already grants on a person's own rows.
+ */
+export async function linkReadingToMeal(readingId: number, mealCheckId: number): Promise<boolean> {
+  try {
+    const { error } = await createClient()
+      .from("glucose_readings")
+      .update({ meal_check_id: mealCheckId })
+      .eq("id", readingId);
+    if (error) return false;
+    notifyReadingsChanged();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /** Remove one reading. */
 export async function deleteReading(id: number): Promise<void> {
   try {
@@ -133,12 +153,21 @@ export async function recentReadings(): Promise<Reading[]> {
   try {
     const since = new Date();
     since.setDate(since.getDate() - 90);
-    const { data } = await createClient()
+    const supabase = createClient();
+    // With the before/after mark first; without it if that column is missing.
+    const first = await supabase
       .from("glucose_readings")
-      .select("id,meal_check_id,value_raw,unit,mgdl,taken_at")
+      .select("id,meal_check_id,value_raw,unit,mgdl,taken_at,context")
       .gte("taken_at", since.toISOString())
       .order("taken_at", { ascending: false });
-    return (data ?? []).map((r) => row(r as Record<string, unknown>));
+    const res = !first.error
+      ? first
+      : await supabase
+        .from("glucose_readings")
+        .select("id,meal_check_id,value_raw,unit,mgdl,taken_at")
+        .gte("taken_at", since.toISOString())
+        .order("taken_at", { ascending: false });
+    return ((res.data ?? []) as Record<string, unknown>[]).map(row);
   } catch {
     return [];
   }
@@ -157,13 +186,22 @@ export async function looseMonthReadings(): Promise<Reading[]> {
   try {
     const now = new Date();
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-    const { data } = await createClient()
+    const supabase = createClient();
+    const first = await supabase
       .from("glucose_readings")
-      .select("id,meal_check_id,value_raw,unit,mgdl,taken_at")
+      .select("id,meal_check_id,value_raw,unit,mgdl,taken_at,context")
       .is("meal_check_id", null)
       .gte("taken_at", monthStart.toISOString())
       .order("taken_at", { ascending: true });
-    return (data ?? []).map((r) => row(r as Record<string, unknown>));
+    const res = !first.error
+      ? first
+      : await supabase
+        .from("glucose_readings")
+        .select("id,meal_check_id,value_raw,unit,mgdl,taken_at")
+        .is("meal_check_id", null)
+        .gte("taken_at", monthStart.toISOString())
+        .order("taken_at", { ascending: true });
+    return ((res.data ?? []) as Record<string, unknown>[]).map(row);
   } catch {
     return [];
   }

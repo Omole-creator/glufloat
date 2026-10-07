@@ -14,7 +14,9 @@ self.addEventListener("push", (event) => {
   event.waitUntil(
     self.registration.showNotification(title, {
       body,
-      tag: "glufloat-mealtime", // one reminder at a time, never a stack
+      // One reminder of each kind at a time, never a stack. The 2-hour meal
+      // test sends its own tag, so it never replaces a meal-time reminder.
+      tag: data.tag || "glufloat-mealtime",
       data: { url: data.url || "/app" },
     }),
   );

@@ -49,7 +49,20 @@ export interface MealCheck {
  * whole point of the doctor report.
  */
 export interface CheckedMeal extends MealCheck {
+  /**
+   * The tests the person took AFTER this meal (or attached with no "before"
+   * mark). Every older reader of this field (the pattern line, the recall line,
+   * the report) treats these as what the meal did, so a before-meal test must
+   * never be in here.
+   */
   readings: Reading[];
+  /** The test taken BEFORE this meal, if any (a meal test, lib/mealResponse.ts). */
+  beforeReadings: Reading[];
+  /** When "Start my meal" was tapped. Null for a meal logged after eating. */
+  startedAt: string | null;
+  /** Which foods, and how much of each, when saved (data-collection-schema.sql). */
+  foodIds: string[] | null;
+  sizes: string[] | null;
 }
 
 /**
@@ -76,7 +89,7 @@ export async function saveCheck(
   label: string,
   verdict: Verdict,
   calories?: number,
-  detail?: { foodIds: string[]; sizes: string[] },
+  detail?: { foodIds: string[]; sizes: string[]; startedAt?: string },
 ): Promise<number | null> {
   try {
     const supabase = createClient();
@@ -91,6 +104,17 @@ export async function saveCheck(
     // down drops a column whose migration may not have run yet, so the meal
     // itself is always saved.
     const attempts: Record<string, unknown>[] = [];
+    if (detail?.startedAt) {
+      // A meal test (meal-response-schema.sql). Dropped by the next step down if
+      // that migration has not run; lib/mealTestLog.ts also remembers the start
+      // on the device, so the 2-hour check still works before it does.
+      attempts.push({
+        ...withCalories,
+        food_ids: detail.foodIds,
+        sizes: detail.sizes,
+        started_at: detail.startedAt,
+      });
+    }
     if (detail) attempts.push({ ...withCalories, food_ids: detail.foodIds, sizes: detail.sizes });
     attempts.push(withCalories);
     if (calories != null) attempts.push(base);
@@ -178,13 +202,37 @@ async function checkedSince(since: Date): Promise<CheckedMeal[]> {
         label: row.label as string,
         verdict: row.verdict as Verdict,
         checkedAt: row.checked_at as string,
-        readings: readingsOf(row.glucose_readings),
+        ...splitReadings(readingsOf(row.glucose_readings)),
+        startedAt: (row.started_at as string | null | undefined) ?? null,
+        foodIds: Array.isArray(row.food_ids) ? (row.food_ids as string[]) : null,
+        sizes: Array.isArray(row.sizes) ? (row.sizes as string[]) : null,
       };
     });
   try {
     const supabase = createClient();
     // The joined form first. Note the select string cannot be a variable: the
     // Supabase types parse it as a literal, and a variable fails to type check.
+    // Fullest first: the meal test's start time and the before/after mark on
+    // each test (meal-response-schema.sql, data-collection-schema.sql). Each step
+    // down drops columns a migration may not have added yet.
+    const full = await supabase
+      .from("meal_checks")
+      .select(
+        "id,kind,label,verdict,checked_at,started_at,food_ids,sizes,glucose_readings(id,meal_check_id,value_raw,unit,mgdl,taken_at,context)",
+      )
+      .gte("checked_at", from)
+      .order("checked_at", { ascending: false });
+    if (!full.error) return shape(full.data ?? []);
+
+    const marked = await supabase
+      .from("meal_checks")
+      .select(
+        "id,kind,label,verdict,checked_at,food_ids,sizes,glucose_readings(id,meal_check_id,value_raw,unit,mgdl,taken_at,context)",
+      )
+      .gte("checked_at", from)
+      .order("checked_at", { ascending: false });
+    if (!marked.error) return shape(marked.data ?? []);
+
     const joined = await supabase
       .from("meal_checks")
       .select(
@@ -221,8 +269,17 @@ function readingsOf(joined: unknown): Reading[] {
       unit: r.unit as Reading["unit"],
       mgdl: Number(r.mgdl),
       takenAt: r.taken_at as string,
+      context: (r.context as Reading["context"]) ?? null,
     }))
     .sort((a, b) => a.takenAt.localeCompare(b.takenAt));
+}
+
+/** Keep a before-meal test out of `readings`, which means "what the meal did". */
+function splitReadings(all: Reading[]): { readings: Reading[]; beforeReadings: Reading[] } {
+  return {
+    readings: all.filter((r) => r.context !== "before_meal"),
+    beforeReadings: all.filter((r) => r.context === "before_meal"),
+  };
 }
 
 /**

@@ -29,6 +29,7 @@ keys are in Vercel, the app code (which I'm building) takes over.
    | 16 | `data-collection-schema.sql` | `meal_checks.food_ids/.sizes`, `meal_impressions` (blue-card shown/skipped/opened/eaten), `weight_history`, `glucose_readings.context` (before/after a meal), `profiles.med_types`, and `hba1c_results`. Must run AFTER #15. Idempotent; every write degrades gracefully until it runs. |
    | 17 | `recordings-schema.sql` | `call_sessions`, `call_lines`, `call_audio_parts` for `/admin/recordings` (customer calls). RLS on with NO policies: only the service role reads or writes them. The audio itself goes in the private `call-audio` storage bucket (created 2026-09-27 via the API). Idempotent. |
    | 18 | `finance-schema.sql` | `finance_expenses`, `finance_income`, `founder_loan_moves` for `/admin/finance` (expenses, other money in, founder loans). Amounts in kobo. RLS on with NO policies: only the admin routes (service role) touch them. Idempotent; the finance pages say "waiting for the database update" and keep the forms off until it runs. |
+   | 19 | `meal-response-schema.sql` | `meal_checks.started_at` and `.reminder_sent_at` for **meal tests** (a meal with a sugar test before it and 2 hours after, the co-founder dietitian's design, 2026-10-07). The two sugar tests themselves need nothing new: they are `glucose_readings` rows on the meal with `context` before/after. Must run AFTER #16. Idempotent. Until it runs, the app remembers a started meal on the device and `/api/push/meal-test` answers 503. |
 
    Two things worth knowing about that order. **Five of these files each contain
    their own `create or replace function public.handle_new_user()`**, and the last
@@ -157,6 +158,15 @@ expressed in your own timezone. From US Pacific, correct looks like:
 
 The app itself is immune to all of this: `watHour()` fixes Nigeria at UTC+1 and
 never reads the device clock. Only outside tools need watching.
+
+**c2. The 2-hour meal test reminder: one more job, every 10 minutes.** It POSTs
+`https://www.glufloat.com/api/push/meal-test` with the same `x-cron-secret`
+header and an empty body, on the schedule `*/10 * * * *`. Timezone does not
+matter for this one (it runs all day). It needs `meal-response-schema.sql`
+(#19 above) to have been run; before that it answers 503 and names the file. A
+correct call answers like `{"due":0,"sent":0}`. It sends each person ONE
+reminder, about 2 hours after they tapped "Start my meal", and only if they
+have not already saved their 2-hour test.
 
 **d. Check it.** A correct call answers with JSON naming the meal and how many
 devices were reached, and a wrong secret answers 401:

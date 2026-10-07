@@ -6,7 +6,7 @@ import { searchFoods } from "@/lib/search";
 import type { Food } from "@/lib/types";
 import VerdictCard from "./VerdictCard";
 import { events } from "@/lib/analytics";
-import { saveCheck } from "@/lib/history";
+import StartMealSheet from "./StartMealSheet";
 import { trackUsage } from "@/lib/usage";
 import { cleanFoodName } from "@/lib/foodName";
 
@@ -45,11 +45,11 @@ export default function SearchPanel({
     setQuery("");
   };
 
-  const logEaten = (food: Food) => {
-    void saveCheck("single", food.name, food.baseVerdict, undefined, {
-      foodIds: [food.id],
-      sizes: ["normal"],
-    });
+  // "I ate this" opens the save sheet (StartMealSheet), which does the saving:
+  // how much, and whether this is a meal test or a meal already eaten.
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const logEaten = () => setSheetOpen(true);
+  const onLogged = () => {
     void trackUsage("meal_logged");
     setAte(true);
   };
@@ -127,7 +127,7 @@ export default function SearchPanel({
               </span>
             ) : (
               <button
-                onClick={() => logEaten(picked)}
+                onClick={logEaten}
                 className="flex flex-1 items-center justify-center gap-2 rounded-full bg-leaf px-5 py-3 text-sm font-bold text-white transition-transform hover:scale-[1.02]"
               >
                 <Plus className="h-4 w-4" strokeWidth={3} /> I ate this
@@ -143,6 +143,15 @@ export default function SearchPanel({
               </button>
             )}
           </div>
+          <StartMealSheet
+            open={sheetOpen}
+            onClose={() => setSheetOpen(false)}
+            items={[{ food: picked, portion: "normal" }]}
+            kind="single"
+            label={picked.name}
+            verdict={picked.baseVerdict}
+            onLogged={onLogged}
+          />
         </div>
       )}
     </div>

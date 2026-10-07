@@ -26,6 +26,7 @@ import DashboardSnapshot from "@/components/DashboardSnapshot";
 import FirstStepsChecklist from "@/components/FirstStepsChecklist";
 import TodaysExtras from "@/components/TodaysExtras";
 import LogReading from "@/components/LogReading";
+import MealTestDue from "@/components/MealTestDue";
 import LogHbA1c from "@/components/LogHbA1c";
 import ReadingNudge from "@/components/ReadingNudge";
 import TypewriterHeadline from "@/components/TypewriterHeadline";
@@ -212,6 +213,22 @@ export default function AppPage() {
     setActiveTab("meal");
     scrollToPanel();
   };
+
+  // The 2-hour reminder opens /app?mealtest=1 (app/api/push/meal-test). Land
+  // on the home tab, where the check is, whatever tab was open last time.
+  useEffect(() => {
+    try {
+      const url = new URL(window.location.href);
+      if (url.searchParams.get("mealtest") !== "1") return;
+      setActiveTab("todaysmeal");
+      scrollToId("meal-test");
+      url.searchParams.delete("mealtest");
+      window.history.replaceState(null, "", url.pathname + url.search + url.hash);
+    } catch {
+      /* nothing to do */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // The doctor's report tab asks LogReading to open for a specific meal via
   // this window event. LogReading now lives inside the "todaysmeal" tab
@@ -489,6 +506,16 @@ export default function AppPage() {
                   day's answer. Renders nothing until sex/age/weight/height/
                   activity are set in "Make it fit me" (calories) or until
                   there is a month of history (the month tile). */}
+              {/* A meal test waiting for its 2-hour check comes first: it has a
+                  clock on it, and nothing else on this screen does. Renders
+                  nothing when there is no meal test today. */}
+              <MealTestDue
+                onOpenReport={() => {
+                  setActiveTab("report");
+                  scrollToPanel();
+                }}
+              />
+
               <FirstStepsChecklist
                 showFitMe={canUseGoalPersonalization(access)}
                 onGoToFitMe={() => selectTab("personalize")}

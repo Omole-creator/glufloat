@@ -11,8 +11,8 @@ import { mealShareMessage } from "@/lib/shareMessage";
 import ShareOnWhatsApp from "./ShareOnWhatsApp";
 import IntakeWarning from "./IntakeWarning";
 import ReadingRecall from "./ReadingRecall";
+import StartMealSheet from "./StartMealSheet";
 import { events } from "@/lib/analytics";
-import { saveCheck } from "@/lib/history";
 import { logImpression, suggestedFor } from "@/lib/mealImpressions";
 import { trackUsage } from "@/lib/usage";
 import { cleanFoodName } from "@/lib/foodName";
@@ -133,19 +133,20 @@ export default function MealBuilder({
   useEffect(() => {
     setAte(false);
   }, [items]);
+  // "I ate this meal" opens the save sheet (StartMealSheet): how much, and
+  // whether they are about to eat (a meal test, with a sugar test before and 2
+  // hours after) or already ate. The sheet does the saving; this records what
+  // the builder alone knows, the blue-card plate it came from.
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const mealLabel = items.map((i) => i.food.name).join(", ");
+  const suggested = suggestedFor(items.map((i) => i.food.id));
   const logEaten = () => {
     if (items.length === 0) return;
-    const label = items.map((i) => i.food.name).join(", ");
-    const foodIds = items.map((i) => i.food.id);
-    // If this is the plate the blue card suggested, tie the log back to it and
-    // keep the bigger serving it asked for instead of "normal".
-    const suggested = suggestedFor(foodIds);
-    const sizes = items.map((i) => {
-      const g = suggested?.scaledGrams[i.food.id];
-      return g && i.portion === "normal" ? `${g}g` : i.portion;
-    });
-    void saveCheck("meal", label, result.verdict, undefined, { foodIds, sizes });
+    setSheetOpen(true);
+  };
+  const onLogged = () => {
     if (suggested) logImpression(suggested, "eaten");
+    void trackUsage("meal_logged");
     setAte(true);
   };
 
@@ -475,6 +476,20 @@ export default function MealBuilder({
                     <Utensils className="h-4 w-4" /> I ate this meal
                   </button>
                 )}
+                <StartMealSheet
+                  open={sheetOpen}
+                  onClose={() => setSheetOpen(false)}
+                  items={items.map((i) => ({
+                    food: i.food,
+                    portion: i.portion,
+                    // Keep the blue card's bigger serving instead of "normal".
+                    grams: suggested?.scaledGrams[i.food.id],
+                  }))}
+                  kind="meal"
+                  label={mealLabel}
+                  verdict={result.verdict}
+                  onLogged={onLogged}
+                />
               </div>
             )}
 
