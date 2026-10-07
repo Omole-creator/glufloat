@@ -146,7 +146,7 @@ export default function LogReading() {
     );
     setBusy(false);
     if (!row) {
-      setProblem("That did not save. Please check your internet and try again.");
+      setProblem("This did not save. Check your internet and try again.");
       return;
     }
     void trackUsage("reading_logged");
@@ -171,7 +171,7 @@ export default function LogReading() {
         <span className="flex-1">
           <span className="block text-[15px] font-bold">I tested my sugar</span>
           <span className="block text-xs font-medium text-white/80">
-            Tap to save the number, ready for your doctor
+            Save any test, like your morning test
           </span>
         </span>
         <ChevronRight className="h-5 w-5 shrink-0 text-white/80" strokeWidth={2.5} />
@@ -271,9 +271,7 @@ export default function LogReading() {
 
       <>
         <p className="mt-5 font-display text-base font-semibold text-ink">
-          {meals.length > 0
-            ? "Which meal gave you this number after 2 or more hours?"
-            : "When did you take this test?"}
+          When did you take this test?
         </p>
         <div className="mt-2 flex flex-col gap-2">
           {meals.map((m) => (
@@ -290,9 +288,9 @@ export default function LogReading() {
                   : "border-line bg-white text-ink hover:border-brand/40"
               }`}
             >
-              {displayLabel(m.label)}
+              After {displayLabel(m.label)}
               <span className="block text-xs font-normal text-ink-soft">
-                {whenLabel(m.checkedAt)}
+                You ate it at {whenLabel(m.checkedAt)}
               </span>
             </button>
           ))}
@@ -308,9 +306,9 @@ export default function LogReading() {
                 : "border-line bg-white text-ink hover:border-brand/40"
             }`}
           >
-            I have not eaten yet
+            Before a meal
             <span className="block text-xs font-normal text-ink-soft">
-              This test is before my meal
+              I haven&apos;t eaten yet
             </span>
           </button>
           {/* An ordinary answer, not a failure. See the note at the top. */}
@@ -326,9 +324,9 @@ export default function LogReading() {
                 : "border-line bg-white text-ink hover:border-brand/40"
             }`}
           >
-            None of these meals
+            Another time
             <span className="block text-xs font-normal text-ink-soft">
-              It is my first test today
+              Like when I woke up, or not near a meal
             </span>
           </button>
         </div>

@@ -38,6 +38,9 @@ export interface MealTestRow {
   portion: string;
   before: number | null;
   after: number | null;
+  /** When each test was taken ("12:55pm"), so the doctor can see which came first. */
+  beforeTime: string | null;
+  afterTime: string | null;
   minutesAfter: number | null;
   change: number | null;
   complete: boolean;
@@ -100,6 +103,8 @@ export function mealTestReport(list: CheckedMeal[]): MealTestReport {
       portion: portionOf(m),
       before: t.before?.mgdl ?? null,
       after: t.after?.mgdl ?? null,
+      beforeTime: t.before ? timeLabel(t.before.takenAt) : null,
+      afterTime: t.after ? timeLabel(t.after.takenAt) : null,
       minutesAfter: t.minutesAfter,
       change: t.change,
       complete: t.complete,

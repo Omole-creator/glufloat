@@ -347,7 +347,7 @@ console.log("\n-- readings reach the doctor --");
     ],
     [r(150, { mealCheckId: null, takenAt: at(6, 30) })],
   );
-  t("the meal's reading is in the text", text.includes("Sugar test: 240 mg/dL (13.3 mmol/L)"), text);
+  t("the meal's reading is in the text", text.includes("Sugar test after eating: 240 mg/dL (13.3 mmol/L)"), text);
   t("with how long after the food", text.includes("2h 10m later"), text);
   t("a reading with no meal has its own block", text.includes("not after a meal"), text);
   t("and is dated", text.includes("150 mg/dL (8.3 mmol/L), 28 Jul"), text);

@@ -32,6 +32,10 @@ const FAQS: { q: string; a: string }[] = [
     a: "Yes. The colours tell you how much sugar a food has and how fast it rises. You still choose your insulin the way your doctor said, and the food tips help you keep your sugar steady.",
   },
   {
+    q: "Do I have to test my sugar before every meal?",
+    a: "No. Testing is up to you, because strips cost money. If you can, test before a meal and again 2 hours after, a few times a week. GluFloat shows you the change and puts it in your report for your doctor. If you don't test, the app works just the same.",
+  },
+  {
     q: "I cook for someone with diabetes. Will this help me?",
     a: "Very much. Check a food while you shop or cook, and put food on the table that you feel sure about, instead of guessing.",
   },

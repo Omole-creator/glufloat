@@ -35,10 +35,11 @@ export default function Navbar() {
   // Signed in, but the trial or the month has run out. The only thing left to do is
   // pay, so that button stays even on /app.
   const isLocked = access.status === "expired";
-  // The social-proof ticker sits above the bar on the home page and /app, so the
-  // fixed navbar drops by its height (h-8) there. Every other page has no ticker,
-  // so the bar stays flush at the top.
-  const offsetTop = pathname === "/" || onApp ? "top-8" : "top-0";
+  // The social-proof ticker sits above the bar on the home page only, so the
+  // fixed navbar drops by its height (h-8) there. It was taken off /app on
+  // 2026-10-07 (founder: the app should not look busy), so the bar is flush
+  // there like every other page.
+  const offsetTop = pathname === "/" ? "top-8" : "top-0";
   // The landing hero is a solid deep blue, so at the top of the home page the
   // bar sits ON that blue and has to be white to be readable. Once it scrolls
   // away from the hero the normal white bar with dark text takes over.

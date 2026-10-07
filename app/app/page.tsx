@@ -13,7 +13,6 @@ import {
   X,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
-import SocialProofTicker from "@/components/SocialProofTicker";
 import DisclaimerGate from "@/components/DisclaimerGate";
 import FeedbackPopup from "@/components/FeedbackPopup";
 import ToastHost from "@/components/Toast";
@@ -320,9 +319,8 @@ export default function AppPage() {
     const currentTier = access.previousTier ?? "basic";
     return (
       <>
-        <SocialProofTicker />
         <Navbar />
-        <main className="flex flex-1 items-center justify-center bg-mist px-4 pb-24 pt-36">
+        <main className="flex flex-1 items-center justify-center bg-mist px-4 pb-24 pt-28">
           <div className="w-full max-w-md rounded-2xl border border-line bg-white p-8 text-center shadow-[0_16px_40px_-18px_rgba(12,45,77,0.35)]">
             {/* Somebody who paid us last month must never be told their free trial
                 is over. `lapsed` is how getAccess tells the two apart. */}
@@ -399,14 +397,13 @@ export default function AppPage() {
 
   return (
     <>
-      <SocialProofTicker />
       <Navbar />
       <DisclaimerGate />
       <FeedbackPopup />
       <ToastHost />
 
       {renewSoon && (
-        <div className="fixed inset-x-0 top-24 z-40 bg-verdict-yellow/95 px-4 py-2.5 text-center text-sm font-semibold text-ink shadow-md">
+        <div className="fixed inset-x-0 top-16 z-40 bg-verdict-yellow/95 px-4 py-2.5 text-center text-sm font-semibold text-ink shadow-md">
           Your month ends in {access.daysLeft} {access.daysLeft === 1 ? "day" : "days"}.{" "}
           <a href={renewUrl} className="underline hover:text-brand-deep">
             Renew for {renewPriceLabel} to keep Glufloat.
@@ -418,7 +415,7 @@ export default function AppPage() {
           Trial previewed goal-based personalization across all 3 plans, so the
           banner sends them to compare plans rather than assuming one tier. */}
       {trialEnding && (
-        <div className="fixed inset-x-0 top-24 z-40 bg-verdict-yellow/95 px-4 py-2.5 text-center text-sm font-semibold text-ink shadow-md">
+        <div className="fixed inset-x-0 top-16 z-40 bg-verdict-yellow/95 px-4 py-2.5 text-center text-sm font-semibold text-ink shadow-md">
           Your free trial ends tomorrow.{" "}
           <a href="/#pricing" className="underline hover:text-brand-deep">
             Choose a plan to keep Glufloat.
@@ -459,7 +456,7 @@ export default function AppPage() {
       {/* No overflow-hidden here: it clipped the decorative glow below (harmless
           to drop, since the glow sits above main's own top edge anyway) — and
           it would also break `position: sticky` on DashboardLeftNav below. */}
-      <main className="relative flex-1 bg-gradient-to-b from-mint/50 via-mist to-mist pb-32 pt-36 md:pb-16">
+      <main className="relative flex-1 bg-gradient-to-b from-mint/50 via-mist to-mist pb-32 pt-28 md:pb-16">
         <div
           className="pointer-events-none absolute inset-x-0 -top-24 mx-auto h-64 max-w-2xl bg-gradient-to-br from-brand/15 via-leaf/10 to-transparent blur-3xl"
           aria-hidden

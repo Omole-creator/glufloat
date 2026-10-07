@@ -122,8 +122,8 @@ export default function MealTestDue({ onOpenReport }: { onOpenReport: () => void
 
         <p className="mt-3 text-sm text-ink-soft">
           {test.before
-            ? "Saved to your meal and sugar record."
-            : "Saved to your meal and sugar record. Next time, test before you eat too, so your doctor can see the change."}
+            ? "Saved to your report."
+            : "Saved to your report. Next time, test before you eat too, so your doctor can see the change."}
         </p>
         {dangerLine(test.after.mgdl) && (
           <p className="mt-3 rounded-2xl border border-verdict-red/50 bg-verdict-red/5 px-4 py-3 text-sm font-semibold text-ink">
@@ -135,7 +135,7 @@ export default function MealTestDue({ onOpenReport }: { onOpenReport: () => void
             onClick={onOpenReport}
             className="rounded-full bg-brand px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand-deep"
           >
-            Share with my doctor
+            See my report
           </button>
           <button
             onClick={close}
@@ -171,7 +171,7 @@ export default function MealTestDue({ onOpenReport }: { onOpenReport: () => void
         </p>
         <p className="mt-1 font-display text-base font-bold text-ink">{name}</p>
         <p className="mt-1 text-sm text-ink">
-          Test your sugar again at <strong>{dueTime}</strong>. That is in about{" "}
+          Test your sugar again at <strong>{dueTime}</strong>. That&apos;s in about{" "}
           {wait(minutesToDue(test.mealTime, now))}.
         </p>
         {beforeLine}
@@ -190,11 +190,11 @@ export default function MealTestDue({ onOpenReport }: { onOpenReport: () => void
   const refer = parsed ? dangerLine(parsed.mgdl) : null;
   const save = async () => {
     if (!parsed) {
-      setProblem("Type the number your meter showed, like 6.5 or 140.");
+      setProblem("Type the number on your meter, like 6.5 or 140.");
       return;
     }
     if (needConsent && !agreed) {
-      setProblem("Tick the box to let GluFloat save your sugar test.");
+      setProblem("Tick the box so GluFloat can save your sugar test.");
       return;
     }
     setBusy(true);
@@ -203,7 +203,7 @@ export default function MealTestDue({ onOpenReport }: { onOpenReport: () => void
     const saved = await saveAfterTest(meal.id, parsed);
     setBusy(false);
     if (!saved) {
-      setProblem("That did not save. Please check your internet and try again.");
+      setProblem("This did not save. Check your internet and try again.");
       return;
     }
     setNeedConsent(false);
@@ -233,10 +233,10 @@ export default function MealTestDue({ onOpenReport }: { onOpenReport: () => void
       className="relative scroll-mt-24 rounded-3xl bg-white p-5 shadow-[0_8px_30px_-12px_rgba(46,204,113,0.45)] ring-2 ring-leaf/50"
     >
       <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-leaf-deep">
-        <Droplet className="h-4 w-4" /> Time for your 2-hour sugar test
+        <Droplet className="h-4 w-4" /> Time to test your sugar again
       </p>
       <p className="mt-1 font-display text-base font-bold text-ink">{name}</p>
-      <p className="text-xs text-ink-soft">You started eating at {timeLabel(test.mealTime)}.</p>
+      <p className="text-xs text-ink-soft">You started eating at {timeLabel(test.mealTime)}, about 2 hours ago.</p>
       {beforeLine}
 
       <label htmlFor="gf-after" className="mt-4 block text-sm font-semibold text-ink">
@@ -282,7 +282,7 @@ export default function MealTestDue({ onOpenReport }: { onOpenReport: () => void
           disabled={busy || !parsed}
           className="rounded-full bg-leaf px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-leaf-deep disabled:opacity-50"
         >
-          {busy ? "Saving..." : "Save my 2-hour test"}
+          {busy ? "Saving..." : "Save my test"}
         </button>
         <button
           onClick={() => {
@@ -291,7 +291,7 @@ export default function MealTestDue({ onOpenReport }: { onOpenReport: () => void
           }}
           className="rounded-full border-2 border-line bg-white px-5 py-3 text-sm font-bold text-ink transition-colors hover:border-brand"
         >
-          I will not test this time
+          Skip this time
         </button>
       </div>
     </section>

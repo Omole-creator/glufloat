@@ -1,20 +1,14 @@
 import Image from "next/image";
-import {
-  Check,
-  FileText,
-  Search,
-  ShieldCheck,
-  UtensilsCrossed,
-  X,
-} from "lucide-react";
+import { Check, ShieldCheck, X } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import SocialProofTicker from "@/components/SocialProofTicker";
 import Footer from "@/components/Footer";
 import Reveal from "@/components/Reveal";
 import TrafficLight from "@/components/TrafficLight";
+import DayTimeline from "@/components/home/DayTimeline";
+import ReportShowcase from "@/components/home/ReportShowcase";
 import FAQ from "@/components/FAQ";
 import { HeroLanding } from "@/components/ui/hero-1";
-import FeatureCards, { type Feature } from "@/components/ui/feature-cards";
 import HeroDemo from "@/components/ui/hero-demo";
 import { Testimonials } from "@/components/ui/testimonial-v2";
 import { Pricing, type PricingPlan } from "@/components/ui/pricing";
@@ -32,7 +26,7 @@ const PLANS: PricingPlan[] = [
       "Check any of 1,400+ Nigerian foods before you eat",
       "Get personalized breakfast, lunch, and dinner recommendations every day",
       "Build a meal and get personalized guidance on it",
-      "Save your sugar test numbers next to what you ate",
+      "Test your sugar before and 2 hours after a meal, and see the change",
       "Generate a monthly meal report to share with your doctor",
       "Get a gentle reminder before each meal",
     ],
@@ -93,30 +87,6 @@ const DOT = {
   red: "bg-verdict-red",
 } as const;
 
-// What the app hands you. NOT the food method itself: the size, the pairing and
-// the frequency are experienced inside /app, never taught for free out here.
-const ICON = "h-6 w-6";
-const WHAT_YOU_GET: Feature[] = [
-  {
-    icon: <UtensilsCrossed className={ICON} strokeWidth={2.2} />,
-    title: "Get Meal Recommendations",
-    text: "Personalized breakfast, lunch, and dinner suggestions based on your health profile.",
-    tone: "green",
-  },
-  {
-    icon: <Search className={ICON} strokeWidth={2.2} />,
-    title: "Search & Build Your Own Meals",
-    text: "Look up any meal, see if it's right for you, and create meals your way.",
-    tone: "blue",
-  },
-  {
-    icon: <FileText className={ICON} strokeWidth={2.2} />,
-    title: "Share with Your Doctor",
-    text: "Save your sugar test numbers next to what you ate, and turn it all into a report for your next appointment.",
-    tone: "green",
-  },
-];
-
 function Label({ children }: { children: React.ReactNode }) {
   return (
     <span className="inline-flex items-center gap-2 rounded-full bg-leaf/10 px-3 py-1 text-sm font-semibold text-leaf-deep">
@@ -133,7 +103,7 @@ export default function Home() {
 
       <HeroLanding
         title="Defy Diabetes. Enjoy Food Again."
-        description="Get personalized meal recommendations, search any food you're craving, or build your own meals. GluFloat keeps track of what you eat and your sugar tests, and turns it into a report for your doctor."
+        description="GluFloat picks your breakfast, lunch and dinner, checks any food you crave, and shows you what each meal does to your sugar. Then it puts it all in one report for your doctor."
         announcementBanner={{
           text: "Reviewed by 7 registered dietitians",
           icon: <ShieldCheck className="h-4 w-4 text-leaf-bright" />,
@@ -175,26 +145,17 @@ export default function Home() {
           <Reveal className="text-center">
             <Label>How it works</Label>
             <h2 className="mx-auto mt-4 max-w-2xl font-display text-3xl font-bold leading-tight text-ink sm:text-4xl">
-              You do not have to give up your food. You just have to eat it the
-              right way.
+              How GluFloat fits into your day
             </h2>
             <p className="mx-auto mt-4 max-w-xl font-display text-lg leading-relaxed text-ink-soft">
-              For almost any food there is a simple way to make it work for you.
-              Glufloat finds it and shows it to you in plain words, so you never
-              have to guess at your plate again.
+              A few taps around each meal. You keep eating the food you love, and you finally
+              see what it does to your sugar.
             </p>
           </Reveal>
 
-          <div className="mt-14 grid items-center gap-10 lg:grid-cols-[auto_1fr]">
-            <Reveal direction="scale" className="mx-auto">
-              <TrafficLight size="lg" active="cycle" />
-            </Reveal>
+          <DayTimeline />
 
-            <FeatureCards features={WHAT_YOU_GET} />
-          </div>
-
-          {/* The picture that closes the three cards: this is what the whole
-              thing is for. Sits directly under "Share with Your Doctor". */}
+          {/* The picture under the day: this is what the whole thing is for. */}
           <Reveal delay={120}>
             <div className="mt-12 overflow-hidden rounded-3xl shadow-[0_28px_60px_-28px_rgba(12,42,71,0.5)]">
               <Image
@@ -213,13 +174,12 @@ export default function Home() {
               <div className="grid items-center gap-8 p-8 sm:p-10 lg:grid-cols-2">
                 <div>
                   <h3 className="font-display text-2xl font-bold text-ink sm:text-3xl">
-                    When your food is not green, we do not just say no.
+                    When your food isn't green, we don't just say no.
                   </h3>
                   <p className="mt-4 text-lg leading-relaxed text-ink-soft">
                     We show you the one small change that makes it good, and you
-                    watch the colour turn to green right in front of you. There
-                    is nothing for you to work out on your own, because Glufloat
-                    has already done it for you.
+                    watch the colour turn green in front of you. You don't have
+                    to work anything out. GluFloat has done it for you.
                   </p>
                 </div>
 
@@ -244,7 +204,7 @@ export default function Home() {
                   <div className="mt-4 flex items-start gap-3 rounded-xl bg-mint p-4">
                     <Check className="mt-0.5 h-5 w-5 shrink-0 text-leaf-deep" />
                     <p className="text-sm text-ink">
-                      Make the small change Glufloat shows you and the whole
+                      Make the small change GluFloat shows you and the whole
                       meal turns{" "}
                       <span className="font-bold text-leaf-deep">green</span>.
                       That is your dinner sorted, with no worry after you eat.
@@ -308,19 +268,32 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ============ AFTER THE MEAL: report + dietitian ============ */}
+      <section className="bg-mist py-20 sm:py-24">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <Reveal className="mb-10 text-center">
+            <Label>For your doctor</Label>
+            <h2 className="mx-auto mt-4 max-w-2xl font-display text-3xl font-bold leading-tight text-ink sm:text-4xl">
+              Go to your next visit with more than a guess.
+            </h2>
+          </Reveal>
+          <ReportShowcase />
+        </div>
+      </section>
+
       {/* ============ DIFFERENTIATION ============ */}
       <section className="bg-white py-20 sm:py-24">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="grid items-center gap-12 lg:grid-cols-2">
             <Reveal direction="left">
-              <Label>Why Glufloat</Label>
+              <Label>Why GluFloat</Label>
               <h2 className="mt-4 font-display text-3xl font-bold leading-tight text-ink sm:text-4xl">
-                Other apps do not know our food. <br /> Glufloat was made for it.
+                Other apps don&apos;t know our food. <br /> GluFloat was made for it.
               </h2>
               <p className="mt-5 font-display text-lg leading-relaxed text-ink-soft">
-                The popular food apps were built abroad. They do not know
-                jollof, eba, or amala, and they do not know we eat with soup.
-                Glufloat knows over 1,400 of our own foods, and it always shows
+                The popular food apps were built abroad. They don&apos;t know
+                jollof, eba or amala, and they don&apos;t know we eat with soup.
+                GluFloat knows over 1,400 of our own foods, and it always shows
                 you how to make a food safe.
               </p>
 
@@ -342,14 +315,14 @@ export default function Home() {
                   <div className="px-2 py-4 text-center text-white/60">
                     Other apps
                   </div>
-                  <div className="bg-brand px-2 py-4 text-center">Glufloat</div>
+                  <div className="bg-brand px-2 py-4 text-center">GluFloat</div>
                 </div>
                 {[
                   "Knows jollof, eba, and amala",
                   "Checks your whole food, not one part",
                   "Shows you how to fix it, never just no",
                   "Gives the size in things you can see",
-                  "Made for how we really eat",
+                  "Shows what each meal did to your sugar",
                   "Price and payment in naira",
                 ].map((row, i) => (
                   <div
@@ -434,9 +407,8 @@ export default function Home() {
                 This joy can be yours too.
               </h2>
               <p className="mt-5 font-display text-lg leading-relaxed text-ink-soft">
-                You do not have to fear your food. Eat what you love, the right
-                way, and feel good after every meal. No more guessing, no more
-                worry, just your food and your peace of mind.
+                You don&apos;t have to be afraid of your food. Eat what you love,
+                the right way, and feel good after your meal.
               </p>
               <TrialCta className="group mt-7 inline-flex items-center gap-2 rounded-full bg-leaf px-7 py-4 text-base font-bold text-white shadow-[0_14px_30px_-10px_rgba(62,155,79,0.6)] hover:bg-leaf-deep transition-all hover:-translate-y-1" />
             </Reveal>
@@ -488,8 +460,8 @@ export default function Home() {
             </h2>
             <p className="mx-auto mt-6 max-w-xl font-display text-lg leading-relaxed text-white/75">
               Guessing means the same worry, and the same high sugar after you
-              eat. Knowing takes ten seconds and a meal you feel good about. The
-              first 7 days are free, so you risk nothing.
+              eat. Knowing takes ten seconds. The first 7 days are free, so you
+              have nothing to lose.
             </p>
             <TrialCta className="group mt-8 inline-flex items-center gap-2 rounded-full bg-leaf px-8 py-4 text-base font-bold text-white shadow-[0_14px_30px_-10px_rgba(62,155,79,0.6)] transition-all hover:-translate-y-1 hover:bg-leaf-deep" />
             <p className="mt-4 text-sm text-white/60">

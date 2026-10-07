@@ -101,17 +101,18 @@ export function monthReportMessage(
         "",
       ];
       for (const r of report.rows.slice(-30)) {
+        // A test that was not near 2 hours says how long after it really was.
         const after =
           r.after === null
             ? "-"
-            : `${Math.round(r.after)}${!r.complete && r.minutesAfter !== null ? ` (at ${minutesLabel(r.minutesAfter)})` : ""}`;
+            : `${Math.round(r.after)}${!r.complete && r.minutesAfter !== null ? ` (${minutesLabel(r.minutesAfter)} after)` : ""}`;
         lines.push(
           `${r.date}, ${r.time} (record ${mealTestNumber(r.id)}): ${r.shown}`,
           `    How much: ${r.portion}`,
-          `    Before: ${r.before !== null ? Math.round(r.before) : "-"}  2h after: ${after}  Change: ${r.change !== null ? formatChange(r.change).replace(" mg/dL", "") : "-"}`,
+          `    Before eating: ${r.before !== null ? `${Math.round(r.before)} at ${r.beforeTime}` : "-"}  2h after: ${r.after !== null ? `${after} at ${r.afterTime}` : "-"}  Change: ${r.change !== null ? formatChange(r.change).replace(" mg/dL", "") : "-"}`,
         );
       }
-      lines.push("", "All sugar numbers in mg/dL. A dash means no test was saved.");
+      lines.push("", "Sugar in mg/dL. A dash means no test.");
       blocks.push(lines.join("\n"));
     }
     if (report.observations.length > 0) {
@@ -160,7 +161,7 @@ export function monthReportMessage(
         for (const r of i.readings) {
           const gap = gapLabel(i.startedAt ?? i.checkedAt, r.takenAt);
           lines.push(
-            `    Sugar test: ${formatBoth(r.mgdl)}${gap ? `, ${gap}` : ""}`,
+            `    Sugar test after eating: ${formatBoth(r.mgdl)}${gap ? `, ${gap}` : ""}`,
           );
         }
       }
