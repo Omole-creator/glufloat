@@ -179,7 +179,7 @@ export function HeroLanding({
         )}
 
         {media && (
-          <motion.div variants={item} className="relative mt-14 w-full max-w-md">
+          <motion.div variants={item} className="relative mt-14 w-full max-w-2xl">
             <div
               className="pointer-events-none absolute -inset-8 -z-10 rounded-full bg-white/10 blur-3xl"
               aria-hidden

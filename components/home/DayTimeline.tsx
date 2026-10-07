@@ -1,5 +1,6 @@
 import { Check, Clock, Droplet, FileText, Sunrise, Timer } from "lucide-react";
 import Reveal from "@/components/Reveal";
+import TypingNumber from "./TypingNumber";
 
 /**
  * "How GluFloat Fits Into Your Day": what happens around every meal, in four
@@ -61,9 +62,11 @@ const STEPS: {
     screen: (
       <Screen>
         <p className="text-[11px] font-semibold text-ink-soft">Your sugar before eating</p>
-        <div className="mt-1.5 rounded-xl border-2 border-brand bg-white px-3 py-2 font-display text-lg font-bold text-ink">
-          108
+        <div className="mt-1.5 flex items-center justify-between rounded-xl border-2 border-brand bg-white px-3 py-2 font-display text-lg font-bold text-ink">
+          <TypingNumber />
+          <span className="text-[11px] font-semibold text-ink-soft">mg/dL</span>
         </div>
+        <p className="mt-1.5 text-[10px] text-ink-soft">Type the number on your meter.</p>
         <div className="mt-2 rounded-full bg-leaf py-2 text-center text-[11px] font-bold text-white">Start my meal</div>
       </Screen>
     ),

@@ -7,9 +7,9 @@ import Reveal from "@/components/Reveal";
 import TrafficLight from "@/components/TrafficLight";
 import DayTimeline from "@/components/home/DayTimeline";
 import ReportShowcase from "@/components/home/ReportShowcase";
+import FoodStrip from "@/components/home/FoodStrip";
 import FAQ from "@/components/FAQ";
 import { HeroLanding } from "@/components/ui/hero-1";
-import HeroDemo from "@/components/ui/hero-demo";
 import { Testimonials } from "@/components/ui/testimonial-v2";
 import { Pricing, type PricingPlan } from "@/components/ui/pricing";
 import CountUp from "@/components/CountUp";
@@ -60,32 +60,6 @@ const PLANS: PricingPlan[] = [
     ],
   },
 ];
-
-const MARQUEE_FOODS: { name: string; v: "green" | "yellow" | "red" }[] = [
-  { name: "Egusi soup", v: "green" },
-  { name: "Jollof rice", v: "yellow" },
-  { name: "Moi moi", v: "green" },
-  { name: "Fried plantain", v: "red" },
-  { name: "Pepper soup", v: "green" },
-  { name: "Pounded yam", v: "yellow" },
-  { name: "Suya", v: "green" },
-  { name: "White bread", v: "red" },
-  { name: "Ofada rice", v: "yellow" },
-  { name: "Efo riro", v: "green" },
-  { name: "Puff puff", v: "red" },
-  { name: "Boiled plantain", v: "green" },
-  { name: "Amala", v: "yellow" },
-  { name: "Zobo, no sugar", v: "green" },
-  { name: "Soft drinks", v: "red" },
-  { name: "Okra soup", v: "green" },
-  { name: "Beans", v: "green" },
-];
-
-const DOT = {
-  green: "bg-verdict-green",
-  yellow: "bg-verdict-yellow",
-  red: "bg-verdict-red",
-} as const;
 
 /**
  * Design tokens for the body of the page (redesign, 2026-10-07). A cool
@@ -139,30 +113,35 @@ export default function Home() {
         reassurance="7 days free. You do not need a card. After that it is N1,500 a month, and you can stop any time."
         media={
           <>
-            <HeroDemo />
-            {/* Hidden on a phone: at that width the demo fills the screen and
-                the floating light sits on top of the card it is decorating. */}
-            <div className="float-slow absolute -left-4 top-10 hidden rounded-2xl bg-white p-2.5 shadow-[0_18px_40px_-14px_rgba(6,26,50,0.6)] ring-1 ring-white/40 sm:block">
+            {/* Food, not a phone screen (founder, 2026-10-07): the day cards
+                further down already show the app, so the first picture can
+                show what it is all for. Two small notes float on it so it
+                still reads as GluFloat. */}
+            <div className="overflow-hidden rounded-[28px] shadow-[0_30px_70px_-30px_rgba(6,26,50,0.8)] ring-1 ring-white/20">
+              <Image
+                src="/img/hero-jollof-fish.jpg"
+                alt="Jollof rice with grilled fish, skewers and fresh vegetables"
+                width={1600}
+                height={1067}
+                priority
+                sizes="(max-width: 768px) 100vw, 640px"
+                className="h-auto w-full object-cover"
+              />
+            </div>
+            {/* Hidden on a phone, where it would cover the food. */}
+            <div className="float-slow absolute -left-5 top-8 hidden rounded-2xl bg-white p-2.5 shadow-[0_18px_40px_-14px_rgba(6,26,50,0.6)] ring-1 ring-white/40 sm:block">
               <TrafficLight size="sm" active="cycle" />
+            </div>
+            <div className="absolute -bottom-5 right-4 rounded-2xl bg-white px-4 py-3 text-left shadow-[0_18px_40px_-14px_rgba(6,26,50,0.6)] sm:right-6">
+              <p className="font-display text-lg font-bold leading-none text-brand">1,400+</p>
+              <p className="mt-1 text-xs font-semibold text-ink-soft">Nigerian foods checked</p>
             </div>
           </>
         }
       />
 
-      {/* food marquee */}
-      <div className="marquee overflow-hidden border-y border-line bg-white py-3">
-        <div className="marquee-track flex w-max gap-8">
-          {[...MARQUEE_FOODS, ...MARQUEE_FOODS].map((f, i) => (
-            <span
-              key={i}
-              className="flex items-center gap-2 whitespace-nowrap text-sm font-medium text-ink-soft"
-            >
-              <span className={`h-2.5 w-2.5 rounded-full ${DOT[f.v]}`} />
-              {f.name}
-            </span>
-          ))}
-        </div>
-      </div>
+      {/* Food pictures moving right to left, under the hero picture. */}
+      <FoodStrip />
 
       {/* ============ HOW IT WORKS ============ */}
       <section id="how" className="scroll-mt-24 bg-[#F4F7FB] py-20 sm:py-28">
@@ -399,11 +378,11 @@ export default function Home() {
           <Glow />
           <Reveal className="relative mx-auto max-w-3xl text-center">
             <h2 className="font-display text-3xl font-bold leading-tight tracking-tight text-white sm:text-4xl">
-              Tonight There Will Be Food On Your Table. You Can Guess, Or You Can Know.
+              Know What To Eat Before You Eat It
             </h2>
             <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-white/75">
-              Guessing means the same worry, and the same high sugar after you eat. Knowing takes
-              ten seconds. The first 7 days are free, so you have nothing to lose.
+              GluFloat tells you what to eat and shows you what each meal does to your sugar. It
+              takes a few seconds.
             </p>
             <TrialCta className="group mt-8 inline-flex items-center gap-2 rounded-full bg-leaf px-8 py-4 text-base font-bold text-white shadow-[0_14px_30px_-10px_rgba(62,155,79,0.6)] transition-all hover:-translate-y-0.5 hover:bg-leaf-deep" />
             <p className="mt-4 text-sm text-white/60">
