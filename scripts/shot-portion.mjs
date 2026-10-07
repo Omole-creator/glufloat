@@ -15,7 +15,7 @@ await page.waitForTimeout(500);
 await page.screenshot({ path: "qa-shots/portion-verdict.png", clip: { x: 150, y: 250, width: 720, height: 430 } });
 
 // meal builder with per-food safe sizes
-await page.getByRole("button", { name: "Build a meal" }).click();
+await page.getByRole("button", { name: "Check a meal" }).click();
 const add = page.getByLabel("Add a food to your meal");
 for (const q of ["white rice", "efo riro", "fish"]) {
   await add.fill(q);

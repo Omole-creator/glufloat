@@ -87,7 +87,7 @@ export default function FirstStepsChecklist({
 
   const steps = [
     ...(showFitMe
-      ? [{ key: "profile", label: 'Set up "Fit me"', done: hasProfile, onClick: onGoToFitMe }]
+      ? [{ key: "profile", label: 'Fill in "My details"', done: hasProfile, onClick: onGoToFitMe }]
       : []),
     { key: "meal", label: mealStepLabel, done: hasMeal, onClick: onGoToMeal },
   ];

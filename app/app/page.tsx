@@ -3,12 +3,12 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Blocks,
   ClipboardList,
+  ListChecks,
   Clock,
   Search,
   Stethoscope,
-  Target,
+  UserRound,
   UtensilsCrossed,
   X,
 } from "lucide-react";
@@ -46,6 +46,7 @@ import {
 import { trackAppOpen } from "@/lib/usage";
 import { personalGreeting, checkBackMessage } from "@/lib/mealtime";
 import { ADD_READING_FOR } from "@/lib/glucoseLog";
+import { readPersonalizationProfile } from "@/lib/personalizationProfile";
 import type { Food } from "@/lib/types";
 
 type DashboardTabId =
@@ -56,19 +57,17 @@ type DashboardTabId =
   | "report"
   | "dietitian";
 
-/** Remembered on this device so a returning visitor lands where they left off. */
-const DASHBOARD_TAB_KEY = "gf_dashboard_tab";
-/** Whether this device has already seen the "click Fit me" landing hint. */
+/**
+ * How many separate visits this device has made to /app. The "My details"
+ * hint waits for the second one: a first visit already has the disclaimer to
+ * read, and should land straight on today's meal.
+ */
+const VISITS_KEY = "gf_app_visits";
+/** Set for the length of one browser session, so a reload is not a new visit. */
+const VISIT_COUNTED_KEY = "gf_visit_counted";
+/** Whether this device has already seen the "My details" landing hint. */
 const FIT_ME_HINT_KEY = "gf_fitme_hint_seen";
 const DEFAULT_TAB: DashboardTabId = "todaysmeal";
-const TAB_IDS: DashboardTabId[] = [
-  "todaysmeal",
-  "personalize",
-  "search",
-  "meal",
-  "report",
-  "dietitian",
-];
 
 /**
  * Order matters here (founder request, 2026-08-30): "Today's meal" leads,
@@ -92,9 +91,11 @@ const ALL_DASHBOARD_TABS: (DashboardTabDef & { id: DashboardTabId })[] = [
   },
   {
     id: "personalize",
-    label: "Make it fit me",
-    shortLabel: "Fit me",
-    icon: <Target className="h-4.5 w-4.5" strokeWidth={2.2} />,
+    // Was "Make it fit me" / "Fit me", which said nothing about what is
+    // inside (UX review, 2026-10-07).
+    label: "My details",
+    shortLabel: "My details",
+    icon: <UserRound className="h-4.5 w-4.5" strokeWidth={2.2} />,
   },
   {
     id: "search",
@@ -104,9 +105,10 @@ const ALL_DASHBOARD_TABS: (DashboardTabDef & { id: DashboardTabId })[] = [
   },
   {
     id: "meal",
-    label: "Build a meal",
-    shortLabel: "Build",
-    icon: <Blocks className="h-4.5 w-4.5" strokeWidth={2.2} />,
+    // Was "Build a meal" / "Build". People come here to check a plate.
+    label: "Check a meal",
+    shortLabel: "Check meal",
+    icon: <ListChecks className="h-4.5 w-4.5" strokeWidth={2.2} />,
   },
   {
     id: "report",
@@ -152,25 +154,10 @@ export default function AppPage() {
     }
   };
 
-  // Restore the last tab this device used. Runs after mount only, since
-  // localStorage does not exist during server rendering.
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(DASHBOARD_TAB_KEY) as DashboardTabId | null;
-      if (saved && TAB_IDS.includes(saved)) setActiveTabState(saved);
-    } catch {
-      /* ignore */
-    }
-  }, []);
-
-  const setActiveTab = (id: DashboardTabId) => {
-    setActiveTabState(id);
-    try {
-      localStorage.setItem(DASHBOARD_TAB_KEY, id);
-    } catch {
-      /* ignore */
-    }
-  };
+  // The app ALWAYS opens on Today (UX review, 2026-10-07). It used to reopen
+  // on whichever tab was used last, so somebody who looked at the report
+  // yesterday came back to it today and thought their meal had gone.
+  const setActiveTab = (id: DashboardTabId) => setActiveTabState(id);
 
   // Every tab's content now lives in the one `#dashboard-panel` container —
   // there is no longer a separate always-visible zone or a special-cased
@@ -284,9 +271,26 @@ export default function AppPage() {
         // The calorie-setup hint only means anything for someone who can
         // actually use "Fit me" for that (Plus/Dietitian, or a trial
         // previewing it), and only until they have seen it once.
-        if (canUseGoalPersonalization(access)) {
+        let visits = 1;
+        try {
+          visits = Number(localStorage.getItem(VISITS_KEY) || "0");
+          if (!sessionStorage.getItem(VISIT_COUNTED_KEY)) {
+            visits += 1;
+            localStorage.setItem(VISITS_KEY, String(visits));
+            sessionStorage.setItem(VISIT_COUNTED_KEY, "1");
+          }
+        } catch {
+          /* storage blocked: treat it as a first visit and show nothing */
+        }
+        // Not on a first visit (the disclaimer is enough to read), and never
+        // for somebody whose details are already filled in.
+        if (canUseGoalPersonalization(access) && visits >= 2) {
           try {
-            if (!localStorage.getItem(FIT_ME_HINT_KEY)) setShowFitMeHint(true);
+            if (!localStorage.getItem(FIT_ME_HINT_KEY)) {
+              const p = await readPersonalizationProfile();
+              const done = p.sex && p.ageYears && p.weightKg && p.heightCm && p.activityLevel;
+              if (!done) setShowFitMeHint(true);
+            }
           } catch {
             /* ignore */
           }
@@ -426,7 +430,7 @@ export default function AppPage() {
           instruction, 2026-08-30: "should appear at the middle of the
           screen"), solid brand blue with white text (house rule: a surface
           is either blue or green, never a neutral dark card). Shown once per
-          device. Dismissed by its own close button, tapping "Fit me" in the
+          device. Dismissed by its own close button, tapping "My details" in the
           bottom nav, or tapping the backdrop. */}
       {showFitMeHint && (
         <div
@@ -446,7 +450,7 @@ export default function AppPage() {
               <X className="h-4 w-4" />
             </button>
             <p className="text-base font-semibold leading-snug text-white">
-              Click &quot;Fit me&quot; below to set up your daily calorie intake.
+              Tap &quot;My details&quot; to set up your daily calorie target.
             </p>
           </div>
         </div>
@@ -500,12 +504,6 @@ export default function AppPage() {
               actually lands on screen (see the effect above). */}
           <div id="dashboard-panel" className="mt-6 scroll-mt-24 space-y-4">
             <div className={activeTab === "todaysmeal" ? "space-y-4" : "hidden"}>
-              {/* Calories remaining today + this month's good meals, always
-                  horizontal, sitting above the meal card (founder
-                  instruction) so it reads as the day's scoreboard before the
-                  day's answer. Renders nothing until sex/age/weight/height/
-                  activity are set in "Make it fit me" (calories) or until
-                  there is a month of history (the month tile). */}
               {/* A meal test waiting for its 2-hour check comes first: it has a
                   clock on it, and nothing else on this screen does. Renders
                   nothing when there is no meal test today. */}
@@ -516,22 +514,25 @@ export default function AppPage() {
                 }}
               />
 
-              <FirstStepsChecklist
-                showFitMe={canUseGoalPersonalization(access)}
-                onGoToFitMe={() => selectTab("personalize")}
-                onGoToMeal={scrollToMeal}
-              />
-
-              <DashboardSnapshot show={canUseGoalPersonalization(access)} />
-
+              {/* Today's meal first, alone above the fold (UX review,
+                  2026-10-07): the answer a person opened the app for. The
+                  calorie tile, the first-steps card and the extras now sit
+                  under it instead of in front of it. */}
               <div id="todays-meal" className="scroll-mt-24">
                 <TodaysMeal onBuild={buildMeal} personalize={canUseGoalPersonalization(access)} />
               </div>
 
               {/* The green extras card, directly under the blue meal card
-                  (founder instruction, 2026-08-30) — its own component now,
-                  not bundled inside DashboardSnapshot's tile row. */}
+                  (founder instruction, 2026-08-30). */}
               <TodaysExtras show={canUseGoalPersonalization(access)} />
+
+              <DashboardSnapshot show={canUseGoalPersonalization(access)} />
+
+              <FirstStepsChecklist
+                showFitMe={canUseGoalPersonalization(access)}
+                onGoToFitMe={() => selectTab("personalize")}
+                onGoToMeal={scrollToMeal}
+              />
 
               {/* Straight under the answer, because a reading is the one
                   thing only this person can tell us, and the app can say
@@ -597,10 +598,10 @@ export default function AppPage() {
                 open={activeTab === "meal"}
                 onToggle={() => selectTab("meal")}
                 tone="green"
-                icon={<Blocks className="h-6 w-6" strokeWidth={2.2} />}
+                icon={<ListChecks className="h-6 w-6" strokeWidth={2.2} />}
                 header={
                   <span className="font-display text-lg font-bold leading-snug text-ink">
-                    Build your plate
+                    Check your meal
                   </span>
                 }
               >

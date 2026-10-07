@@ -5,7 +5,7 @@ await p.goto("http://localhost:3000/trial", { waitUntil: "networkidle" });
 await p.getByRole("button", { name: "Start my free week now" }).click();
 await p.waitForURL("**/app");
 await p.getByRole("button", { name: "I understand" }).click();
-await p.getByRole("button", { name: "Build a meal" }).click();
+await p.getByRole("button", { name: "Check a meal" }).click();
 const add = p.getByLabel("Add a food to your meal");
 for (const q of ["eba", "egusi", "fish"]) {
   await add.fill(q);

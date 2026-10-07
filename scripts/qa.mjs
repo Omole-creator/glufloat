@@ -200,14 +200,14 @@ await check("eba verdict yellow", async () =>
 await page.screenshot({ path: `${OUT}/app-search-eba.png` });
 
 // ---- 5. meal builder: white rice + efo riro + fish, half rice -> green ------
-await page.getByRole("button", { name: "Build a meal" }).click();
+await page.getByRole("button", { name: "Check a meal" }).click();
 await check("meal builder opens for a member", async () =>
   visible(page.getByText("Add everything you are eating", { exact: false })),
 );
 const addInput = page.getByLabel("Add a food to your meal");
 for (const q of ["white rice", "efo riro", "fish"]) {
   await addInput.fill(q);
-  await page.locator("ul button").first().click();
+  await page.locator("ul button").filter({ visible: true }).first().click();
   await page.waitForTimeout(250);
 }
 await page.screenshot({ path: `${OUT}/meal-before-fix.png` });
@@ -242,7 +242,7 @@ await page.screenshot({ path: `${OUT}/meal-after-fix.png` });
 
 // ---- 6. hard red: any sweet drink locks the meal ---------------------------
 await addInput.fill("coke");
-await page.locator("ul button").first().click();
+await page.locator("ul button").filter({ visible: true }).first().click();
 await page.waitForTimeout(400);
 await check("coke locks meal red", async () =>
   visible(page.getByText("The sweet drink makes this red.")),
