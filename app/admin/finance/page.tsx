@@ -1,5 +1,5 @@
 import { TrendingUp, TrendingDown, Wallet, Percent, Repeat } from "lucide-react";
-import { isAdmin } from "@/lib/recordings";
+import { isAdmin } from "@/lib/adminSession";
 import { createAdminClient } from "@/lib/supabase/server";
 import { fetchAll } from "@/lib/adminFetch";
 import { isInternalEmail } from "@/lib/internalAccounts";

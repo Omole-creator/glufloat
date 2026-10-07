@@ -8,7 +8,7 @@ import {
   Users,
   Handshake,
   PenLine,
-  Mic,
+  Mail,
   ExternalLink,
   LogOut,
   LineChart,
@@ -19,7 +19,7 @@ import {
 /**
  * The admin screens, in four groups so the sidebar reads as a map of the
  * business rather than a flat list: how it is doing, the money, the people,
- * and what we publish and hear. Navigation only: anything a page can DO
+ * and what we publish. Navigation only: anything a page can DO
  * (download, pick a period) lives in the page, never here.
  *
  * `exact` screens light up only on their own address. Without it the Finance
@@ -41,13 +41,13 @@ const GROUPS = [
     tabs: [
       { href: "/admin/users", label: "Users", icon: Users },
       { href: "/admin/partners", label: "Partners", icon: Handshake },
+      { href: "/admin/email", label: "Email", icon: Mail },
     ],
   },
   {
     title: "Content",
     tabs: [
       { href: "/admin/blog", label: "Blog", icon: PenLine },
-      { href: "/admin/recordings", label: "Recordings", icon: Mic },
     ],
   },
 ];

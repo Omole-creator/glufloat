@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { isAdmin } from "@/lib/recordings";
+import { isAdmin } from "@/lib/adminSession";
 import AdminLogin from "../../AdminLogin";
 import AdminShell from "../../AdminShell";
 import AdminCard from "../../AdminCard";

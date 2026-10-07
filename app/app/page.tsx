@@ -33,6 +33,7 @@ import CollapsibleCard from "@/components/CollapsibleCard";
 import DashboardBottomNav, { type DashboardTabDef } from "@/components/DashboardBottomNav";
 import DashboardLeftNav from "@/components/DashboardLeftNav";
 import ChatWithDietitian from "@/components/ChatWithDietitian";
+import EmailOptIn from "@/components/EmailOptIn";
 import PersonalizationSettings from "@/components/PersonalizationSettings";
 import { PAYSTACK_URLS, pendingReference, clearPendingReference } from "@/lib/access";
 import { TIER_LABEL } from "@/lib/pricing";
@@ -562,6 +563,7 @@ export default function AppPage() {
                 showGoals={canUseGoalPersonalization(access)}
                 onSaved={scrollToMeal}
               />
+              <EmailOptIn />
             </div>
 
             <div className={activeTab === "search" ? "" : "hidden"}>

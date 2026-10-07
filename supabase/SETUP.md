@@ -27,9 +27,10 @@ keys are in Vercel, the app code (which I'm building) takes over.
    | 14 | `dietitian-partner-routing-schema.sql` | Lets a partner (e.g. `angela14`) have her own dedicated dietitian instead of the generic round-robin — `inhouse_dietitians.reserved_for_partner_code`, and an extended `assign_dietitian()`. Must run AFTER #12, since it replaces that function. Idempotent, safe to re-paste. |
    | 15 | `meal-calories-schema.sql` | `meal_checks.calories` — lets a scaled extra-food log (ExtraSuggestionCard) credit its real, scaled calorie total instead of being silently under-counted from the food's base serving. Must run AFTER #7. Nullable, safe to re-paste; the app degrades gracefully (falls back to name-based estimate) until this runs. |
    | 16 | `data-collection-schema.sql` | `meal_checks.food_ids/.sizes`, `meal_impressions` (blue-card shown/skipped/opened/eaten), `weight_history`, `glucose_readings.context` (before/after a meal), `profiles.med_types`, and `hba1c_results`. Must run AFTER #15. Idempotent; every write degrades gracefully until it runs. |
-   | 17 | `recordings-schema.sql` | `call_sessions`, `call_lines`, `call_audio_parts` for `/admin/recordings` (customer calls). RLS on with NO policies: only the service role reads or writes them. The audio itself goes in the private `call-audio` storage bucket (created 2026-09-27 via the API). Idempotent. |
+   | 17 | `recordings-schema.sql` | **The recordings screens were removed 2026-10-07 (transcripts were not accurate). The tables and the `call-audio` bucket were left in place, not dropped.** `call_sessions`, `call_lines`, `call_audio_parts` for `/admin/recordings` (customer calls). RLS on with NO policies: only the service role reads or writes them. The audio itself goes in the private `call-audio` storage bucket (created 2026-09-27 via the API). Idempotent. |
    | 18 | `finance-schema.sql` | `finance_expenses`, `finance_income`, `founder_loan_moves` for `/admin/finance` (expenses, other money in, founder loans). Amounts in kobo. RLS on with NO policies: only the admin routes (service role) touch them. Idempotent; the finance pages say "waiting for the database update" and keep the forms off until it runs. |
    | 19 | `meal-response-schema.sql` | `meal_checks.started_at` and `.reminder_sent_at` for **meal tests** (a meal with a sugar test before it and 2 hours after, the co-founder dietitian's design, 2026-10-07). The two sugar tests themselves need nothing new: they are `glucose_readings` rows on the meal with `context` before/after. Must run AFTER #16. Idempotent. Until it runs, the app remembers a started meal on the device and `/api/push/meal-test` answers 503. |
+   | 20 | `email-consent-schema.sql` | `profiles.email_updates` (yes / no / not asked) and `.email_updates_at`, for MailerLite emails (2026-10-07). Asked in `/app` on the My details tab. `/admin/email` sends only the people who said yes. Idempotent. Until it runs, the question is hidden and `/admin/email` says it is waiting. |
 
    Two things worth knowing about that order. **Five of these files each contain
    their own `create or replace function public.handle_new_user()`**, and the last
@@ -210,6 +211,33 @@ it on Vercel does nothing until the next deploy. To prove a deploy really carrie
 it, load `/app` signed in and search the JavaScript it fetches for the key: it
 lives in a lazily-loaded chunk, so it is NOT in the initial HTML and NOT in the
 first chunks the page references. Looking only there gives a false negative.
+
+## 5. Emails to users (MailerLite)
+
+GluFloat's own address (ImprovMX, free) only receives mail. That is fine:
+MailerLite sends from its own servers.
+
+1. Make a MailerLite account. Add the three senders (MailerLite > Account
+   settings > Sender emails): `care@glufloat.com` (diabetics and caregivers),
+   `omole@glufloat.com` (health professionals, from the founder) and
+   `support@glufloat.com` (the reply address). MailerLite emails each one a
+   link to confirm; ImprovMX forwards it to your inbox, so each must be set
+   up as an alias in ImprovMX first. ImprovMX free cannot SEND, and does not
+   need to: MailerLite does the sending.
+2. In MailerLite, authenticate the domain `glufloat.com`. It gives DNS records
+   (a TXT for SPF/DKIM and maybe a CNAME). Add them where glufloat.com's DNS
+   lives. **Keep ImprovMX's MX records.** If a TXT record starting `v=spf1`
+   already exists, do not add a second one: add MailerLite's `include:` into
+   the same line.
+3. MailerLite > Integrations > API > make a key. In Vercel add
+   `MAILERLITE_API_KEY` (Production, sensitive), then deploy again.
+4. Run `email-consent-schema.sql` (#20 above).
+5. `/admin/email` > "Send list to MailerLite". It makes four groups
+   (`GluFloat: Diabetic`, `Health professional`, `Caregiver`, `Not set`).
+   Write the email in MailerLite and send it to one group.
+
+Free plan (checked 2026-10-07): 250 contacts and about 2,500 emails a month,
+with MailerLite's logo on each email.
 
 ## What I build once the above is in place
 - Supabase client (browser + server) and session middleware.
