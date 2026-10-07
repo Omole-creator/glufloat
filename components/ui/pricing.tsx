@@ -58,7 +58,7 @@ export function Pricing({
   return (
     <div>
       <div className="text-center">
-        <h2 className="font-display text-3xl font-bold text-ink sm:text-4xl">{title}</h2>
+        <h2 className="font-display text-3xl font-bold leading-tight tracking-tight text-ink sm:text-[2.6rem]">{title}</h2>
         {description && (
           <p className="mx-auto mt-4 max-w-xl font-display text-lg leading-relaxed text-ink-soft">
             {description}

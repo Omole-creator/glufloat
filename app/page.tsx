@@ -87,9 +87,34 @@ const DOT = {
   red: "bg-verdict-red",
 } as const;
 
-function Label({ children }: { children: React.ReactNode }) {
+/**
+ * Design tokens for the body of the page (redesign, 2026-10-07). A cool
+ * off-white canvas alternating with white, white cards with long soft shadows,
+ * and deep-blue panels set INTO the page rather than full-width slabs. Every
+ * section headline is centred and in Title Case (founder instruction).
+ */
+const H2 = "mx-auto mt-4 max-w-3xl text-balance font-display text-3xl font-bold leading-tight tracking-tight text-ink sm:text-[2.6rem]";
+const LEAD = "mx-auto mt-4 max-w-xl text-lg leading-relaxed text-ink-soft";
+const PANEL =
+  "relative mx-auto max-w-6xl overflow-hidden rounded-[32px] bg-gradient-to-br from-[#0B2E5C] via-[#124A8C] to-[#1B5FAA] px-6 py-14 sm:px-12 sm:py-16";
+
+/** Soft light in the corners of a deep-blue panel, instead of grain or dots. */
+function Glow() {
   return (
-    <span className="inline-flex items-center gap-2 rounded-full bg-leaf/10 px-3 py-1 text-sm font-semibold text-leaf-deep">
+    <>
+      <div aria-hidden className="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-[#2C7BE5]/40 blur-3xl" />
+      <div aria-hidden className="pointer-events-none absolute -bottom-28 -right-20 h-72 w-72 rounded-full bg-leaf/30 blur-3xl" />
+    </>
+  );
+}
+
+function Label({ children, dark = false }: { children: React.ReactNode; dark?: boolean }) {
+  return (
+    <span
+      className={`inline-flex items-center rounded-full px-3.5 py-1 text-xs font-bold uppercase tracking-[0.14em] ${
+        dark ? "bg-white/10 text-white ring-1 ring-inset ring-white/20" : "bg-white text-brand ring-1 ring-brand/15 shadow-sm"
+      }`}
+    >
       {children}
     </span>
   );
@@ -140,203 +165,131 @@ export default function Home() {
       </div>
 
       {/* ============ HOW IT WORKS ============ */}
-      <section id="how" className="bg-white py-20 sm:py-24">
+      <section id="how" className="scroll-mt-24 bg-[#F4F7FB] py-20 sm:py-28">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <Reveal className="text-center">
             <Label>How it works</Label>
-            <h2 className="mx-auto mt-4 max-w-2xl font-display text-3xl font-bold leading-tight text-ink sm:text-4xl">
-              How GluFloat fits into your day
-            </h2>
-            <p className="mx-auto mt-4 max-w-xl font-display text-lg leading-relaxed text-ink-soft">
-              A few taps around each meal. You keep eating the food you love, and you finally
-              see what it does to your sugar.
+            <h2 className={H2}>How GluFloat Fits Into Your Day</h2>
+            <p className={LEAD}>
+              A few taps around each meal. You keep eating the food you love, and you finally see
+              what it does to your sugar.
             </p>
           </Reveal>
 
           <DayTimeline />
 
-          {/* The picture under the day: this is what the whole thing is for. */}
           <Reveal delay={120}>
-            <div className="mt-12 overflow-hidden rounded-3xl shadow-[0_28px_60px_-28px_rgba(12,42,71,0.5)]">
+            <div className="mt-14 overflow-hidden rounded-[32px] shadow-[0_30px_70px_-40px_rgba(11,46,92,0.6)]">
               <Image
                 src="/img/family-meal.jpg"
                 alt="An older couple laughing together over a meal of grilled chicken, brown rice, fish and vegetables"
                 width={1400}
                 height={980}
-                className="h-auto w-full object-cover"
+                className="h-auto max-h-[520px] w-full object-cover"
               />
-            </div>
-          </Reveal>
-
-          {/* the fix, made plain */}
-          <Reveal delay={100}>
-            <div className="mt-16 overflow-hidden rounded-3xl border border-line bg-gradient-to-br from-mist via-white to-mint">
-              <div className="grid items-center gap-8 p-8 sm:p-10 lg:grid-cols-2">
-                <div>
-                  <h3 className="font-display text-2xl font-bold text-ink sm:text-3xl">
-                    When your food isn't green, we don't just say no.
-                  </h3>
-                  <p className="mt-4 text-lg leading-relaxed text-ink-soft">
-                    We show you the one small change that makes it good, and you
-                    watch the colour turn green in front of you. You don't have
-                    to work anything out. GluFloat has done it for you.
-                  </p>
-                </div>
-
-                <div className="rounded-2xl bg-white p-5 shadow-lg">
-                  <p className="text-sm font-semibold text-ink-soft">
-                    Your food tonight
-                  </p>
-                  <div className="mt-3 space-y-2 text-sm">
-                    <div className="flex items-center justify-between rounded-lg bg-mist px-3 py-2">
-                      <span className="text-ink">Pounded yam, normal size</span>
-                      <span className="h-2.5 w-2.5 rounded-full bg-verdict-yellow" />
-                    </div>
-                    <div className="flex items-center justify-between rounded-lg bg-mist px-3 py-2">
-                      <span className="text-ink">Egusi soup</span>
-                      <span className="h-2.5 w-2.5 rounded-full bg-verdict-green" />
-                    </div>
-                    <div className="flex items-center justify-between rounded-lg bg-mist px-3 py-2">
-                      <span className="text-ink">Goat meat</span>
-                      <span className="h-2.5 w-2.5 rounded-full bg-verdict-green" />
-                    </div>
-                  </div>
-                  <div className="mt-4 flex items-start gap-3 rounded-xl bg-mint p-4">
-                    <Check className="mt-0.5 h-5 w-5 shrink-0 text-leaf-deep" />
-                    <p className="text-sm text-ink">
-                      Make the small change GluFloat shows you and the whole
-                      meal turns{" "}
-                      <span className="font-bold text-leaf-deep">green</span>.
-                      That is your dinner sorted, with no worry after you eat.
-                    </p>
-                  </div>
-                </div>
-              </div>
             </div>
           </Reveal>
         </div>
       </section>
 
       {/* ============ TRY IT (sign-up CTA) ============
-          A second full brand-blue section, so the page is not one coloured hero
-          on a white page. Same canvas as the hero, same rule: white type, and
-          green only on the button. */}
-      <section
-        id="demo"
-        className="relative overflow-hidden bg-gradient-to-b from-[#0d3568] via-[#14538f] to-[#1b5faa] py-20 sm:py-24"
-      >
-        <div className="dots-light absolute inset-0 opacity-40" aria-hidden />
-        <div className="grain absolute inset-0" aria-hidden />
-        <div className="relative mx-auto max-w-2xl px-4 sm:px-6">
-          <Reveal className="text-center">
-            <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-sm font-semibold text-white ring-1 ring-inset ring-white/25">
-              Try it free
-            </span>
-            <h2 className="mt-4 font-display text-3xl font-bold text-white sm:text-4xl">
-              Ready to check your first food?
-            </h2>
-            <p className="mx-auto mt-4 max-w-md font-display text-lg leading-relaxed text-white/75">
-              Make a free account, then check any food you eat for the next 7
-              days. No card needed.
-            </p>
-          </Reveal>
-
-          <Reveal delay={150} className="mt-8">
-            <div className="mx-auto flex max-w-md flex-col items-center rounded-3xl bg-white p-8 shadow-[0_30px_60px_-24px_rgba(6,26,50,0.6)]">
-              <ul className="mb-7 grid w-full gap-3 text-left text-ink sm:grid-cols-2">
-                {[
-                  "No card needed",
-                  "Free for 7 days",
-                  "Stop any time",
-                  "Checked by 7 dietitians",
-                ].map((b) => (
-                  <li key={b} className="flex items-center gap-2.5 text-sm font-medium">
-                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-verdict-green/15">
-                      <Check className="h-3 w-3 text-leaf-deep" />
-                    </span>
-                    {b}
-                  </li>
-                ))}
-              </ul>
-
-              <TrialCta className="group flex w-full items-center justify-center gap-2 rounded-full bg-leaf px-8 py-4 text-base font-bold text-white shadow-[0_14px_30px_-10px_rgba(62,155,79,0.6)] hover:bg-leaf-deep transition-all hover:-translate-y-1" />
-              <p className="mt-3 text-center text-sm text-ink-soft">
-                You sign up first, then check any food you eat.
+          An inset deep-blue panel on a white page, not a full-width slab: same
+          blue as the hero, white type, and green only on the button. */}
+      <section id="demo" className="scroll-mt-24 bg-white px-4 py-16 sm:px-6 sm:py-20">
+        <div className={PANEL}>
+          <Glow />
+          <div className="relative mx-auto max-w-2xl">
+            <Reveal className="text-center">
+              <Label dark>Try it free</Label>
+              <h2 className="mt-4 font-display text-3xl font-bold tracking-tight text-white sm:text-4xl">
+                Ready To Check Your First Food?
+              </h2>
+              <p className="mx-auto mt-4 max-w-md text-lg leading-relaxed text-white/75">
+                Make a free account, then use GluFloat for 7 days. No card needed.
               </p>
-            </div>
-          </Reveal>
+            </Reveal>
+
+            <Reveal delay={150} className="mt-9">
+              <div className="mx-auto flex max-w-md flex-col items-center rounded-[28px] bg-white p-7 shadow-[0_30px_60px_-24px_rgba(6,26,50,0.6)] sm:p-8">
+                <ul className="mb-7 grid w-full gap-3 text-left text-ink sm:grid-cols-2">
+                  {["No card needed", "Free for 7 days", "Stop any time", "Checked by 7 dietitians"].map((b) => (
+                    <li key={b} className="flex items-center gap-2.5 text-sm font-medium">
+                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-leaf/15">
+                        <Check className="h-3 w-3 text-leaf-deep" strokeWidth={3} />
+                      </span>
+                      {b}
+                    </li>
+                  ))}
+                </ul>
+                <TrialCta className="group flex w-full items-center justify-center gap-2 rounded-full bg-leaf px-8 py-4 text-base font-bold text-white shadow-[0_14px_30px_-10px_rgba(62,155,79,0.6)] transition-all hover:-translate-y-0.5 hover:bg-leaf-deep" />
+              </div>
+            </Reveal>
+          </div>
         </div>
       </section>
 
-      {/* ============ AFTER THE MEAL: report + dietitian ============ */}
-      <section className="bg-mist py-20 sm:py-24">
+      {/* ============ FOR YOUR DOCTOR: report + dietitian ============ */}
+      <section className="bg-[#F4F7FB] py-20 sm:py-28">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <Reveal className="mb-10 text-center">
+          <Reveal className="mb-12 text-center">
             <Label>For your doctor</Label>
-            <h2 className="mx-auto mt-4 max-w-2xl font-display text-3xl font-bold leading-tight text-ink sm:text-4xl">
-              Go to your next visit with more than a guess.
-            </h2>
+            <h2 className={H2}>Go To Your Next Appointment With A Detailed Report</h2>
           </Reveal>
           <ReportShowcase />
         </div>
       </section>
 
       {/* ============ DIFFERENTIATION ============ */}
-      <section className="bg-white py-20 sm:py-24">
+      <section className="bg-white py-20 sm:py-28">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <div className="grid items-center gap-12 lg:grid-cols-2">
-            <Reveal direction="left">
-              <Label>Why GluFloat</Label>
-              <h2 className="mt-4 font-display text-3xl font-bold leading-tight text-ink sm:text-4xl">
-                Other apps don&apos;t know our food. <br /> GluFloat was made for it.
-              </h2>
-              <p className="mt-5 font-display text-lg leading-relaxed text-ink-soft">
-                The popular food apps were built abroad. They don&apos;t know
-                jollof, eba or amala, and they don&apos;t know we eat with soup.
-                GluFloat knows over 1,400 of our own foods, and it always shows
-                you how to make a food safe.
-              </p>
+          <Reveal className="text-center">
+            <Label>Why GluFloat</Label>
+            <h2 className={H2}>
+              Other Apps Don&apos;t Know Our Food. GluFloat Was Made For It.
+            </h2>
+            <p className={LEAD}>
+              The popular food apps were built abroad. They don&apos;t know jollof, eba or amala,
+              and they don&apos;t know we eat with soup. GluFloat knows over 1,400 of our own foods.
+            </p>
+          </Reveal>
 
-              <div className="relative mt-8 overflow-hidden rounded-3xl">
+          <div className="mt-14 grid items-stretch gap-5 lg:grid-cols-2">
+            <Reveal direction="left" className="h-full">
+              <div className="h-full overflow-hidden rounded-[28px]">
                 <Image
                   src="/img/nigerian-table.jpg"
                   alt="A woman smiling behind a full Nigerian table: jollof rice, efo riro, swallow, fried plantain and stew"
                   width={1000}
                   height={700}
-                  className="h-72 w-full object-cover transition-transform duration-700 hover:scale-105"
+                  className="h-full min-h-72 w-full object-cover"
                 />
               </div>
             </Reveal>
 
-            <Reveal direction="right" delay={120}>
-              <div className="overflow-hidden rounded-3xl border border-line shadow-[0_20px_50px_-24px_rgba(12,42,71,0.4)]">
-                <div className="grid grid-cols-[1.5fr_1fr_1fr] bg-ink text-sm font-bold text-white">
-                  <div className="px-4 py-4"></div>
-                  <div className="px-2 py-4 text-center text-white/60">
-                    Other apps
-                  </div>
-                  <div className="bg-brand px-2 py-4 text-center">GluFloat</div>
+            <Reveal direction="right" delay={120} className="h-full">
+              <div className="h-full overflow-hidden rounded-[28px] bg-white ring-1 ring-ink/[0.07] shadow-[0_24px_50px_-32px_rgba(11,46,92,0.45)]">
+                <div className="grid grid-cols-[1.6fr_1fr_1fr] border-b border-ink/[0.06] text-sm font-bold">
+                  <div className="px-5 py-4" />
+                  <div className="px-2 py-4 text-center text-ink-soft">Other apps</div>
+                  <div className="bg-brand px-2 py-4 text-center text-white">GluFloat</div>
                 </div>
                 {[
-                  "Knows jollof, eba, and amala",
-                  "Checks your whole food, not one part",
+                  "Knows jollof, eba and amala",
+                  "Checks your whole plate, not one food",
                   "Shows you how to fix it, never just no",
                   "Gives the size in things you can see",
                   "Shows what each meal did to your sugar",
                   "Price and payment in naira",
-                ].map((row, i) => (
-                  <div
-                    key={row}
-                    className={`group grid grid-cols-[1.5fr_1fr_1fr] text-sm transition-colors hover:bg-mint/50 ${
-                      i % 2 ? "bg-mist/50" : "bg-white"
-                    }`}
-                  >
-                    <div className="px-4 py-4 font-medium text-ink">{row}</div>
+                ].map((row) => (
+                  <div key={row} className="grid grid-cols-[1.6fr_1fr_1fr] border-b border-ink/[0.05] text-sm last:border-b-0">
+                    <div className="px-5 py-4 font-medium text-ink">{row}</div>
                     <div className="flex items-center justify-center py-4">
-                      <X className="h-5 w-5 text-verdict-red/60" />
+                      <X className="h-4 w-4 text-ink-soft/40" />
                     </div>
-                    <div className="flex items-center justify-center bg-mint/60 py-4 transition-transform group-hover:scale-110">
-                      <Check className="h-5 w-5 text-leaf-deep" />
+                    <div className="flex items-center justify-center bg-brand/[0.05] py-4">
+                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-leaf text-white">
+                        <Check className="h-3.5 w-3.5" strokeWidth={3} />
+                      </span>
                     </div>
                   </div>
                 ))}
@@ -346,38 +299,34 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ============ TRUST BAND (dynamic, coloured) ============ */}
-      {/* Solid brand blue. It used to fade blue into green, which is the kind of
-          two-colour blend the founder ruled out: it is one colour or the other. */}
-      <section className="relative overflow-hidden bg-brand py-16 text-white">
-        <div className="grain absolute inset-0" aria-hidden />
-        <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
-          <Reveal className="text-center">
-            <h2 className="font-display text-2xl font-bold sm:text-3xl">
-              Simple, fast, and made for you.
-            </h2>
-          </Reveal>
-          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              { end: 1400, suffix: "+", unit: "Nigerian foods", label: "and we add more every month" },
-              { end: 7, suffix: "", unit: "registered dietitians", label: "reviewed our food guidance" },
-              { end: 3, suffix: "", unit: "clear colours", label: "green, yellow, or red. That is all" },
-              { end: 10, suffix: " sec", unit: "to an answer", label: "faster than dishing the food" },
-            ].map((t, i) => (
-              <Reveal key={t.unit} delay={i * 100}>
-                <div className="lift h-full rounded-2xl bg-white/12 p-6 text-center backdrop-blur-sm ring-1 ring-white/20">
-                  <p className="font-display text-4xl font-bold">
-                    <CountUp end={t.end} suffix={t.suffix} />
-                  </p>
-                  <p className="mt-1 font-display text-sm font-semibold text-white">
-                    {t.unit}
-                  </p>
-                  <p className="mt-2 text-sm leading-relaxed text-white/80">
-                    {t.label}
-                  </p>
-                </div>
-              </Reveal>
-            ))}
+      {/* ============ NUMBERS ============ */}
+      <section className="bg-white px-4 pb-20 sm:px-6 sm:pb-28">
+        <div className={PANEL}>
+          <Glow />
+          <div className="relative">
+            <Reveal className="text-center">
+              <h2 className="font-display text-3xl font-bold tracking-tight text-white sm:text-4xl">
+                Simple, Fast, And Made For You
+              </h2>
+            </Reveal>
+            <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {[
+                { end: 1400, suffix: "+", unit: "Nigerian foods", label: "and we add more every month" },
+                { end: 7, suffix: "", unit: "registered dietitians", label: "reviewed our food guidance" },
+                { end: 3, suffix: "", unit: "clear colours", label: "green, yellow or red" },
+                { end: 10, suffix: " sec", unit: "to an answer", label: "faster than dishing the food" },
+              ].map((t, i) => (
+                <Reveal key={t.unit} delay={i * 100}>
+                  <div className="h-full rounded-[22px] bg-white/[0.08] p-6 text-center ring-1 ring-inset ring-white/15 backdrop-blur-sm">
+                    <p className="font-display text-4xl font-bold tracking-tight text-white">
+                      <CountUp end={t.end} suffix={t.suffix} />
+                    </p>
+                    <p className="mt-1.5 text-sm font-semibold text-white">{t.unit}</p>
+                    <p className="mt-1 text-sm text-white/65">{t.label}</p>
+                  </div>
+                </Reveal>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -386,62 +335,57 @@ export default function Home() {
       <Testimonials />
 
       {/* ============ JOY BAND ============ */}
-      <section className="bg-white pb-20 sm:pb-24">
+      <section className="bg-[#F4F7FB] py-20 sm:py-28">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <div className="grid items-center gap-10 overflow-hidden rounded-3xl bg-gradient-to-br from-mint via-mist to-white p-8 shadow-[0_20px_50px_-28px_rgba(12,42,71,0.35)] sm:p-10 lg:grid-cols-2">
-            <Reveal direction="left" className="mx-auto">
-              <div className="overflow-hidden rounded-3xl shadow-[0_24px_50px_-20px_rgba(12,42,71,0.4)]">
+          <div className="grid items-center gap-10 rounded-[32px] bg-white p-6 shadow-[0_24px_50px_-32px_rgba(11,46,92,0.45)] ring-1 ring-ink/[0.05] sm:p-10 lg:grid-cols-2">
+            <Reveal direction="left">
+              <div className="overflow-hidden rounded-[24px]">
                 <Image
                   src="/img/kitchen-joy.jpg"
                   alt="A woman smiling in her kitchen over a bowl of salad, with fish, vegetables and fruit on the counter"
                   width={760}
                   height={720}
-                  className="h-[24rem] w-full max-w-sm object-cover object-center"
+                  className="h-[22rem] w-full object-cover object-center sm:h-[26rem]"
                 />
               </div>
             </Reveal>
-
-            <Reveal direction="right" delay={120}>
+            <Reveal direction="right" delay={120} className="text-center">
               <Label>Your food, your joy</Label>
-              <h2 className="mt-4 font-display text-3xl font-bold leading-tight text-ink sm:text-4xl">
-                This joy can be yours too.
-              </h2>
-              <p className="mt-5 font-display text-lg leading-relaxed text-ink-soft">
-                You don&apos;t have to be afraid of your food. Eat what you love,
-                the right way, and feel good after your meal.
+              <h2 className={H2}>This Joy Can Be Yours Too</h2>
+              <p className={LEAD}>
+                You don&apos;t have to be afraid of your food. Eat what you love, the right way, and
+                feel good after your meal.
               </p>
-              <TrialCta className="group mt-7 inline-flex items-center gap-2 rounded-full bg-leaf px-7 py-4 text-base font-bold text-white shadow-[0_14px_30px_-10px_rgba(62,155,79,0.6)] hover:bg-leaf-deep transition-all hover:-translate-y-1" />
+              <TrialCta className="group mt-8 inline-flex items-center gap-2 rounded-full bg-leaf px-7 py-4 text-base font-bold text-white shadow-[0_14px_30px_-10px_rgba(62,155,79,0.6)] transition-all hover:-translate-y-0.5 hover:bg-leaf-deep" />
             </Reveal>
           </div>
         </div>
       </section>
 
       {/* ============ PRICING ============ */}
-      <section id="pricing" className="bg-white py-20 sm:py-24">
+      <section id="pricing" className="scroll-mt-24 bg-white py-20 sm:py-28">
         <div className="mx-auto max-w-5xl px-4 sm:px-6">
           <Reveal>
             <Pricing
               plans={PLANS}
-              title="Plans and pricing"
+              title="Plans And Pricing"
               description="7 days free on every plan. You do not need a card. Stop any time."
             />
           </Reveal>
           <Reveal delay={150} className="mt-8 text-center">
             <p className="text-sm text-ink-soft">
-              One visit to the clinic costs more than a whole year of Glufloat.
+              One visit to the clinic costs more than a whole year of GluFloat.
             </p>
           </Reveal>
         </div>
       </section>
 
       {/* ============ FAQ ============ */}
-      <section id="faq" className="bg-mist py-20 sm:py-24">
+      <section id="faq" className="scroll-mt-24 bg-[#F4F7FB] py-20 sm:py-28">
         <div className="mx-auto max-w-4xl px-4 sm:px-6">
           <Reveal className="text-center">
             <Label>Questions</Label>
-            <h2 className="mt-4 font-display text-3xl font-bold text-ink sm:text-4xl">
-              Things people ask before they start.
-            </h2>
+            <h2 className={H2}>Things People Ask Before They Start</h2>
           </Reveal>
           <Reveal delay={120} className="mt-10">
             <FAQ />
@@ -450,20 +394,18 @@ export default function Home() {
       </section>
 
       {/* ============ CLOSE ============ */}
-      <section className="relative overflow-hidden bg-ink py-20 text-white sm:py-24">
-        <div className="grain absolute inset-0" aria-hidden />
-        <div className="relative mx-auto max-w-3xl px-4 text-center sm:px-6">
-          <Reveal>
-            <h2 className="font-display text-3xl font-bold leading-tight sm:text-4xl">
-              Tonight there will be food on your table. <br />
-              You can guess, or you can know.
+      <section className="bg-white px-4 py-16 sm:px-6 sm:py-20">
+        <div className={PANEL}>
+          <Glow />
+          <Reveal className="relative mx-auto max-w-3xl text-center">
+            <h2 className="font-display text-3xl font-bold leading-tight tracking-tight text-white sm:text-4xl">
+              Tonight There Will Be Food On Your Table. You Can Guess, Or You Can Know.
             </h2>
-            <p className="mx-auto mt-6 max-w-xl font-display text-lg leading-relaxed text-white/75">
-              Guessing means the same worry, and the same high sugar after you
-              eat. Knowing takes ten seconds. The first 7 days are free, so you
-              have nothing to lose.
+            <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-white/75">
+              Guessing means the same worry, and the same high sugar after you eat. Knowing takes
+              ten seconds. The first 7 days are free, so you have nothing to lose.
             </p>
-            <TrialCta className="group mt-8 inline-flex items-center gap-2 rounded-full bg-leaf px-8 py-4 text-base font-bold text-white shadow-[0_14px_30px_-10px_rgba(62,155,79,0.6)] transition-all hover:-translate-y-1 hover:bg-leaf-deep" />
+            <TrialCta className="group mt-8 inline-flex items-center gap-2 rounded-full bg-leaf px-8 py-4 text-base font-bold text-white shadow-[0_14px_30px_-10px_rgba(62,155,79,0.6)] transition-all hover:-translate-y-0.5 hover:bg-leaf-deep" />
             <p className="mt-4 text-sm text-white/60">
               7 days free, no card. Then N1,500 a month. Stop any time.
             </p>

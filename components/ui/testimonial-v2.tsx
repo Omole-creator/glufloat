@@ -83,11 +83,11 @@ export function Testimonials() {
   return (
     <section className="overflow-hidden bg-white py-20 sm:py-24">
       <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
-        <span className="inline-flex items-center gap-2 rounded-full bg-leaf/10 px-3 py-1 text-sm font-semibold text-leaf-deep">
-          Real people
+        <span className="inline-flex items-center rounded-full bg-white px-3.5 py-1 text-xs font-bold uppercase tracking-[0.14em] text-brand shadow-sm ring-1 ring-brand/15">
+          Their words
         </span>
-        <h2 className="mt-4 font-display text-3xl font-bold text-ink sm:text-4xl">
-          People eating their food again, with peace of mind.
+        <h2 className="mx-auto mt-4 max-w-3xl font-display text-3xl font-bold leading-tight tracking-tight text-ink sm:text-[2.6rem]">
+          People Eating Their Food Again, With Peace Of Mind
         </h2>
         <p className="mx-auto mt-4 max-w-md font-display text-lg text-ink-soft">
           Nigerians living with diabetes, and the people who cook for them.
