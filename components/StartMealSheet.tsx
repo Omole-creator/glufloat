@@ -245,7 +245,7 @@ export default function StartMealSheet({
                 <button type="button" onClick={() => setEatingNow(true)} aria-pressed={eatingNow} className={choice(eatingNow)}>
                   <span className="block text-sm font-bold text-ink">I&apos;m about to eat it</span>
                   <span className="mt-0.5 block text-xs text-ink-soft">
-                    We&apos;ll help you test your sugar before you eat and 2 hours after.
+                    Test and record your sugar before you eat, then 2 hours after eating.
                   </span>
                 </button>
                 <button type="button" onClick={() => setEatingNow(false)} aria-pressed={!eatingNow} className={choice(!eatingNow)}>
