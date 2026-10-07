@@ -194,10 +194,12 @@ export async function addContact(email: string, name: string, group: keyof typeo
 
 /**
  * Where the unsubscribe link goes in our footer. Campaign preflight refuses to
- * send without one (`no_unsubscribe`). Confirmed against a live preflight; if
- * Mailyte ever stops recognising it, preflight says so before anything sends.
+ * send without one (`no_unsubscribe`). `{{ unsubscribe_url }}` is the tag
+ * Mailyte's own live preflight asked for (2026-10-07); a Mailchimp-style
+ * `*|UNSUB|*` was tried first and refused. If Mailyte ever changes it,
+ * preflight says so before anything sends.
  */
-export const UNSUB_HREF = "*|UNSUB|*";
+export const UNSUB_HREF = "{{ unsubscribe_url }}";
 
 export interface Sender {
   id: string;
