@@ -245,3 +245,13 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .step-in { animation: none; }
 }
+
+/* The admin email editor (app/admin/email/RichEditor.tsx). Tailwind's reset
+   strips heading, list and quote styles, so give them back here. */
+.email-editor p { margin: 0 0 0.75rem; }
+.email-editor h2 { margin: 1rem 0 0.5rem; font-size: 1.25rem; font-weight: 700; }
+.email-editor ul { margin: 0 0 0.75rem; padding-left: 1.4rem; list-style: disc; }
+.email-editor ol { margin: 0 0 0.75rem; padding-left: 1.4rem; list-style: decimal; }
+.email-editor blockquote { margin: 0 0 0.75rem; padding-left: 0.9rem; border-left: 3px solid var(--line, #e3e9f1); color: #5b6b7e; }
+.email-editor a { color: #1b5faa; text-decoration: underline; }
+.email-editor hr { margin: 1rem 0; border-color: #e3e9f1; }

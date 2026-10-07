@@ -9,10 +9,9 @@ import { isUserType, type UserType } from "./userType";
  * confirmation email, and (2) glufloat.com's SPF/DKIM/DMARC records from
  * Mailyte. See supabase/SETUP.md §5.
  *
- * What this file does: put each person who said YES (profiles.email_updates)
- * on one Mailyte contact list by who they are, and mark people who said no as
- * unsubscribed. The emails are written and sent as campaigns in Mailyte,
- * which adds the unsubscribe link the law needs.
+ * What this file does: put every user on one Mailyte contact list by who
+ * they are (with `first_name` for "Hello Ada"), and write and send campaigns
+ * from /admin/email. Campaigns carry the unsubscribe link the law needs.
  *
  * API: https://mailyte.com/developer (base https://app.mailyte.com, Bearer
  * key, every reply wrapped as { message, data, success, code }). The key
@@ -90,19 +89,24 @@ export interface Contact {
   email: string;
   name: string | null;
   userType: string | null;
-  emailUpdates: boolean | null;
-  /** When they said yes, kept on the Mailyte contact as the consent record. */
-  consentedAt: string | null;
 }
 
 export interface SyncResult {
   sent: number;
-  stopped: number;
   failed: number;
   byGroup: Record<string, number>;
 }
 
 const listKey = (t: string | null) => (t && isUserType(t) ? t : "unset");
+
+/** The first word of a name, for "Hello Ada". Empty when there is no name. */
+export function firstName(name: string | null | undefined): string {
+  const w = String(name ?? "").trim().split(/\s+/)[0] ?? "";
+  return w ? w.charAt(0).toUpperCase() + w.slice(1).toLowerCase() : "";
+}
+
+/** The fields every GluFloat contact carries (replaced whole on each write). */
+const attrs = (name: string | null, who: string) => ({ first_name: firstName(name), who });
 
 /** Run `fn` over `items`, 4 at a time, so 250 contacts finish in seconds. */
 async function eachLimited<T>(items: T[], fn: (t: T, i: number) => Promise<void>): Promise<void> {
@@ -118,54 +122,45 @@ async function eachLimited<T>(items: T[], fn: (t: T, i: number) => Promise<void>
 }
 
 /**
- * Send the list. Yes → put on their list (and off the other GluFloat lists,
- * so somebody whose kind was corrected on /admin/users moves across). No →
- * marked unsubscribed. Never asked → not sent.
+ * Put EVERY user on the list for who they are (founder, 2026-10-07: "just add
+ * all the users to their respective category", no yes/no question), and off
+ * the other GluFloat lists, so somebody whose kind was corrected on
+ * /admin/users moves across. Each carries `first_name` for "Hello Ada".
  *
- * A yes uses `status_if_new`, never `status`: somebody who pressed
- * "unsubscribe" in one of our emails stays unsubscribed even though the app
- * still says yes. Mailyte's own docs call overriding that the worst thing the
- * API can do.
+ * `status_if_new`, never `status`: somebody who pressed "Stop these emails"
+ * in one of our emails stays unsubscribed. Mailyte's own docs call overriding
+ * that the worst thing the API can do.
  */
 export async function syncContacts(contacts: Contact[]): Promise<SyncResult> {
   const lists = await ensureLists();
   const ours = new Set(Object.values(lists));
-  const out: SyncResult = { sent: 0, stopped: 0, failed: 0, byGroup: {} };
+  const out: SyncResult = { sent: 0, failed: 0, byGroup: {} };
 
   await eachLimited(contacts, async (c) => {
-    if (c.emailUpdates === true) {
-      const name = GROUP_NAME[listKey(c.userType)];
-      const target = lists[name];
-      const r = await my<ContactRow>("/contacts", {
-        method: "PUT",
-        body: JSON.stringify({
-          email: c.email,
-          name: c.name ?? undefined,
-          status_if_new: "subscribed",
-          list_ids: [target],
-          source: "GluFloat app",
-          consented_at: c.consentedAt ?? undefined,
-          consent_source: "GluFloat app, My details: Get GluFloat tips by email",
-        }),
-      });
-      if (r.status >= 400 || !r.data?.id) {
-        out.failed += 1;
-        return;
+    const key = listKey(c.userType);
+    const name = GROUP_NAME[key];
+    const target = lists[name];
+    const r = await my<ContactRow>("/contacts", {
+      method: "PUT",
+      body: JSON.stringify({
+        email: c.email,
+        name: c.name ?? undefined,
+        attributes: attrs(c.name, key),
+        status_if_new: "subscribed",
+        list_ids: [target],
+        source: "GluFloat app",
+      }),
+    });
+    if (r.status >= 400 || !r.data?.id) {
+      out.failed += 1;
+      return;
+    }
+    out.sent += 1;
+    out.byGroup[name] = (out.byGroup[name] ?? 0) + 1;
+    for (const l of r.data.lists ?? []) {
+      if (l.id !== target && ours.has(l.id)) {
+        await my(`/contact-lists/${l.id}/members/${r.data.id}`, { method: "DELETE" });
       }
-      out.sent += 1;
-      out.byGroup[name] = (out.byGroup[name] ?? 0) + 1;
-      for (const l of r.data.lists ?? []) {
-        if (l.id !== target && ours.has(l.id)) {
-          await my(`/contact-lists/${l.id}/members/${r.data.id}`, { method: "DELETE" });
-        }
-      }
-    } else if (c.emailUpdates === false) {
-      const r = await my("/contacts", {
-        method: "PUT",
-        body: JSON.stringify({ email: c.email, status: "unsubscribed" }),
-      });
-      if (r.status >= 400) out.failed += 1;
-      else out.stopped += 1;
     }
   });
   return out;
@@ -179,11 +174,10 @@ export async function addContact(email: string, name: string, group: keyof typeo
     body: JSON.stringify({
       email,
       name: name || undefined,
+      attributes: attrs(name, group),
       status_if_new: "subscribed",
       list_ids: [lists[GROUP_NAME[group]]],
       source: "GluFloat admin",
-      consented_at: new Date().toISOString(),
-      consent_source: "Added by GluFloat admin: they told us they want our emails",
     }),
   });
   if (r.status === 422) throw new Error("Mailyte did not accept that email address.");
@@ -205,17 +199,24 @@ export interface Sender {
   id: string;
   name: string;
   email: string;
+  verified: boolean;
 }
 
-/** The verified senders, for the From picker. */
+/** Every sender, verified first, for the From picker. Reads every page. */
 export async function listSenders(): Promise<Sender[]> {
-  const r = await my<{ data?: { id: string; name: string; email: string; verification?: { state?: string } }[] }>(
-    "/senders?per_page=100",
-  );
-  if (r.status === 403) throw new Error("The Mailyte key needs the senders:read scope.");
-  return (r.data?.data ?? [])
-    .filter((s) => s.verification?.state === "verified")
-    .map((s) => ({ id: s.id, name: s.name, email: s.email }));
+  const all: Sender[] = [];
+  for (let page = 1; page <= 10; page++) {
+    const r = await my<{ data?: { id: string; name: string; email: string; verification?: { state?: string } }[] }>(
+      `/senders?per_page=100&page=${page}`,
+    );
+    if (r.status === 403) throw new Error("The Mailyte key needs the senders:read scope.");
+    const rows = r.data?.data ?? [];
+    for (const x of rows) {
+      all.push({ id: x.id, name: x.name, email: x.email, verified: x.verification?.state === "verified" });
+    }
+    if (rows.length < 100) break;
+  }
+  return all.sort((a, b) => Number(b.verified) - Number(a.verified));
 }
 
 const escapeHtml = (s: string) =>
@@ -264,19 +265,52 @@ export async function createCampaign(args: {
   return r.data.id;
 }
 
-export async function preflight(id: string): Promise<{ sendable: boolean; blockers: Blocker[]; recipients: number; hasUnsub: boolean }> {
+export async function preflight(id: string): Promise<{
+  sendable: boolean;
+  blockers: Blocker[];
+  recipients: number;
+  hasUnsub: boolean;
+  tags: unknown;
+}> {
   const r = await my<{
     sendable?: boolean;
     blockers?: Blocker[];
     recipient_count?: number;
-    personalization?: { has_unsubscribe?: boolean };
+    personalization?: { has_unsubscribe?: boolean; tags?: unknown };
   }>(`/campaigns/${id}/preflight`, { method: "POST" });
   return {
     sendable: !!r.data?.sendable,
     blockers: r.data?.blockers ?? [],
     recipients: r.data?.recipient_count ?? 0,
     hasUnsub: !!r.data?.personalization?.has_unsubscribe,
+    tags: r.data?.personalization?.tags ?? null,
   };
+}
+
+/** What the editor's "Name" button inserts, and what Mailyte receives. */
+export const NAME_TOKEN = "{{ first_name }}";
+export const NAME_TAG = "{{ first_name | default('there') }}";
+
+/**
+ * Keep only the tags the editor makes, with no attributes except a link's
+ * href (http, https or mailto). The message comes from the admin, but it is
+ * mailed to every user, so nothing else is let through.
+ */
+export function cleanEmailHtml(html: string): string {
+  const allowed = new Set(["p", "br", "strong", "b", "em", "i", "u", "s", "h2", "h3", "ul", "ol", "li", "a", "blockquote", "hr"]);
+  return html
+    .replace(/<(script|style|iframe|object|embed)[\s\S]*?<\/\1>/gi, "")
+    .replace(/<\/?([a-z0-9]+)([^>]*)>/gi, (tag, name: string, rest: string) => {
+      const n = name.toLowerCase();
+      if (!allowed.has(n)) return "";
+      if (tag.startsWith("</")) return `</${n}>`;
+      if (n === "a") {
+        const m = /href\s*=\s*"([^"]*)"/i.exec(rest);
+        const href = m && /^(https?:|mailto:)/i.test(m[1].trim()) ? m[1].trim() : "";
+        return href ? `<a href="${href}" style="color:#1b5faa">` : "<a>";
+      }
+      return `<${n}>`;
+    });
 }
 
 export async function testSend(id: string, emails: string[]): Promise<{ sent: number; problems: string[] }> {

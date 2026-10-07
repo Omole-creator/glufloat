@@ -1,30 +1,38 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Eye, PenLine, Send, FlaskConical } from "lucide-react";
-import { renderMarkdown } from "@/lib/markdown";
+import { useState } from "react";
+import { Send, FlaskConical } from "lucide-react";
+import RichEditor from "./RichEditor";
 
-type Sender = { id: string; name: string; email: string };
-type List = { key: string; label: string; yes: number };
+type Sender = { id: string; name: string; email: string; verified: boolean };
+type List = { key: string; label: string; count: number };
 
 const field =
   "w-full rounded-xl border border-line bg-white px-3.5 py-2.5 text-sm text-ink outline-none focus:border-brand";
 
 /** Write an email and send it to one or more lists, from the admin. */
-export default function Compose({ senders, lists }: { senders: Sender[]; lists: List[] }) {
-  const [senderId, setSenderId] = useState(senders[0]?.id ?? "");
+export default function Compose({
+  senders,
+  lists,
+  nameToken,
+}: {
+  senders: Sender[];
+  lists: List[];
+  nameToken: string;
+}) {
+  const [senderId, setSenderId] = useState(senders.find((s) => s.verified)?.id ?? senders[0]?.id ?? "");
   const [groups, setGroups] = useState<string[]>([]);
   const [subject, setSubject] = useState("");
-  const [body, setBody] = useState("");
+  const [html, setHtml] = useState("");
+  const [empty, setEmpty] = useState(true);
+  const [resetKey, setResetKey] = useState(0);
   const [testEmail, setTestEmail] = useState("omole@glufloat.com");
-  const [preview, setPreview] = useState(false);
   const [busy, setBusy] = useState<"" | "test" | "send">("");
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
-  const people = lists.filter((l) => groups.includes(l.key)).reduce((s, l) => s + l.yes, 0);
-  const html = useMemo(() => (preview ? renderMarkdown(body) : ""), [preview, body]);
-
+  const people = lists.filter((l) => groups.includes(l.key)).reduce((s, l) => s + l.count, 0);
   const toggle = (k: string) => setGroups((g) => (g.includes(k) ? g.filter((x) => x !== k) : [...g, k]));
+  const ready = !!senderId && !!subject.trim() && !empty;
 
   const go = async (action: "test" | "send") => {
     if (action === "send" && !window.confirm(`Send "${subject}" to ${people} ${people === 1 ? "person" : "people"}?`)) return;
@@ -34,14 +42,16 @@ export default function Compose({ senders, lists }: { senders: Sender[]; lists: 
       const res = await fetch("/api/admin/mailyte/campaign", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action, senderId, subject, body, groups, testEmail }),
+        body: JSON.stringify({ action, senderId, subject, html, groups, testEmail }),
       });
       const out = await res.json();
       setMsg(res.ok ? { ok: true, text: out.message } : { ok: false, text: out.error ?? "It did not work." });
       if (res.ok && action === "send") {
         setSubject("");
-        setBody("");
+        setHtml("");
+        setEmpty(true);
         setGroups([]);
+        setResetKey((k) => k + 1);
       }
     } catch {
       setMsg({ ok: false, text: "No connection. Try again." });
@@ -57,7 +67,7 @@ export default function Compose({ senders, lists }: { senders: Sender[]; lists: 
           <select className={field} value={senderId} onChange={(e) => setSenderId(e.target.value)} aria-label="Send from">
             {senders.map((s) => (
               <option key={s.id} value={s.id}>
-                {s.name} ({s.email})
+                {s.name} ({s.email}){s.verified ? "" : " · not verified"}
               </option>
             ))}
           </select>
@@ -77,7 +87,7 @@ export default function Compose({ senders, lists }: { senders: Sender[]; lists: 
                     on ? "bg-brand text-white ring-brand" : "bg-white text-ink-soft ring-line hover:text-ink"
                   }`}
                 >
-                  {l.label} · {l.yes}
+                  {l.label} · {l.count}
                 </button>
               );
             })}
@@ -91,31 +101,15 @@ export default function Compose({ senders, lists }: { senders: Sender[]; lists: 
       </label>
 
       <div className="text-sm">
-        <div className="mb-1 flex items-center justify-between">
-          <span className="font-semibold text-ink">Message</span>
-          <button
-            type="button"
-            onClick={() => setPreview((p) => !p)}
-            className="inline-flex items-center gap-1 text-xs font-bold text-leaf-deep hover:underline"
-          >
-            {preview ? <PenLine className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-            {preview ? "Write" : "Preview"}
-          </button>
-        </div>
-        {preview ? (
-          <div
-            className="min-h-[220px] rounded-xl border border-line bg-white px-4 py-3"
-            dangerouslySetInnerHTML={{ __html: html }}
-          />
-        ) : (
-          <textarea
-            className={`${field} min-h-[220px] font-mono`}
-            value={body}
-            onChange={(e) => setBody(e.target.value)}
-            aria-label="Email message"
-            placeholder={"Hello,\n\n**Bold**, [a link](https://www.glufloat.com), ## a heading"}
-          />
-        )}
+        <span className="mb-1 block font-semibold text-ink">Message</span>
+        <RichEditor
+          resetKey={resetKey}
+          nameToken={nameToken}
+          onChange={(h, isEmpty) => {
+            setHtml(h);
+            setEmpty(isEmpty);
+          }}
+        />
       </div>
 
       <div className="flex flex-wrap items-end gap-3 border-t border-line pt-4">
@@ -132,7 +126,7 @@ export default function Compose({ senders, lists }: { senders: Sender[]; lists: 
         <button
           type="button"
           onClick={() => go("test")}
-          disabled={!!busy || !senderId || !subject || !body}
+          disabled={!!busy || !ready}
           className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-bold text-ink ring-1 ring-line hover:bg-mist disabled:opacity-50"
         >
           <FlaskConical className="h-4 w-4" />
@@ -141,7 +135,7 @@ export default function Compose({ senders, lists }: { senders: Sender[]; lists: 
         <button
           type="button"
           onClick={() => go("send")}
-          disabled={!!busy || !senderId || !subject || !body || people === 0}
+          disabled={!!busy || !ready || people === 0}
           className="inline-flex items-center gap-2 rounded-full bg-leaf px-5 py-2.5 text-sm font-bold text-white hover:bg-leaf-deep disabled:opacity-50"
         >
           <Send className="h-4 w-4" />

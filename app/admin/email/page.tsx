@@ -1,9 +1,9 @@
-import { CheckCircle2, CircleHelp, XCircle } from "lucide-react";
+import { Users, Stethoscope, HeartHandshake, HeartPulse } from "lucide-react";
 import { isAdmin } from "@/lib/adminSession";
 import { createAdminClient } from "@/lib/supabase/server";
 import { isInternalEmail } from "@/lib/internalAccounts";
 import { isUserType } from "@/lib/userType";
-import { mailyteConfigured, listSenders, recentCampaigns, type Sender, type SentEmail } from "@/lib/mailyte";
+import { NAME_TOKEN, mailyteConfigured, listSenders, recentCampaigns, type Sender, type SentEmail } from "@/lib/mailyte";
 import AdminLogin from "../AdminLogin";
 import AdminShell from "../AdminShell";
 import AdminCard from "../AdminCard";
@@ -32,23 +32,13 @@ const STATE: Record<string, string> = {
 export default async function EmailPage() {
   if (!(await isAdmin())) return <AdminLogin />;
 
-  const admin = createAdminClient();
-  const full = await admin.from("profiles").select("email,user_type,email_updates");
-  const ready = !full.error;
-  const data = ready ? full.data : (await admin.from("profiles").select("email,user_type")).data;
+  const { data } = await createAdminClient().from("profiles").select("email,user_type");
   const people = (data ?? []).filter((p) => p.email && !isInternalEmail(p.email as string));
-
-  const count = { yes: 0, no: 0, notAsked: 0 };
-  const table: Record<string, { yes: number; total: number }> = {};
-  for (const r of ROWS) table[r.key] = { yes: 0, total: 0 };
+  const table: Record<string, number> = {};
+  for (const r of ROWS) table[r.key] = 0;
   for (const p of people) {
-    const v = (p as { email_updates?: boolean | null }).email_updates;
-    if (v === true) count.yes += 1;
-    else if (v === false) count.no += 1;
-    else count.notAsked += 1;
     const k = p.user_type && isUserType(p.user_type) ? p.user_type : "unset";
-    table[k].total += 1;
-    if (v === true) table[k].yes += 1;
+    table[k] += 1;
   }
 
   const keyOn = mailyteConfigured();
@@ -65,23 +55,28 @@ export default async function EmailPage() {
 
   return (
     <AdminShell title="Email">
-      {(!ready || !keyOn || problem) && (
+      {(!keyOn || problem) && (
         <div className="mb-4 rounded-2xl border border-verdict-yellow/60 bg-verdict-yellow/10 p-4 text-sm text-ink">
-          {!ready ? "Database update needed (email-consent-schema.sql)." : !keyOn ? "Mailyte is not connected." : problem}
+          {!keyOn ? "Mailyte is not connected." : problem}
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <AdminTile label="Said yes" value={String(count.yes)} icon={CheckCircle2} tone="green" />
-        <AdminTile label="Not asked yet" value={String(count.notAsked)} icon={CircleHelp} tone="amber" />
-        <AdminTile label="Said no" value={String(count.no)} icon={XCircle} tone="red" />
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <AdminTile label="All users" value={String(people.length)} icon={Users} tone="blue" />
+        <AdminTile label="Diabetic" value={String(table.diabetic)} icon={HeartPulse} tone="green" />
+        <AdminTile label="Health professional" value={String(table.health_pro)} icon={Stethoscope} tone="blue" />
+        <AdminTile label="Caregiver" value={String(table.caregiver)} icon={HeartHandshake} tone="green" />
       </div>
 
       <AdminCard className="mt-4" title="Write an email">
         {senders.length > 0 ? (
-          <Compose senders={senders} lists={ROWS.map((r) => ({ key: r.key, label: r.label, yes: table[r.key].yes }))} />
+          <Compose
+            senders={senders}
+            nameToken={NAME_TOKEN}
+            lists={ROWS.map((r) => ({ key: r.key, label: r.label, count: table[r.key] }))}
+          />
         ) : (
-          <p className="text-sm text-ink-soft">No verified sender found in Mailyte.</p>
+          <p className="text-sm text-ink-soft">No sender found in Mailyte.</p>
         )}
       </AdminCard>
 
@@ -123,8 +118,7 @@ export default async function EmailPage() {
           <thead>
             <tr className="border-b border-line text-left text-xs uppercase tracking-wider text-ink-soft">
               <th className="px-5 py-2 sm:px-6">Who</th>
-              <th className="px-3 py-2 text-right">Said yes</th>
-              <th className="px-3 py-2 text-right">All users</th>
+              <th className="px-3 py-2 text-right">People</th>
               <th className="px-5 py-2 text-right sm:px-6">Export</th>
             </tr>
           </thead>
@@ -132,12 +126,11 @@ export default async function EmailPage() {
             {ROWS.map((r) => (
               <tr key={r.key} className="border-b border-line last:border-0">
                 <td className="px-5 py-3 font-semibold text-ink sm:px-6">{r.label}</td>
-                <td className="px-3 py-3 text-right font-bold text-ink">{table[r.key].yes}</td>
-                <td className="px-3 py-3 text-right text-ink-soft">{table[r.key].total}</td>
+                <td className="px-3 py-3 text-right font-bold text-ink">{table[r.key]}</td>
                 <td className="px-5 py-3 text-right sm:px-6">
                   <a
-                    href={`/api/admin/mailyte/export?group=${r.key}&only=yes`}
-                    aria-label={`Download ${r.label.toLowerCase()} who said yes`}
+                    href={`/api/admin/mailyte/export?group=${r.key}`}
+                    aria-label={`Download ${r.label.toLowerCase()}`}
                     className="font-bold text-leaf-deep hover:underline"
                   >
                     Download
@@ -147,11 +140,8 @@ export default async function EmailPage() {
             ))}
           </tbody>
         </table>
-        <div className="flex flex-wrap gap-x-5 gap-y-2 border-t border-line px-5 py-4 text-sm sm:px-6">
-          <a href="/api/admin/mailyte/export?group=all&only=yes" className="font-bold text-leaf-deep hover:underline">
-            Download all who said yes
-          </a>
-          <a href="/api/admin/mailyte/export?group=all" className="font-bold text-ink-soft hover:underline">
+        <div className="border-t border-line px-5 py-4 text-sm sm:px-6">
+          <a href="/api/admin/mailyte/export?group=all" className="font-bold text-leaf-deep hover:underline">
             Download all users
           </a>
         </div>

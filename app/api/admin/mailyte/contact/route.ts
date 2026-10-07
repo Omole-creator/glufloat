@@ -4,11 +4,7 @@ import { addContact, mailyteConfigured, GROUP_NAME } from "@/lib/mailyte";
 
 export const dynamic = "force-dynamic";
 
-/**
- * Add one person by hand, straight onto a Mailyte list: somebody met at a
- * clinic or an event who agreed to get emails. Only with their yes, which the
- * form makes you tick. They are not added to GluFloat's own user list.
- */
+/** Add one person by hand onto a Mailyte list. They are not added to GluFloat's user list. */
 export async function POST(request: Request) {
   if (!(await isAdmin())) return NextResponse.json({ error: "Not signed in." }, { status: 401 });
   if (!mailyteConfigured()) {
@@ -18,7 +14,6 @@ export async function POST(request: Request) {
     email?: string;
     name?: string;
     group?: string;
-    agreed?: boolean;
   };
   const email = String(b.email ?? "").trim().toLowerCase();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -26,9 +21,6 @@ export async function POST(request: Request) {
   }
   if (!b.group || !(b.group in GROUP_NAME)) {
     return NextResponse.json({ error: "Pick who they are." }, { status: 400 });
-  }
-  if (b.agreed !== true) {
-    return NextResponse.json({ error: "Tick the box to say they agreed to get emails." }, { status: 400 });
   }
   try {
     await addContact(email, String(b.name ?? "").trim(), b.group as keyof typeof GROUP_NAME);
