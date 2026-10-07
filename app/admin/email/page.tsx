@@ -3,34 +3,38 @@ import { isAdmin } from "@/lib/adminSession";
 import { createAdminClient } from "@/lib/supabase/server";
 import { isInternalEmail } from "@/lib/internalAccounts";
 import { isUserType } from "@/lib/userType";
-import { GROUP_NAME, mailyteConfigured } from "@/lib/mailyte";
+import { mailyteConfigured, listSenders, recentCampaigns, type Sender, type SentEmail } from "@/lib/mailyte";
 import AdminLogin from "../AdminLogin";
 import AdminShell from "../AdminShell";
 import AdminCard from "../AdminCard";
 import AdminTile from "../AdminTile";
-import SyncButton from "./SyncButton";
+import Compose from "./Compose";
 import AddContact from "./AddContact";
 
 export const dynamic = "force-dynamic";
 
-const ROWS: { key: keyof typeof GROUP_NAME; label: string }[] = [
+const ROWS = [
   { key: "diabetic", label: "Diabetic" },
   { key: "health_pro", label: "Health professional" },
   { key: "caregiver", label: "Caregiver" },
   { key: "unset", label: "Not set" },
-];
+] as const;
 
-/**
- * Emails to users, through Mailyte. This screen sends the list (who said
- * yes, grouped by who they are); the email itself is written in Mailyte.
- */
+const STATE: Record<string, string> = {
+  sent: "Sent",
+  sending: "Sending",
+  scheduled: "Scheduled",
+  paused: "Paused",
+  canceled: "Cancelled",
+};
+
+/** Write and send emails to users, through Mailyte. */
 export default async function EmailPage() {
   if (!(await isAdmin())) return <AdminLogin />;
 
   const admin = createAdminClient();
   const full = await admin.from("profiles").select("email,user_type,email_updates");
   const ready = !full.error;
-  // Before the SQL runs, still count the users (everyone reads as not asked).
   const data = ready ? full.data : (await admin.from("profiles").select("email,user_type")).data;
   const people = (data ?? []).filter((p) => p.email && !isInternalEmail(p.email as string));
 
@@ -46,43 +50,88 @@ export default async function EmailPage() {
     table[k].total += 1;
     if (v === true) table[k].yes += 1;
   }
+
   const keyOn = mailyteConfigured();
+  let senders: Sender[] = [];
+  let sent: SentEmail[] = [];
+  let problem = "";
+  if (keyOn) {
+    try {
+      [senders, sent] = await Promise.all([listSenders(), recentCampaigns(10)]);
+    } catch (e) {
+      problem = e instanceof Error ? e.message : "Could not reach Mailyte.";
+    }
+  }
 
   return (
-    <AdminShell title="Email" subtitle="Send your users' list to Mailyte, sorted by who they are.">
-      {!ready && (
+    <AdminShell title="Email">
+      {(!ready || !keyOn || problem) && (
         <div className="mb-4 rounded-2xl border border-verdict-yellow/60 bg-verdict-yellow/10 p-4 text-sm text-ink">
-          Waiting for the database update. Run <code>supabase/email-consent-schema.sql</code> in Supabase.
-        </div>
-      )}
-      {!keyOn && (
-        <div className="mb-4 rounded-2xl border border-verdict-yellow/60 bg-verdict-yellow/10 p-4 text-sm text-ink">
-          Mailyte is not connected. Add <code>MAILYTE_API_KEY</code> in Vercel, then deploy again.
+          {!ready ? "Database update needed (email-consent-schema.sql)." : !keyOn ? "Mailyte is not connected." : problem}
         </div>
       )}
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <AdminTile label="Said yes to emails" value={String(count.yes)} sub="Only these get emails" icon={CheckCircle2} tone="green" />
-        <AdminTile label="Not asked yet" value={String(count.notAsked)} sub="They answer in My details" icon={CircleHelp} tone="amber" />
-        <AdminTile label="Said no" value={String(count.no)} sub="Marked unsubscribed" icon={XCircle} tone="red" />
+        <AdminTile label="Said yes" value={String(count.yes)} icon={CheckCircle2} tone="green" />
+        <AdminTile label="Not asked yet" value={String(count.notAsked)} icon={CircleHelp} tone="amber" />
+        <AdminTile label="Said no" value={String(count.no)} icon={XCircle} tone="red" />
       </div>
 
-      <AdminCard className="mt-4" title="Lists in Mailyte" sub="Each person goes on one list." flush>
+      <AdminCard className="mt-4" title="Write an email">
+        {senders.length > 0 ? (
+          <Compose senders={senders} lists={ROWS.map((r) => ({ key: r.key, label: r.label, yes: table[r.key].yes }))} />
+        ) : (
+          <p className="text-sm text-ink-soft">No verified sender found in Mailyte.</p>
+        )}
+      </AdminCard>
+
+      <AdminCard className="mt-4" title="Sent emails" flush>
+        {sent.length === 0 ? (
+          <p className="px-5 pb-5 text-sm text-ink-soft sm:px-6">None yet.</p>
+        ) : (
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-line text-left text-xs uppercase tracking-wider text-ink-soft">
+                <th className="px-5 py-2 sm:px-6">Subject</th>
+                <th className="px-3 py-2">Date</th>
+                <th className="px-3 py-2">Status</th>
+                <th className="px-3 py-2 text-right">Sent</th>
+                <th className="px-3 py-2 text-right">Opened</th>
+                <th className="px-5 py-2 text-right sm:px-6">Clicked</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sent.map((c) => (
+                <tr key={c.id} className="border-b border-line last:border-0">
+                  <td className="px-5 py-3 font-semibold text-ink sm:px-6">{c.subject}</td>
+                  <td className="px-3 py-3 text-ink-soft">
+                    {new Date(c.when).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                  </td>
+                  <td className="px-3 py-3 text-ink-soft">{STATE[c.state] ?? c.state}</td>
+                  <td className="px-3 py-3 text-right">{c.sent ?? "—"}</td>
+                  <td className="px-3 py-3 text-right">{c.opened ?? "—"}</td>
+                  <td className="px-5 py-3 text-right sm:px-6">{c.clicked ?? "—"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </AdminCard>
+
+      <AdminCard className="mt-4" title="Lists" flush>
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-line text-left text-xs uppercase tracking-wider text-ink-soft">
               <th className="px-5 py-2 sm:px-6">Who</th>
-              <th className="px-3 py-2">List name</th>
               <th className="px-3 py-2 text-right">Said yes</th>
               <th className="px-3 py-2 text-right">All users</th>
-              <th className="px-5 py-2 text-right sm:px-6">List</th>
+              <th className="px-5 py-2 text-right sm:px-6">Export</th>
             </tr>
           </thead>
           <tbody>
             {ROWS.map((r) => (
               <tr key={r.key} className="border-b border-line last:border-0">
                 <td className="px-5 py-3 font-semibold text-ink sm:px-6">{r.label}</td>
-                <td className="px-3 py-3 text-ink-soft">{GROUP_NAME[r.key]}</td>
                 <td className="px-3 py-3 text-right font-bold text-ink">{table[r.key].yes}</td>
                 <td className="px-3 py-3 text-right text-ink-soft">{table[r.key].total}</td>
                 <td className="px-5 py-3 text-right sm:px-6">
@@ -100,43 +149,15 @@ export default async function EmailPage() {
         </table>
         <div className="flex flex-wrap gap-x-5 gap-y-2 border-t border-line px-5 py-4 text-sm sm:px-6">
           <a href="/api/admin/mailyte/export?group=all&only=yes" className="font-bold text-leaf-deep hover:underline">
-            Download everyone who said yes
+            Download all who said yes
           </a>
           <a href="/api/admin/mailyte/export?group=all" className="font-bold text-ink-soft hover:underline">
-            Download all users, with their answer
+            Download all users
           </a>
         </div>
       </AdminCard>
 
-      <AdminCard className="mt-4" title="Send an email">
-        <ol className="list-decimal space-y-1.5 pl-5 text-sm text-ink">
-          <li>Press the button to send the latest list to Mailyte.</li>
-          <li>
-            In Mailyte, make a new campaign and write your email. Send it from one of our addresses:
-            <span className="font-semibold"> care@glufloat.com</span> for diabetics and caregivers,
-            <span className="font-semibold"> omole@glufloat.com</span> for health professionals, and
-            <span className="font-semibold"> support@glufloat.com</span> as the reply address.
-          </li>
-          <li>Pick the list to send it to: diabetics, health professionals, or caregivers.</li>
-        </ol>
-        <div className="mt-4 flex flex-wrap items-center gap-3">
-          <SyncButton disabled={!ready || !keyOn} />
-          <a
-            href="https://app.mailyte.com"
-            target="_blank"
-            rel="noreferrer"
-            className="text-sm font-bold text-leaf-deep hover:underline"
-          >
-            Open Mailyte &rarr;
-          </a>
-        </div>
-      </AdminCard>
-
-      <AdminCard
-        className="mt-4"
-        title="Add a contact"
-        sub="Someone who is not a GluFloat user yet, but asked for our emails. Goes straight into Mailyte."
-      >
+      <AdminCard className="mt-4" title="Add a contact">
         <AddContact disabled={!keyOn} />
       </AdminCard>
     </AdminShell>

@@ -189,3 +189,151 @@ export async function addContact(email: string, name: string, group: keyof typeo
   if (r.status === 422) throw new Error("Mailyte did not accept that email address.");
   if (r.status >= 400) throw new Error(`Mailyte said ${r.status}.`);
 }
+
+/* ---- Writing and sending emails from /admin/email ------------------------ */
+
+/**
+ * Where the unsubscribe link goes in our footer. Campaign preflight refuses to
+ * send without one (`no_unsubscribe`). Confirmed against a live preflight; if
+ * Mailyte ever stops recognising it, preflight says so before anything sends.
+ */
+export const UNSUB_HREF = "*|UNSUB|*";
+
+export interface Sender {
+  id: string;
+  name: string;
+  email: string;
+}
+
+/** The verified senders, for the From picker. */
+export async function listSenders(): Promise<Sender[]> {
+  const r = await my<{ data?: { id: string; name: string; email: string; verification?: { state?: string } }[] }>(
+    "/senders?per_page=100",
+  );
+  if (r.status === 403) throw new Error("The Mailyte key needs the senders:read scope.");
+  return (r.data?.data ?? [])
+    .filter((s) => s.verification?.state === "verified")
+    .map((s) => ({ id: s.id, name: s.name, email: s.email }));
+}
+
+const escapeHtml = (s: string) =>
+  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+/** The email around the message: brand bar, the message, and the footer. */
+export function emailHtml(subject: string, bodyHtml: string): string {
+  return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(subject)}</title></head>
+<body style="margin:0;background:#f4f7fb;font-family:Arial,Helvetica,sans-serif;color:#0c2a47">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f7fb;padding:24px 12px"><tr><td align="center">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background:#ffffff;border-radius:16px;overflow:hidden">
+<tr><td style="background:#1b5faa;padding:18px 24px;color:#ffffff;font-size:20px;font-weight:bold">GluFloat</td></tr>
+<tr><td style="padding:24px;font-size:16px;line-height:1.6">${bodyHtml}</td></tr>
+<tr><td style="padding:16px 24px 24px;font-size:12px;line-height:1.5;color:#5b6b7e;border-top:1px solid #e3e9f1">
+You get this email because you said yes to GluFloat emails.<br>
+<a href="${UNSUB_HREF}" style="color:#5b6b7e">Stop these emails</a> &middot; <a href="https://www.glufloat.com" style="color:#5b6b7e">glufloat.com</a>
+</td></tr></table></td></tr></table></body></html>`;
+}
+
+export interface Blocker {
+  code: string;
+  message: string;
+}
+
+/** Make a draft campaign. Returns its id. Creating never sends. */
+export async function createCampaign(args: {
+  senderId: string;
+  subject: string;
+  html: string;
+  text: string;
+  listIds: string[];
+}): Promise<string> {
+  const r = await my<{ id: string }>("/campaigns", {
+    method: "POST",
+    body: JSON.stringify({
+      name: `${args.subject} (${new Date().toISOString().slice(0, 10)})`,
+      sender_id: args.senderId,
+      subject: args.subject,
+      html: args.html,
+      plain_text: args.text,
+      list_ids: args.listIds,
+    }),
+  });
+  if (r.status === 403) throw new Error("The Mailyte key needs the campaigns:write scope.");
+  if (!r.data?.id) throw new Error(`Mailyte said ${r.status} when making the email.`);
+  return r.data.id;
+}
+
+export async function preflight(id: string): Promise<{ sendable: boolean; blockers: Blocker[]; recipients: number; hasUnsub: boolean }> {
+  const r = await my<{
+    sendable?: boolean;
+    blockers?: Blocker[];
+    recipient_count?: number;
+    personalization?: { has_unsubscribe?: boolean };
+  }>(`/campaigns/${id}/preflight`, { method: "POST" });
+  return {
+    sendable: !!r.data?.sendable,
+    blockers: r.data?.blockers ?? [],
+    recipients: r.data?.recipient_count ?? 0,
+    hasUnsub: !!r.data?.personalization?.has_unsubscribe,
+  };
+}
+
+export async function testSend(id: string, emails: string[]): Promise<{ sent: number; problems: string[] }> {
+  const r = await my<{ sent?: number; results?: { email: string; status: string }[] }>(`/campaigns/${id}/test-send`, {
+    method: "POST",
+    body: JSON.stringify({ emails }),
+  });
+  if (r.status >= 400) throw new Error(`Mailyte said ${r.status} when sending the test.`);
+  return {
+    sent: r.data?.sent ?? 0,
+    problems: (r.data?.results ?? []).filter((x) => x.status !== "sent").map((x) => `${x.email}: ${x.status}`),
+  };
+}
+
+export async function sendCampaign(id: string): Promise<void> {
+  const r = await my(`/campaigns/${id}/send`, { method: "POST" });
+  if (r.status >= 400) throw new Error(`Mailyte refused to send (${r.status}).`);
+}
+
+export async function deleteCampaign(id: string): Promise<void> {
+  await my(`/campaigns/${id}`, { method: "DELETE" });
+}
+
+/** The list ids for these kinds of people. */
+export async function listIdsFor(keys: (keyof typeof GROUP_NAME)[]): Promise<string[]> {
+  const lists = await ensureLists();
+  return keys.map((k) => lists[GROUP_NAME[k]]).filter(Boolean);
+}
+
+export interface SentEmail {
+  id: string;
+  subject: string;
+  state: string;
+  when: string;
+  sent: number | null;
+  opened: number | null;
+  clicked: number | null;
+}
+
+/** The last few emails, with how many were sent and opened. */
+export async function recentCampaigns(limit = 10): Promise<SentEmail[]> {
+  const r = await my<{
+    data?: { id: string; name: string; state: string; content?: { subject?: string | null }; created_at: string }[];
+  }>(`/campaigns?per_page=${limit}`);
+  const rows = (r.data?.data ?? []).filter((c) => c.state !== "draft").slice(0, limit);
+  return Promise.all(
+    rows.map(async (c) => {
+      const s = await my<{ recipients?: { sent?: number | null }; engagement?: { opened?: number | null; clicked?: number | null } }>(
+        `/campaigns/${c.id}/stats`,
+      );
+      return {
+        id: c.id,
+        subject: c.content?.subject ?? c.name,
+        state: c.state,
+        when: c.created_at,
+        sent: s.data?.recipients?.sent ?? null,
+        opened: s.data?.engagement?.opened ?? null,
+        clicked: s.data?.engagement?.clicked ?? null,
+      };
+    }),
+  );
+}
