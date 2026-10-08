@@ -3,8 +3,15 @@
 import { useCallback, useEffect, useState } from "react";
 import { caloriesEatenToday, foodCountsThisWeek, loggedFoodCounts, likedFoodCounts, INTAKE_CHANGED } from "@/lib/history";
 import { readPersonalizationProfile, personalRotationKey, PERSONALIZATION_CHANGED } from "@/lib/personalizationProfile";
-import { bmr, tdee, calorieTarget, remainingMealCalorieTarget } from "@/lib/tdee";
-import { suggestExtras, planForDay, mealIdeaCalories, type ExtraSuggestionSet } from "@/lib/nextMeal";
+import { bmr, tdee, calorieTarget } from "@/lib/tdee";
+import {
+  suggestExtras,
+  suggestSnack,
+  mealShareFor,
+  planForDay,
+  mealIdeaCalories,
+  type ExtraSuggestionSet,
+} from "@/lib/nextMeal";
 import { currentMeal, localDayKey } from "@/lib/mealtime";
 import { biasVector } from "@/lib/personalization";
 import { toAvoid } from "@/lib/mealRotationMemory";
@@ -13,6 +20,8 @@ export interface TodaysCalories {
   target: number | null;
   remaining: number | null;
   extra: ExtraSuggestionSet | null;
+  /** The snack after this meal, only when a very high target needs it. */
+  snack: ExtraSuggestionSet | null;
   /**
    * How much of THIS meal's own calorie gap even the best extras variant
    * could not reach, once every safe candidate is already at its own capped
@@ -148,6 +157,7 @@ export function useTodaysCalories(show: boolean): TodaysCalories {
   const [target, setTarget] = useState<number | null>(null);
   const [remaining, setRemaining] = useState<number | null>(null);
   const [extra, setExtra] = useState<ExtraSuggestionSet | null>(null);
+  const [snack, setSnack] = useState<ExtraSuggestionSet | null>(null);
   const [shortByKcal, setShortByKcal] = useState(0);
 
   const refresh = useCallback(async () => {
@@ -155,6 +165,7 @@ export function useTodaysCalories(show: boolean): TodaysCalories {
       setTarget(null);
       setRemaining(null);
       setExtra(null);
+      setSnack(null);
       setShortByKcal(0);
       return;
     }
@@ -163,6 +174,7 @@ export function useTodaysCalories(show: boolean): TodaysCalories {
       setTarget(null);
       setRemaining(null);
       setExtra(null);
+      setSnack(null);
       setShortByKcal(0);
       return;
     }
@@ -174,7 +186,9 @@ export function useTodaysCalories(show: boolean): TodaysCalories {
     const trueLeft = Math.max(0, dailyTarget - eatenToday);
     const meal = currentMeal();
     const dayKey = localDayKey();
-    const mealShare = remainingMealCalorieTarget(dailyTarget, eatenToday, p.mealPattern, meal);
+    // mealShareFor, the SAME function components/TodaysMeal.tsx uses to pick
+    // the plate, so the plate and the extras are sized against one number.
+    const mealShare = mealShareFor(dailyTarget, eatenToday, p.mealPattern, meal, p.conditions);
     const [counts, liked, weekCounts] = await Promise.all([
       loggedFoodCounts(),
       likedFoodCounts(),
@@ -210,10 +224,13 @@ export function useTodaysCalories(show: boolean): TodaysCalories {
     const bestVariantKcal = extras
       ? Math.max(...extras.variants.map((v) => v.totalCalories))
       : 0;
+    const snackSet = suggestSnack(meal, extrasGap, extras, dayKey, p.conditions, personalKey, weekCounts);
+    const snackKcal = snackSet ? snackSet.variants[0].totalCalories : 0;
     setTarget(dailyTarget);
+    setSnack(snackSet);
     setRemaining(meal === "dinner" && trueLeft < DAY_END_FLOOR ? 0 : trueLeft);
     setExtra(extras);
-    setShortByKcal(Math.max(0, extrasGap - bestVariantKcal));
+    setShortByKcal(Math.max(0, extrasGap - bestVariantKcal - snackKcal));
   }, [show]);
 
   useEffect(() => {
@@ -228,5 +245,5 @@ export function useTodaysCalories(show: boolean): TodaysCalories {
     };
   }, [refresh]);
 
-  return { target, remaining, extra, shortByKcal };
+  return { target, remaining, extra, snack, shortByKcal };
 }

@@ -6,7 +6,7 @@ import type { Verdict } from "./types";
 /**
  * How often a food should be eaten, by its colour (which follows its GI):
  *   green  (low GI)    ~ up to 15 times a week (about twice a day)
- *   yellow (medium GI) ~ 2 to 3 times a week
+ *   yellow (medium GI) ~ up to 3 times a week
  *   red    (high GI)   ~ about once a month
  *
  * We watch what each person has actually EATEN (their "I ate this" log) across
@@ -124,7 +124,7 @@ export function intakeWarning(
       return {
         level: "red",
         title: `That is ${intake.redThisWeek} fast-sugar foods this week`,
-        text: "Foods that raise your sugar fast are best kept to about once a month. You have had several this week already, so another one now can keep your sugar high. Best to skip it.",
+        text: `Foods that raise your sugar fast are best kept to about once a month. You have had ${intake.redThisWeek} this week already, so another one now can keep your sugar high. Best to skip it.`,
       };
     }
     if (intake.redThisMonth >= MONTHLY_CAP.red) {
@@ -139,7 +139,7 @@ export function intakeWarning(
     return {
       level: "yellow",
       title: "That is a lot this week",
-      text: `You have already had this kind of food ${intake.yellowThisWeek} times this week. Two or three a week is enough. Try a green meal instead.`,
+      text: `You have already had this kind of food ${intake.yellowThisWeek} times this week. Three a week is the most you should have. Try a green meal instead.`,
     };
   }
   return null;

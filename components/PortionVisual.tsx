@@ -1,6 +1,8 @@
 import type { Food, PortionSize } from "@/lib/types";
 import { portionVisual, type PortionKey } from "@/lib/portionVisual";
 import { cleanFoodName } from "@/lib/foodName";
+import { measuresIn } from "@/lib/measures";
+import { MeasureChips, MeasurePhotoButton } from "./MeasurePhoto";
 
 /**
  * The meal builder's Small/Normal/Large tap only ever nudged the verdict
@@ -219,16 +221,39 @@ function Icon({ k }: { k: PortionKey }) {
   }
 }
 
+/**
+ * The picture beside "how much to eat". When the card names a household
+ * measure (a fist, a cup, a big spoon...), it is the REAL photo of that measure,
+ * tappable to see it full size (co-founder dietitian, 2026-10-08: drawings did
+ * not work for her patients). A card that names no measure ("Two eggs", "One
+ * slice") keeps its drawing of the food.
+ */
+function PortionPicture({ food, size }: { food: Food; size: "sm" | "md" }) {
+  const measure = measuresIn(food.portionGuidance)[0];
+  if (measure) {
+    return <MeasurePhotoButton measure={measure} forFood={cleanFoodName(food.name)} size={size} />;
+  }
+  const { key } = portionVisual(food);
+  return size === "md" ? (
+    <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg bg-white shadow-sm">
+      <span className="h-12 w-12">
+        <Icon k={key} />
+      </span>
+    </span>
+  ) : (
+    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-white shadow-sm">
+      <span className="h-8 w-8">
+        <Icon k={key} />
+      </span>
+    </span>
+  );
+}
+
 /** Full-width portion guide: the picture + the clear "how much" text. */
 export default function PortionVisual({ food }: { food: Food }) {
-  const { key } = portionVisual(food);
   return (
     <div className="flex items-center gap-3 rounded-xl bg-mist p-3">
-      <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg bg-white shadow-sm">
-        <span className="h-12 w-12">
-          <Icon k={key} />
-        </span>
-      </span>
+      <PortionPicture food={food} size="md" />
       <div className="min-w-0">
         <p className="text-[11px] font-bold uppercase tracking-wider text-ink/60">
           How much to eat
@@ -236,6 +261,12 @@ export default function PortionVisual({ food }: { food: Food }) {
         <p className="mt-0.5 text-sm font-medium text-ink">
           {food.portionGuidance}
         </p>
+        <MeasureChips
+          text={food.portionGuidance}
+          forFood={cleanFoodName(food.name)}
+          skipFirst
+          className="mt-2"
+        />
       </div>
     </div>
   );
@@ -243,19 +274,20 @@ export default function PortionVisual({ food }: { food: Food }) {
 
 /** Compact chip used in the meal builder (icon + the food + the clear amount). */
 export function PortionMini({ food, portion = "normal" }: { food: Food; portion?: PortionSize }) {
-  const { key } = portionVisual(food);
   const note = sizeNote(portion);
   return (
     <div className="flex items-center gap-2.5">
-      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-white shadow-sm">
-        <span className="h-8 w-8">
-          <Icon k={key} />
-        </span>
-      </span>
+      <PortionPicture food={food} size="sm" />
       <div className="min-w-0 text-xs">
         <p className="font-semibold text-ink">{cleanFoodName(food.name)}</p>
         {note && <p className="font-semibold text-ink-soft">{note}</p>}
         <p className="text-ink-soft">{food.portionGuidance}</p>
+        <MeasureChips
+          text={food.portionGuidance}
+          forFood={cleanFoodName(food.name)}
+          skipFirst
+          className="mt-1.5"
+        />
       </div>
     </div>
   );

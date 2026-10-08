@@ -27,7 +27,10 @@ import {
   mealIdeaFoodsForBuilder,
   MEAL_MAX_CALORIES,
   MAX_EXTRA_ITEMS,
+  mealShareFor,
+  suggestSnack,
 } from "../lib/nextMeal";
+import type { Condition } from "../lib/personalization";
 import { getFood } from "../lib/search";
 import { scoreMeal } from "../lib/verdictEngine";
 import type { NamedMeal } from "../lib/mealtime";
@@ -367,6 +370,7 @@ for (const meal of MEALS) {
   function walkFullDay(
     dailyTarget: number,
     dayKey = "2026-08-29",
+    conditions: Condition[] = [],
   ): { residual: number; totals: Record<NamedMeal, number>; extraItems: Record<NamedMeal, number> } {
     let eatenToday = 0;
     const totals = {} as Record<NamedMeal, number>;
@@ -377,8 +381,10 @@ for (const meal of MEALS) {
       // version weighted this by MEAL_MAX_CALORIES, which structurally
       // under-fed breakfast; reverted by founder instruction ("I want
       // evenly split, not awkward split").
-      const mealShare = remainingMealCalorieTarget(dailyTarget, eatenToday, MEALS, meal);
-      const idea = planForDay(meal, dayKey, new Map(), 0, [], new Map(), null, mealShare);
+      // mealShareFor, the same function the app uses (even split for an
+      // ordinary target, capacity-weighted once snacks are needed).
+      const mealShare = mealShareFor(dailyTarget, eatenToday, MEALS, meal, conditions);
+      const idea = planForDay(meal, dayKey, new Map(), 0, [], new Map(), null, mealShare, conditions);
       // mealIdeaCalories() — the SAME function lib/useTodaysCalories.ts and
       // components/TodaysMeal.tsx both use — folds in idea.scaledProtein and
       // idea.scaledSide's own contribution, not just the plate's raw foods.
@@ -392,11 +398,18 @@ for (const meal of MEALS) {
       // big target's extra eating is spread across all 3 meals, not
       // front-loaded into one.
       const extrasGap = Math.max(0, mealShare - plateCal);
-      const extra = suggestExtras(extrasGap, dayKey, meal);
+      const extra = suggestExtras(extrasGap, dayKey, meal, conditions);
+      // The snack after this meal (only for a very high target), exactly as
+      // lib/useTodaysCalories.ts builds it.
+      const snack = suggestSnack(meal, extrasGap, extra, dayKey, conditions);
+      if (snack && snack.variants[0].items.length > MAX_EXTRA_ITEMS) {
+        fail(`${meal} snack at a ${dailyTarget}kcal target has ${snack.variants[0].items.length} foods, never more than ${MAX_EXTRA_ITEMS}`);
+      }
       // A real person picks ONE variant to eat; both are built to close the
       // same gap independently, so using the first one (the default shown)
       // is representative of any real choice.
-      const mealTotal = plateCal + (extra ? extra.variants[0].totalCalories : 0);
+      const mealTotal =
+        plateCal + (extra ? extra.variants[0].totalCalories : 0) + (snack ? snack.variants[0].totalCalories : 0);
       totals[meal] = mealTotal;
       extraItems[meal] = extra ? extra.variants[0].items.length : 0;
       eatenToday += mealTotal;
@@ -458,11 +471,32 @@ for (const meal of MEALS) {
   // AT MOST 2 extra items each), never from the app inventing an unsafe
   // bigger serving, repeating a food, or exceeding the item cap to force a
   // match.
-  for (const dailyTarget of [6000, 50000]) {
-    const { residual, extraItems } = walkFullDay(dailyTarget);
-    if (residual <= TIGHT_FLOOR) {
-      fail(`a ${dailyTarget}kcal target closed within the tight floor — the safe-serving ceiling may not be wired correctly`);
+  // **Replaced 2026-10-08 (founder: "every user should still be able to meet
+  // their calorie goals no matter their daily calorie target").** Very high
+  // targets now get snack times (mid-morning, afternoon, bedtime), each still
+  // 1-2 safe foods, and the biggest plates. Measured on 5 days: every target
+  // up to 6,000kcal closes within HIGH_FLOOR, and up to 4,000kcal for a
+  // kidney_disease profile (its extras stay small for the protein limit).
+  // Only a truly impossible 50,000kcal may still fall short, and even then no
+  // card may hold more than MAX_EXTRA_ITEMS foods.
+  const HIGH_FLOOR = 250;
+  for (const [conds, targets] of [
+    [[], [3500, 4000, 4500, 5000, 5500, 6000]],
+    [["kidney_disease"], [3000, 3500, 4000]],
+  ] as [Condition[], number[]][]) {
+    for (const dailyTarget of targets) {
+      for (const dayKey of days) {
+        const { residual } = walkFullDay(dailyTarget, dayKey, conds);
+        if (residual > HIGH_FLOOR) {
+          fail(
+            `a ${dailyTarget}kcal target${conds.length ? ` (${conds.join(",")})` : ""} on ${dayKey} left ${residual}kcal unclosed; snacks should close it within ${HIGH_FLOOR}kcal`,
+          );
+        }
+      }
     }
+  }
+  for (const dailyTarget of [50000]) {
+    const { extraItems } = walkFullDay(dailyTarget);
     for (const meal of MEALS) {
       if (extraItems[meal] > MAX_EXTRA_ITEMS) {
         fail(`a ${dailyTarget}kcal target's ${meal} used ${extraItems[meal]} extra items — must never exceed ${MAX_EXTRA_ITEMS}, even to try to close a large residual`);
@@ -753,8 +787,32 @@ for (const meal of MEALS) {
     }
   }
   const total = weights.length * activities.length;
-  if (collisions > 10) {
-    fail(`${collisions}/${total} profiles collided on an identical whole day — personalKey is not differentiating people enough (expected ~2, ceiling 10)`);
+  // Ceiling raised from 10 to 30 on 2026-10-08, on purpose: the founder chose
+  // "the biggest plates, still varied" for very high targets, so most of
+  // these 100 profiles (many far above what a meal holds) now rotate over 6
+  // big plates a meal instead of all of them. 6 x 6 x 6 = 216 possible days,
+  // and 100 people make 4,950 pairs, so about 23 matching pairs are expected
+  // by chance alone (measured: 13). Two strangers never see each other's
+  // plan; the case a person CAN see, changing their own details, is checked
+  // separately just below.
+  if (collisions > 30) {
+    fail(`${collisions}/${total} profiles collided on an identical whole day — personalKey is not differentiating people enough (expected ~20 with the big-plate pool, ceiling 30)`);
+  }
+
+  // One person who changes their weight (both far above what a meal holds)
+  // must not keep getting the same whole day, across several days.
+  let samePerson = 0;
+  for (const dayKeyN of ["2026-08-01", "2026-08-10", "2026-08-15", "2026-08-20", "2026-08-29"]) {
+    const dayOf = (w: number) =>
+      MEALS.map((meal) => {
+        const t = calorieTarget(tdee(bmr("male", w, 180, 30), "extra_active" as any), []);
+        return planForDay(meal, dayKeyN, new Map(), 0, [], new Map(), null, t / 3, [], personalKeyFor(w, "extra_active"))
+          .names.join("+");
+      }).join("|");
+    if (dayOf(110) === dayOf(130)) samePerson++;
+  }
+  if (samePerson > 1) {
+    fail(`changing one person's weight from 110kg to 130kg left the identical whole day on ${samePerson} of 5 days`);
   }
 }
 

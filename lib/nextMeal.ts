@@ -3,6 +3,7 @@ import type { Food } from "./types";
 import type { NamedMeal } from "./mealtime";
 import { cleanFoodName } from "./foodName";
 import { biasScore, type PlateAxes, type Condition } from "./personalization";
+import { remainingMealCalorieTarget } from "./tdee";
 
 /**
  * Safe meal ideas to suggest for the meal happening right now.
@@ -894,7 +895,19 @@ export function planForDay(
     const mealCeiling = MEAL_MAX_CALORIES[meal];
     const saturated = mealCeiling > 0 && calorieTargetForMeal > SATURATION_MULTIPLIER * mealCeiling;
     if (saturated) {
-      pool = base.map((s) => ({ ...s, diff: Math.abs(s.planCalories - calorieTargetForMeal) }));
+      // **Changed 2026-10-08 (founder): the BIGGEST plates, still varied.**
+      // Rotating over the full pool meant a 4,000kcal-a-day person was
+      // served a 281kcal breakfast while 410kcal plates existed, so the day
+      // fell further short than it had to. The pool is now the larger plates
+      // only (SATURATED_POOL of them, biggest first, the same 6 the ordinary
+      // path keeps as its MIN_POOL): still enough for the
+      // stride below to rotate without repeating day to day, and every one
+      // of them carries as much of the target as a real plate can.
+      const SATURATED_POOL = Math.min(6, base.length);
+      pool = [...base]
+        .sort((a, b) => b.planCalories - a.planCalories)
+        .slice(0, SATURATED_POOL)
+        .map((s) => ({ ...s, diff: Math.abs(s.planCalories - calorieTargetForMeal) }));
     } else {
     // A small, bounded, per-person nudge to how close each plate LOOKS to
     // the target — added 2026-09-08 (later the same day), fixing a real,
@@ -1417,7 +1430,7 @@ const MEAL_WORD: Record<NamedMeal, string> = {
  */
 export function extraTimingFor(id: string, meal: NamedMeal): string {
   if (PRE_MEAL_NUTS.has(id)) {
-    return `Eat this 15 to 30 minutes before your ${MEAL_WORD[meal]}. It slows down how fast that meal pushes your sugar up.`;
+    return `Eat this 30 minutes before your ${MEAL_WORD[meal]}. It slows down how fast that meal pushes your sugar up.`;
   }
   // Raw vegetables first, then the meal: eating vegetables before the
   // starch is one of the plainest ways to slow the sugar from it.
@@ -1469,6 +1482,8 @@ export interface ExtraVariant {
 
 export interface ExtraSuggestionSet {
   meal: NamedMeal;
+  /** Set when this card is a snack between meals, not extras at a meal. */
+  snack?: SnackTime;
   /**
    * Up to 2 real, independently-built ways to close this meal's gap. Each
    * variant closes the gap AS CLOSE AS a safe, at-most-2-item combination
@@ -1483,6 +1498,7 @@ export interface ExtraSuggestionSet {
 
 /** How small a leftover gap has to be before there is nothing worth suggesting. */
 const MIN_GAP_KCAL = 100;
+const LAST_MEAL_MIN_GAP_KCAL = 50;
 
 /** Below this, adding one more whole real serving is not worth the overshoot. */
 const MIN_ADD_KCAL = 20;
@@ -1744,10 +1760,21 @@ export function suggestExtras(
   conditions: Condition[] = [],
   personalKey = "",
   weekCounts: Map<string, number> = new Map(),
+  snack?: SnackTime,
+  excludeIds: ReadonlySet<string> = new Set(),
 ): ExtraSuggestionSet | null {
-  if (!remainingKcal || remainingKcal < MIN_GAP_KCAL) return null;
+  // Dinner is the last chance of the day (its bedtime snack only exists for
+  // very high targets), so a smaller gap still gets a card there instead of
+  // leaving the day short (2026-10-08).
+  const minGap = meal === "dinner" && !snack ? LAST_MEAL_MIN_GAP_KCAL : MIN_GAP_KCAL;
+  if (!remainingKcal || remainingKcal < minGap) return null;
   const capProtein = conditions.includes("kidney_disease");
-  const pool = EXTRA_CANDIDATES[meal]
+  // A snack leaves out the foods already on that meal's extras card, so the
+  // person is not handed walnuts twice in one morning. If that would leave
+  // fewer than 2 foods, the full list is used instead.
+  const excluded = EXTRA_CANDIDATES[meal].filter((c) => !excludeIds.has(c.id));
+  const source = excluded.length >= 2 ? excluded : EXTRA_CANDIDATES[meal];
+  const pool = source
     .filter((candidate) => !EXCLUDED_FROM_EXTRAS.has(candidate.id))
     // A food with a weekly limit already reached is left out (weeklyLimit).
     .filter((candidate) => !candidate.weeklyLimit || (weekCounts.get(candidate.id) ?? 0) < candidate.weeklyLimit)
@@ -1763,7 +1790,7 @@ export function suggestExtras(
   // the real bug this fixes: breakfast/lunch/dinner used to all start from
   // the same food on the same day).
   const n = pool.length;
-  const salt = (personalKey ? hash(personalKey) : 0) + hash(meal);
+  const salt = (personalKey ? hash(personalKey) : 0) + hash(snack ? `${meal}#${snack}` : meal);
   const dayStart = (((dayNumber(dayKey) + salt) % n) + n) % n;
   const numVariants = Math.min(2, n);
   const first = buildVariant(pool, dayStart, remainingKcal);
@@ -1784,10 +1811,133 @@ export function suggestExtras(
     }
     variants.push(second);
   }
-  return { meal, variants };
+  return snack ? { meal, snack, variants } : { meal, variants };
 }
 
 /** The set of food ids in a variant, order-independent, for a same/different check. */
 function compositionKey(variant: ExtraVariant): string {
   return variant.items.map((o) => o.food.id).sort().join(",");
+}
+
+/* ------------------------------------------------------------------------- */
+/* Snack times for very high calorie targets (founder, 2026-10-08).           */
+/* ------------------------------------------------------------------------- */
+
+/**
+ * The two snacks between meals. For people with diabetes who need a lot of
+ * energy, three meals plus two snacks is the usual advice: it spreads the
+ * sugar across the day instead of loading each meal. They only appear when
+ * three meals and their extras cannot hold the person's target (see
+ * `mealShareFor`), so an ordinary day is unchanged. Each snack is still 1 or 2
+ * foods, from the same safe, ready-to-eat list as the extras card.
+ */
+export type SnackTime = "mid-morning" | "afternoon" | "bedtime";
+
+/**
+ * Which snack follows which meal. The bedtime snack (founder, 2026-10-08) is
+ * for the rare very high targets three meals and two snacks cannot hold; a
+ * bedtime snack is also common advice for people on insulin.
+ */
+export const SNACK_AFTER: Record<NamedMeal, SnackTime> = {
+  breakfast: "mid-morning",
+  lunch: "afternoon",
+  dinner: "bedtime",
+};
+
+export const SNACK_COPY: Record<SnackTime, { title: string; when: string }> = {
+  "mid-morning": {
+    title: "Your mid-morning snack",
+    when: "Eat this at about 10am, between breakfast and lunch.",
+  },
+  afternoon: {
+    title: "Your afternoon snack",
+    when: "Eat this at about 3pm, between lunch and dinner.",
+  },
+  bedtime: {
+    title: "Your bedtime snack",
+    when: "Eat this at about 9pm, before you sleep.",
+  },
+};
+
+/**
+ * The most one extras card (or one snack) can safely give: its two biggest
+ * foods, each at its own safe single-sitting maximum, for this person (the
+ * kidney_disease cap included).
+ */
+export function extrasSafeCapacity(conditions: Condition[] = []): number {
+  const capProtein = conditions.includes("kidney_disease");
+  const kcal = EXTRA_CANDIDATES.breakfast
+    .filter((c) => !EXCLUDED_FROM_EXTRAS.has(c.id) && !c.weeklyLimit)
+    .map((c) => ({ c, food: getFood(c.id) }))
+    .filter((p): p is { c: ExtraCandidate; food: Food } => p.food != null)
+    .map((p) => sizeExtra(guardedCandidate(p.c, p.food, capProtein), p.food, 1e9).calories)
+    .sort((a, b) => b - a);
+  return (kcal[0] ?? 0) + (kcal[1] ?? 0);
+}
+
+/**
+ * THIS meal's share of what is left of today's target. The ONE place it is
+ * worked out: components/TodaysMeal.tsx (which plate) and
+ * lib/useTodaysCalories.ts (the extras and snacks) both call it, so the two
+ * cards can never be sized against different numbers.
+ *
+ * An ordinary target is split evenly across the meals left (founder,
+ * 2026-08-31: "evenly split"), exactly as before. Only when an even share is
+ * more than a meal and its extras can hold does the split lean on capacity:
+ * each meal then also has a snack after it, and the share follows what each
+ * meal, its extras and its snack can really supply.
+ */
+export function mealShareFor(
+  dailyTarget: number,
+  eatenToday: number,
+  mealPattern: NamedMeal[],
+  meal: NamedMeal,
+  conditions: Condition[] = [],
+): number {
+  const order: NamedMeal[] = ["breakfast", "lunch", "dinner"];
+  const idx = order.indexOf(meal);
+  const left = mealPattern.filter((m) => order.indexOf(m) >= idx);
+  const remaining = left.length > 0 ? left : [meal];
+  const budget = Math.max(0, dailyTarget - eatenToday);
+  const cap = extrasSafeCapacity(conditions);
+  const even = budget / remaining.length;
+  if (remaining.every((m) => even <= MEAL_MAX_CALORIES[m] + cap)) {
+    return remainingMealCalorieTarget(dailyTarget, eatenToday, mealPattern, meal);
+  }
+  const weights: Partial<Record<NamedMeal, number>> = {};
+  for (const m of remaining) {
+    weights[m] = MEAL_MAX_CALORIES[m] + cap * 2;
+  }
+  return remainingMealCalorieTarget(dailyTarget, eatenToday, mealPattern, meal, weights);
+}
+
+/**
+ * The snack after this meal, when the meal's extras card cannot close its
+ * share on its own. `extras` is that meal's card: the snack is sized for what
+ * its first choice leaves, and leaves out the foods already on it.
+ */
+export function suggestSnack(
+  meal: NamedMeal,
+  extrasGap: number,
+  extras: ExtraSuggestionSet | null,
+  dayKey: string,
+  conditions: Condition[] = [],
+  personalKey = "",
+  weekCounts: Map<string, number> = new Map(),
+): ExtraSuggestionSet | null {
+  const snack = SNACK_AFTER[meal];
+  const covered = extras ? extras.variants[0].totalCalories : 0;
+  const left = extrasGap - covered;
+  if (left < MIN_GAP_KCAL) return null;
+  const onCard = new Set(extras ? extras.variants.flatMap((v) => v.items.map((o) => o.food.id)) : []);
+  const fresh = suggestExtras(left, dayKey, meal, conditions, personalKey, weekCounts, snack, onCard);
+  // Different foods from the meal's card first. If that cannot get close to
+  // the number (the other foods are mostly light vegetables and fruit), the
+  // full list is used: each food's safe amount is per sitting, and the snack
+  // is hours after the meal, so meeting the day's target comes first.
+  const closeness = (s: ExtraSuggestionSet | null) =>
+    s ? Math.abs(left - s.variants[0].totalCalories) : Infinity;
+  if (closeness(fresh) <= 60) return fresh;
+  const any = suggestExtras(left, dayKey, meal, conditions, personalKey, weekCounts, snack);
+  return closeness(any) < closeness(fresh) ? any : fresh;
 }

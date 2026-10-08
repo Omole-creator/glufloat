@@ -33,7 +33,7 @@ const FAQS: { q: string; a: string }[] = [
   },
   {
     q: "Do I have to test my sugar before every meal?",
-    a: "No. Testing is up to you, because strips cost money. If you can, test before a meal and again 2 hours after, a few times a week. GluFloat shows you the change and puts it in your report for your doctor. If you don't test, the app works just the same.",
+    a: "No. Testing is up to you, because strips cost money. If you can, test before a meal and again 2 hours after, 2 times a week. GluFloat shows you the change and puts it in your report for your doctor. If you don't test, the app works just the same.",
   },
   {
     q: "I cook for someone with diabetes. Will this help me?",

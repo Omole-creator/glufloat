@@ -128,4 +128,7 @@ export interface MealResult {
   headline: string;
   fixes: string[];
   breakdown: string[];
+  /** True when the plate is red because foods were piled together (two
+   *  starches, two sugar-raising yellows, or three yellows). */
+  stacked?: boolean;
 }

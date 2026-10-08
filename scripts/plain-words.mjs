@@ -585,6 +585,7 @@ for (const f of foods) {
       "chickpeas",
       "lentils",
       "tofu",
+      "moi-moi", // moi moi with salad is a real plate (co-founder dietitian, 2026-10-08)
     ]);
     const VEG_SUSPECT = new Set(["legume", "snack", "nut"]);
     if (

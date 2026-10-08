@@ -106,22 +106,22 @@ export const DEFAULT_SERVING_G = {
   "ice-cream": 60,
   "boiled-corn": 80,
   "roasted-corn": 80,
-  "egusi-soup": 200,
-  "ogbono-soup": 200,
+  "egusi-soup": 125, // one big spoon is 125ml (founder, 2026-10-08)
+  "ogbono-soup": 125, // one big spoon is 125ml (founder, 2026-10-08)
   "efo-riro": 250,
   "edikang-ikong": 250,
   "afang-soup": 250,
-  "oha-soup": 200,
-  "bitterleaf-soup": 200,
+  "oha-soup": 125, // one big spoon is 125ml (founder, 2026-10-08)
+  "bitterleaf-soup": 125, // one big spoon is 125ml (founder, 2026-10-08)
   "okra-soup": 250,
   "vegetable-soup": 250,
-  "banga-soup": 100,
+  "banga-soup": 125, // one big spoon is 125ml (founder, 2026-10-08)
   ewedu: 250,
-  gbegiri: 200,
-  "groundnut-soup": 100,
-  "white-soup": 200,
-  "pepper-soup": 300,
-  "miyan-kuka": 200,
+  gbegiri: 125, // one big spoon is 125ml (founder, 2026-10-08)
+  "groundnut-soup": 125, // one big spoon is 125ml (founder, 2026-10-08)
+  "white-soup": 125, // one big spoon is 125ml (founder, 2026-10-08)
+  "pepper-soup": 500, // four big spoons, the "good start" (founder, 2026-10-08)
+  "miyan-kuka": 125, // one big spoon is 125ml (founder, 2026-10-08)
   eggs: 100,
   ugba: 65,
   orange: 130,
@@ -133,17 +133,17 @@ export const DEFAULT_SERVING_G = {
   "zobo-sweetened": 250,
   "condensed-milk": 20,
   "sweetened-yogurt": 150,
-  "palm-oil": 8,
-  "vegetable-oil": 8,
-  "olive-oil": 8,
+  "palm-oil": 4.5, // one teaspoon (co-founder dietitian: one number, 2026-10-08)
+  "vegetable-oil": 4.5, // one teaspoon (co-founder dietitian: one number, 2026-10-08)
+  "olive-oil": 4.5, // one teaspoon (co-founder dietitian: one number, 2026-10-08)
   butter: 5,
   mayonnaise: 5,
   "table-sugar": 5,
   honey: 5,
-  "miyan-taushe": 200,
-  "ora-soup": 200,
-  "owho-soup": 200,
-  "native-soup": 300,
+  "miyan-taushe": 125, // one big spoon is 125ml (founder, 2026-10-08)
+  "ora-soup": 125, // one big spoon is 125ml (founder, 2026-10-08)
+  "owho-soup": 125, // one big spoon is 125ml (founder, 2026-10-08)
+  "native-soup": 125, // one big spoon is 125ml (founder, 2026-10-08)
   grapefruit: 120,
   "lime-lemon": 10,
   sugarcane: 30,
@@ -157,11 +157,11 @@ export const DEFAULT_SERVING_G = {
   "egg-roll": 70,
   "scotch-egg": 120,
   "beans-and-plantain": 180,
-  "ofe-owerri": 200,
+  "ofe-owerri": 125, // one big spoon is 125ml (founder, 2026-10-08)
   "okazi-soup": 250,
-  "editan-soup": 200,
-  "atama-soup": 100,
-  "ofe-akwu": 100,
+  "editan-soup": 125, // one big spoon is 125ml (founder, 2026-10-08)
+  "atama-soup": 125, // one big spoon is 125ml (founder, 2026-10-08)
+  "ofe-akwu": 125, // one big spoon is 125ml (founder, 2026-10-08)
   "miyan-kubewa": 250,
   sardine: 60,
   "corned-beef": 50,
@@ -173,7 +173,7 @@ export const DEFAULT_SERVING_G = {
   "fish-roll": 70,
   "small-chops": 60,
   "coconut-candy": 15,
-  "coconut-oil": 8,
+  "coconut-oil": 4.5, // one teaspoon (co-founder dietitian: one number, 2026-10-08)
   sweetener: 1,
   burger: 120,
   "hot-dog": 100,
@@ -184,9 +184,9 @@ export const DEFAULT_SERVING_G = {
   // not to which noodle it is).
   indomie: 130,
   waffles: 60,
-  "tomato-stew": 100,
-  ayamase: 100,
-  "garden-egg-sauce": 100,
+  "tomato-stew": 125, // one big spoon is 125ml (founder, 2026-10-08)
+  ayamase: 125, // one big spoon is 125ml (founder, 2026-10-08)
+  "garden-egg-sauce": 125, // one big spoon is 125ml (founder, 2026-10-08)
   "pepper-sauce": 60,
   // "One bowl (about one cup)" of a mayo-bound salad is denser than a fresh
   // vegetable cup — 150g under-weighed it against the other "one cup" salads.

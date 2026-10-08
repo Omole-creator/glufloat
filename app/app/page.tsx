@@ -16,6 +16,7 @@ import Navbar from "@/components/Navbar";
 import DisclaimerGate from "@/components/DisclaimerGate";
 import FeedbackPopup from "@/components/FeedbackPopup";
 import ToastHost from "@/components/Toast";
+import MeasureGuide from "@/components/MeasureGuide";
 import SearchPanel from "@/components/SearchPanel";
 import MealBuilder from "@/components/MealBuilder";
 import VarietyNudge from "@/components/VarietyNudge";
@@ -401,6 +402,7 @@ export default function AppPage() {
       <DisclaimerGate />
       <FeedbackPopup />
       <ToastHost />
+      <MeasureGuide />
 
       {renewSoon && (
         <div className="fixed inset-x-0 top-16 z-40 bg-verdict-yellow/95 px-4 py-2.5 text-center text-sm font-semibold text-ink shadow-md">

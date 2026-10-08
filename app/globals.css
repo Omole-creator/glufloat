@@ -255,3 +255,17 @@ body {
 .email-editor blockquote { margin: 0 0 0.75rem; padding-left: 0.9rem; border-left: 3px solid var(--line, #e3e9f1); color: #5b6b7e; }
 .email-editor a { color: #1b5faa; text-decoration: underline; }
 .email-editor hr { margin: 1rem 0; border-color: #e3e9f1; }
+
+/* ---------- "tap this" hand on measure photos (founder, 2026-10-08) ---------- */
+@keyframes tap-hint {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(0.82); opacity: 0.45; }
+}
+.tap-hint {
+  animation: tap-hint 1.4s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tap-hint {
+    animation: none;
+  }
+}

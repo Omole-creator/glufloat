@@ -86,6 +86,26 @@ const expected: [string, string[], "green" | "yellow" | "red"][] = [
   ["beans alone", ["cooked-beans"], "green"],
   ["boiled ripe plantain alone (no beans)", ["boiled-plantain-ripe"], "red"],
   ["eba alone (no beans)", ["garri-eba"], "red"],
+  // Stacking (co-founder dietitian, 2026-10-08): more food never makes a plate
+  // better. Two starches are red; three "eat with care" foods drop one colour.
+  ["jollof + boiled yam", ["jollof-rice", "boiled-yam"], "red"],
+  ["jollof + boiled yam + akara (akara must not rescue it)", ["jollof-rice", "boiled-yam", "akara"], "red"],
+  ["three yellow starches", ["amala-plantain", "ofada-rice", "brown-rice"], "red"],
+  ["two starches + soup + fish", ["ofada-rice", "boiled-yam", "efo-riro", "fish"], "red"],
+  ["kilishi + ewa agoyin + akara (three yellow, no starch)", ["kilishi", "ewa-agoyin", "akara"], "red"],
+  ["rice and beans dish alone (one starch)", ["rice-and-beans"], "yellow"],
+  // Two yellow foods that both raise sugar are red. A yellow body-building or
+  // beans food with one yellow starch is not (founder, 2026-10-08).
+  ["boiled yam + kunu (two sugar yellows)", ["boiled-yam", "kunu"], "red"],
+  ["pap + banana (two sugar yellows)", ["pap", "banana"], "red"],
+  ["ofada rice + pawpaw (two sugar yellows)", ["ofada-rice", "pawpaw"], "red"],
+  ["akara + pap (approved pairing)", ["akara", "pap"], "yellow"],
+  ["moi moi + pap (approved pairing)", ["moi-moi", "pap"], "yellow"],
+  ["akara + oats (approved pairing)", ["akara", "oats"], "green"],
+  ["two green starches", ["oats", "oat-swallow"], "yellow"],
+  // Oil and salt never count toward the yellow foods.
+  ["ofada rice + palm oil + salt", ["ofada-rice", "palm-oil", "salt"], "yellow"],
+  ["pounded yam + egusi + beef (ordinary plate)", ["pounded-yam", "egusi-soup", "beef"], "yellow"],
 ];
 
 let failed = 0;
@@ -108,3 +128,23 @@ console.log("\nsearch 'eba':", searchFoods("eba").map((x) => x.name));
 console.log("search 'dodo':", searchFoods("dodo").map((x) => x.name));
 console.log("search 'coke':", searchFoods("coke").map((x) => x.name));
 console.log("search 'moin':", searchFoods("moin").map((x) => x.name));
+
+// A plate made red by piling foods together must not say "2 times a week"
+// under "Better to skip" (2026-10-08). A single red food keeps its own card's count.
+import { mealFrequency } from "../lib/frequency";
+{
+  const pile = ["jollof-rice", "boiled-yam", "akara"].map((id) => ({ food: f(id), portion: "normal" as const }));
+  const r = scoreMeal(pile);
+  const often = mealFrequency(pile, r.stacked);
+  if (!r.stacked || !often?.text.includes("1 time a month")) {
+    console.error("FAIL stacked red plate frequency:", r.stacked, often);
+    process.exit(1);
+  }
+  const eba = [{ food: f("garri-eba"), portion: "normal" as const }];
+  const e = scoreMeal(eba);
+  if (e.stacked || mealFrequency(eba, e.stacked)?.text.includes("1 time a month")) {
+    console.error("FAIL eba alone must keep its own card's count");
+    process.exit(1);
+  }
+  console.log("  ok   stacked red plate says about once a month; eba alone keeps its card's count");
+}

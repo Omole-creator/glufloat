@@ -2,15 +2,16 @@
 
 import { useState } from "react";
 import { Apple, Clock, Plus, RefreshCw } from "lucide-react";
-import { extraTimingFor, type ExtraSuggestionSet, type ExtraOption } from "@/lib/nextMeal";
+import { extraTimingFor, SNACK_COPY, type ExtraSuggestionSet, type ExtraOption } from "@/lib/nextMeal";
 import type { NamedMeal } from "@/lib/mealtime";
 import { saveCheck } from "@/lib/history";
 import { trackUsage } from "@/lib/usage";
 import { scoreMeal } from "@/lib/verdictEngine";
 import { showToast } from "@/components/Toast";
+import { MeasureChips } from "@/components/MeasurePhoto";
 
 /** One food's row — shared between the typical set and any automatic top-up. */
-function ExtraRow({ item, meal }: { item: ExtraOption; meal: NamedMeal }) {
+function ExtraRow({ item, meal, snack }: { item: ExtraOption; meal: NamedMeal; snack: boolean }) {
   return (
     <li className="rounded-xl bg-white/70 p-3">
       <div className="flex items-start justify-between gap-3">
@@ -21,7 +22,8 @@ function ExtraRow({ item, meal }: { item: ExtraOption; meal: NamedMeal }) {
         </p>
       </div>
       <p className="mt-1 text-xs leading-snug text-ink-soft">{item.instruction}</p>
-      {extraTimingFor(item.food.id, meal) && (
+      <MeasureChips text={item.instruction} forFood={item.name} className="mt-1.5" />
+      {!snack && extraTimingFor(item.food.id, meal) && (
         <p className="mt-1.5 flex items-start gap-1.5 text-xs font-semibold leading-snug text-leaf-deep">
           <Clock className="mt-0.5 h-3.5 w-3.5 shrink-0" strokeWidth={2.4} />
           {extraTimingFor(item.food.id, meal)}
@@ -105,9 +107,17 @@ export default function ExtraSuggestionCard({ set }: { set: ExtraSuggestionSet }
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-leaf/15 text-leaf-deep ring-1 ring-inset ring-leaf/20">
             <Apple className="h-4 w-4" strokeWidth={2.4} />
           </span>
-          <p className="font-display text-sm font-bold text-ink">
-            Eat this to make up your calorie intake today
-          </p>
+          <div>
+            <p className="font-display text-sm font-bold text-ink">
+              {set.snack ? SNACK_COPY[set.snack].title : "Eat this to make up your calorie intake today"}
+            </p>
+            {set.snack && (
+              <p className="mt-0.5 flex items-center gap-1 text-xs font-semibold text-leaf-deep">
+                <Clock className="h-3.5 w-3.5 shrink-0" strokeWidth={2.4} />
+                {SNACK_COPY[set.snack].when}
+              </p>
+            )}
+          </div>
         </div>
         {set.variants.length > 1 && (
           <button
@@ -115,14 +125,14 @@ export default function ExtraSuggestionCard({ set }: { set: ExtraSuggestionSet }
             onClick={tryAnother}
             className="flex shrink-0 items-center gap-1 rounded-full bg-white px-2.5 py-1.5 text-xs font-bold text-leaf-deep ring-1 ring-inset ring-leaf/25 transition-colors hover:bg-leaf/10"
           >
-            <RefreshCw className="h-3 w-3" /> Try a different snack
+            <RefreshCw className="h-3 w-3" /> {set.snack ? "Try another snack" : "Try a different snack"}
           </button>
         )}
       </div>
 
       <ul className="mt-3 space-y-3">
         {variant.items.slice(0, variant.coreCount).map((item) => (
-          <ExtraRow key={item.food.id} item={item} meal={set.meal} />
+          <ExtraRow key={item.food.id} item={item} meal={set.meal} snack={!!set.snack} />
         ))}
       </ul>
 
@@ -133,7 +143,7 @@ export default function ExtraSuggestionCard({ set }: { set: ExtraSuggestionSet }
           </p>
           <ul className="mt-2 space-y-3">
             {variant.items.slice(variant.coreCount).map((item) => (
-              <ExtraRow key={item.food.id} item={item} meal={set.meal} />
+              <ExtraRow key={item.food.id} item={item} meal={set.meal} snack={!!set.snack} />
             ))}
           </ul>
         </>
@@ -149,7 +159,7 @@ export default function ExtraSuggestionCard({ set }: { set: ExtraSuggestionSet }
           onClick={logEaten}
           className="flex items-center gap-1.5 rounded-full bg-leaf px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-leaf-deep"
         >
-          <Plus className="h-4 w-4" strokeWidth={3} /> I ate this too
+          <Plus className="h-4 w-4" strokeWidth={3} /> {set.snack ? "I ate my snack" : "I ate this too"}
         </button>
       </div>
     </div>

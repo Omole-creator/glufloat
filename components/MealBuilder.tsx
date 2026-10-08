@@ -72,7 +72,7 @@ export default function MealBuilder({
 
   const results = useMemo(() => searchFoods(query, 6), [query]);
   const result = useMemo(() => scoreMeal(items), [items]);
-  const often = useMemo(() => mealFrequency(items), [items]);
+  const often = useMemo(() => mealFrequency(items, result.stacked), [items, result.stacked]);
   // Each food's own GluFloat-size figures, summed. There is only one real,
   // dietitian-sourced size per food, so there is no size picker here: a
   // Small/Normal/Large tap used to sit on the starch and changed the colour

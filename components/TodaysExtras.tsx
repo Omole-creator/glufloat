@@ -29,7 +29,15 @@ import ExtraSuggestionCard from "@/components/ExtraSuggestionCard";
  * rather than naming a shortfall with nowhere automated to send it.
  */
 export default function TodaysExtras({ show }: { show: boolean }) {
-  const { extra } = useTodaysCalories(show);
-  if (!extra) return null;
-  return <ExtraSuggestionCard set={extra} />;
+  // `snack` only exists for a very high target three meals cannot hold
+  // (lib/nextMeal.ts's mealShareFor / suggestSnack, founder 2026-10-08). It is
+  // its own green card, under the meal's extras; the blue card never changes.
+  const { extra, snack } = useTodaysCalories(show);
+  if (!extra && !snack) return null;
+  return (
+    <div className="space-y-4">
+      {extra && <ExtraSuggestionCard set={extra} />}
+      {snack && <ExtraSuggestionCard set={snack} />}
+    </div>
+  );
 }

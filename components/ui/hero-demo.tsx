@@ -103,7 +103,7 @@ export default function HeroDemo() {
                 </div>
                 <div className="rounded-lg bg-mist p-2">
                   <p className="font-bold text-ink/60">How often</p>
-                  <p className="mt-0.5 text-ink">2 to 3 a week</p>
+                  <p className="mt-0.5 text-ink">2 times a week</p>
                 </div>
               </div>
             </motion.div>

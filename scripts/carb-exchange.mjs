@@ -13,7 +13,8 @@ const foods = JSON.parse(readFileSync(FILE, "utf8"));
 
 // 1. pairingAdvice fixes (odd lines that do not combine with the food).
 const pairing = {
-  smoothie: "A small glass with a meal, not on its own. Better to eat the whole fruit.",
+  // Must match REAL_PAIRINGS.smoothie in clear-instructions.mjs, which runs last.
+  smoothie: "Drink it with a meal, not on its own. Better to eat the whole fruit.",
 };
 
 // 2. One fruit exchange (~15g carbs) per fruit. Short amount phrase.
@@ -26,21 +27,21 @@ const carbExchange = {
   mango: "half of a small mango",
   pineapple: "one thin slice",
   guava: "one small guava",
-  agbalumo: "one to two small fruits",
+  agbalumo: "one small fruit",
   soursop: "half a cup (three small pieces)",
-  dates: "one to two pieces",
-  "cashew-fruit": "one to two fruits",
+  dates: "one date",
+  "cashew-fruit": "one fruit",
   tangerine: "one medium fruit",
   grapefruit: "half of a medium fruit",
-  "velvet-tamarind": "a small handful of pods",
-  tamarind: "one to two pods (a spoon of pulp)",
-  jackfruit: "three to four pieces (half a cup)",
+  "velvet-tamarind": "about 10 pods",
+  tamarind: "one pod (one teaspoon of pulp)",
+  jackfruit: "three pieces (half a cup)",
   pomegranate: "half a cup of seeds",
-  grapes: "ten to fifteen grapes",
-  strawberry: "seven to eight berries",
+  grapes: "about 15 grapes",
+  strawberry: "about 8 berries",
   "golden-melon": "one cup diced",
-  "monkey-kola": "two to three small fruits",
-  "passion-fruit": "one to two fruits",
+  "monkey-kola": "two small fruits",
+  "passion-fruit": "two fruits",
 };
 
 const byId = new Map(foods.map((f) => [f.id, f]));

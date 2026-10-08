@@ -94,15 +94,15 @@ const COOKED = {
   "parboiled-rice": "Three-quarters of a cup of cooked rice (about 120g).",
 
   // Cooked dishes served in a bowl or on a plate.
-  "yam-porridge": "One small bowl. That is about three-quarters of a cup of the cooked porridge (150g).",
-  "sweet-potato-porridge": "One small bowl. That is about three-quarters of a cup of the cooked porridge (150g).",
-  "beans-porridge": "One small bowl. That is about three-quarters of a cup of the cooked porridge (150g).",
-  ikokore: "One small bowl. That is about three-quarters of a cup of the cooked dish (150g).",
-  ukwa: "One small bowl. That is about three-quarters of a cup of the cooked dish (150g).",
-  achicha: "One small bowl. That is about three-quarters of a cup of the cooked dish (150g).",
-  "ekpang-nkukwo": "One small bowl. That is about three-quarters of a cup of the cooked dish (150g).",
-  adalu: "One small bowl. That is about three-quarters of a cup of the cooked dish (150g).",
-  "unripe-plantain-porridge": "One bowl. That is about one cup of the cooked porridge (200g). Serve it with plenty of vegetables.",
+  "yam-porridge": "One and a half big spoons of the cooked porridge (150g).",
+  "sweet-potato-porridge": "One and a half big spoons of the cooked porridge (150g).",
+  "beans-porridge": "One and a half big spoons of the cooked porridge (150g).",
+  ikokore: "One and a half big spoons of the cooked dish (150g).",
+  ukwa: "One and a half big spoons of the cooked dish (150g).",
+  achicha: "One and a half big spoons of the cooked dish (150g).",
+  "ekpang-nkukwo": "One and a half big spoons of the cooked dish (150g).",
+  adalu: "One and a half big spoons of the cooked dish (150g).",
+  "unripe-plantain-porridge": "Two big spoons of the cooked porridge (200g). Serve it with plenty of vegetables.",
   "dan-wake": "One small plate. That is about one cup of the cooked dumplings (150g).",
   abacha: "One small plate. That is about one cup of the dish as it is served (150g).",
   gizdodo: "One small plate. That is about one cup of the dish as it is served (150g). It is plantain with gizzard.",
@@ -141,7 +141,7 @@ const COOKED = {
   tapioca: "One small cup (about 200ml). Make it with water. Add no sugar.",
 
   // Other sentences the founder flagged.
-  water: "Six to eight cups a day. Drink more if you are thirsty.",
+  water: "Eight cups a day. Drink more if you are thirsty.",
 
   // "How much" says the size. "How often" says the frequency. Saying the
   // frequency in both places is noise.
@@ -159,10 +159,147 @@ const COOKED = {
 };
 
 /**
+ * 5. One number, never a range (co-founder dietitian, 2026-10-08).
+ *
+ * "Two or three chunks" lets a person pick the bigger number every time. The
+ * rule: where the card already gives a weight, the count is the one that
+ * matches that weight, so the number and the grams agree. Where it gives no
+ * weight, it is the LOWER number, because the lower number is always safe.
+ * Water is the one exception: more water is never the risk.
+ *
+ * "Big spoon" stays (founder, 2026-10-08), but it is ONE size now: 125ml, a
+ * soup ladle, half a GluFloat cup. Soups used to say "one to two big spoons,
+ * about one cup" (a 125ml spoon) while stews said "two to three big spoons,
+ * about half a cup" (a 50ml spoon). Every big spoon now carries its ml, and the
+ * app shows a photo of it.
+ *
+ * The audit at the bottom of this file fails on any range left, and on any
+ * "big spoon" that does not say its ml.
+ */
+const SOUP_CUP = "One big spoon of soup (125ml).";
+const LEAFY_SOUP = "Eat as much as you like. Two big spoons of soup (250ml) is a good start.";
+// The ONE cup. "Small cup", "small glass" and "tea cup" were three more
+// cups, each a different size in each home. Everything is now said against
+// the GluFloat cup (250ml), which the app shows in a picture.
+const ALMOST_FULL = "One cup, almost full (200ml).";
+const EXACT = {
+  pap: `${ALMOST_FULL} Make it with water. Add no sugar.`,
+  custard: `${ALMOST_FULL} Make it with water. Add no sugar.`,
+  tapioca: `${ALMOST_FULL} Make it with water. Add no sugar.`,
+  kunu: `${ALMOST_FULL} Add no sugar.`,
+  "kunu-aya": `${ALMOST_FULL} Add no sugar.`,
+  "fura-da-nono": `${ALMOST_FULL} Add no sugar.`,
+  nono: `${ALMOST_FULL} Add no sugar.`,
+  pito: ALMOST_FULL,
+  smoothie: `${ALMOST_FULL} Make it from whole fruit. Add no sugar.`,
+  "coconut-water": `${ALMOST_FULL} Drink it fresh and plain.`,
+  "soaked-garri": "Best to skip this. If you do have it, one cup, almost full (200ml). Add no sugar.",
+  "palm-wine": "Less than half a cup (100ml).",
+  "glucose-lucozade": "None, unless you are treating a low sugar. Then take less than half a cup (100ml).",
+  "yoghurt-drink": "Best to skip this. If you do have it, only half a cup (125ml).",
+  "plain-yogurt": "A little over half a cup (150g). Add no sugar.",
+  "cooked-beans": "Half a cup of cooked beans. Fill the cup halfway (130g).",
+  "ewa-agoyin": "Half a cup of cooked beans. Fill the cup halfway (130g). Go easy on the oil.",
+  "fio-fio": "Half a cup of the cooked pottage. Fill the cup halfway (130g).",
+  ugba: "Half a cup. Fill the cup halfway.",
+
+  "boiled-plantain-ripe": "Two slices (80g).",
+  dodo: "Best to skip this. If you do have it, three small slices at most (60g).",
+  suya: "One stick. That is about six pieces of meat (90g).",
+  kilishi: "Three pieces (about 30g).",
+  "whole-wheat-bread": "One slice (about 30g).",
+  beef: "Two medium chunks (90g). Put together, they fill your palm.",
+  "beef-regular": "Two medium chunks (90g). Put together, they fill your palm.",
+  "goat-meat": "Two medium chunks (90g). Put together, they fill your palm.",
+  grasscutter: "Two medium chunks (90g). Put together, they fill your palm.",
+  asun: "Two medium chunks (90g). Put together, they fill your palm.",
+  "ram-meat": "Two medium chunks (90g). Put together, they fill your palm.",
+  // Two eggs, the same as the Fried Egg card, and what the calories assume.
+  eggs: "Two eggs (about 100g).",
+  snail: "Three medium snails (about 90g).",
+  pomo: "Two small pieces. Put together, they fill your palm (about 60g).",
+  shaki: "Two small pieces. Put together, they fill your palm (about 90g).",
+  wara: "Three small pieces. Put together, they fill your palm (about 90g).",
+  coconut: "Two small pieces. Put together, they are about the size of one matchbox (about 40g).",
+  "cow-leg": "One piece (about 90g).",
+  "cow-tail": "One piece (about 90g).",
+  sausage: "One sausage (about 50g).",
+  "garden-egg": "Eat as much as you like. Three garden eggs is a good start.",
+  cabbage: "Eat as much as you like. Two cups, cut up thin, is a good start.",
+  tomato: "Eat as much as you like. Three tomatoes is a good start.",
+  "bell-pepper": "Eat as much as you like. Two peppers is a good start.",
+  lettuce: "Eat as much as you like. Three cups is a good start.",
+  kale: "One cup. Eat it cooked or raw.",
+  celery: "One stalk.",
+  beetroot: "Two slices (about 80g).",
+  agbalumo: "One small fruit.",
+  dates: "One date only.",
+  "cashew-fruit": "One fruit.",
+  "passion-fruit": "Two fruits.",
+  "monkey-kola": "Two small fruits.",
+  jackfruit: "Three pieces. That is about half a cup (80g).",
+  grapes: "About 15 grapes (80g).",
+  strawberry: "About 8 berries (100g).",
+  tamarind: "One pod. Or take one teaspoon of the pulp.",
+  "bitter-kola": "One seed.",
+  "kola-nut": "One lobe.",
+  ube: "Two softened pears.",
+  ekuru: "One wrap. That is about the size of your palm (150g).",
+  ojojo: "Three small fritters (about 80g).",
+  "beans-and-plantain": "Half a cup of cooked beans. Add two slices of plantain (80g).",
+  samosa: "Best to skip this. If you do have it, only one small one.",
+  "spring-roll": "Best to skip this. If you do have it, only one roll.",
+  "palm-oil": "One teaspoon. No more than that.",
+  "vegetable-oil": "One teaspoon. No more than that.",
+  "coconut-oil": "One teaspoon. No more than that.",
+  "olive-oil": "One teaspoon.",
+  mustard: "One teaspoon.",
+  "locust-bean": "One teaspoon in your pot of soup.",
+
+  "egusi-soup": SOUP_CUP,
+  "ogbono-soup": SOUP_CUP,
+  "oha-soup": SOUP_CUP,
+  "bitterleaf-soup": SOUP_CUP,
+  gbegiri: SOUP_CUP,
+  "white-soup": SOUP_CUP,
+  "miyan-kuka": SOUP_CUP,
+  "miyan-taushe": SOUP_CUP,
+  "ora-soup": SOUP_CUP,
+  "owho-soup": SOUP_CUP,
+  "ofe-owerri": SOUP_CUP,
+  "editan-soup": SOUP_CUP,
+  "efo-riro": LEAFY_SOUP,
+  "edikang-ikong": LEAFY_SOUP,
+  "afang-soup": LEAFY_SOUP,
+  "okra-soup": LEAFY_SOUP,
+  "vegetable-soup": LEAFY_SOUP,
+  ewedu: LEAFY_SOUP,
+  "okazi-soup": LEAFY_SOUP,
+  "miyan-kubewa": LEAFY_SOUP,
+  "banga-soup": "One big spoon of soup (125ml). Go easy on the oil.",
+  "atama-soup": "One big spoon of soup (125ml). Go easy on the oil.",
+  "ofe-akwu": "One big spoon of soup (125ml). Go easy on the oil.",
+  "groundnut-soup": "One big spoon of soup (125ml).",
+  "tomato-stew": "One big spoon of stew (125ml).",
+  ayamase: "One big spoon of stew (125ml).",
+  "garden-egg-sauce": "One big spoon of sauce (125ml).",
+  "pepper-sauce": "Half a big spoon (60ml).",
+  // "Bowl" was a fourth size with no photo (founder chose big spoons, 2026-10-08).
+  nkwobi: "One big spoon (125ml).",
+  "pepper-soup": "Eat as much as you like. Four big spoons (500ml) is a good start.",
+  "native-soup": "One big spoon of soup (125ml).",
+};
+
+/**
  * 4. A comma cannot join two instructions. Each of these becomes a full stop
  * and a plain verb, so the second half reads as its own thing to do.
  */
 const RULES = [
+  // "Bowl" is a different size in every home and has no photo. These cards
+  // already said the cup that the bowl meant, so the bowl goes and the amount
+  // stays exactly the same (founder, 2026-10-08).
+  [/^One (?:small )?bowl\. That is about (\w)/, (_m, c) => c.toUpperCase()],
+  [/^One bowl \(about one cup\)\.$/, "One cup."],
   [/, no added sugar\.$/, ". Add no sugar."],
   [/, with no sugar\.$/, ". Add no sugar."],
   [/, no sugar\.$/, ". Add no sugar."],
@@ -225,16 +362,61 @@ const DIETICIAN_PAIRING = {
  * vegetables. It is the same mistake as efo riro on beans, peanut butter on
  * celery, and vegetables on bread.
  *
- * The honest answer for akara is not to invent a partner for it. It is eaten
- * with pap or with bread, both of those push sugar up fast, so the advice is to
- * eat the akara by itself.
+ * Akara and moi moi were later over-corrected to "eat it on its own", which the
+ * co-founder dietitian rejected (2026-10-08): akara with oats or pap, and moi
+ * moi with oats, pap or salad, are real plates and safe ones, as long as the pap
+ * or oats has no sugar and the pap is one small cup. It also contradicted the
+ * Pap card, which itself says "moi moi or akara to slow it down".
+ *
+ * A yellow drink is drunk WITH food, never "alone" on an empty stomach (the
+ * Smoothie card already said so; Kunu and Palm Wine said the opposite). Alcohol
+ * on an empty stomach can also push sugar too LOW for anyone on insulin or
+ * tablets.
  *
  * This script runs LAST, which is why the corrections live here. Beniseed stays
  * with soup, because beniseed soup is real.
  */
 const REAL_PAIRINGS = {
   akara:
-    "Akara is eaten with pap or bread. Both push your sugar up fast. Eat the akara on its own, with tea with no sugar.",
+    "Akara goes well with oats or pap. Make them with water and add no sugar. Keep the pap to one cup, almost full (200ml).",
+  oats: "Moi moi, akara, or about 10 nuts. Add no sugar or sweet milk.",
+  okpa: "Eat it on its own, or with pap. Keep the pap to one cup, almost full (200ml). Add no sugar.",
+  kunu: "Drink it with food, like moi moi or akara. Do not drink it on an empty stomach.",
+  "kunu-aya": "Drink it with food. Do not drink it on an empty stomach.",
+  "palm-wine":
+    "Drink it with food. On an empty stomach, it can make your sugar drop too low.",
+  "plain-yogurt": "About 10 nuts, or 8 berries.",
+
+  // Full pairing review, 2026-10-08 (co-founder dietitian: "say eat this alone,
+  // or add this to it"). Wrong numbers and vague sizes fixed:
+  // half a cup of cooked rice is 90g on every rice card, never 130g.
+  "tomato-stew":
+    "It already has fish, chicken, or meat. Eat it with half a cup of rice (90g), or a fist-size ball of swallow (100g). The swallow matters too. Oat swallow raises sugar the least, and eba, fufu, pounded yam and semovita raise it the most.",
+  ayamase: "It already has assorted meat. Eat it with half a cup of ofada rice (90g).",
+  "pepper-sauce":
+    "Eat it with half a cup of rice (90g), two slices of plantain (80g), or two small pieces of yam (100g), plus fish or meat.",
+  // The Dodo card says three small slices (60g). Gizdodo must not allow more.
+  gizdodo: "The gizzard is the good part. Keep the fried plantain to three small slices (60g).",
+  "miyan-kubewa": "A fist-size ball of tuwo (100g), with fish, chicken, or an egg.",
+  mulberry: "About 10 nuts, or a little over half a cup of plain yogurt (150g).",
+  "baba-dudu": "Better to eat one small apple instead.",
+  orange: "Eat it alone, and eat it whole. Do not drink it as juice.",
+  tangerine: "Eat it alone, and eat it whole. Do not drink it as juice.",
+  "popcorn-plain": "Eat it alone, with water. Add no sugar or caramel.",
+  "fura-da-nono": "Drink it alone, as a meal. Add no sugar.",
+  nono: "Drink it alone. Add no sugar.",
+  avocado: "Eat it alone, or with an egg.",
+  "dambu-nama": "Eat it alone, or with vegetables.",
+  "garden-egg": "Eat it alone, or with groundnut (ose oji).",
+  groundnut: "Eat it alone, or with garden egg.",
+  cucumber: "Eat it alone as a snack.",
+  pomegranate: "Eat it alone, or on plain yogurt.",
+  "passion-fruit": "Eat it alone, or on plain yogurt.",
+  "isi-ewu": "Eat it alone, with utazi and onions.",
+  strawberry: "About 10 nuts, or a little over half a cup of plain yogurt (150g).",
+  kiwi: "About 10 nuts, or a little over half a cup of plain yogurt (150g).",
+  "fruit-salad": "About 10 nuts, or a little over half a cup of plain yogurt (150g). Add no sugar or cream.",
+  smoothie: "Drink it with a meal, not on its own. Better to eat the whole fruit.",
   ojojo: "Pepper sauce. Eat it as a snack and not as a whole meal.",
   "scotch-egg":
     "Eat it on its own. Do not add bread or a sweet drink to it.",
@@ -244,14 +426,21 @@ const REAL_PAIRINGS = {
   seeds: "Sprinkle them on your oats or on plain yogurt with no sugar.",
   "sesame-seed":
     "Stir it into soups and stews. Beniseed soup is made with it in many homes.",
-  "moi-moi": "Eat it on its own. It also goes with tea with no sugar.",
+  "moi-moi":
+    "Moi moi goes well with oats, pap, or one cup of salad. Make the oats or pap with water and add no sugar.",
   chickpeas: "In stews and soups, with vegetables.",
 };
 
+/**
+ * A bare "Alone." is not a sentence. It becomes the plain instruction the
+ * co-founder dietitian asked for: "Eat it alone." or, for a drink, "Drink it
+ * alone." Applied after the pairings above, so a written pairing always wins.
+ */
+const ALONE = /^alone\.$/i;
 const foods = JSON.parse(readFileSync(FILE, "utf8"));
 const byId = new Map(foods.map((f) => [f.id, f]));
 
-for (const [id, text] of Object.entries({ ...MEAT, ...COOKED, ...DIETICIAN_PORTION })) {
+for (const [id, text] of Object.entries({ ...MEAT, ...COOKED, ...EXACT, ...DIETICIAN_PORTION })) {
   const f = byId.get(id);
   if (!f) {
     console.error(`no such food: ${id}`);
@@ -267,6 +456,11 @@ for (const [id, text] of Object.entries({ ...DIETICIAN_PAIRING, ...REAL_PAIRINGS
     process.exit(1);
   }
   f.pairingAdvice = text;
+}
+for (const f of foods) {
+  if (f.pairingAdvice && ALONE.test(f.pairingAdvice.trim())) {
+    f.pairingAdvice = f.role === "drink" ? "Drink it alone." : "Eat it alone.";
+  }
 }
 
 let changed = 0;
@@ -353,6 +547,20 @@ const CHUNKY = new Set(Object.keys(MEAT).filter((id) => MEAT[id].includes("Put t
 for (const f of foods) {
   if (CHUNKY.has(f.id) && /a piece as (big|wide) as your palm/i.test(f.portionGuidance)) {
     problems.push(`${f.id}: chunky meat still described as one palm-shaped piece`);
+  }
+}
+
+// 5. One number, never a range, and no "big spoon" (co-founder dietitian).
+const RANGE =
+  /\b(one|two|three|four|five|six|seven|eight|nine|ten|\d+)\s*(-|–|to|or)\s*(one|two|three|four|five|six|seven|eight|nine|ten|twelve|fifteen|\d+)\b/i;
+for (const f of foods) {
+  for (const k of ["portionGuidance", "pairingAdvice", "logicNote", "carbExchange"]) {
+    const v = f[k];
+    if (typeof v !== "string") continue;
+    if (RANGE.test(v)) problems.push(`${f.id}.${k}: a range, give one number -> ${v}`);
+    if (/small cup|small glass|tea ?cup/i.test(v)) problems.push(`${f.id}.${k}: one cup only, say it against the GluFloat cup -> ${v}`);
+    if (/big spoon/i.test(v) && !/big spoons?( of [\w ]+?)? \(\d+(ml|g)\)/i.test(v))
+      problems.push(`${f.id}.${k}: a big spoon must say its ml (one big spoon is 125ml) -> ${v}`);
   }
 }
 

@@ -1,4 +1,5 @@
 import type { Food, MealItem, MealResult, Verdict } from "./types";
+import { cleanFoodName } from "./foodName";
 
 /**
  * Meal scoring per the Glufloat SPEC (section 3.2).
@@ -16,7 +17,7 @@ const YELLOW_AT = 0.75;
 
 // Meat comes in chunks, not palm-shaped slabs, so the palm measures the total.
 const DECK =
-  "Add fish, chicken, or meat (90g). That is two or three chunks that, put together, fill your palm.";
+  "Add fish, chicken, or meat (90g). That is two chunks that, put together, fill your palm.";
 
 /**
  * Shown right after a fix that suggests meat. Many people with diabetes also
@@ -35,12 +36,12 @@ const MEAT_NOTE =
  */
 const VEG_FIX: Record<string, string> = {
   swallow:
-    "Add a green vegetable soup, like efo riro, okra, or egusi. Two big spoons, about one cup.",
-  rice: "Add vegetables to it, like a spoon of ugu or a garden-egg and tomato stew. About one cup.",
-  pasta: "Add vegetables to it, like a sauce with carrot, green beans, and pepper. About one cup.",
-  tuber: "Add a garden-egg sauce or green vegetables on the side. About one cup.",
+    "Add a green vegetable soup, like efo riro, okra, or egusi. Two big spoons (250ml).",
+  rice: "Add vegetables to it, like ugu or a garden-egg and tomato stew. One cup (250ml).",
+  pasta: "Add vegetables to it, like a sauce with carrot, green beans, and pepper. One cup (250ml).",
+  tuber: "Add a garden-egg sauce or green vegetables on the side. One cup (250ml).",
   plantain:
-    "Add green vegetables or a vegetable sauce on the side. About one cup.",
+    "Add green vegetables or a vegetable sauce on the side. One cup (250ml).",
   // Bread is deliberately absent. Nobody puts vegetables on bread here, so
   // there is no coherent vegetable fix for it. Its fix lives in PROTEIN_FIX.
 };
@@ -112,20 +113,20 @@ export function scoreMeal(items: MealItem[]): MealResult {
   const sweetFoods = items.filter((i) => isSweetFood(i.food));
   if (sweetDrinks.length > 0 || sweetFoods.length > 0) {
     if (sweetDrinks.length > 0) {
-      const names = sweetDrinks.map((i) => i.food.name).join(", ");
+      const names = sweetDrinks.map((i) => cleanFoodName(i.food.name)).join(", ");
       breakdown.push(
         `${names} is sweet, and sweet drinks make sugar rise very fast.`,
       );
       fixes.push(
-        `Take away the ${sweetDrinks[0].food.name}. Instead drink water, or zobo with no sugar, one cup (250ml). Nothing else can fix a sweet drink.`,
+        `Take away the ${cleanFoodName(sweetDrinks[0].food.name)}. Instead drink water, or zobo with no sugar, one cup (250ml). Nothing else can fix a sweet drink.`,
       );
     } else {
-      const names = sweetFoods.map((i) => i.food.name).join(", ");
+      const names = sweetFoods.map((i) => cleanFoodName(i.food.name)).join(", ");
       breakdown.push(
         `${names} is very sweet, and sweet foods make sugar rise very fast.`,
       );
       fixes.push(
-        `Best to skip the ${sweetFoods[0].food.name}. Nothing else on the plate can make a sweet food like this safe.`,
+        `Best to skip the ${cleanFoodName(sweetFoods[0].food.name)}. Nothing else on the plate can make a sweet food like this safe.`,
       );
     }
     return {
@@ -155,8 +156,8 @@ export function scoreMeal(items: MealItem[]): MealResult {
     score = s.gi === "high" && s.baseVerdict !== "green" ? 0 : seedScore(s.baseVerdict);
     breakdown.push(
       s.gi === "high"
-        ? `${s.name} turns to sugar fast, so we start careful.`
-        : `${s.name} is the main thing to watch here.`,
+        ? `${cleanFoodName(s.name)} turns to sugar fast, so we start careful.`
+        : `${cleanFoodName(s.name)} is the main thing to watch here.`,
     );
   } else {
     score = items.reduce(
@@ -196,17 +197,77 @@ export function scoreMeal(items: MealItem[]): MealResult {
     if (worstStarch.portion === "half") {
       score += 1;
       breakdown.push(
-        `You chose a small size of ${worstStarch.food.name}. That helps a lot.`,
+        `You chose a small size of ${cleanFoodName(worstStarch.food.name)}. That helps a lot.`,
       );
     } else if (worstStarch.portion === "large") {
       score -= 0.5;
       breakdown.push(
-        `A large size of ${worstStarch.food.name} makes the sugar rise more.`,
+        `A large size of ${cleanFoodName(worstStarch.food.name)} makes the sugar rise more.`,
       );
     }
   }
 
   score = Math.max(0, Math.min(2, score));
+
+  // Stacking rules (co-founder dietitian, 2026-10-08). Both can only ever make
+  // a plate WORSE, never better, so they cannot break the asymmetry rule in
+  // docs/EVIDENCE.md. Without them, adding akara to rice + yam lifted a red
+  // plate to yellow: more food gave a better answer.
+  //
+  // 1. Two or more starches on one plate is twice the sugar. If any of them is
+  //    not green, the plate is red, and nothing else on it can rescue it.
+  //    Two green starches together are at best "eat with care".
+  const distinctStarches = [...new Map(starches.map((i) => [i.food.id, i])).values()];
+  const stackedStarch = distinctStarches.length >= 2;
+  if (stackedStarch) {
+    const allGreen = distinctStarches.every((i) => i.food.baseVerdict === "green");
+    score = allGreen ? Math.min(score, GREEN_AT - 0.25) : 0;
+    breakdown.push(
+      `${distinctStarches.map((i) => cleanFoodName(i.food.name)).join(" and ")} are ${distinctStarches.length === 2 ? "both" : "all"} heavy foods. Eaten together, they push your sugar up much more.`,
+    );
+  }
+
+  // 2. "Eat with care" foods add up. Oil, salt and seasoning are yellow for
+  //    blood pressure and cholesterol, not for sugar, so they never count.
+  const careFoods = [
+    ...new Map(
+      items
+        .filter(
+          (i) =>
+            i.food.baseVerdict === "yellow" &&
+            i.food.role !== "fat" &&
+            i.food.role !== "condiment",
+        )
+        .map((i) => [i.food.id, i]),
+    ).values(),
+  ];
+  //    (Decided with the founder, 2026-10-08.) Two kinds of stacking:
+  //    a. TWO yellow foods that both raise sugar (a starch, a fruit, a drink)
+  //       are red: boiled yam + kunu, pap + banana.
+  //       A yellow body-building or beans food (akara, ewa agoyin, kilishi)
+  //       slows the sugar instead, so akara + pap stays yellow.
+  //    b. THREE or more yellow foods of any kind are red.
+  //    Oil, salt and seasoning still show their own red warning box.
+  const SUGAR_ROLES = new Set(["starch", "fruit", "drink"]);
+  const sugarCare = careFoods.filter((i) => SUGAR_ROLES.has(i.food.role));
+  const stackedSugar = sugarCare.length >= 2;
+  const stackedCare = careFoods.length >= 3;
+  if (stackedSugar || stackedCare) {
+    score = 0;
+    // Only one reason line: when the sugar foods are just the starches, the
+    // "heavy foods" line above has already said it.
+    const onlyStarches = sugarCare.every((i) => i.food.role === "starch");
+    if (stackedSugar && !(stackedStarch && onlyStarches)) {
+      breakdown.push(
+        `${sugarCare.map((i) => cleanFoodName(i.food.name)).join(" and ")} ${sugarCare.length === 2 ? "both" : "all"} raise your sugar. Eaten together, they push it up too much.`,
+      );
+    } else if (!stackedSugar) {
+      breakdown.push(
+        `You have ${careFoods.length} foods that need care on one plate. Together they are too much.`,
+      );
+    }
+  }
+
   const verdict = toVerdict(score);
 
   // Plain, do-this-now fixes. We only ever suggest adding something that
@@ -214,6 +275,27 @@ export function scoreMeal(items: MealItem[]): MealResult {
   // nothing rather than give an odd suggestion.
   if (verdict !== "green") {
     const mainCategory = worstStarch?.food.category ?? null;
+
+    // A list, not "X or Y": display names already contain "or" ("Garri or
+    // Eba"), so "the Garri or Eba or the Fufu or Akpu" could not be read.
+    const pickOne = (list: MealItem[]) =>
+      `Keep only one of these: ${list.map((i) => cleanFoodName(i.food.name)).join(", ")}. Take the others off your plate.`;
+    const sugarIds = new Set(sugarCare.map((i) => i.food.id));
+    const starchCovered =
+      stackedSugar && distinctStarches.every((i) => sugarIds.has(i.food.id));
+    if (stackedStarch && !starchCovered) fixes.push(pickOne(distinctStarches));
+    if (stackedSugar) fixes.push(pickOne(sugarCare));
+    // After keeping one sugar food, are three or more yellow foods still left?
+    const careLeft = careFoods.length - (stackedSugar ? sugarCare.length - 1 : 0);
+    if (careLeft >= 3) {
+      const others = careFoods.filter((i) => !sugarIds.has(i.food.id));
+      const drop = careLeft - 2;
+      fixes.push(
+        `${stackedSugar ? "Also take" : "Take"} ${["one", "two", "three", "four", "five"][drop - 1] ?? drop} of these off your plate: ${others
+          .map((i) => cleanFoodName(i.food.name))
+          .join(", ")}. Keep only two foods that need care.`,
+      );
+    }
 
     if (worstStarch && worstStarch.portion !== "half") {
       const pg = worstStarch.food.portionGuidance;
@@ -223,12 +305,12 @@ export function scoreMeal(items: MealItem[]): MealResult {
         const rest = pg.replace(/^(best to skip this|none)[.,\s]*/i, "");
         fixes.push(
           rest
-            ? `Best to skip the ${worstStarch.food.name}. ${rest}`
-            : `Best to skip the ${worstStarch.food.name}.`,
+            ? `Best to skip the ${cleanFoodName(worstStarch.food.name)}. ${rest}`
+            : `Best to skip the ${cleanFoodName(worstStarch.food.name)}.`,
         );
       } else {
         fixes.push(
-          `Eat less ${worstStarch.food.name}. A safe size is ${lower(pg)}`,
+          `Eat less ${cleanFoodName(worstStarch.food.name)}. A safe size is ${lower(pg)}`,
         );
       }
     }
@@ -258,7 +340,8 @@ export function scoreMeal(items: MealItem[]): MealResult {
         ? "Almost there. One small change makes it green."
         : "This one raises sugar fast. Here is how to fix it.";
 
-  return { verdict, score, locked: false, headline, fixes, breakdown };
+  const stacked = verdict === "red" && (stackedStarch || stackedSugar || stackedCare);
+  return { verdict, score, locked: false, headline, fixes, breakdown, stacked };
 }
 
 /** Preview: would the meal turn green if the starch were made small? */

@@ -11,6 +11,7 @@ import { LESS_AMOUNTS, MORE_AMOUNTS, dueAt, firstSentence, sizeFactor, timeLabel
 import { pendingBeforeTest, startMealTest } from "@/lib/mealTestLog";
 import { enablePush, pushConfigured, pushPermission, pushSupported } from "@/lib/push";
 import { showToast } from "./Toast";
+import { MeasureChips } from "./MeasurePhoto";
 
 export interface SheetItem {
   food: Food;
@@ -267,14 +268,22 @@ export default function StartMealSheet({
               <div className="mt-4 space-y-3">
                 {items.map((it, i) => {
                   const name = cleanFoodName(it.food.name);
+                  // A bigger blue-card serving arrives as a food copy whose
+                  // portionGuidance is that serving in household words. Use
+                  // them when they really are for those grams; a bare "163g"
+                  // means nothing to someone with no scale.
+                  const pg = it.food.portionGuidance;
                   const size = it.grams
-                    ? `About ${it.grams}g today.`
-                    : firstSentence(it.food.portionGuidance);
+                    ? pg.includes(`${it.grams}g`)
+                      ? pg
+                      : `About ${it.grams}g today.`
+                    : firstSentence(pg);
                   const current = amounts[i] ?? it.portion;
                   return (
                     <div key={it.food.id} className="rounded-2xl bg-mist/70 p-3.5">
                       <p className="text-sm font-bold text-ink">{name}</p>
                       {size && <p className="mt-0.5 text-xs text-ink-soft">GluFloat size: {size}</p>}
+                      <MeasureChips text={size} forFood={name} className="mt-1.5" />
                       <div className="mt-2.5 grid grid-cols-3 gap-1 rounded-full bg-white p-1 ring-1 ring-line">
                         {AMOUNTS.map((a) => {
                           const active = current === a.key;

@@ -122,6 +122,7 @@ function howOftenPhrase(rank: { tier: number; perWeek: number }): string {
  */
 export function mealFrequency(
   items: MealItem[],
+  stacked = false,
 ): { text: string; reason: string | null } | null {
   if (items.length === 0) return null;
 
@@ -130,6 +131,18 @@ export function mealFrequency(
   );
   const strictest = worstItem.food;
   const rank = freqRank(strictest);
+
+  // A plate the engine turned red because foods were piled together (two
+  // starches, two sugar-raising yellows, three yellows: verdictEngine.ts,
+  // 2026-10-08) must not say "2 times a week" under "Better to skip". As a
+  // pile it gets the red-food count, about once a month; the reason says how
+  // often the meal can be eaten once only one of them stays.
+  if (stacked && rank.tier >= 3) {
+    return {
+      text: "Eaten together like this, about 1 time a month.",
+      reason: `Keep only one of them, and you can eat this meal ${howOftenPhrase(rank)}.`,
+    };
+  }
 
   const text =
     rank.tier === 1

@@ -7,7 +7,7 @@ import {
   localDayKey,
   type NamedMeal,
 } from "@/lib/mealtime";
-import { planForDay, mealIdeaCalories, mealIdeaCarbs, mealIdeaFoodsForBuilder, type MealIdea } from "@/lib/nextMeal";
+import { planForDay, mealShareFor, mealIdeaCalories, mealIdeaCarbs, mealIdeaFoodsForBuilder, type MealIdea } from "@/lib/nextMeal";
 import { loggedFoodCounts, likedFoodCounts, caloriesEatenToday } from "@/lib/history";
 import { trackUsage } from "@/lib/usage";
 import type { Food } from "@/lib/types";
@@ -20,10 +20,11 @@ import {
   type MedTime,
 } from "@/lib/personalizationProfile";
 import { biasVector, type PlateAxes } from "@/lib/personalization";
-import { bmr, tdee, calorieTarget, remainingMealCalorieTarget } from "@/lib/tdee";
+import { bmr, tdee, calorieTarget } from "@/lib/tdee";
 import { medicationAppliesToMeal, medicationTimingCopy } from "@/lib/medicationTiming";
 import { toAvoid, writeShown, writeSkipped } from "@/lib/mealRotationMemory";
 import { logImpression, rememberSuggested, type ImpressionPlate } from "@/lib/mealImpressions";
+import { MeasureChips } from "./MeasurePhoto";
 
 const NO_PROFILE: PersonalizationProfile = {
   goals: [],
@@ -166,7 +167,9 @@ export default function TodaysMeal({
       if (!p.sex || !p.ageYears || !p.weightKg || !p.heightCm || !p.activityLevel) return null;
       const dailyTarget = calorieTarget(tdee(bmr(p.sex, p.weightKg, p.heightCm, p.ageYears), p.activityLevel), p.goals);
       const eatenToday = await caloriesEatenToday();
-      return remainingMealCalorieTarget(dailyTarget, eatenToday, p.mealPattern, m);
+      // mealShareFor: the SAME share lib/useTodaysCalories.ts sizes the extras
+      // and snacks against, so the plate and the green cards never disagree.
+      return mealShareFor(dailyTarget, eatenToday, p.mealPattern, m, p.conditions);
     },
     [personalize],
   );
@@ -381,14 +384,30 @@ export default function TodaysMeal({
         {idea.scaledProtein && (
           <div className="mt-4 flex items-start gap-2.5 rounded-xl bg-white/10 p-3 ring-1 ring-inset ring-white/15">
             <Flame className="mt-0.5 h-4 w-4 shrink-0 text-white/80" strokeWidth={2.2} />
-            <p className="text-sm text-white/90">{idea.scaledProtein.instruction}</p>
+            <div className="min-w-0">
+              <p className="text-sm text-white/90">{idea.scaledProtein.instruction}</p>
+              <MeasureChips
+                text={idea.scaledProtein.instruction}
+                forFood={idea.scaledProtein.name}
+                tone="dark"
+                className="mt-2"
+              />
+            </div>
           </div>
         )}
 
         {idea.scaledSide && (
           <div className="mt-4 flex items-start gap-2.5 rounded-xl bg-white/10 p-3 ring-1 ring-inset ring-white/15">
             <Flame className="mt-0.5 h-4 w-4 shrink-0 text-white/80" strokeWidth={2.2} />
-            <p className="text-sm text-white/90">{idea.scaledSide.instruction}</p>
+            <div className="min-w-0">
+              <p className="text-sm text-white/90">{idea.scaledSide.instruction}</p>
+              <MeasureChips
+                text={idea.scaledSide.instruction}
+                forFood={idea.scaledSide.name}
+                tone="dark"
+                className="mt-2"
+              />
+            </div>
           </div>
         )}
 
