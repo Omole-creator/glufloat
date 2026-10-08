@@ -79,6 +79,13 @@ export const FOOD_PHOTOS: Record<string, FoodPhoto> = {
   "local-gin": { alt: "A glass of clear spirit", skip: true, source: "p 31328176" },
   lacasera: { alt: "A glass of sparkling apple drink", skip: true, source: "p 11632350" },
   "sweetened-yogurt": { alt: "Yogurt with cherries in syrup", skip: true, source: "p 39584090" },
+
+  // Only branded photos exist of these. The brand names and logos are blurred
+  // out (founder, 2026-10-08); the food itself stays sharp. See BLUR in
+  // scripts/food-photos.mjs.
+  "energy-drink": { alt: "A can of energy drink on ice, its label blurred", skip: true, source: "u EqEhi4KmqbI, logo blurred" },
+  "condensed-milk": { alt: "A tin of condensed milk, its label blurred", skip: true, source: "u DYBE_iR0wng, label blurred" },
+  "seasoning-cube": { alt: "One wrapped seasoning cube", source: "p 4197990, print blurred" },
 };
 
 /**

@@ -37,6 +37,26 @@ const CROPS = {
   tomato: { left: 0, top: 0, width: 1, height: 1, pad: true },
   strawberry: { left: 0, top: 0, width: 1, height: 1, pad: true },
   "plantain-chips": { left: 0, top: 0, width: 1, height: 1, pad: true },
+  "energy-drink": { left: 0.1, top: 0.3, width: 0.8, height: 0.5, pad: true },
+  "condensed-milk": { left: 0.3, top: 0.09, width: 0.52, height: 0.84, pad: true },
+  "seasoning-cube": { left: 0.47, top: 0.7, width: 0.3, height: 0.22, pad: true },
+};
+
+/**
+ * Brand names and logos are blurred out (founder, 2026-10-08: "use the photos
+ * then blur the logos"). The only photos that exist of these foods carry a
+ * brand; the food and its amount stay sharp, only the printing is blurred.
+ * Boxes are fractions of the source, applied before the crop above.
+ */
+const BLUR = {
+  // Every box reaches past its text by the width of its soft edge, or the
+  // fading edge lets the letters show through.
+  // The can's lettering, side text included; the can's end and the ice stay sharp.
+  "energy-drink": [{ left: 0.1, top: 0.33, width: 0.58, height: 0.45, sigma: 32 }],
+  // The whole printed tin (name, brand, barcode) and the tins above, below and beside it.
+  "condensed-milk": [{ left: 0.24, top: 0, width: 0.66, height: 1, sigma: 28 }],
+  // One cube; a light blur smears the print but keeps the gold wrapped cube.
+  "seasoning-cube": [{ left: 0.5, top: 0.72, width: 0.25, height: 0.18, sigma: 7 }],
 };
 
 const SRC = "../food-photos";
@@ -45,10 +65,39 @@ mkdirSync(OUT, { recursive: true });
 
 for (const file of readdirSync(SRC).filter((f) => f.endsWith(".jpg"))) {
   const id = file.replace(/\.jpg$/, "");
-  let img = sharp(`${SRC}/${file}`).rotate();
+  let src = `${SRC}/${file}`;
+  if (BLUR[id]) {
+    // A feathered blur: each box fades into the photo over a soft edge, so it
+    // reads as a retouch, not a pasted-on square.
+    const base = sharp(src).rotate();
+    const { width, height } = await base.metadata();
+    let out = await base.jpeg({ quality: 95 }).toBuffer();
+    for (const b of BLUR[id]) {
+      const x = Math.round(width * b.left), y = Math.round(height * b.top);
+      const w = Math.round(width * b.width), h = Math.round(height * b.height);
+      const feather = Math.round(Math.min(w, h) * 0.18) + 6;
+      // The shape on a transparent canvas, its edge softened; "dest-in" keeps
+      // the blurred copy only where that shape is, fading out at the edge.
+      const shape = await sharp(
+        Buffer.from(`<svg width="${width}" height="${height}"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${feather}" fill="white"/></svg>`),
+      )
+        .blur(feather)
+        .png()
+        .toBuffer();
+      const blurred = await sharp(out)
+        .blur(b.sigma)
+        .ensureAlpha()
+        .composite([{ input: shape, blend: "dest-in" }])
+        .png()
+        .toBuffer();
+      out = await sharp(out).composite([{ input: blurred }]).jpeg({ quality: 95 }).toBuffer();
+    }
+    src = out;
+  }
+  let img = sharp(src);
   const c = CROPS[id];
   if (c) {
-    const { width, height } = await sharp(`${SRC}/${file}`).metadata();
+    const { width, height } = await sharp(src).metadata();
     img = img.extract({
       left: Math.round(width * c.left),
       top: Math.round(height * c.top),
