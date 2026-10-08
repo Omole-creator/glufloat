@@ -403,6 +403,93 @@ D["canned-fruit"] = () =>
   `<rect x="58" y="88" width="124" height="108" rx="10" fill="${lin("#eef2f5", "#a9b4bd", false)}"/><ellipse cx="120" cy="88" rx="62" ry="14" fill="#d8dee3"/><ellipse cx="120" cy="88" rx="54" ry="10" fill="#fff3c4"/>` +
   scatter(7, 120, 88, 46, 8, 11, 150).map((p, i) => `<circle cx="${p.x}" cy="${p.y}" r="6" fill="${["#ffb347", "#ff6b6b", "#ffe066", "#7bd389", "#ffb347", "#ff6b6b", "#ffe066"][i]}"/>`).join("");
 
+// ---- Fruit and whole vegetables measured as themselves (founder, 2026-10-08:
+// no cups for fruit). Each draws the exact count on its card. No honest photo
+// with that count was found on Pexels or Unsplash for any of these.
+/** One piece of cut fruit, about 3cm on every side, drawn as a small cube. */
+function cube(x, y, s, top, left, right) {
+  const h = s * 0.5;
+  return (
+    shadow(x + 2, y + s + 2, s * 0.8, 4) +
+    `<path d="M${x - s} ${y} L${x} ${y - h} L${x + s} ${y} L${x} ${y + h} Z" fill="${top}"/>` +
+    `<path d="M${x - s} ${y} L${x} ${y + h} L${x} ${y + h + s} L${x - s} ${y + s} Z" fill="${left}"/>` +
+    `<path d="M${x + s} ${y} L${x} ${y + h} L${x} ${y + h + s} L${x + s} ${y + s} Z" fill="${right}"/>`
+  );
+}
+const cubes = (pts, s, c) => pts.map(([x, y]) => cube(x, y, s, c[0], c[1], c[2])).join("");
+D.pawpaw = () => plate() + cubes([[92, 104], [146, 104], [92, 140], [146, 140]], 21, ["#ffb066", "#f07f22", "#c85f10"]);
+D["golden-melon"] = () =>
+  plate() + cubes([[78, 104], [120, 98], [162, 104], [78, 140], [120, 136], [162, 140]], 18, ["#f4f1b8", "#d9d27a", "#b8b04e"]);
+D.soursop = () =>
+  plate() + cubes([[92, 104], [146, 104], [92, 140], [146, 140]], 21, ["#ffffff", "#ece9e0", "#d8d3c6"]);
+D["fruit-salad"] = () => {
+  const c = [
+    ["#ffb066", "#f07f22", "#c85f10"],
+    ["#ff7b7b", "#e2463f", "#b02a24"],
+    ["#fff27a", "#f2cf2a", "#c9a412"],
+    ["#d6f5a0", "#a6d65c", "#78a83a"],
+    ["#ffe0a8", "#f5b84a", "#cf8e22"],
+  ];
+  const pts = [[70, 100], [104, 96], [138, 96], [172, 100], [86, 126], [120, 122], [154, 126], [70, 152], [120, 150], [170, 152]];
+  return plate() + pts.map(([x, y], i) => cube(x, y, 13, ...c[i % 5])).join("");
+};
+D.pomelo = () =>
+  plate() +
+  [[80, 128, -24], [122, 120, 0], [164, 128, 24]]
+    .map(([x, y, r]) => `<g transform="rotate(${r} ${x} ${y})">${shadow(x, y + 30, 22, 5)}<path d="M${x - 20} ${y + 26} Q${x - 26} ${y - 22} ${x} ${y - 34} Q${x + 26} ${y - 22} ${x + 20} ${y + 26} Q${x} ${y + 34} ${x - 20} ${y + 26}Z" fill="${grad("#ffe1d6", "#f7a99a", "#d97b6c")}"/><path d="M${x} ${y - 30} L${x} ${y + 26}" stroke="#ffffff" stroke-width="2" opacity=".6"/></g>`)
+    .join("");
+D.fig = () =>
+  plate() +
+  [[92, 132], [150, 128]]
+    .map(([x, y]) => `${shadow(x, y + 28, 26, 6)}<path d="M${x} ${y - 38} Q${x + 6} ${y - 24} ${x + 26} ${y} Q${x + 30} ${y + 28} ${x} ${y + 30} Q${x - 30} ${y + 28} ${x - 26} ${y} Q${x - 6} ${y - 24} ${x} ${y - 38}Z" fill="${grad("#a678b8", "#6a3a7e", "#3a1a48")}"/><path d="M${x} ${y - 38} l-2 -8" stroke="#5a7a2a" stroke-width="4" stroke-linecap="round"/><path d="M${x - 14} ${y - 6} q-4 14 2 28" stroke="#c9a0d8" stroke-width="2.5" fill="none" opacity=".7"/>`)
+    .join("");
+D["okra-veg"] = () =>
+  plate() +
+  [0, 1, 2, 3, 4, 5, 6, 7]
+    .map((i) => {
+      const x = 56 + (i % 4) * 42, y = 104 + Math.floor(i / 4) * 46;
+      return `<g transform="rotate(${-62 + (i % 3) * 8} ${x} ${y})">${shadow(x + 18, y + 6, 22, 4)}<path d="M${x - 6} ${y - 6} L${x + 40} ${y} L${x - 6} ${y + 6} Q${x - 10} ${y} ${x - 6} ${y - 6}Z" fill="${lin("#9fd86a", "#3f8f2a")}"/><path d="M${x - 4} ${y} L${x + 36} ${y}" stroke="#d6f5a0" stroke-width="1.4" opacity=".8"/><rect x="${x - 12}" y="${y - 4}" width="8" height="8" rx="2" fill="#5f8f2f"/></g>`;
+    })
+    .join("");
+D["green-beans"] = () =>
+  plate() +
+  Array.from({ length: 20 }, (_, i) => {
+    const x = 54 + (i % 5) * 28, y = 102 + Math.floor(i / 5) * 18;
+    return `<g transform="rotate(${-10 + (i % 3) * 10} ${x + 11} ${y})">${shadow(x + 11, y + 5, 11, 2)}<rect x="${x}" y="${y - 3}" width="22" height="6" rx="3" fill="${lin("#9be27c", "#3f9e35")}"/></g>`;
+  }).join("");
+/** A small floret: a stalk under a bunched top, like a little tree. */
+function floret(x, y, top, stalk) {
+  return (
+    shadow(x, y + 22, 16, 4) +
+    `<path d="M${x - 5} ${y + 2} L${x - 4} ${y + 20} L${x + 4} ${y + 20} L${x + 5} ${y + 2}Z" fill="${stalk}"/>` +
+    [[-9, -2, 9], [0, -9, 10], [9, -2, 9], [0, 2, 9]].map(([dx, dy, r]) => `<circle cx="${x + dx}" cy="${y + dy}" r="${r}" fill="${top}"/>`).join("")
+  );
+}
+const florets = (top, stalk) =>
+  plate() + [[66, 100], [104, 96], [142, 96], [180, 100], [66, 140], [104, 136], [142, 136], [180, 140]].map(([x, y]) => floret(x, y, top, stalk)).join("");
+D.broccoli = () => florets(grad("#7fcf6a", "#2f8a2f", "#155a1c"), "#9ccc6a");
+D.cauliflower = () => florets(grad("#ffffff", "#f3eedc", "#d6ceb2"), "#cfe0a8");
+D.mushroom = () =>
+  plate() +
+  [[70, 102], [112, 98], [154, 98], [190, 108], [70, 140], [112, 136], [154, 136], [96, 168], [146, 168]]
+    .map(([x, y]) => `${shadow(x, y + 12, 15, 4)}<rect x="${x - 5}" y="${y}" width="10" height="11" rx="3" fill="#e9d7b8"/><path d="M${x - 16} ${y + 2} Q${x - 15} ${y - 14} ${x} ${y - 15} Q${x + 15} ${y - 14} ${x + 16} ${y + 2}Z" fill="${grad("#d8b48a", "#a8794c", "#6e4a28")}"/>`)
+    .join("");
+D.zucchini = () =>
+  board() +
+  shadow(122, 152, 56, 8) +
+  `<path d="M60 128 Q60 108 80 106 L170 112 L170 146 L80 150 Q60 148 60 128Z" fill="${lin("#5f9a3a", "#2f5f1c")}"/>` +
+  [118, 128, 138].map((y) => `<path d="M72 ${y} L168 ${y + 1}" stroke="#a6d65c" stroke-width="2" opacity=".5"/>`).join("") +
+  `<ellipse cx="170" cy="129" rx="11" ry="17" fill="#f2f7cf" stroke="#5f9a3a" stroke-width="3"/><circle cx="170" cy="129" r="5" fill="#dfe8a8"/>` +
+  `<rect x="52" y="122" width="10" height="12" rx="3" fill="#6b8a3a"/>`;
+D.lettuce = () =>
+  board() +
+  [0, 1, 2, 3, 4, 5]
+    .map((i) => {
+      const x = 52 + (i % 3) * 52, y = 112 + Math.floor(i / 3) * 44;
+      return `<g transform="rotate(${-20 + i * 9} ${x + 22} ${y})">${shadow(x + 22, y + 18, 26, 5)}<path d="M${x} ${y + 14} Q${x - 4} ${y - 18} ${x + 22} ${y - 22} Q${x + 48} ${y - 18} ${x + 44} ${y + 14} Q${x + 34} ${y + 6} ${x + 22} ${y + 16} Q${x + 10} ${y + 6} ${x} ${y + 14}Z" fill="${grad("#d8f7a8", "#8fd45c", "#4f9a2a")}"/><path d="M${x + 22} ${y + 14} L${x + 22} ${y - 18}" stroke="#f2ffd8" stroke-width="2"/></g>`;
+    })
+    .join("");
+
 // "None at all" on the card: the app draws the red skip mark over these, the
 // same way it does over the skip photos, so the list lives with the drawings.
 const SKIP = ["malt-drink", "energy-drink", "condensed-milk", "sugarcane-juice", "canned-fruit"];

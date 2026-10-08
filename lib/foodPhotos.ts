@@ -67,6 +67,13 @@ export const FOOD_PHOTOS: Record<string, FoodPhoto> = {
   "french-fries": { alt: "About 10 chips", source: "p 18866155" },
   "sausage-roll": { alt: "One sausage roll broken open", source: "p 5501156" },
   beer: { alt: "One bottle of beer", source: "p 8762537" },
+  // Fruit measured as itself, not in cups (founder, 2026-10-08).
+  apple: { alt: "One small apple held in two hands", source: "p 14662513" },
+  mango: { alt: "Half of one mango", source: "p 5750461" },
+  pineapple: { alt: "One round slice of pineapple held in a hand", source: "p 784897" },
+  jackfruit: { alt: "Three yellow pieces of jackfruit", source: "p 5620864" },
+  pomegranate: { alt: "Half of one pomegranate, full of seeds", source: "p 11633656" },
+  watermelon: { alt: "Six pieces of watermelon on a plate", source: "p 17778854" },
 
   "soft-drink": { alt: "A can of soft drink", skip: true, source: "p 7033796" },
   "fruit-juice": { alt: "A glass of orange juice", skip: true, source: "p 8882541" },

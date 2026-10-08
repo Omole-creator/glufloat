@@ -9,16 +9,23 @@ import { events } from "@/lib/analytics";
 import StartMealSheet from "./StartMealSheet";
 import { trackUsage } from "@/lib/usage";
 import { cleanFoodName } from "@/lib/foodName";
+import MealsWithFood from "./MealsWithFood";
 
 // Access is gated upstream at /app, so this panel is always fully open here.
 export default function SearchPanel({
   initialFood = null,
   onBuildMeal,
+  onOpenPlate,
+  personalize = false,
 }: {
   /** When set (e.g. tapping a recent food), open straight to that food's card. */
   initialFood?: Food | null;
   /** "Add what you are eating it with": hand the food to the meal builder. */
   onBuildMeal?: (food: Food) => void;
+  /** A blue-card plate tapped under the card: open it in "Check a meal". */
+  onOpenPlate?: (foods: Food[]) => void;
+  /** canUseGoalPersonalization(access): size the plates to the calorie target. */
+  personalize?: boolean;
 } = {}) {
   const [query, setQuery] = useState("");
   const [picked, setPicked] = useState<Food | null>(null);
@@ -152,6 +159,7 @@ export default function SearchPanel({
             verdict={picked.baseVerdict}
             onLogged={onLogged}
           />
+          {onOpenPlate && <MealsWithFood food={picked} personalize={personalize} onOpen={onOpenPlate} />}
         </div>
       )}
     </div>

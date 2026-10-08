@@ -334,9 +334,11 @@ const MAIN_SIDE_CONFIG: Record<string, MainSideConfig> = {
   "plain-yogurt": {
     baseGrams: 150,
     maxGrams: 300,
-    baseUnits: 1, // 1 small cup
-    describe: (cups, grams) =>
-      cups <= 1 ? `1 small cup of yogurt (${grams}g)` : `${cups} small cups of yogurt (${grams}g)`,
+    baseUnits: 1, // the card's "a little over half a cup (150g)"
+    describe: (units, grams) =>
+      units <= 1
+        ? `a little over half a cup of yogurt (${grams}g)`
+        : `a little over one cup of yogurt (${grams}g)`,
   },
   "soy-milk": {
     baseGrams: 250,
@@ -653,13 +655,18 @@ export function mealIdeaCarbs(idea: MealIdea): number {
  * `scaleMainProtein`/`scaleMainSide` already follow on the blue card itself.
  */
 export function mealIdeaFoodsForBuilder(idea: MealIdea): Food[] {
-  const overrides = new Map<string, string>();
-  if (idea.scaledProtein) overrides.set(idea.scaledProtein.food.id, idea.scaledProtein.instruction);
-  if (idea.scaledSide) overrides.set(idea.scaledSide.food.id, idea.scaledSide.instruction);
+  const overrides = new Map<string, ScaledPortion>();
+  if (idea.scaledProtein) overrides.set(idea.scaledProtein.food.id, idea.scaledProtein);
+  if (idea.scaledSide) overrides.set(idea.scaledSide.food.id, idea.scaledSide);
   if (overrides.size === 0) return idea.foods;
+  // The copy carries the bigger serving's calories and carbs too, not only
+  // its words: "Check a meal" totals each food's own numbers, and showed
+  // 686 kcal for a plate the blue card (and search) called 839 (2026-10-08).
   return idea.foods.map((f) => {
-    const instruction = overrides.get(f.id);
-    return instruction ? { ...f, portionGuidance: instruction } : f;
+    const s = overrides.get(f.id);
+    return s
+      ? { ...f, portionGuidance: s.instruction, calories: Math.round(s.calories), carbG: Math.round(s.carbG * 10) / 10 }
+      : f;
   });
 }
 
@@ -1077,6 +1084,45 @@ export function planForDay(
 }
 
 /**
+ * Every blue-card plate that holds this food, by meal, for search ("one
+ * voice", co-founder dietitian, 2026-10-08: what the blue card recommends is
+ * what search shows). The SAME rules as `planForDay`, so a plate can never
+ * read one way on the blue card and another way in search:
+ * - only the plates in IDEAS, so every one is green, real and suits its meal
+ *   (dinner already leaves out moderate-GI foods);
+ * - a flagged condition drops the same proteins `planForDay` drops;
+ * - with a calorie target for that meal, the plate is sized by the same
+ *   `scaleMainProtein`/`scaleMainSide` the blue card uses, against the same
+ *   gap (target minus the plate's own calories).
+ * Closest to the target first; with no target, in the list's own order.
+ */
+export function platesWithFood(
+  foodId: string,
+  targets: Partial<Record<NamedMeal, number | null>> = {},
+  conditions: Condition[] = [],
+): Record<NamedMeal, MealIdea[]> {
+  const out: Record<NamedMeal, MealIdea[]> = { breakfast: [], lunch: [], dinner: [] };
+  for (const meal of ["breakfast", "lunch", "dinner"] as NamedMeal[]) {
+    const target = targets[meal] ?? null;
+    const hits: { idea: MealIdea; diff: number }[] = [];
+    IDEAS[meal].forEach((ids, i) => {
+      if (!ids.includes(foodId)) return;
+      const idea = resolve(meal, i);
+      if (excludesRiskyProtein(conditions) && idea.foods.some((f) => CONDITION_EXCLUDED_PROTEIN_IDS.has(f.id))) return;
+      if (target && target > 0) {
+        const gap = Math.max(0, target - planCaloriesOf(ids));
+        idea.scaledProtein = scaleMainProtein(idea.foods, gap, conditions);
+        const residualGap = Math.max(0, gap - (idea.scaledProtein?.extraCalories ?? 0));
+        idea.scaledSide = scaleMainSide(idea.foods, residualGap, conditions);
+      }
+      hits.push({ idea, diff: target && target > 0 ? Math.abs(target - mealIdeaCalories(idea)) : 0 });
+    });
+    out[meal] = hits.sort((a, b) => a.diff - b.diff || a.idea.index - b.idea.index).map((h) => h.idea);
+  }
+  return out;
+}
+
+/**
  * A small, safe way to close the daily calorie gap — this is what makes
  * "calories remaining" reach exactly 0 by end of dinner for a realistic
  * target, no matter how large (founder instruction, 2026-08-31: "glufloat
@@ -1334,7 +1380,7 @@ const READY_TO_EAT_EXTRAS: ExtraCandidate[] = [
     baseGrams: 120,
     maxGrams: 120,
     weeklyLimit: 3,
-    describe: () => "One small apple, about the size of a big egg (120g).",
+    describe: () => "One small apple, about 6.5cm across (120g).",
   },
   {
     id: "guava",

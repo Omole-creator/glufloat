@@ -347,6 +347,38 @@ const DIETICIAN_PORTION = {
   salt: "Less than one level teaspoon (5g) in all your food for the whole day.",
 };
 
+/**
+ * A fruit, or a vegetable you can count whole, is measured as ITSELF: how many
+ * pieces, how big, never "half a cup" or "the size of an egg" (founder,
+ * 2026-10-08: "you should not be using cup to describe fruit"). The grams are
+ * the dietitian's and did not change; the shapes come from the NHS portion
+ * guide and USDA household weights (a 3.5in-wide, 3/4in-thick pineapple slice
+ * is 84g; a small fig 40g; a pomelo segment about 40g; a 3cm piece of melon
+ * or pawpaw about 27g). Chopped or cooked mixtures (cabbage, peas, salad)
+ * keep the cup, where a cup really is the easiest way.
+ */
+const OWN_SIZE = {
+  apple: "One small apple, about 6.5cm across (120g).",
+  watermelon: "Six pieces, each about 3cm on every side (150g).",
+  "golden-melon": "Six pieces, each about 3cm on every side (150g).",
+  pawpaw: "Four pieces, each about 3cm on every side (120g).",
+  soursop: "Four pieces of the white flesh, each about 3cm on every side (100g). Take out the black seeds.",
+  mango: "Half of one small mango (80g).",
+  pineapple: "One round slice, about 9cm across and 2cm thick (80g).",
+  jackfruit: "Three of the yellow pieces, with the seeds taken out (80g).",
+  pomegranate: "The seeds from half of one medium pomegranate (80g).",
+  pomelo: "Three segments, with the skin peeled off (120g).",
+  fig: "Two small figs (80g).",
+  "fruit-salad": "Ten small pieces of fresh fruit, each about 2cm on every side (80g).",
+  "okra-veg": "Eat as much as you like. Eight okra fingers is a good start.",
+  "green-beans": "Eat as much as you like. Twenty green beans is a good start.",
+  broccoli: "Eat as much as you like. Eight small pieces of broccoli, each like a little tree, is a good start.",
+  cauliflower: "Eat as much as you like. Eight small pieces of cauliflower is a good start.",
+  mushroom: "Nine medium mushrooms, cooked (about 100g).",
+  zucchini: "Half of one medium zucchini, cooked (about 120g).",
+  lettuce: "Eat as much as you like. Six big leaves is a good start.",
+};
+
 const DIETICIAN_PAIRING = {
   "seasoning-cube":
     "In cooking. Onions, turmeric, garlic, and local spices give the same taste with no salt.",
@@ -379,7 +411,9 @@ const DIETICIAN_PAIRING = {
 const REAL_PAIRINGS = {
   akara:
     "Akara goes well with oats or pap. Make them with water and add no sugar. Keep the pap to one cup, almost full (200ml).",
-  oats: "Moi moi, akara, or about 10 nuts. Add no sugar or sweet milk.",
+  // "One voice": names the partners on its own blue-card plates first (2026-10-08).
+  oats: "Plain yogurt, soy milk, or groundnuts. Moi moi or akara also go well with it. Add no sugar or sweet milk.",
+  eggs: "Beans, moi moi, or half an avocado. Two slices of unripe plantain (80g) also go well with it.",
   okpa: "Eat it on its own, or with pap. Keep the pap to one cup, almost full (200ml). Add no sugar.",
   kunu: "Drink it with food, like moi moi or akara. Do not drink it on an empty stomach.",
   "kunu-aya": "Drink it with food. Do not drink it on an empty stomach.",
@@ -408,7 +442,7 @@ const REAL_PAIRINGS = {
   avocado: "Eat it alone, or with an egg.",
   "dambu-nama": "Eat it alone, or with vegetables.",
   "garden-egg": "Eat it alone, or with groundnut (ose oji).",
-  groundnut: "Eat it alone, or with garden egg.",
+  groundnut: "Eat it alone, or with garden egg. At breakfast, add it to plain oats or plain yogurt.",
   cucumber: "Eat it alone as a snack.",
   pomegranate: "Eat it alone, or on plain yogurt.",
   "passion-fruit": "Eat it alone, or on plain yogurt.",
@@ -440,7 +474,7 @@ const ALONE = /^alone\.$/i;
 const foods = JSON.parse(readFileSync(FILE, "utf8"));
 const byId = new Map(foods.map((f) => [f.id, f]));
 
-for (const [id, text] of Object.entries({ ...MEAT, ...COOKED, ...EXACT, ...DIETICIAN_PORTION })) {
+for (const [id, text] of Object.entries({ ...MEAT, ...COOKED, ...EXACT, ...DIETICIAN_PORTION, ...OWN_SIZE })) {
   const f = byId.get(id);
   if (!f) {
     console.error(`no such food: ${id}`);
@@ -561,6 +595,16 @@ for (const f of foods) {
     if (/small cup|small glass|tea ?cup/i.test(v)) problems.push(`${f.id}.${k}: one cup only, say it against the GluFloat cup -> ${v}`);
     if (/big spoon/i.test(v) && !/big spoons?( of [\w ]+?)? \(\d+(ml|g)\)/i.test(v))
       problems.push(`${f.id}.${k}: a big spoon must say its ml (one big spoon is 125ml) -> ${v}`);
+  }
+}
+
+// 6. A fruit is measured as itself, never against a cup or another object.
+for (const f of foods) {
+  if (f.category !== "fruit") continue;
+  for (const k of ["portionGuidance", "carbExchange"]) {
+    const v = f[k];
+    if (typeof v === "string" && /cups?|eggs?|ball|fist|matchbox|handful/i.test(v))
+      problems.push(`${f.id}.${k}: measure the fruit itself, not a cup or another object -> ${v}`);
   }
 }
 

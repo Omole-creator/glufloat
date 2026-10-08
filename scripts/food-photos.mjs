@@ -40,6 +40,13 @@ const CROPS = {
   "energy-drink": { left: 0.1, top: 0.3, width: 0.8, height: 0.5, pad: true },
   "condensed-milk": { left: 0.3, top: 0.09, width: 0.52, height: 0.84, pad: true },
   "seasoning-cube": { left: 0.47, top: 0.7, width: 0.3, height: 0.22, pad: true },
+  // Fruit measured as itself (founder, 2026-10-08), each counted.
+  apple: { left: 0.08, top: 0.28, width: 0.84, height: 0.42, pad: true },
+  mango: { left: 0.27, top: 0.1, width: 0.46, height: 0.8 },
+  pineapple: { left: 0.1, top: 0.33, width: 0.85, height: 0.34 },
+  jackfruit: { left: 0.1, top: 0.08, width: 0.65, height: 0.84, pad: true },
+  pomegranate: { left: 0.15, top: 0, width: 0.7, height: 1 },
+  watermelon: { left: 0.28, top: 0.5, width: 0.48, height: 0.32, pad: true },
 };
 
 /**

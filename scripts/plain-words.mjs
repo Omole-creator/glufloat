@@ -80,7 +80,8 @@ const PORTIONS = {
 
   // "One small apple, the size of a tennis ball" drew a cup. The size stays,
   // but an egg is a thing every kitchen has.
-  apple: "One small apple. That is about the size of a big egg (120g).",
+  // Must match OWN_SIZE.apple in clear-instructions.mjs, which runs last.
+  apple: "One small apple, about 6.5cm across (120g).",
 };
 
 /** Logic notes that a word swap alone cannot make read well. */

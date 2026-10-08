@@ -582,6 +582,8 @@ export default function AppPage() {
                   <SearchPanel
                     initialFood={seedSearch}
                     onBuildMeal={(food) => buildMeal([food])}
+                    onOpenPlate={buildMeal}
+                    personalize={canUseGoalPersonalization(access)}
                   />
                 </div>
                 {/* Ties the ritual to the next meal-time reminder. */}
