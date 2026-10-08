@@ -14,14 +14,17 @@ import sharp from "sharp";
  *   node scripts/measure-photos.mjs
  *
  * Unsplash ids, for the record:
- *   cup-250ml v4I2OMRq_rg (printed "1 cup 250 ml"), fist h4elZPxUXLU, palm zabFZL-OYAk, tennis-ball VEW78A1YZ6I,
+ *   cup-glass-250ml Pexels 5514785 (glass measuring cup printed "1 CUP" and "250ml";
+ *   replaced the Unsplash close-up of a cup handle, which the founder found unclear),
+ *   fist h4elZPxUXLU, palm zabFZL-OYAk, tennis-ball VEW78A1YZ6I,
  *   matchbox e0OS4EQHX2o, deck-of-cards IEISYENbXp8, spoons KOAM0tomZj8,
  *   golf-ball uy5ZEqUOscs, thumb 3KEFp35FVB0, pinch zet6NIY02hI,
  *   handful 8JbPccfCr5o, egg UQawLoFS4uM, meat-chunks 1ok-cifMvg0,
  *   big-spoon WBX-ZLr8P7I (a metal ladle full of soup: one big spoon, 125ml)
  */
 const PHOTOS = {
-  "cup-250ml": "centre",
+  // The cup sits in the middle of a wide white photo: cut out the cup itself.
+  "cup-glass-250ml": { px: { left: 390, top: 230, size: 700 } },
   // The fist is small in the middle of a wide frame. Cut out the middle half
   // first (fractions of the source) so it fills the square.
   fist: { left: 0.25, top: 0.08, size: 0.5 },
@@ -42,7 +45,9 @@ const PHOTOS = {
 for (const [name, position] of Object.entries(PHOTOS)) {
   const src = `../measure-photos/${name}.jpg`;
   let img = sharp(src).rotate();
-  if (typeof position === "object") {
+  if (typeof position === "object" && position.px) {
+    img = img.extract({ left: position.px.left, top: position.px.top, width: position.px.size, height: position.px.size });
+  } else if (typeof position === "object") {
     const { width, height } = await sharp(src).metadata();
     const side = Math.round(width * position.size);
     img = img.extract({

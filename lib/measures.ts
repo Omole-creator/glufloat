@@ -51,9 +51,9 @@ export const MEASURES: Measure[] = [
     name: "One cup",
     size: "250ml",
     badge: "250ml",
-    how: "Every cup in GluFloat is this cup: a measuring cup marked 250ml. Half a cup means fill it to the middle.",
-    photo: "/img/measures/cup-250ml.jpg",
-    alt: "A yellow measuring cup marked 1 cup, 250 ml",
+    how: "Every cup in GluFloat is this cup: a measuring cup filled to the 250ml line. Half a cup means fill it to the line marked 1/2 CUP.",
+    photo: "/img/measures/cup-glass-250ml.jpg",
+    alt: "A glass measuring cup marked 1 CUP and 250ml, with a 1/2 CUP line",
     match: /\bcups?\b/i,
   },
   {
@@ -199,7 +199,7 @@ export function measuresIn(text: string | null | undefined): Measure[] {
 /** One window event, the same pub/sub idiom as TOAST_EVENT and INTAKE_CHANGED. */
 export const OPEN_MEASURE_GUIDE = "glufloat:open-measure-guide";
 
-export function openMeasureGuide(key?: MeasureKey): void {
+export function openMeasureGuide(key?: MeasureKey | object): void {
   try {
     window.dispatchEvent(new CustomEvent(OPEN_MEASURE_GUIDE, { detail: key ?? null }));
   } catch {

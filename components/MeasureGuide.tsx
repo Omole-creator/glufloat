@@ -3,75 +3,67 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { X } from "lucide-react";
-import {
-  MEASURES,
-  OPEN_MEASURE_GUIDE,
-  measureByKey,
-  type MeasureKey,
-} from "@/lib/measures";
-import { cn } from "@/lib/utils";
+import { OPEN_MEASURE_GUIDE, measureByKey, type MeasureKey } from "@/lib/measures";
 
 /**
- * "How to measure": every household measure GluFloat names, as a real photo
- * with its size (co-founder dietitian, 2026-10-08). Mounted once in /app and
- * opened from any measure photo or chip through OPEN_MEASURE_GUIDE, the same
- * window-event idiom as ToastHost.
+ * The full-size picture of ONE portion size: the photo that was tapped and
+ * nothing else (founder, 2026-10-08: "it should only show me the image for the
+ * portion size of that meal i clicked"). An earlier version listed every other
+ * measure underneath, which pulled the eye away from the one that mattered.
  *
- * The tapped measure leads, large, so the person sees the thing they asked
- * about first. Every other measure sits below it, tappable, so the guide is
- * also the one place to learn them all.
+ * Mounted once in /app and opened through OPEN_MEASURE_GUIDE, the same
+ * window-event idiom as ToastHost. The event carries either a measure key
+ * (a fist, a cup...) or a ready-made picture (a food photo at its real size).
  */
-export default function MeasureGuide() {
-  const [open, setOpen] = useState(false);
-  const [active, setActive] = useState<MeasureKey>("cup");
-  const closeRef = useRef<HTMLButtonElement>(null);
-  const panelRef = useRef<HTMLDivElement>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
+export interface PhotoView {
+  photo: string;
+  alt: string;
+  title: string;
+  size?: string;
+  how?: string;
+  /** Draw the red "skip" mark over the photo (a food with no safe amount). */
+  skip?: boolean;
+}
 
-  // Picking another measure from the grid shows it at the top. Without this
-  // the big photo changed above the fold and nothing seemed to happen.
-  const show = (key: MeasureKey) => {
-    setActive(key);
-    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    scrollRef.current?.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
-  };
+export default function MeasureGuide() {
+  const [view, setView] = useState<PhotoView | null>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
   const returnTo = useRef<HTMLElement | null>(null);
 
   const close = useCallback(() => {
-    setOpen(false);
+    setView(null);
     returnTo.current?.focus?.();
   }, []);
 
   useEffect(() => {
     const onOpen = (e: Event) => {
-      const key = (e as CustomEvent<MeasureKey | null>).detail;
+      const detail = (e as CustomEvent<MeasureKey | PhotoView | null>).detail;
+      let next: PhotoView | null = null;
+      if (typeof detail === "string") {
+        const m = measureByKey(detail);
+        if (m) next = { photo: m.photo, alt: m.alt, title: m.name, size: m.size, how: m.how };
+      } else if (detail && typeof detail === "object") {
+        next = detail;
+      }
+      if (!next) return;
       returnTo.current = document.activeElement as HTMLElement | null;
-      setActive(key && measureByKey(key) ? key : "cup");
-      setOpen(true);
+      setView(next);
     };
     window.addEventListener(OPEN_MEASURE_GUIDE, onOpen);
     return () => window.removeEventListener(OPEN_MEASURE_GUIDE, onOpen);
   }, []);
 
   useEffect(() => {
-    if (!open) return;
+    if (!view) return;
     closeRef.current?.focus();
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") close();
-      // Keep Tab inside the guide while it is open.
-      if (e.key === "Tab" && panelRef.current) {
-        const items = panelRef.current.querySelectorAll<HTMLElement>("button");
-        const first = items[0];
-        const last = items[items.length - 1];
-        if (e.shiftKey && document.activeElement === first) {
-          e.preventDefault();
-          last.focus();
-        } else if (!e.shiftKey && document.activeElement === last) {
-          e.preventDefault();
-          first.focus();
-        }
+      // One button inside; keep Tab on it while the picture is open.
+      if (e.key === "Tab") {
+        e.preventDefault();
+        closeRef.current?.focus();
       }
     };
     window.addEventListener("keydown", onKey);
@@ -79,10 +71,9 @@ export default function MeasureGuide() {
       document.body.style.overflow = prev;
       window.removeEventListener("keydown", onKey);
     };
-  }, [open, close]);
+  }, [view, close]);
 
-  if (!open) return null;
-  const m = measureByKey(active)!;
+  if (!view) return null;
 
   return (
     <div
@@ -90,80 +81,61 @@ export default function MeasureGuide() {
       onClick={close}
     >
       <div
-        ref={panelRef}
         role="dialog"
         aria-modal="true"
-        aria-labelledby="measure-guide-title"
+        aria-labelledby="photo-view-title"
         onClick={(e) => e.stopPropagation()}
-        className="verdict-pop flex max-h-[92vh] w-full max-w-xl flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl"
+        className="verdict-pop flex max-h-[92vh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl"
       >
         <div className="flex items-center justify-between gap-3 border-b border-line px-5 py-3.5">
-          <h2 id="measure-guide-title" className="font-display text-lg font-bold text-ink">
-            How to measure
+          <h2 id="photo-view-title" className="font-display text-lg font-bold text-ink">
+            {view.title}
           </h2>
           <button
             ref={closeRef}
             type="button"
             onClick={close}
-            aria-label="Close how to measure"
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-mist text-ink transition-colors hover:bg-line focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+            aria-label="Close the picture"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-mist text-ink transition-colors hover:bg-line focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
           >
             <X className="h-5 w-5" strokeWidth={2.4} />
           </button>
         </div>
 
-        <div ref={scrollRef} className="overflow-y-auto px-5 pb-6 pt-4">
-          {/* The measure they tapped, full size. */}
-          <figure>
-            <div className="relative aspect-square w-full overflow-hidden rounded-2xl bg-mist sm:aspect-[4/3]">
-              <Image
-                key={m.key}
-                src={m.photo}
-                alt={m.alt}
-                fill
-                sizes="(min-width: 640px) 560px, 100vw"
-                className="object-cover"
-                priority
-              />
+        <div className="overflow-y-auto px-5 pb-6 pt-4">
+          <div className="relative aspect-square w-full overflow-hidden rounded-2xl bg-mist">
+            <Image
+              src={view.photo}
+              alt={view.alt}
+              fill
+              sizes="(min-width: 640px) 470px, 100vw"
+              className="object-cover"
+              priority
+            />
+            {view.skip && <SkipMark className="absolute inset-[12%]" />}
+          </div>
+          {(view.size || view.how) && (
+            <div className="mt-4">
+              {view.size && (
+                <p className="inline-block rounded-full bg-brand/10 px-3 py-1 text-sm font-bold text-brand">
+                  {view.size}
+                </p>
+              )}
+              {view.how && <p className="mt-3 text-base leading-relaxed text-ink">{view.how}</p>}
             </div>
-            <figcaption className="mt-4">
-              <p className="font-display text-2xl font-bold text-ink">{m.name}</p>
-              <p className="mt-1 inline-block rounded-full bg-brand/10 px-3 py-1 text-sm font-bold text-brand">
-                {m.size}
-              </p>
-              <p className="mt-3 text-base leading-relaxed text-ink">{m.how}</p>
-            </figcaption>
-          </figure>
-
-          {/* Every other measure, so this is also the place to learn them all. */}
-          <p className="mt-7 text-[11px] font-bold uppercase tracking-wider text-ink/60">
-            All the measures GluFloat uses
-          </p>
-          <ul className="mt-3 grid grid-cols-3 gap-2.5 sm:grid-cols-4">
-            {MEASURES.map((x) => (
-              <li key={x.key}>
-                <button
-                  type="button"
-                  onClick={() => show(x.key)}
-                  aria-pressed={x.key === active}
-                  aria-label={`Show ${x.name.toLowerCase()}`}
-                  className={cn(
-                    "w-full overflow-hidden rounded-xl bg-white text-left ring-1 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand",
-                    x.key === active ? "ring-2 ring-brand" : "ring-line hover:ring-ink/30",
-                  )}
-                >
-                  <span className="relative block aspect-square w-full bg-mist">
-                    <Image src={x.photo} alt="" fill sizes="120px" className="object-cover" />
-                  </span>
-                  <span className="block px-2 py-1.5 text-xs font-semibold leading-tight text-ink">
-                    {x.name}
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
+          )}
         </div>
       </div>
     </div>
+  );
+}
+
+/** The red circle-and-line drawn over a food that is best skipped. */
+export function SkipMark({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 100 100" aria-hidden className={className}>
+      <circle cx="50" cy="50" r="44" fill="none" stroke="#E74C3C" strokeWidth="9" opacity="0.92" />
+      <line x1="19" y1="81" x2="81" y2="19" stroke="#E74C3C" strokeWidth="9" strokeLinecap="round" opacity="0.92" />
+    </svg>
   );
 }
