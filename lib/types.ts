@@ -45,6 +45,9 @@ export type Role =
   | "condiment";
 
 export interface Food {
+  /** Set only on a copy handed to "Check a meal" from a GluFloat-size plate
+   *  (lib/nextMeal.ts): score this starch at its card's size. Never in data. */
+  gluFloatSize?: boolean;
   id: string;
   name: string;
   aliases: string[];

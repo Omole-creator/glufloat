@@ -10,7 +10,7 @@
  *
  * It exits non-zero rather than let a bad plate through.
  */
-import { ideasFor, planForDay } from "../lib/nextMeal";
+import { ideasFor, planForDay, GLUFLOAT_SIZE_STARCHES, isWeeklyLimited, NON_LOW_GROUP_LIMIT } from "../lib/nextMeal";
 import { getFood } from "../lib/search";
 import { scoreMeal } from "../lib/verdictEngine";
 import type { NamedMeal } from "../lib/mealtime";
@@ -50,20 +50,22 @@ for (const meal of MEALS) {
     }
     const items = foods.map((f) => f.food!);
 
-    // 2. Every food is green on its own. The one exception (founder,
-    // 2026-10-08): ofada and brown rice, yellow on their own cards, on lunch
-    // plates the engine scores green at the normal size (check 3 below), and
-    // limited to their card's 3 times a week. Only these two, only at lunch.
-    const WEEKLY_LIMITED = new Set(["ofada-rice", "brown-rice"]);
+    // 2. Every food is green on its own, except the weekly-limited starches
+    // (founder, 2026-10-08): ofada/brown rice and the other steady starches
+    // (green at the normal plate), and the GluFloat-size starches (eba, semo,
+    // white rice...; green only at their card's size). Never at dinner.
     for (const f of items) {
-      if (f.baseVerdict === "yellow" && WEEKLY_LIMITED.has(f.id) && where.startsWith("lunch")) continue;
+      if (f.baseVerdict === "yellow" && f.role === "starch" && meal !== "dinner") continue;
       if (f.baseVerdict !== "green") {
         fail(`${where}: ${f.id} is ${f.baseVerdict}, not green`);
       }
     }
 
     // 3. The whole plate scores green through the real engine.
-    const result = scoreMeal(items.map((food) => ({ food, portion: "normal" as const })));
+    // A GluFloat-size starch is scored at the size the card tells them to eat.
+    const result = scoreMeal(
+      items.map((food) => ({ food, portion: GLUFLOAT_SIZE_STARCHES.has(food.id) ? ("half" as const) : ("normal" as const) })),
+    );
     if (result.verdict !== "green") {
       fail(`${where}: the plate scores ${result.verdict}, not green`);
     }
@@ -214,32 +216,26 @@ for (const meal of MEALS) {
   }
 }
 
-// 11. The dietitian's standing rule: at least two-thirds of what the app can
-//     suggest across a week must be low-GI food, the rest moderate-GI paired
-//     with fibre/protein (never high-GI — every plate here is already green).
-//     This is a property of the curated plate lists, not new runtime logic;
-//     the assertion exists so a future edit can't silently tip the balance.
+// 11. The dietitian's standing rule: at least two-thirds of a week's meals are
+//     low-GI. Every plate without a weekly-limited starch is low-GI only, and
+//     limited plates are capped at NON_LOW_GROUP_LIMIT (7) of the week's 21
+//     meals, so at least 14 of 21 stay low-GI. (Founder, 2026-10-08: the rule
+//     used to be checked by counting distinct foods, which stopped meaning
+//     anything once capped starch plates joined.)
 {
-  const usedIds = new Set<string>();
   for (const meal of MEALS) {
-    for (const ids of ideasFor(meal)) {
-      for (const id of ids) usedIds.add(id);
-    }
+    ideasFor(meal).forEach((ids, i) => {
+      if (ids.some((id) => isWeeklyLimited(id))) {
+        if (meal === "dinner") fail(`dinner[${i}]: a limited starch at dinner`);
+        return;
+      }
+      for (const id of ids) {
+        const f = getFood(id);
+        if (f && f.gi !== "low") fail(`${meal}[${i}]: ${id} is ${f.gi}-GI on a plate with no weekly limit`);
+      }
+    });
   }
-  let low = 0;
-  let counted = 0;
-  for (const id of usedIds) {
-    const f = getFood(id);
-    if (!f) continue;
-    counted++;
-    if (f.gi === "low") low++;
-  }
-  const share = low / counted;
-  if (share < 2 / 3) {
-    fail(
-      `only ${(share * 100).toFixed(0)}% of the ${counted} foods used across all meal ideas are low-GI (need at least 67%)`,
-    );
-  }
+  if (NON_LOW_GROUP_LIMIT > 7) fail(`NON_LOW_GROUP_LIMIT is ${NON_LOW_GROUP_LIMIT}; more than 7 of 21 meals would not be low-GI`);
 }
 
 if (problems.length) {

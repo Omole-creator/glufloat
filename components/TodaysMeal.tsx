@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { RefreshCw, ArrowRight, Sunrise, Sun, Moon, Check, Pill, Flame } from "lucide-react";
+import { RefreshCw, ArrowRight, Sunrise, Sun, Moon, Check, Pill, Flame, Scale } from "lucide-react";
 import {
   currentMeal,
   localDayKey,
@@ -380,6 +380,16 @@ export default function TodaysMeal({
           <div className="mt-4 flex items-start gap-2.5 rounded-xl bg-white/10 p-3 ring-1 ring-inset ring-white/15">
             <Pill className="mt-0.5 h-4 w-4 shrink-0 text-white/80" strokeWidth={2.2} />
             <p className="text-sm text-white/90">{medicationTimingCopy(medRelationToFood)}</p>
+          </div>
+        )}
+
+        {idea.sizeNote && (
+          <div className="mt-4 flex items-start gap-2.5 rounded-xl bg-white/10 p-3 ring-1 ring-inset ring-white/15">
+            <Scale className="mt-0.5 h-4 w-4 shrink-0 text-white/80" strokeWidth={2.2} />
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-white">{idea.sizeNote}</p>
+              <MeasureChips text={idea.sizeNote} forFood={idea.names[0]} tone="dark" className="mt-2" />
+            </div>
           </div>
         )}
 

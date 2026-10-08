@@ -65,7 +65,7 @@ export default function MealBuilder({
   // so we replace what is there (the person chose to start from this meal).
   useEffect(() => {
     if (initialFoods && initialFoods.length > 0) {
-      setItems(initialFoods.map((f) => ({ food: f, portion: "normal" as const })));
+      setItems(initialFoods.map((f) => ({ food: f, portion: f.gluFloatSize ? ("half" as const) : ("normal" as const) })));
       setQuery("");
     }
   }, [initialFoods]);
@@ -449,7 +449,10 @@ export default function MealBuilder({
                   onClose={() => setSheetOpen(false)}
                   items={items.map((i) => ({
                     food: i.food,
-                    portion: i.portion,
+                    // The sheet asks "Less / Same / More than the GluFloat
+                    // size". A GluFloat-size starch is scored "half" here, but
+                    // it IS the GluFloat size, so it starts on "Same".
+                    portion: "normal",
                     // Keep the blue card's bigger serving instead of "normal".
                     grams: suggested?.scaledGrams[i.food.id],
                     calories: suggested?.scaledKcal[i.food.id],

@@ -29,6 +29,8 @@ import {
   MAX_EXTRA_ITEMS,
   mealShareFor,
   suggestSnack,
+  GLUFLOAT_SIZE_STARCHES,
+  isWeeklyLimited,
 } from "../lib/nextMeal";
 import type { Condition } from "../lib/personalization";
 import { getFood } from "../lib/search";
@@ -98,7 +100,7 @@ for (const meal of MEALS) {
       fail(`${meal}, day ${d}: empty plate with a calorie target active`);
       continue;
     }
-    const result = scoreMeal(idea.foods.map((food) => ({ food, portion: "normal" as const })));
+    const result = scoreMeal(idea.foods.map((food) => ({ food, portion: GLUFLOAT_SIZE_STARCHES.has(food.id) ? ("half" as const) : ("normal" as const) })));
     if (result.verdict !== "green") {
       fail(`${meal}, day ${d}: plate scores ${result.verdict} with a calorie target active`);
     }
@@ -698,7 +700,10 @@ for (const meal of MEALS) {
   let sawScaledSide = false;
   for (let d = 0; d < 28; d++) {
     const dayKey = `2026-08-${String(d + 1).padStart(2, "0")}`;
-    const idea = planForDay("breakfast", dayKey, new Map(), 0, [], new Map(), null, 500);
+    // With this week's limited starch plates used up, as for a person who has
+    // eaten them, so the classic oats/yogurt/groundnut breakfasts are in play.
+    const usedUp = new Map(ideasFor("breakfast").flat().filter((id) => isWeeklyLimited(id)).map((id) => [id, 9]));
+    const idea = planForDay("breakfast", dayKey, new Map(), 0, [], new Map(), null, 500, [], "", usedUp);
     if (idea.scaledSide) sawScaledSide = true;
   }
   if (!sawScaledSide) {

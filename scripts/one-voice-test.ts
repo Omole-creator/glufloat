@@ -5,7 +5,7 @@
  *
  *   npx tsx scripts/one-voice-test.ts
  */
-import { planForDay, platesWithFood, ideasFor, mealIdeaCalories, mealIdeaCarbs, mealIdeaFoodsForBuilder } from "../lib/nextMeal";
+import { planForDay, platesWithFood, ideasFor, mealIdeaCalories, mealIdeaCarbs, mealIdeaFoodsForBuilder, GLUFLOAT_SIZE_STARCHES, SIZE_GROUP_LIMIT } from "../lib/nextMeal";
 import { scoreMeal } from "../lib/verdictEngine";
 import type { NamedMeal } from "../lib/mealtime";
 import type { Condition } from "../lib/personalization";
@@ -56,14 +56,17 @@ for (const id of allIds) {
   for (const m of MEALS)
     for (const p of res[m]) {
       check(p.foods.some((f) => f.id === id), `${id}: a ${m} plate without it`);
-      check(scoreMeal(p.foods.map((food) => ({ food, portion: "normal" as const }))).verdict === "green", `${id}: ${m} plate ${p.index} not green`);
+      check(
+        scoreMeal(p.foods.map((food) => ({ food, portion: GLUFLOAT_SIZE_STARCHES.has(food.id) ? ("half" as const) : ("normal" as const) }))).verdict === "green",
+        `${id}: ${m} plate ${p.index} not green at the GluFloat size`,
+      );
       check(!p.foods.some((f) => f.healthNote && f.category === "protein"), `${id}: ${m} plate ${p.index} has a warned protein with a condition`);
     }
 }
 
 // 3. A food in no plate shows nothing, and the list is closest-to-target first.
-const none = platesWithFood("garri-eba");
-check(MEALS.every((m) => none[m].length === 0), "eba should be in no plate");
+const none = platesWithFood("dodo");
+check(MEALS.every((m) => none[m].length === 0), "dodo (red) should be in no plate");
 const lunch = platesWithFood("oat-swallow", { lunch: 900 }).lunch;
 for (let i = 1; i < lunch.length; i++)
   check(Math.abs(900 - mealIdeaCalories(lunch[i - 1])) <= Math.abs(900 - mealIdeaCalories(lunch[i])), "oat swallow lunch plates not closest-first");
@@ -92,4 +95,37 @@ console.log("One voice: every blue-card plate reads the same in search.");
   check(platesWithFood("ofada-rice").lunch.length > 0, "search should show rice under its weekly count");
   if (!fails) console.log("Rice plates: lunch only, and they leave the rotation at 3 a week.");
   if (fails) process.exit(1);
+}
+
+// 5. GluFloat-size plates (eba, semo, white rice...): at most 2 of each, and
+//    at most 2 of them all together, eaten in 7 days. They tell the person the
+//    size, and "Check a meal" scores the starch at that size.
+{
+  const isSize = (p: { foods: { id: string }[] }) => p.foods.some((f) => GLUFLOAT_SIZE_STARCHES.has(f.id));
+  const group = new Map([["garri-eba", 1], ["semovita", 1]]); // 2 eaten in total
+  const one = new Map([["garri-eba", 2]]); // eba at its own limit
+  let sawSize = false;
+  for (let d = 1; d <= 28; d++) {
+    const day = `2026-11-${String(d).padStart(2, "0")}`;
+    for (const meal of ["breakfast", "lunch"] as const)
+      for (const off of [0, 1, 2, 3, 4]) {
+        const free = planForDay(meal, day, new Map(), off, [], new Map(), null, null, [], "", new Map());
+        if (isSize(free)) {
+          sawSize = true;
+          check(Boolean(free.sizeNote), `${meal} plate ${free.index}: GluFloat-size plate without its size line`);
+          const built = mealIdeaFoodsForBuilder(free);
+          check(built.some((f) => f.gluFloatSize), `${meal} plate ${free.index}: builder copy does not keep the GluFloat size`);
+        }
+        const capped = planForDay(meal, day, new Map(), off, [], new Map(), null, null, [], "", group);
+        check(!isSize(capped), `${meal} ${day}: a GluFloat-size plate served after 2 eaten this week`);
+        const ebaOut = planForDay(meal, day, new Map(), off, [], new Map(), null, null, [], "", one);
+        check(!ebaOut.foods.some((f) => f.id === "garri-eba"), `${meal} ${day}: eba served after 2 this week`);
+      }
+  }
+  check(sawSize, "no GluFloat-size plate ever came up in 28 days");
+  check(platesWithFood("garri-eba", {}, [], group).lunch.length === 0, "search should hide eba once the group is full");
+  check(platesWithFood("garri-eba").lunch.length > 0, "search should show eba plates under the limit");
+  check(SIZE_GROUP_LIMIT === 2, "group limit should be 2");
+  if (fails) process.exit(1);
+  console.log("GluFloat-size plates: size line shown, kept in Check a meal, 2 each and 2 in total a week.");
 }

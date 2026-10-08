@@ -42,6 +42,42 @@ export function MeasurePhotoButton({
 }
 
 /**
+ * The measure photo of a food's USUAL size, beside a bigger serving that names
+ * no measure of its own (blue card: "4 medium pieces of chicken"). Opens as
+ * "The usual size", with today's bigger amount written underneath.
+ */
+export function UsualSizePhotoButton({
+  measure,
+  food,
+  usual,
+  size = "md",
+}: {
+  measure: Measure;
+  food: Food;
+  usual: string;
+  size?: "sm" | "md";
+}) {
+  const name = cleanFoodName(food.name);
+  return (
+    <PhotoButton
+      photo={measure.photo}
+      label={`See the usual size of ${name}, full size`}
+      onOpen={() =>
+        openMeasureGuide({
+          photo: measure.photo,
+          alt: measure.alt,
+          title: name,
+          size: "The usual size",
+          how: `The usual size: ${usual} ${food.portionGuidance}`,
+        })
+      }
+      badge={measure.badge}
+      size={size}
+    />
+  );
+}
+
+/**
  * A real photo of the food itself at its card's amount (lib/foodPhotos.ts),
  * for a card that names no household measure ("Two eggs"). Opens full size
  * with the card's own words underneath. A food with "None at all" carries the

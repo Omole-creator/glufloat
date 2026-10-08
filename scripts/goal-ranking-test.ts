@@ -13,7 +13,7 @@
  *
  *   npx tsx scripts/goal-ranking-test.ts
  */
-import { ideasFor, planForDay } from "../lib/nextMeal";
+import { ideasFor, planForDay, GLUFLOAT_SIZE_STARCHES } from "../lib/nextMeal";
 import { getFood } from "../lib/search";
 import { scoreMeal } from "../lib/verdictEngine";
 import { biasVector, biasScore, GOALS, ACTIVITY_LEVELS, CONDITIONS } from "../lib/personalization";
@@ -130,7 +130,7 @@ for (const { label, bias } of ALL_BIASES) {
         fail(`${label}, ${meal}, day ${d}: empty plate`);
         continue;
       }
-      const result = scoreMeal(foods.map((food) => ({ food, portion: "normal" as const })));
+      const result = scoreMeal(foods.map((food) => ({ food, portion: GLUFLOAT_SIZE_STARCHES.has(food.id) ? ("half" as const) : ("normal" as const) })));
       if (result.verdict !== "green") {
         fail(`${label}, ${meal}, day ${d}: plate scores ${result.verdict}, not green`);
       }

@@ -103,9 +103,6 @@ interface MainProteinConfig {
    *  a person without a scale can actually picture — matches the singular/
    *  plural wording already used on that food's own card. */
   describe: (units: number, grams: number) => string;
-  /** A sentence naming a household measure for the bigger serving, when
-   *  describe() names none (chicken, turkey: the palm). */
-  anchor?: (units: number) => string;
 }
 
 /**
@@ -134,19 +131,6 @@ interface MainProteinConfig {
  * same "always a whole countable unit" rule the extras pool already
  * follows in `sizeExtra()`.
  */
-/**
- * How many times a bigger chicken or turkey serving fills the palm. Their
- * cards say two pieces "fill your palm", so the bigger serving names the palm
- * too: without it the portion box had no measure to show and fell back to
- * the old drawing (founder, 2026-10-08: "the chicken is still showing old
- * visuals"). The multiplier never goes past 2, so these are the only cases.
- */
-function palms(n: number): string {
-  if (n <= 1) return "once";
-  if (n < 2) return "one and a half times";
-  return "twice";
-}
-
 const MAIN_PROTEIN_CONFIG: Record<string, MainProteinConfig> = {
   fish: {
     baseGrams: 100,
@@ -160,13 +144,11 @@ const MAIN_PROTEIN_CONFIG: Record<string, MainProteinConfig> = {
     baseGrams: 90,
     baseUnits: 2,
     describe: (units, grams) => `${units} medium pieces of chicken, put together (${grams}g)`,
-    anchor: (units) => `Put together, they fill your palm ${palms(units / 2)}.`,
   },
   turkey: {
     baseGrams: 90,
     baseUnits: 2,
     describe: (units, grams) => `${units} turkey pieces, put together (${grams}g)`,
-    anchor: (units) => `Put together, they fill your palm ${palms(units / 2)}.`,
   },
   snail: {
     baseGrams: 90,
@@ -295,7 +277,7 @@ export function scaleMainProtein(
     extraCalories: calories - baseKcal,
     carbG,
     extraCarbG: carbG - baseCarb,
-    instruction: `A bigger ${cleanFoodName(food.name).toLowerCase()} serving today: about ${config.describe(units, grams)}, instead of the usual ${config.describe(config.baseUnits, baseGrams)}. ${config.anchor ? config.anchor(units) + " " : ""}This helps meet your calorie goal, and this size stays safe for your sugar.`,
+    instruction: `A bigger ${cleanFoodName(food.name).toLowerCase()} serving today: about ${config.describe(units, grams)}, instead of the usual ${config.describe(config.baseUnits, baseGrams)}. This helps meet your calorie goal, and this size stays safe for your sugar.`,
   };
 }
 
@@ -517,11 +499,23 @@ function pepperSoupPlates(): string[][] {
 }
 
 /**
- * Rice that raises sugar more slowly, eaten the way Nigerians eat it (founder,
- * 2026-10-08, after the engine scored each plate green at the normal size).
- * Lunch only: both are moderate-GI, and dinner keeps to low-GI foods. Their
- * cards say "About 3 times a week", so `WEEKLY_PLATE_LIMIT` takes them out
- * of the rotation once eaten 3 times in 7 days.
+ * Starch plates beyond the always-green ones (founder, 2026-10-08). Each is a
+ * real Nigerian plate built from that starch's own "Eat it with" line, and
+ * each scores green in the real engine:
+ *
+ * - `SIZE_PLATES_*`: green only at the GluFloat size of the starch (the size
+ *   on its card, the engine's "small size"). The blue card and search say so
+ *   (`MealIdea.sizeNote`), and "Check a meal" opened from them scores the
+ *   starch at that size (`gluFloatSize` on the copy). Each starch at most 2
+ *   times in 7 days, AND at most 2 of these plates in 7 days in total
+ *   (`SIZE_GROUP_LIMIT`), so a fast-sugar starch is never on the card every
+ *   day.
+ * - `STEADY_PLATES`: green at the normal plate already (moderate-GI starches).
+ *   Each at its card's own count, 3 times in 7 days, like ofada and brown rice.
+ *
+ * Lunch and breakfast only: dinner keeps to low-GI foods. Only plates eaten
+ * and logged count, over the last 7 days (`foodCountsThisWeek`).
+ * `scripts/meal-ideas-test.ts` proves every one is green at the right size.
  */
 const RICE_PLATES: string[][] = [
   ["ofada-rice", "ayamase", "eggs"],
@@ -531,18 +525,114 @@ const RICE_PLATES: string[][] = [
   ["brown-rice", "garden-egg-sauce", "fish"],
   ["brown-rice", "tomato-stew", "turkey"],
 ];
+const STEADY_PLATES: string[][] = [
+  ["amala-plantain", "efo-riro", "fish"],
+  ["cocoyam-fufu", "okra-soup", "fish"],
+  ["basmati-rice", "efo-riro", "fish"],
+  ["rice-and-beans", "tomato-stew", "fish"],
+  ["parboiled-rice", "tomato-stew", "chicken"],
+  ["spaghetti", "tomato-stew", "chicken"],
+  ["macaroni", "tomato-stew", "fish"],
+];
+const SIZE_PLATES_LUNCH: string[][] = [
+  ["garri-eba", "efo-riro", "fish"],
+  ["garri-eba", "edikang-ikong", "chicken"],
+  ["garri-eba", "okra-soup", "fish"],
+  ["pounded-yam", "egusi-soup", "fish"],
+  ["pounded-yam", "vegetable-soup", "chicken"],
+  ["amala-yam", "ewedu", "gbegiri", "fish"],
+  ["fufu-akpu", "okra-soup", "fish"],
+  ["fufu-akpu", "oha-soup", "chicken"],
+  ["semovita", "efo-riro", "chicken"],
+  ["semovita", "okra-soup", "fish"],
+  ["wheat-swallow", "vegetable-soup", "fish"],
+  ["tuwo-shinkafa", "miyan-kuka", "chicken"],
+  ["tuwo-masara", "miyan-kubewa", "fish"],
+  ["tuwo-dawa", "miyan-kuka", "chicken"],
+  ["starch-delta", "banga-soup", "fish"],
+  ["lafun", "ewedu", "fish"],
+  ["white-rice", "tomato-stew", "chicken"],
+  ["white-rice", "efo-riro", "fish"],
+  ["jollof-rice", "coleslaw", "chicken"],
+  ["fried-rice", "coleslaw", "chicken"],
+  ["coconut-rice", "coleslaw", "chicken"],
+  ["roasted-yam", "pepper-sauce", "fish"],
+  ["boiled-plantain-unripe", "efo-riro", "fish"],
+  ["boiled-yam", "garden-egg-sauce", "fish"],
+];
+const SIZE_PLATES_BREAKFAST: string[][] = [
+  ["boiled-water-yam", "egg-sauce"],
+  ["sweet-potato", "egg-sauce"],
+  ["cocoyam", "egg-sauce"],
+  ["pap", "moi-moi"],
+  ["custard", "moi-moi"],
+  ["eko-agidi", "moi-moi"],
+  ["golden-morn", "eggs"],
+  ["weetabix", "groundnut"],
+  ["masa", "miyan-taushe", "chicken"],
+];
 
-/** Foods a plate may hold only a set number of times in 7 days (their card's count). */
-const WEEKLY_PLATE_LIMIT: Record<string, number> = { "ofada-rice": 3, "brown-rice": 3 };
+/** The starch on each GluFloat-size plate: the foods that must be eaten at the card's size. */
+export const GLUFLOAT_SIZE_STARCHES: ReadonlySet<string> = new Set(
+  [...SIZE_PLATES_LUNCH, ...SIZE_PLATES_BREAKFAST].map((p) => p[0]),
+);
+/** At most this many GluFloat-size plates eaten in 7 days, all of them together. */
+export const SIZE_GROUP_LIMIT = 2;
 
-/** A plate that would take a limited food past its weekly count. */
+/** Foods a plate may hold only a set number of times in 7 days. */
+const WEEKLY_PLATE_LIMIT: Record<string, number> = {
+  ...Object.fromEntries([...RICE_PLATES, ...STEADY_PLATES].map((p) => [p[0], 3])),
+  ...Object.fromEntries([...GLUFLOAT_SIZE_STARCHES].map((id) => [id, 2])),
+};
+
+/**
+ * The dietitian's standing rule: at least two-thirds of a week's meals are
+ * low-GI. A week is 21 meals, so at most 7 may hold a limited (moderate- or
+ * high-GI) starch, all of them together. Every other plate is low-GI only
+ * (`scripts/meal-ideas-test.ts` checks it), so this keeps 14 of 21 low.
+ */
+export const NON_LOW_GROUP_LIMIT = 7;
+
+/** A starch that may only be on a blue-card plate a set number of times a week. */
+export function isWeeklyLimited(id: string): boolean {
+  return WEEKLY_PLATE_LIMIT[id] != null;
+}
+
+/** A plate that would take a limited food, the GluFloat-size group, or the week's non-low-GI meals past its count. */
 function overWeeklyLimit(ids: string[], weekCounts: Map<string, number>): boolean {
-  return ids.some((id) => WEEKLY_PLATE_LIMIT[id] != null && (weekCounts.get(id) ?? 0) >= WEEKLY_PLATE_LIMIT[id]);
+  if (ids.some((id) => WEEKLY_PLATE_LIMIT[id] != null && (weekCounts.get(id) ?? 0) >= WEEKLY_PLATE_LIMIT[id])) return true;
+  if (ids.some((id) => WEEKLY_PLATE_LIMIT[id] != null)) {
+    let limited = 0;
+    for (const id of Object.keys(WEEKLY_PLATE_LIMIT)) limited += weekCounts.get(id) ?? 0;
+    if (limited >= NON_LOW_GROUP_LIMIT) return true;
+  }
+  if (ids.some((id) => GLUFLOAT_SIZE_STARCHES.has(id))) {
+    let group = 0;
+    for (const id of GLUFLOAT_SIZE_STARCHES) group += weekCounts.get(id) ?? 0;
+    if (group >= SIZE_GROUP_LIMIT) return true;
+  }
+  return false;
+}
+
+/** The plain line that makes a GluFloat-size plate green: the starch at its card's size. */
+function sizeNoteFor(foods: Food[]): string | undefined {
+  const starch = foods.find((f) => GLUFLOAT_SIZE_STARCHES.has(f.id));
+  if (!starch) return undefined;
+  // The size, plus the sentence that pictures it when the card gives one
+  // ("Two small pieces. Each is about the size of a matchbox (about 100g).").
+  const parts = starch.portionGuidance.split(/(?<=\.)\s+/);
+  let size = parts[0];
+  if (parts[1] && /^(That is|Each is)/.test(parts[1])) size += ` ${parts[1]}`;
+  const name =
+    starch.id === "starch-delta" ? "Delta starch" : cleanFoodName(starch.name).replace(/\s*\([^)]*\)/g, "").toLowerCase();
+  return `Keep the ${name} to the GluFloat size. ${size}`;
 }
 
 const LUNCH: string[][] = [
   ...soupPlates(0),
   ...RICE_PLATES,
+  ...STEADY_PLATES,
+  ...SIZE_PLATES_LUNCH,
   ...beansPlates(BEANS_PARTNERS),
   ["ukwa", "fish"],
 ];
@@ -567,7 +657,7 @@ const DINNER: string[][] = [
 ].filter((ids) => !hasModerateGi(ids));
 
 const IDEAS: Record<NamedMeal, string[][]> = {
-  breakfast: BREAKFAST,
+  breakfast: [...BREAKFAST, ...SIZE_PLATES_BREAKFAST],
   lunch: LUNCH,
   dinner: DINNER,
 };
@@ -615,6 +705,9 @@ export interface MealIdea {
    *  after `scaledProtein` — see `scaleMainSide`'s own doc. Only ever set
    *  by `planForDay` under the same conditions as `scaledProtein`. */
   scaledSide?: ScaledPortion | null;
+  /** On a GluFloat-size plate: the line that keeps it green ("Keep the eba
+   *  to the GluFloat size: one ball the size of your fist."). */
+  sizeNote?: string;
 }
 
 function resolve(meal: NamedMeal, index: number): MealIdea {
@@ -628,6 +721,7 @@ function resolve(meal: NamedMeal, index: number): MealIdea {
     names: foods.map((f) => cleanFoodName(f.name)),
     index,
     count: list.length,
+    sizeNote: sizeNoteFor(foods),
   };
 }
 
@@ -701,15 +795,16 @@ export function mealIdeaFoodsForBuilder(idea: MealIdea): Food[] {
   const overrides = new Map<string, ScaledPortion>();
   if (idea.scaledProtein) overrides.set(idea.scaledProtein.food.id, idea.scaledProtein);
   if (idea.scaledSide) overrides.set(idea.scaledSide.food.id, idea.scaledSide);
-  if (overrides.size === 0) return idea.foods;
+  // The starch of a GluFloat-size plate is scored at that size in "Check a
+  // meal", because that is the size the blue card told them to eat.
+  if (overrides.size === 0 && !idea.foods.some((f) => GLUFLOAT_SIZE_STARCHES.has(f.id))) return idea.foods;
   // The copy carries the bigger serving's calories and carbs too, not only
   // its words: "Check a meal" totals each food's own numbers, and showed
   // 686 kcal for a plate the blue card (and search) called 839 (2026-10-08).
   return idea.foods.map((f) => {
     const s = overrides.get(f.id);
-    return s
-      ? { ...f, portionGuidance: s.instruction, calories: Math.round(s.calories), carbG: Math.round(s.carbG * 10) / 10 }
-      : f;
+    if (s) return { ...f, portionGuidance: s.instruction, calories: Math.round(s.calories), carbG: Math.round(s.carbG * 10) / 10 };
+    return GLUFLOAT_SIZE_STARCHES.has(f.id) ? { ...f, gluFloatSize: true } : f;
   });
 }
 

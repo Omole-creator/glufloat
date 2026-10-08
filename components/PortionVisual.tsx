@@ -2,8 +2,9 @@ import type { Food, PortionSize } from "@/lib/types";
 import { portionVisual, type PortionKey } from "@/lib/portionVisual";
 import { cleanFoodName } from "@/lib/foodName";
 import { measuresIn } from "@/lib/measures";
-import { FoodPhotoButton, MeasureChips, MeasurePhotoButton } from "./MeasurePhoto";
+import { FoodPhotoButton, MeasureChips, MeasurePhotoButton, UsualSizePhotoButton } from "./MeasurePhoto";
 import { foodPhotoFor } from "@/lib/foodPhotos";
+import { getFood } from "@/lib/search";
 
 /**
  * The meal builder's Small/Normal/Large tap only ever nudged the verdict
@@ -234,6 +235,14 @@ function PortionPicture({ food, size }: { food: Food; size: "sm" | "md" }) {
   const measure = measuresIn(food.portionGuidance)[0];
   if (measure) {
     return <MeasurePhotoButton measure={measure} forFood={cleanFoodName(food.name)} size={size} />;
+  }
+  // A bigger serving from the blue card or a search plate ("4 medium pieces
+  // of chicken") names no measure, but the card's usual size does (the palm).
+  // Show that photo, opened as "The usual size", rather than the old drawing.
+  const usual = getFood(food.id);
+  const usualMeasure = usual && usual.portionGuidance !== food.portionGuidance ? measuresIn(usual.portionGuidance)[0] : undefined;
+  if (usual && usualMeasure) {
+    return <UsualSizePhotoButton measure={usualMeasure} food={food} usual={usual.portionGuidance} size={size} />;
   }
   if (foodPhotoFor(food.id)) return <FoodPhotoButton food={food} size={size} />;
   const { key } = portionVisual(food);

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowRight, Flame, Moon, Sun, Sunrise } from "lucide-react";
+import { ArrowRight, Flame, Moon, Scale, Sun, Sunrise } from "lucide-react";
 import type { Food } from "@/lib/types";
 import {
   platesWithFood,
@@ -131,7 +131,6 @@ export default function MealsWithFood({
       <h3 className="mt-1 font-display text-lg font-bold text-ink">
         {list.length === 1 ? "The best meal" : `The best ${list.length} meals`} with {cleanFoodName(food.name)}
       </h3>
-      <p className="mt-1 text-sm text-ink-soft">Picked for you, like your blue card. Tap one to see all the details.</p>
       <ul className="mt-4 space-y-2">
         {list.map((idea) => {
           const carbs = mealIdeaCarbs(idea);
@@ -159,6 +158,12 @@ export default function MealsWithFood({
                       </span>
                     )}
                   </span>
+                  {idea.sizeNote && (
+                    <span className="mt-1.5 flex items-start gap-1.5 text-xs font-semibold text-ink">
+                      <Scale className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand" strokeWidth={2.4} />
+                      {idea.sizeNote}
+                    </span>
+                  )}
                   {bigger.map((s) => (
                     <span key={s!.food.id} className="mt-1.5 flex items-start gap-1.5 text-xs text-ink-soft">
                       <Flame className="mt-0.5 h-3.5 w-3.5 shrink-0 text-leaf" strokeWidth={2.4} />
