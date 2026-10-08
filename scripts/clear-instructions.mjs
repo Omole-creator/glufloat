@@ -620,7 +620,7 @@ const PIECES = new Set(["protein", "tuber", "plantain", "snack", "nut", "corn"])
 for (const f of foods) {
   if (!PIECES.has(f.category)) continue;
   if (/porridge|dish|plate|tin|spread|salad|seed|nkwobi|isi-ewu|corned|tuna|popcorn|tapioca|sweet-corn|butter|egusi|sesame/i.test(f.id + " " + f.portionGuidance)) continue;
-  if (/cups?|eggs(?= ?\()|size of (an?|one|two) eggs?|matchbox|tennis ball|golf ball|deck of cards/i.test(f.portionGuidance))
+  if (/\bcups?\b|size of (an?|one|two) eggs?|matchbox|tennis ball|golf ball|deck of cards/i.test(f.portionGuidance))
     problems.push(`${f.id}: count the pieces, do not compare them with an object -> ${f.portionGuidance}`);
 }
 
@@ -629,7 +629,7 @@ for (const f of foods) {
   if (f.category !== "fruit") continue;
   for (const k of ["portionGuidance", "carbExchange"]) {
     const v = f[k];
-    if (typeof v === "string" && /cups?|eggs?|ball|fist|matchbox|handful/i.test(v))
+    if (typeof v === "string" && /\bcups?\b|\beggs?\b|ball|\bfist|matchbox|handful/i.test(v))
       problems.push(`${f.id}.${k}: measure the fruit itself, not a cup or another object -> ${v}`);
   }
 }

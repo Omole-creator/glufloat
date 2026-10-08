@@ -16,7 +16,8 @@
 export type MeasureKey =
   | "cup"
   | "big-spoon"
-  | "spoons"
+  | "teaspoon"
+  | "tablespoon"
   | "fist"
   | "palm"
   | "meat-chunks"
@@ -67,13 +68,24 @@ export const MEASURES: Measure[] = [
     match: /big spoons?/i,
   },
   {
-    key: "spoons",
-    name: "Teaspoon and tablespoon",
-    size: "Teaspoon 5ml. Tablespoon 15ml",
-    how: "A teaspoon is the small spoon you stir tea with. Three teaspoons make one tablespoon. Fill it flat, not heaped.",
-    photo: "/img/measures/spoons.jpg",
-    alt: "Metal measuring spoons marked with their sizes, like 1 tsp 5ml",
-    match: /\b(teaspoons?|tablespoons?)\b/i,
+    key: "teaspoon",
+    name: "One teaspoon",
+    size: "5ml",
+    badge: "5ml",
+    how: "A teaspoon is the small spoon you stir tea with. Fill it flat, not heaped.",
+    photo: "/img/measures/teaspoon-salt.jpg",
+    alt: "One teaspoon of salt, filled level",
+    match: /\bteaspoons?\b/i,
+  },
+  {
+    key: "tablespoon",
+    name: "One tablespoon",
+    size: "15ml",
+    badge: "15ml",
+    how: "A tablespoon is the big spoon. It holds as much as three teaspoons. Fill it flat, not heaped.",
+    photo: "/img/measures/tablespoon-oil.jpg",
+    alt: "One spoon of oil, filled level",
+    match: /\btablespoons?\b/i,
   },
   {
     key: "fist",

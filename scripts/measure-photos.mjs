@@ -17,7 +17,8 @@ import sharp from "sharp";
  *   cup-mug-250ml Unsplash 6TjDbd5PNTU (a plain household mug; replaced a lab-style
  *   measuring cup on the founder's word, which had replaced an unclear close-up),
  *   fist h4elZPxUXLU, palm zabFZL-OYAk, tennis-ball VEW78A1YZ6I,
- *   matchbox e0OS4EQHX2o, deck-of-cards IEISYENbXp8, spoons KOAM0tomZj8,
+ *   matchbox e0OS4EQHX2o, deck-of-cards IEISYENbXp8, teaspoon and tablespoon
+ *   from Pexels (see PHOTOS),
  *   golf-ball uy5ZEqUOscs, thumb 3KEFp35FVB0, pinch zet6NIY02hI,
  *   handful 8JbPccfCr5o, egg UQawLoFS4uM, meat-chunks 1ok-cifMvg0,
  *   big-spoon WBX-ZLr8P7I (a metal ladle full of soup: one big spoon, 125ml)
@@ -31,7 +32,12 @@ const PHOTOS = {
   "tennis-ball": "attention",
   matchbox: "centre",
   "deck-of-cards": "centre",
-  spoons: "centre",
+  // One spoon each, never a set of measuring spoons (founder, 2026-10-08: the
+  // old spoons photo showed five sizes at once and was hard to see). Both are
+  // filled level, as the guide says: Pexels 4199094 (one teaspoon of salt)
+  // and Unsplash vPb24SDR0ww (one spoon of oil).
+  "teaspoon-salt": { left: 0.1, top: 0.22, size: 0.8 },
+  "tablespoon-oil": { left: 0.22, top: 0.2, size: 0.62 },
   "golf-ball": "attention",
   thumb: "centre",
   pinch: "attention",
