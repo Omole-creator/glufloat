@@ -207,6 +207,7 @@ export function useTodaysCalories(show: boolean): TodaysCalories {
       mealShare,
       p.conditions,
       personalKey,
+      weekCounts,
     );
     // mealIdeaCalories() already folds in scaledProtein/scaledSide's own
     // contribution (a bigger, still-safe serving closes part of the gap

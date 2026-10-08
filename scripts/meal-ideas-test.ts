@@ -50,8 +50,13 @@ for (const meal of MEALS) {
     }
     const items = foods.map((f) => f.food!);
 
-    // 2. Every food is green on its own.
+    // 2. Every food is green on its own. The one exception (founder,
+    // 2026-10-08): ofada and brown rice, yellow on their own cards, on lunch
+    // plates the engine scores green at the normal size (check 3 below), and
+    // limited to their card's 3 times a week. Only these two, only at lunch.
+    const WEEKLY_LIMITED = new Set(["ofada-rice", "brown-rice"]);
     for (const f of items) {
+      if (f.baseVerdict === "yellow" && WEEKLY_LIMITED.has(f.id) && where.startsWith("lunch")) continue;
       if (f.baseVerdict !== "green") {
         fail(`${where}: ${f.id} is ${f.baseVerdict}, not green`);
       }

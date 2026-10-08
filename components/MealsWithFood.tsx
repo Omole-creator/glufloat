@@ -13,7 +13,7 @@ import {
 } from "@/lib/nextMeal";
 import { currentMeal, localDayKey, type NamedMeal } from "@/lib/mealtime";
 import { readPersonalizationProfile, PERSONALIZATION_CHANGED } from "@/lib/personalizationProfile";
-import { caloriesEatenToday, INTAKE_CHANGED } from "@/lib/history";
+import { caloriesEatenToday, foodCountsThisWeek, INTAKE_CHANGED } from "@/lib/history";
 import { bmr, tdee, calorieTarget } from "@/lib/tdee";
 import { rememberSuggested } from "@/lib/mealImpressions";
 import { trackUsage } from "@/lib/usage";
@@ -79,10 +79,10 @@ export default function MealsWithFood({
   useEffect(() => {
     let live = true;
     const load = async () => {
-      const t = await mealTargets(personalize);
+      const [t, week] = await Promise.all([mealTargets(personalize), foodCountsThisWeek()]);
       if (!live) return;
       setTargets(t.targets);
-      setPlates(platesWithFood(food.id, t.targets, t.conditions));
+      setPlates(platesWithFood(food.id, t.targets, t.conditions, week));
     };
     void load();
     window.addEventListener(PERSONALIZATION_CHANGED, load);

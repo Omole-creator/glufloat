@@ -74,3 +74,22 @@ if (fails) {
   process.exit(1);
 }
 console.log("One voice: every blue-card plate reads the same in search.");
+
+// 4. Ofada and brown rice (3 a week): lunch only, and gone once eaten 3 times.
+{
+  const lunch = ideasFor("lunch");
+  check(lunch.some((p) => p.includes("ofada-rice")) && lunch.some((p) => p.includes("brown-rice")), "rice plates missing from lunch");
+  check(!ideasFor("dinner").some((p) => p.includes("ofada-rice") || p.includes("brown-rice")), "rice must not be at dinner");
+  const full = new Map([["ofada-rice", 3], ["brown-rice", 3]]);
+  for (let d = 1; d <= 28; d++) {
+    const day = `2026-11-${String(d).padStart(2, "0")}`;
+    for (const off of [0, 1, 2, 3]) {
+      const p = planForDay("lunch", day, new Map(), off, [], new Map(), null, 900, [], "", full);
+      check(!p.foods.some((f) => f.id === "ofada-rice" || f.id === "brown-rice"), `rice served after 3 this week (${day})`);
+    }
+  }
+  check(platesWithFood("ofada-rice", {}, [], full).lunch.length === 0, "search should hide rice past its weekly count");
+  check(platesWithFood("ofada-rice").lunch.length > 0, "search should show rice under its weekly count");
+  if (!fails) console.log("Rice plates: lunch only, and they leave the rotation at 3 a week.");
+  if (fails) process.exit(1);
+}

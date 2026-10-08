@@ -516,8 +516,33 @@ function pepperSoupPlates(): string[][] {
   ]);
 }
 
+/**
+ * Rice that raises sugar more slowly, eaten the way Nigerians eat it (founder,
+ * 2026-10-08, after the engine scored each plate green at the normal size).
+ * Lunch only: both are moderate-GI, and dinner keeps to low-GI foods. Their
+ * cards say "About 3 times a week", so `WEEKLY_PLATE_LIMIT` takes them out
+ * of the rotation once eaten 3 times in 7 days.
+ */
+const RICE_PLATES: string[][] = [
+  ["ofada-rice", "ayamase", "eggs"],
+  ["ofada-rice", "efo-riro", "fish"],
+  ["ofada-rice", "garden-egg-sauce", "chicken"],
+  ["brown-rice", "efo-riro", "chicken"],
+  ["brown-rice", "garden-egg-sauce", "fish"],
+  ["brown-rice", "tomato-stew", "turkey"],
+];
+
+/** Foods a plate may hold only a set number of times in 7 days (their card's count). */
+const WEEKLY_PLATE_LIMIT: Record<string, number> = { "ofada-rice": 3, "brown-rice": 3 };
+
+/** A plate that would take a limited food past its weekly count. */
+function overWeeklyLimit(ids: string[], weekCounts: Map<string, number>): boolean {
+  return ids.some((id) => WEEKLY_PLATE_LIMIT[id] != null && (weekCounts.get(id) ?? 0) >= WEEKLY_PLATE_LIMIT[id]);
+}
+
 const LUNCH: string[][] = [
   ...soupPlates(0),
+  ...RICE_PLATES,
   ...beansPlates(BEANS_PARTNERS),
   ["ukwa", "fish"],
 ];
@@ -835,6 +860,7 @@ export function planForDay(
   calorieTargetForMeal: number | null = null,
   conditions: Condition[] = [],
   personalKey = "",
+  weekCounts: Map<string, number> = new Map(),
 ): MealIdea {
   const list = IDEAS[meal];
   const n = list.length;
@@ -880,6 +906,12 @@ export function planForDay(
       (s) => !s.idea.foods.some((f) => CONDITION_EXCLUDED_PROTEIN_IDS.has(f.id)),
     );
     if (safe.length > 0) base = safe;
+  }
+  // A food with a weekly count (ofada and brown rice, 3 a week) leaves the
+  // rotation once eaten that many times in 7 days.
+  if (weekCounts.size > 0) {
+    const within = base.filter((s) => !overWeeklyLimit(list[s.idea.index], weekCounts));
+    if (within.length > 0) base = within;
   }
 
   // A calorie target (Plus/Dietitian tier) is NOT a minor tiebreak added on
@@ -1118,6 +1150,7 @@ export function platesWithFood(
   foodId: string,
   targets: Partial<Record<NamedMeal, number | null>> = {},
   conditions: Condition[] = [],
+  weekCounts: Map<string, number> = new Map(),
 ): Record<NamedMeal, MealIdea[]> {
   const out: Record<NamedMeal, MealIdea[]> = { breakfast: [], lunch: [], dinner: [] };
   for (const meal of ["breakfast", "lunch", "dinner"] as NamedMeal[]) {
@@ -1127,6 +1160,7 @@ export function platesWithFood(
       if (!ids.includes(foodId)) return;
       const idea = resolve(meal, i);
       if (excludesRiskyProtein(conditions) && idea.foods.some((f) => CONDITION_EXCLUDED_PROTEIN_IDS.has(f.id))) return;
+      if (overWeeklyLimit(ids, weekCounts)) return;
       if (target && target > 0) {
         const gap = Math.max(0, target - planCaloriesOf(ids));
         idea.scaledProtein = scaleMainProtein(idea.foods, gap, conditions);

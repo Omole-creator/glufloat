@@ -8,7 +8,7 @@ import {
   type NamedMeal,
 } from "@/lib/mealtime";
 import { planForDay, mealShareFor, mealIdeaCalories, mealIdeaCarbs, mealIdeaFoodsForBuilder, type MealIdea } from "@/lib/nextMeal";
-import { loggedFoodCounts, likedFoodCounts, caloriesEatenToday } from "@/lib/history";
+import { loggedFoodCounts, likedFoodCounts, caloriesEatenToday, foodCountsThisWeek } from "@/lib/history";
 import { trackUsage } from "@/lib/usage";
 import type { Food } from "@/lib/types";
 import { nextEatenMeal } from "@/lib/mealPattern";
@@ -198,6 +198,7 @@ export default function TodaysMeal({
         calTarget,
         profileRef.current.conditions,
         personalRotationKey(profileRef.current),
+        await foodCountsThisWeek(),
       );
       setIdea(next);
       setOffset(0);
@@ -304,7 +305,7 @@ export default function TodaysMeal({
     writeSkipped(meal, idea.index);
     const n = offset + 1;
     setOffset(n);
-    calorieTargetFor(meal).then((calTarget) => {
+    Promise.all([calorieTargetFor(meal), foodCountsThisWeek()]).then(([calTarget, week]) => {
       calTargetRef.current = calTarget;
       const next = planForDay(
         meal,
@@ -317,6 +318,7 @@ export default function TodaysMeal({
         calTarget,
         profileRef.current.conditions,
         personalRotationKey(profileRef.current),
+        week,
       );
       setIdea(next);
       writeShown(meal, dayKey, next.index);
