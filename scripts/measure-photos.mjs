@@ -14,8 +14,8 @@ import sharp from "sharp";
  *   node scripts/measure-photos.mjs
  *
  * Unsplash ids, for the record:
- *   cup-glass-250ml Pexels 5514785 (glass measuring cup printed "1 CUP" and "250ml";
- *   replaced the Unsplash close-up of a cup handle, which the founder found unclear),
+ *   cup-mug-250ml Unsplash 6TjDbd5PNTU (a plain household mug; replaced a lab-style
+ *   measuring cup on the founder's word, which had replaced an unclear close-up),
  *   fist h4elZPxUXLU, palm zabFZL-OYAk, tennis-ball VEW78A1YZ6I,
  *   matchbox e0OS4EQHX2o, deck-of-cards IEISYENbXp8, spoons KOAM0tomZj8,
  *   golf-ball uy5ZEqUOscs, thumb 3KEFp35FVB0, pinch zet6NIY02hI,
@@ -23,8 +23,7 @@ import sharp from "sharp";
  *   big-spoon WBX-ZLr8P7I (a metal ladle full of soup: one big spoon, 125ml)
  */
 const PHOTOS = {
-  // The cup sits in the middle of a wide white photo: cut out the cup itself.
-  "cup-glass-250ml": { px: { left: 390, top: 230, size: 700 } },
+  "cup-mug-250ml": "centre",
   // The fist is small in the middle of a wide frame. Cut out the middle half
   // first (fractions of the source) so it fills the square.
   fist: { left: 0.25, top: 0.08, size: 0.5 },

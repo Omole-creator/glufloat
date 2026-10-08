@@ -269,3 +269,14 @@ body {
     animation: none;
   }
 }
+
+/* ---------- no sideways scrolling on a phone (error sweep, 2026-10-08) ----------
+ * The "reveal-right" cards start 24px to the right and slide in when they
+ * scroll into view; until then they made the home page wider than a phone and
+ * it could be dragged sideways. `clip` (not `hidden`) cuts that off without
+ * making the page a scroll container, so `position: sticky` (the /app desktop
+ * menu) still works. */
+html,
+body {
+  overflow-x: clip;
+}

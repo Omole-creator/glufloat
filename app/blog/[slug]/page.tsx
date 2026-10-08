@@ -221,7 +221,7 @@ export default async function PostPage({ params }: Props) {
         )}
 
         {/* ---- the article, with the contents list beside it on a big screen ---- */}
-        <div className="mx-auto grid max-w-6xl justify-center gap-10 px-5 pb-20 pt-8 lg:grid-cols-[minmax(0,44rem)_15rem] lg:gap-14">
+        <div className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)] justify-center gap-10 px-5 pb-20 pt-8 lg:grid-cols-[minmax(0,44rem)_15rem] lg:gap-14">
           <article id="post-body">
             <div dangerouslySetInnerHTML={{ __html: html }} />
 

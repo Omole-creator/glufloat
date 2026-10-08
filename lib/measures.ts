@@ -51,9 +51,9 @@ export const MEASURES: Measure[] = [
     name: "One cup",
     size: "250ml",
     badge: "250ml",
-    how: "Every cup in GluFloat is this cup: a measuring cup filled to the 250ml line. Half a cup means fill it to the line marked 1/2 CUP.",
-    photo: "/img/measures/cup-glass-250ml.jpg",
-    alt: "A glass measuring cup marked 1 CUP and 250ml, with a 1/2 CUP line",
+    how: "Every cup in GluFloat is a normal tea mug like this one, filled to one finger below the top. That is 250ml. Do not fill it to the brim: a full mug holds more. Half a cup is 125ml: fill the mug to just under halfway.",
+    photo: "/img/measures/cup-mug-250ml.jpg",
+    alt: "A plain white tea mug",
     match: /\bcups?\b/i,
   },
   {
