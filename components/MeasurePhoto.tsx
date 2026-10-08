@@ -57,7 +57,7 @@ export function FoodPhotoButton({ food, size = "md" }: { food: Food; size?: "sm"
       onOpen={() =>
         openMeasureGuide({
           photo: p.photo,
-          alt: p.alt,
+          alt: p.drawing ? `A drawing of the right amount of ${name}` : p.alt,
           title: name,
           size: p.skip ? "Best to skip" : "The right amount",
           how: food.portionGuidance,
@@ -96,7 +96,14 @@ function PhotoButton({
         box,
       )}
     >
-      <Image src={photo} alt="" fill sizes={size === "md" ? "64px" : "44px"} className="object-cover" />
+      <Image
+        src={photo}
+        alt=""
+        fill
+        sizes={size === "md" ? "64px" : "44px"}
+        className="object-cover"
+        unoptimized={photo.endsWith(".svg")}
+      />
       {skip && <SkipMark className="absolute inset-[10%]" />}
       {badge && (
         <span

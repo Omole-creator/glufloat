@@ -110,6 +110,7 @@ export default function MeasureGuide() {
               fill
               sizes="(min-width: 640px) 470px, 100vw"
               className="object-cover"
+              unoptimized={view.photo.endsWith(".svg")}
               priority
             />
             {view.skip && <SkipMark className="absolute inset-[12%]" />}

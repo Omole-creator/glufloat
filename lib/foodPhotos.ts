@@ -1,3 +1,5 @@
+import { DRAWN_FOODS, DRAWN_SKIP } from "./foodDrawings";
+
 /**
  * A real photo of a food AT ITS CARD'S AMOUNT, for the cards that name no
  * household measure ("Two eggs", "Half of one medium banana"). Founder and
@@ -79,7 +81,24 @@ export const FOOD_PHOTOS: Record<string, FoodPhoto> = {
   "sweetened-yogurt": { alt: "Yogurt with cherries in syrup", skip: true, source: "p 39584090" },
 };
 
-export function foodPhotoFor(id: string): (FoodPhoto & { photo: string }) | undefined {
+/**
+ * The picture for a food's amount: its real photo, else its colour drawing
+ * (scripts/food-drawings.mjs, for the foods with no honest photo; founder:
+ * "colourful and not colourless or sketchy"), else nothing.
+ */
+export function foodPhotoFor(
+  id: string,
+): (FoodPhoto & { photo: string; drawing?: boolean }) | undefined {
   const p = FOOD_PHOTOS[id];
-  return p ? { ...p, photo: `/img/food-portions/${id}.jpg` } : undefined;
+  if (p) return { ...p, photo: `/img/food-portions/${id}.jpg` };
+  if (DRAWN_FOODS.includes(id)) {
+    return {
+      alt: "A drawing of the right amount",
+      skip: DRAWN_SKIP.includes(id),
+      source: "drawing",
+      photo: `/img/food-drawings/${id}.svg`,
+      drawing: true,
+    };
+  }
+  return undefined;
 }
