@@ -490,6 +490,64 @@ D.lettuce = () =>
     })
     .join("");
 
+// ---- Foods eaten in pieces, shown as themselves instead of a palm, a
+// matchbox or an egg (founder, 2026-10-08: "better to show the exact chicken
+// and the fish than using palm"). Each draws the count on its card.
+/** A chunk of cooked meat: a rounded, uneven block with a little sear. */
+function chunk(x, y, w, h, rot, c, flecks) {
+  return (
+    `<g transform="rotate(${rot} ${x} ${y})">${shadow(x, y + h * 0.55, w * 0.55, 5)}` +
+    `<path d="M${x - w / 2} ${y - h / 4} Q${x - w / 2 + 4} ${y - h / 2} ${x - w / 6} ${y - h / 2} L${x + w / 3} ${y - h / 2 + 2} Q${x + w / 2} ${y - h / 2 + 4} ${x + w / 2} ${y - h / 6} L${x + w / 2 - 2} ${y + h / 3} Q${x + w / 2 - 6} ${y + h / 2} ${x + w / 4} ${y + h / 2} L${x - w / 3} ${y + h / 2 - 2} Q${x - w / 2} ${y + h / 2 - 4} ${x - w / 2} ${y + h / 5}Z" fill="${grad(c[0], c[1], c[2])}"/>` +
+    (flecks ? specks(x, y, w / 3, h / 3, 10, flecks, Math.round(x + y), 1.3) : "") +
+    `</g>`
+  );
+}
+const twoChunks = (c, flecks) => plate() + chunk(92, 128, 54, 40, -8, c, flecks) + chunk(152, 124, 50, 38, 10, c, flecks);
+const BEEF = ["#a8644a", "#6e3420", "#3e180c"];
+D.beef = () => twoChunks(BEEF);
+D["beef-regular"] = () => twoChunks(BEEF);
+D["goat-meat"] = () => twoChunks(["#b0705a", "#7a3e2a", "#45200f"]);
+D["ram-meat"] = () => twoChunks(["#b4765c", "#7c432c", "#4a2412"]);
+D.grasscutter = () => twoChunks(["#9c6a4c", "#6a3f26", "#3a200f"]);
+D.asun = () => twoChunks(["#b5583a", "#7d2e16", "#45140a"], "#e8b04a");
+D.turkey = () =>
+  plate() +
+  [[86, 130, -20], [154, 126, 20]]
+    .map(([x, y, r]) => `<g transform="rotate(${r} ${x} ${y})">${shadow(x, y + 22, 30, 5)}<path d="M${x - 30} ${y + 4} Q${x - 30} ${y - 22} ${x} ${y - 20} Q${x + 22} ${y - 18} ${x + 22} ${y} Q${x + 20} ${y + 16} ${x} ${y + 18} Q${x - 26} ${y + 22} ${x - 30} ${y + 4}Z" fill="${grad("#e8b07a", "#b86e3a", "#7a3f18")}"/><rect x="${x + 18}" y="${y - 5}" width="18" height="10" rx="5" fill="#f3e3c8"/></g>`)
+    .join("");
+D.pomo = () => plate() + [[88, 130, -12], [150, 126, 14]].map(([x, y, r]) => rrect(x - 28, y - 12, 56, 24, 8, r, grad("#fbf0dc", "#e6cfa4", "#bf9c66"), `stroke="#a88552" stroke-width="2"`)).join("");
+D.shaki = () =>
+  plate() +
+  [[90, 128, -10], [150, 126, 12]]
+    .map(([x, y, r]) => rrect(x - 28, y - 18, 56, 36, 8, r, grad("#fbf4e6", "#e9dcc2", "#c2ab84")) + `<g transform="rotate(${r} ${x} ${y})">${[-12, 0, 12].map((d) => `<path d="M${x - 22} ${y + d} q11 -6 22 0 t22 0" stroke="#b39568" stroke-width="2" fill="none"/>`).join("")}</g>`)
+    .join("");
+D.gizzard = () => plate() + scatter(5, 120, 128, 58, 38, 34, 41).map((p) => chunk(p.x, p.y, 30, 24, p.rot, ["#a85a46", "#73301f", "#401509"])).join("");
+D.kidney = () => plate() + scatter(5, 120, 128, 58, 38, 34, 43).map((p) => oval(p.x, p.y, 15, 11, p.rot, grad("#a24a40", "#6c2420", "#3a0e0c"))).join("");
+D.liver = () => plate() + shadow(122, 150, 58, 8) + `<path d="M64 124 Q66 98 112 100 Q170 98 178 120 Q182 146 140 152 Q90 158 70 146 Q60 138 64 124Z" fill="${grad("#8c3a34", "#5a1c1a", "#2e0a0a")}"/><path d="M84 118 q30 -10 70 -2" stroke="#b25a52" stroke-width="3" fill="none" opacity=".6"/>`;
+D["fried-chicken-fish"] = () => plate() + shadow(122, 150, 56, 8) + `<path d="M66 128 Q70 100 116 100 Q166 102 176 124 Q178 146 132 152 Q84 156 70 144 Q62 138 66 128Z" fill="${fried()}"/>` + specks(120, 126, 46, 18, 30, "#8a4a15", 61, 1.6);
+D["dambu-nama"] = () =>
+  plate() +
+  shadow(120, 152, 62, 10) +
+  Array.from({ length: 90 }, (_, i) => {
+    const r = rng(70 + i);
+    const t = r() * Math.PI * 2, d = Math.sqrt(r());
+    const x = 120 + Math.cos(t) * 56 * d, y = 126 + Math.sin(t) * 30 * d, a = r() * Math.PI;
+    return `<path d="M${(x - Math.cos(a) * 11).toFixed(1)} ${(y - Math.sin(a) * 5).toFixed(1)} L${(x + Math.cos(a) * 11).toFixed(1)} ${(y + Math.sin(a) * 5).toFixed(1)}" stroke="${i % 3 ? "#8a4a2a" : "#b56a3c"}" stroke-width="3.4" stroke-linecap="round"/>`;
+  }).join("");
+D.stockfish = () => plate() + shadow(122, 152, 60, 7) + `<path d="M58 128 Q90 108 150 112 L178 100 L176 152 L150 142 Q92 150 58 128Z" fill="${grad("#f1ece0", "#d8cfbb", "#a99e86")}"/>` + [80, 100, 120, 140].map((x) => `<path d="M${x} 116 l6 26" stroke="#b9ad92" stroke-width="2"/>`).join("");
+D["smoked-fish"] = () => plate() + shadow(122, 152, 60, 7) + `<path d="M56 128 Q86 104 146 110 L178 98 L176 156 L146 144 Q88 152 56 128Z" fill="${grad("#d8964e", "#9a5a22", "#5a300c")}"/><circle cx="72" cy="124" r="4" fill="#2a1406"/>` + [92, 112, 132].map((x) => `<path d="M${x} 114 q6 14 0 28" stroke="#6a3a12" stroke-width="2" fill="none"/>`).join("");
+const yamPieces = (c, stroke) => plate() + [[60, 108, -10], [126, 118, 8]].map(([x, y, r]) => rrect(x, y, 62, 40, 9, r, grad(...c), `stroke="${stroke}" stroke-width="2"`)).join("");
+D["boiled-yam"] = () => yamPieces(["#ffffff", "#f6eedb", "#d9c7a0"], "#c9b48a");
+D["fried-yam"] = () => yamPieces(["#ffd98a", "#e09a3a", "#a5601a"], "#8a4a12");
+D.cocoyam = () => yamPieces(["#fdf6f8", "#ead8e2", "#bfa0b4"], "#8a6a5a");
+D["sweet-potato"] = () => plate() + oval(120, 128, 46, 26, -8, grad("#ffc58a", "#f08a3a", "#b8541a"), `stroke="#7a3a4a" stroke-width="4"`);
+D["boiled-plantain-unripe"] = () =>
+  plate() + [[80, 130, -10], [122, 120, 4], [162, 132, 14]].map(([x, y, r]) => oval(x, y, 22, 17, r, grad("#fff6c8", "#f1dc8a", "#c9b050"), `stroke="#b59a3a" stroke-width="2.5"`)).join("");
+D["puff-puff"] = () => plate() + ball(120, 124, 30, grad("#f7c873", "#d88a2c", "#9a5418")) + specks(120, 124, 22, 22, 18, "#8a4a15", 81, 1.4);
+D.buns = () => plate() + ball(120, 124, 34, grad("#f2c070", "#c9782a", "#844512")) + specks(120, 124, 26, 26, 26, "#6b3510", 83, 1.8);
+D.aadun = () => plate() + rrect(90, 108, 60, 32, 8, -4, grad("#ffb070", "#e06a2a", "#9a3a10")) + specks(120, 124, 24, 12, 16, "#ffe0b0", 85, 1.2);
+D.donkwa = () => plate() + [[96, 126, -14], [144, 124, 12]].map(([x, y, r]) => rrect(x - 20, y - 11, 40, 22, 10, r, grad("#d9a06a", "#a8642c", "#6a3814"))).join("");
+
 // "None at all" on the card: the app draws the red skip mark over these, the
 // same way it does over the skip photos, so the list lives with the drawings.
 const SKIP = ["malt-drink", "energy-drink", "condensed-milk", "sugarcane-juice", "canned-fruit"];

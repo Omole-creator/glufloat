@@ -47,6 +47,14 @@ const CROPS = {
   jackfruit: { left: 0.1, top: 0.08, width: 0.65, height: 0.84, pad: true },
   pomegranate: { left: 0.15, top: 0, width: 0.7, height: 1 },
   watermelon: { left: 0.28, top: 0.5, width: 0.48, height: 0.32, pad: true },
+  // Foods eaten in pieces shown as themselves (founder, 2026-10-08).
+  chicken: { left: 0.18, top: 0.56, width: 0.45, height: 0.36, pad: true },
+  coconut: { left: 0.29, top: 0.255, width: 0.44, height: 0.185, pad: true },
+  fish: { left: 0.02, top: 0.3, width: 0.86, height: 0.5, pad: true },
+  crab: { left: 0.05, top: 0.1, width: 0.9, height: 0.8, pad: true },
+  "fried-egg": { left: 0, top: 0, width: 1, height: 1, pad: true },
+  tofu: { left: 0.2, top: 0.3, width: 0.6, height: 0.4, pad: true },
+  "irish-potato": { left: 0.05, top: 0.05, width: 0.9, height: 0.9, pad: true },
 };
 
 /**

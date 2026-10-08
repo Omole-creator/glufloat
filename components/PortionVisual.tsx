@@ -231,7 +231,19 @@ function Icon({ k }: { k: PortionKey }) {
  * not work for her patients). A card that names no measure ("Two eggs", "One
  * slice") keeps its drawing of the food.
  */
+/**
+ * A food eaten in pieces (meat, fish, yam, plantain, snacks, nuts) shows
+ * ITSELF, not a palm or a fist (founder, 2026-10-08: "better to show the
+ * exact chicken and the fish than using palm"). The words keep the palm, and
+ * its photo stays one tap away as a chip.
+ */
+const PIECE_CATEGORIES = new Set(["protein", "tuber", "plantain", "snack", "nut", "corn"]);
+export function showsFoodItself(food: Food): boolean {
+  return PIECE_CATEGORIES.has(food.category) && Boolean(foodPhotoFor(food.id));
+}
+
 function PortionPicture({ food, size }: { food: Food; size: "sm" | "md" }) {
+  if (showsFoodItself(food)) return <FoodPhotoButton food={food} size={size} />;
   const measure = measuresIn(food.portionGuidance)[0];
   if (measure) {
     return <MeasurePhotoButton measure={measure} forFood={cleanFoodName(food.name)} size={size} />;
@@ -276,7 +288,7 @@ export default function PortionVisual({ food }: { food: Food }) {
         <MeasureChips
           text={food.portionGuidance}
           forFood={cleanFoodName(food.name)}
-          skipFirst
+          skipFirst={!showsFoodItself(food)}
           className="mt-2"
         />
       </div>
@@ -297,7 +309,7 @@ export function PortionMini({ food, portion = "normal" }: { food: Food; portion?
         <MeasureChips
           text={food.portionGuidance}
           forFood={cleanFoodName(food.name)}
-          skipFirst
+          skipFirst={!showsFoodItself(food)}
           className="mt-1.5"
         />
       </div>

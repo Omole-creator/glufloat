@@ -74,6 +74,14 @@ export const FOOD_PHOTOS: Record<string, FoodPhoto> = {
   jackfruit: { alt: "Three yellow pieces of jackfruit", source: "p 5620864" },
   pomegranate: { alt: "Half of one pomegranate, full of seeds", source: "p 11633656" },
   watermelon: { alt: "Six pieces of watermelon on a plate", source: "p 17778854" },
+  // Foods eaten in pieces shown as themselves, not a palm (founder, 2026-10-08).
+  chicken: { alt: "Two grilled chicken drumsticks on a plate", source: "p 24549214" },
+  fish: { alt: "One piece of grilled fish on a plate", source: "p 15146204" },
+  "fried-egg": { alt: "Two fried eggs on a plate", source: "p 8992926" },
+  tofu: { alt: "One block of tofu held in a hand", source: "p 9324367" },
+  "irish-potato": { alt: "Two small potatoes", source: "p 11633655" },
+  crab: { alt: "One cooked crab", source: "p 34640570" },
+  coconut: { alt: "Two pieces of coconut", source: "p 14966550" },
 
   "soft-drink": { alt: "A can of soft drink", skip: true, source: "p 7033796" },
   "fruit-juice": { alt: "A glass of orange juice", skip: true, source: "p 8882541" },

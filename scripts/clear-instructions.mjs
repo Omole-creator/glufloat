@@ -377,6 +377,23 @@ const OWN_SIZE = {
   mushroom: "Nine medium mushrooms, cooked (about 100g).",
   zucchini: "Half of one medium zucchini, cooked (about 120g).",
   lettuce: "Eat as much as you like. Six big leaves is a good start.",
+  // Foods eaten in pieces, counted as themselves, not against a cup, an egg,
+  // a matchbox or a ball (founder, 2026-10-08). Same grams as before. The
+  // body anchors (palm, fist, thumb) stay: they are how someone with no scale
+  // checks the size on their own plate.
+  "boiled-plantain-unripe": "Three slices of boiled plantain, each about 2cm thick (100g).",
+  "boiled-yam": "Two small pieces of yam, each about 5cm long and 3cm thick (about 100g).",
+  "roasted-yam": "Two small pieces of roasted yam, each about 5cm long and 3cm thick (100g).",
+  "boiled-water-yam": "Two small pieces of water yam, each about 5cm long and 3cm thick (100g).",
+  "fried-yam": "Best to skip this. If you do have it, two small pieces at most, each about 5cm long and 3cm thick (about 80g).",
+  "irish-potato": "Two small potatoes, each about 5cm across (120g).",
+  cocoyam: "Two small pieces of cocoyam, each about 5cm long (120g).",
+  "puff-puff": "Best to skip this. If you do have it, only one puff-puff, about 4cm across (about 40g).",
+  buns: "Best to skip this. If you do have it, only one bun, about 5cm across (about 50g).",
+  coconut: "Two small pieces, each about 4cm long and 3cm wide (about 40g in all).",
+  aadun: "One small piece, about 5cm long (about 40g).",
+  crab: "One medium crab (about 90g of meat).",
+  fish: "One piece of fish as wide as your palm (100g).",
 };
 
 const DIETICIAN_PAIRING = {
@@ -596,6 +613,15 @@ for (const f of foods) {
     if (/big spoon/i.test(v) && !/big spoons?( of [\w ]+?)? \(\d+(ml|g)\)/i.test(v))
       problems.push(`${f.id}.${k}: a big spoon must say its ml (one big spoon is 125ml) -> ${v}`);
   }
+}
+
+// 7. A food eaten in pieces is counted as itself, never against an object.
+const PIECES = new Set(["protein", "tuber", "plantain", "snack", "nut", "corn"]);
+for (const f of foods) {
+  if (!PIECES.has(f.category)) continue;
+  if (/porridge|dish|plate|tin|spread|salad|seed|nkwobi|isi-ewu|corned|tuna|popcorn|tapioca|sweet-corn|butter|egusi|sesame/i.test(f.id + " " + f.portionGuidance)) continue;
+  if (/cups?|eggs(?= ?\()|size of (an?|one|two) eggs?|matchbox|tennis ball|golf ball|deck of cards/i.test(f.portionGuidance))
+    problems.push(`${f.id}: count the pieces, do not compare them with an object -> ${f.portionGuidance}`);
 }
 
 // 6. A fruit is measured as itself, never against a cup or another object.
