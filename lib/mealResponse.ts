@@ -210,13 +210,13 @@ export function beforeToLink(loose: Reading[], mealTime: string): Reading | null
  * This is a record of what was eaten. It is never advice.
  */
 export const LESS_AMOUNTS = [
-  { key: "less:0.75", label: "A little less", words: "a little less than the GluFloat size" },
-  { key: "less:0.5", label: "About half", words: "about half the GluFloat size" },
+  { key: "less:0.75", label: "A little less", words: "a little less than the right size" },
+  { key: "less:0.5", label: "About half", words: "about half the right size" },
 ] as const;
 export const MORE_AMOUNTS = [
-  { key: "more:1.5", label: "A little more", words: "a little more than the GluFloat size" },
-  { key: "more:2", label: "About double", words: "about double the GluFloat size" },
-  { key: "more:3", label: "More than double", words: "more than double the GluFloat size" },
+  { key: "more:1.5", label: "A little more", words: "a little more than the right size" },
+  { key: "more:2", label: "About double", words: "about double the right size" },
+  { key: "more:3", label: "More than double", words: "more than double the right size" },
 ] as const;
 
 /** How many times the GluFloat size a saved size is. Unknown or grams: 1. */
@@ -237,10 +237,10 @@ export function portionWords(size: string | null | undefined, guidance: string):
   const s = (size ?? "normal").trim();
   const known = [...LESS_AMOUNTS, ...MORE_AMOUNTS].find((a) => a.key === s);
   if (known) return known.words;
-  if (s === "half") return "less than the GluFloat size";
-  if (s === "large") return "more than the GluFloat size";
+  if (s === "half") return "less than the right size";
+  if (s === "large") return "more than the right size";
   if (/^\d+(\.\d+)?g$/.test(s)) return s;
-  return firstSentence(guidance) || "the GluFloat size";
+  return firstSentence(guidance) || "the right size";
 }
 
 /** The first sentence of a size, which is the amount; the rest is how to cook it. */
@@ -342,7 +342,7 @@ export function observations(tests: ObservedTest[]): string[] {
   const usual = tests.filter((t) => !t.more);
   if (more.length >= 2 && usual.length >= 2) {
     out.push(
-      `After meals eaten bigger than the GluFloat size, the average recorded change was ${signed(mean(more.map((t) => t.change)))} (${more.length} meals). At the GluFloat size or less, it was ${signed(mean(usual.map((t) => t.change)))} (${usual.length} meals).`,
+      `After meals eaten bigger than the right size, the average recorded change was ${signed(mean(more.map((t) => t.change)))} (${more.length} meals). At the right size or less, it was ${signed(mean(usual.map((t) => t.change)))} (${usual.length} meals).`,
     );
   }
 

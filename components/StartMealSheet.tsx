@@ -23,9 +23,9 @@ export interface SheetItem {
 }
 
 const AMOUNTS: { key: PortionSize; label: string; aria: string }[] = [
-  { key: "half", label: "Less", aria: "Less than the GluFloat size of" },
-  { key: "normal", label: "Same", aria: "The same as the GluFloat size of" },
-  { key: "large", label: "More", aria: "More than the GluFloat size of" },
+  { key: "half", label: "Less", aria: "Less than the right size of" },
+  { key: "normal", label: "Same", aria: "The same as the right size of" },
+  { key: "large", label: "More", aria: "More than the right size of" },
 ];
 
 type Step = "when" | "amount" | "test" | "done";
@@ -264,7 +264,7 @@ export default function StartMealSheet({
           {step === "amount" && (
             <>
               <h2 className="font-display text-xl font-bold text-ink">How much is on your plate?</h2>
-              <p className="mt-1 text-sm text-ink-soft">Compare it with the size GluFloat gave you.</p>
+              <p className="mt-1 text-sm text-ink-soft">Compare it with the right size shown below.</p>
               <div className="mt-4 space-y-3">
                 {items.map((it, i) => {
                   const name = cleanFoodName(it.food.name);
@@ -282,7 +282,7 @@ export default function StartMealSheet({
                   return (
                     <div key={it.food.id} className="rounded-2xl bg-mist/70 p-3.5">
                       <p className="text-sm font-bold text-ink">{name}</p>
-                      {size && <p className="mt-0.5 text-xs text-ink-soft">GluFloat size: {size}</p>}
+                      {size && <p className="mt-0.5 text-xs text-ink-soft">Right size: {size}</p>}
                       <MeasureChips text={size} forFood={name} className="mt-1.5" />
                       <div className="mt-2.5 grid grid-cols-3 gap-1 rounded-full bg-white p-1 ring-1 ring-line">
                         {AMOUNTS.map((a) => {
@@ -354,7 +354,7 @@ export default function StartMealSheet({
               </div>
               {ateMore && (
                 <p className="mt-3 text-xs text-ink-soft">
-                  Got it. We&apos;ll save what you ate. Next time, try to stick to the GluFloat size.
+                  Got it. We&apos;ll save what you ate. Next time, keep to the right size.
                 </p>
               )}
               {problem && <p className="mt-3 text-sm font-semibold text-verdict-red">{problem}</p>}

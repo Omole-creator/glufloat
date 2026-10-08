@@ -138,13 +138,13 @@ const guide = "Half a cup of cooked rice (90g). Cook it with one teaspoon of oil
 ok("first sentence is the amount", firstSentence(guide) === "Half a cup of cooked rice (90g).");
 ok("normal size prints the GluFloat amount", portionWords("normal", guide) === "Half a cup of cooked rice (90g).");
 ok("missing size is the GluFloat amount", portionWords(undefined, guide) === "Half a cup of cooked rice (90g).");
-ok("half reads as less", portionWords("half", guide) === "less than the GluFloat size");
-ok("large reads as more", portionWords("large", guide) === "more than the GluFloat size");
+ok("half reads as less", portionWords("half", guide) === "less than the right size");
+ok("large reads as more", portionWords("large", guide) === "more than the right size");
 ok("grams stay grams", portionWords("163g", guide) === "163g");
-ok("no guidance falls back", portionWords("normal", "") === "the GluFloat size");
+ok("no guidance falls back", portionWords("normal", "") === "the right size");
 ok("ate more is spotted", ateMore(["normal", "large"]) && !ateMore(["normal", "half"]) && !ateMore(null));
-ok("how much more reads plainly", portionWords("more:2", guide) === "about double the GluFloat size");
-ok("how much less reads plainly", portionWords("less:0.5", guide) === "about half the GluFloat size");
+ok("how much more reads plainly", portionWords("more:2", guide) === "about double the right size");
+ok("how much less reads plainly", portionWords("less:0.5", guide) === "about half the right size");
 ok("ate more spots the measured kind", ateMore(["normal", "more:1.5"]) && !ateMore(["less:0.75"]));
 ok("size factor", sizeFactor("more:3") === 3 && sizeFactor("less:0.75") === 0.75 && sizeFactor("163g") === 1 && sizeFactor("large") === 1 && sizeFactor(null) === 1);
 
@@ -181,13 +181,13 @@ ok("no meal tests, no observations (and no lonely note)", observations([]).lengt
     obs("C", 10, 20, false, 3),
     obs("D", 14, 30, false, 4),
   ]);
-  ok("portion line appears with 2 on each side", lines.some((l) => l.startsWith("After meals eaten bigger than the GluFloat size, the average recorded change was +42 mg/dL (2 meals). At the GluFloat size or less, it was +12 mg/dL (2 meals).")), lines.join(" | "));
+  ok("portion line appears with 2 on each side", lines.some((l) => l.startsWith("After meals eaten bigger than the right size, the average recorded change was +42 mg/dL (2 meals). At the right size or less, it was +12 mg/dL (2 meals).")), lines.join(" | "));
   ok("starch line splits at the middle", lines.some((l) => l.startsWith("After the meals with the most starch (80g of carbohydrate or more), the average recorded change was +42 mg/dL. After the others, it was +12 mg/dL.")), lines.join(" | "));
   ok("the note is always last", lines[lines.length - 1] === OBSERVATION_NOTE);
 }
 {
   const lines = observations([obs("A", 40, 80, true), obs("C", 10, 20, false), obs("D", 14, 30, false)]);
-  ok("portion line needs 2 on each side", !lines.some((l) => l.includes("bigger than the GluFloat size")));
+  ok("portion line needs 2 on each side", !lines.some((l) => l.includes("bigger than the right size")));
   ok("starch line needs 4 meal tests", !lines.some((l) => l.includes("most starch")));
 }
 {

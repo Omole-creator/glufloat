@@ -625,7 +625,7 @@ function sizeNoteFor(foods: Food[]): string | undefined {
   if (parts[1] && /^(That is|Each is)/.test(parts[1])) size += ` ${parts[1]}`;
   const name =
     starch.id === "starch-delta" ? "Delta starch" : cleanFoodName(starch.name).replace(/\s*\([^)]*\)/g, "").toLowerCase();
-  return `Keep the ${name} to the GluFloat size. ${size}`;
+  return `Eat only this much ${name}. ${size}`;
 }
 
 const LUNCH: string[][] = [

@@ -58,7 +58,7 @@ for (const id of allIds) {
       check(p.foods.some((f) => f.id === id), `${id}: a ${m} plate without it`);
       check(
         scoreMeal(p.foods.map((food) => ({ food, portion: GLUFLOAT_SIZE_STARCHES.has(food.id) ? ("half" as const) : ("normal" as const) }))).verdict === "green",
-        `${id}: ${m} plate ${p.index} not green at the GluFloat size`,
+        `${id}: ${m} plate ${p.index} not green at the right size`,
       );
       check(!p.foods.some((f) => f.healthNote && f.category === "protein"), `${id}: ${m} plate ${p.index} has a warned protein with a condition`);
     }
@@ -114,7 +114,7 @@ console.log("One voice: every blue-card plate reads the same in search.");
           sawSize = true;
           check(Boolean(free.sizeNote), `${meal} plate ${free.index}: GluFloat-size plate without its size line`);
           const built = mealIdeaFoodsForBuilder(free);
-          check(built.some((f) => f.gluFloatSize), `${meal} plate ${free.index}: builder copy does not keep the GluFloat size`);
+          check(built.some((f) => f.gluFloatSize), `${meal} plate ${free.index}: builder copy does not keep the right size`);
         }
         const capped = planForDay(meal, day, new Map(), off, [], new Map(), null, null, [], "", group);
         check(!isSize(capped), `${meal} ${day}: a GluFloat-size plate served after 2 eaten this week`);

@@ -272,7 +272,7 @@ export default function MealBuilder({
                   </span>
                 )}
                 <span className="basis-full text-xs text-ink-soft">
-                  For the GluFloat size of each food, shown below.
+                  For the right size of each food, shown below.
                 </span>
               </div>
             )}
