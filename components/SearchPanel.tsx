@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, Check, Plus } from "lucide-react";
+import { Check, Plus } from "lucide-react";
 import { searchFoods } from "@/lib/search";
 import type { Food } from "@/lib/types";
 import VerdictCard from "./VerdictCard";
@@ -20,7 +20,9 @@ export default function SearchPanel({
 }: {
   /** When set (e.g. tapping a recent food), open straight to that food's card. */
   initialFood?: Food | null;
-  /** "Add what you are eating it with": hand the food to the meal builder. */
+  /** Opens "Check a meal" with this food, from the sugar-test note's
+   *  "Make this meal better" (there is no button for it on the card: founder,
+   *  2026-10-08, "if a user wants to use the check meal feature, they would"). */
   onBuildMeal?: (food: Food) => void;
   /** A blue-card plate tapped under the card: open it in "Check a meal". */
   onOpenPlate?: (foods: Food[]) => void;
@@ -138,15 +140,6 @@ export default function SearchPanel({
                 className="flex flex-1 items-center justify-center gap-2 rounded-full bg-leaf px-5 py-3 text-sm font-bold text-white transition-transform hover:scale-[1.02]"
               >
                 <Plus className="h-4 w-4" strokeWidth={3} /> I ate this
-              </button>
-            )}
-            {onBuildMeal && (
-              <button
-                onClick={() => onBuildMeal(picked)}
-                className="flex flex-1 items-center justify-center gap-2 rounded-full border-2 border-leaf bg-mint px-5 py-3 text-sm font-bold text-leaf-deep transition-colors hover:bg-leaf hover:text-white"
-              >
-                Add what you are eating it with
-                <ArrowRight className="h-4 w-4" />
               </button>
             )}
           </div>

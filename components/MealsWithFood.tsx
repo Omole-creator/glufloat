@@ -23,8 +23,8 @@ import type { Condition } from "@/lib/personalization";
 const ORDER: NamedMeal[] = ["breakfast", "lunch", "dinner"];
 const TITLE = { breakfast: "Breakfast", lunch: "Lunch", dinner: "Dinner" } as const;
 const ICON = { breakfast: Sunrise, lunch: Sun, dinner: Moon } as const;
-/** How many plates each meal shows before "Show more". */
-const FIRST = 3;
+/** Founder, 2026-10-08: three choices, never a long list (choice paralysis). */
+const TOP = 3;
 
 function line(names: string[]): string {
   if (names.length <= 1) return names[0] ?? "";
@@ -75,7 +75,6 @@ export default function MealsWithFood({
 }) {
   const [plates, setPlates] = useState<Record<NamedMeal, MealIdea[]> | null>(null);
   const [targets, setTargets] = useState<Partial<Record<NamedMeal, number>>>({});
-  const [open, setOpen] = useState<Partial<Record<NamedMeal, boolean>>>({});
 
   useEffect(() => {
     let live = true;
@@ -86,7 +85,6 @@ export default function MealsWithFood({
       setPlates(platesWithFood(food.id, t.targets, t.conditions));
     };
     void load();
-    setOpen({});
     window.addEventListener(PERSONALIZATION_CHANGED, load);
     window.addEventListener(INTAKE_CHANGED, load);
     return () => {
@@ -97,8 +95,14 @@ export default function MealsWithFood({
   }, [food.id, personalize]);
 
   if (!plates) return null;
-  const meals = ORDER.filter((m) => plates[m].length > 0);
-  if (meals.length === 0) return null;
+  // The meal it is now, or, when this food is in no plate for this meal, the
+  // next meal that has one (at dinner, a breakfast food shows tomorrow's
+  // breakfast). Founder, 2026-10-08.
+  const now = ORDER.indexOf(currentMeal());
+  const meal = [0, 1, 2].map((k) => ORDER[(now + k) % 3]).find((m) => plates[m].length > 0);
+  if (!meal) return null;
+  const tomorrow = ORDER.indexOf(meal) < now;
+  const list = plates[meal].slice(0, TOP);
 
   const choose = (meal: NamedMeal, idea: MealIdea) => {
     void trackUsage("check_this_meal");
@@ -118,71 +122,56 @@ export default function MealsWithFood({
     onOpen(mealIdeaFoodsForBuilder(idea));
   };
 
+  const Icon = ICON[meal];
   return (
     <section className="mt-5 rounded-3xl bg-white p-5 shadow-[0_12px_40px_-20px_rgba(12,42,71,0.35)] ring-1 ring-line sm:p-6">
-      <h3 className="font-display text-lg font-bold text-ink">GluFloat meals with {cleanFoodName(food.name)}</h3>
-      <p className="mt-1 text-sm text-ink-soft">The same meals your blue card picks. Tap one to see all the details.</p>
-
-      {meals.map((m) => {
-        const Icon = ICON[m];
-        const list = plates[m];
-        const shown = open[m] ? list : list.slice(0, FIRST);
-        return (
-          <div key={m} className="mt-5">
-            <p className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-brand">
-              <Icon className="h-4 w-4" strokeWidth={2.4} /> {TITLE[m]}
-            </p>
-            <ul className="mt-2 space-y-2">
-              {shown.map((idea) => {
-                const carbs = mealIdeaCarbs(idea);
-                const cals = mealIdeaCalories(idea);
-                const bigger = [idea.scaledProtein, idea.scaledSide].filter(Boolean);
-                const name = line(idea.names);
-                return (
-                  <li key={idea.index}>
-                    <button
-                      onClick={() => choose(m, idea)}
-                      aria-label={`${TITLE[m]}: ${name}. See all the details`}
-                      className="group flex w-full items-center gap-3 rounded-2xl bg-mist px-4 py-3 text-left transition-colors hover:bg-brand/10"
-                    >
-                      <span className="min-w-0 flex-1">
-                        <span className="block font-semibold text-ink">{name}</span>
-                        <span className="mt-1.5 flex flex-wrap gap-1.5">
-                          {carbs > 0 && (
-                            <span className="rounded-full bg-white px-2.5 py-0.5 text-xs font-semibold text-ink ring-1 ring-line">
-                              {carbs}g carbs
-                            </span>
-                          )}
-                          {cals > 0 && (
-                            <span className="rounded-full bg-white px-2.5 py-0.5 text-xs font-semibold text-ink-soft ring-1 ring-line">
-                              {cals} kcal
-                            </span>
-                          )}
-                        </span>
-                        {bigger.map((s) => (
-                          <span key={s!.food.id} className="mt-1.5 flex items-start gap-1.5 text-xs text-ink-soft">
-                            <Flame className="mt-0.5 h-3.5 w-3.5 shrink-0 text-leaf" strokeWidth={2.4} />
-                            {s!.instruction}
-                          </span>
-                        ))}
-                      </span>
-                      <ArrowRight className="h-4 w-4 shrink-0 text-brand transition-transform group-hover:translate-x-0.5" />
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-            {list.length > FIRST && !open[m] && (
+      <p className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-brand">
+        <Icon className="h-4 w-4" strokeWidth={2.4} /> {tomorrow ? `${TITLE[meal]} tomorrow` : `For ${TITLE[meal].toLowerCase()}`}
+      </p>
+      <h3 className="mt-1 font-display text-lg font-bold text-ink">
+        {list.length === 1 ? "The best meal" : `The best ${list.length} meals`} with {cleanFoodName(food.name)}
+      </h3>
+      <p className="mt-1 text-sm text-ink-soft">Picked for you, like your blue card. Tap one to see all the details.</p>
+      <ul className="mt-4 space-y-2">
+        {list.map((idea) => {
+          const carbs = mealIdeaCarbs(idea);
+          const cals = mealIdeaCalories(idea);
+          const bigger = [idea.scaledProtein, idea.scaledSide].filter(Boolean);
+          const name = line(idea.names);
+          return (
+            <li key={idea.index}>
               <button
-                onClick={() => setOpen((o) => ({ ...o, [m]: true }))}
-                className="mt-2 text-sm font-bold text-brand underline-offset-2 hover:underline"
+                onClick={() => choose(meal, idea)}
+                aria-label={`${TITLE[meal]}: ${name}. See all the details`}
+                className="group flex w-full items-center gap-3 rounded-2xl bg-mist px-4 py-3 text-left transition-colors hover:bg-brand/10"
               >
-                Show {list.length - FIRST} more {TITLE[m].toLowerCase()} meals
+                <span className="min-w-0 flex-1">
+                  <span className="block font-semibold text-ink">{name}</span>
+                  <span className="mt-1.5 flex flex-wrap gap-1.5">
+                    {carbs > 0 && (
+                      <span className="rounded-full bg-white px-2.5 py-0.5 text-xs font-semibold text-ink ring-1 ring-line">
+                        {carbs}g carbs
+                      </span>
+                    )}
+                    {cals > 0 && (
+                      <span className="rounded-full bg-white px-2.5 py-0.5 text-xs font-semibold text-ink-soft ring-1 ring-line">
+                        {cals} kcal
+                      </span>
+                    )}
+                  </span>
+                  {bigger.map((s) => (
+                    <span key={s!.food.id} className="mt-1.5 flex items-start gap-1.5 text-xs text-ink-soft">
+                      <Flame className="mt-0.5 h-3.5 w-3.5 shrink-0 text-leaf" strokeWidth={2.4} />
+                      {s!.instruction}
+                    </span>
+                  ))}
+                </span>
+                <ArrowRight className="h-4 w-4 shrink-0 text-brand transition-transform group-hover:translate-x-0.5" />
               </button>
-            )}
-          </div>
-        );
-      })}
+            </li>
+          );
+        })}
+      </ul>
     </section>
   );
 }

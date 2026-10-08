@@ -103,6 +103,9 @@ interface MainProteinConfig {
    *  a person without a scale can actually picture — matches the singular/
    *  plural wording already used on that food's own card. */
   describe: (units: number, grams: number) => string;
+  /** A sentence naming a household measure for the bigger serving, when
+   *  describe() names none (chicken, turkey: the palm). */
+  anchor?: (units: number) => string;
 }
 
 /**
@@ -131,6 +134,19 @@ interface MainProteinConfig {
  * same "always a whole countable unit" rule the extras pool already
  * follows in `sizeExtra()`.
  */
+/**
+ * How many times a bigger chicken or turkey serving fills the palm. Their
+ * cards say two pieces "fill your palm", so the bigger serving names the palm
+ * too: without it the portion box had no measure to show and fell back to
+ * the old drawing (founder, 2026-10-08: "the chicken is still showing old
+ * visuals"). The multiplier never goes past 2, so these are the only cases.
+ */
+function palms(n: number): string {
+  if (n <= 1) return "once";
+  if (n < 2) return "one and a half times";
+  return "twice";
+}
+
 const MAIN_PROTEIN_CONFIG: Record<string, MainProteinConfig> = {
   fish: {
     baseGrams: 100,
@@ -144,11 +160,13 @@ const MAIN_PROTEIN_CONFIG: Record<string, MainProteinConfig> = {
     baseGrams: 90,
     baseUnits: 2,
     describe: (units, grams) => `${units} medium pieces of chicken, put together (${grams}g)`,
+    anchor: (units) => `Put together, they fill your palm ${palms(units / 2)}.`,
   },
   turkey: {
     baseGrams: 90,
     baseUnits: 2,
     describe: (units, grams) => `${units} turkey pieces, put together (${grams}g)`,
+    anchor: (units) => `Put together, they fill your palm ${palms(units / 2)}.`,
   },
   snail: {
     baseGrams: 90,
@@ -277,7 +295,7 @@ export function scaleMainProtein(
     extraCalories: calories - baseKcal,
     carbG,
     extraCarbG: carbG - baseCarb,
-    instruction: `A bigger ${cleanFoodName(food.name).toLowerCase()} serving today: about ${config.describe(units, grams)}, instead of the usual ${config.describe(config.baseUnits, baseGrams)}. This helps meet your calorie goal, and this size stays safe for your sugar.`,
+    instruction: `A bigger ${cleanFoodName(food.name).toLowerCase()} serving today: about ${config.describe(units, grams)}, instead of the usual ${config.describe(config.baseUnits, baseGrams)}. ${config.anchor ? config.anchor(units) + " " : ""}This helps meet your calorie goal, and this size stays safe for your sugar.`,
   };
 }
 

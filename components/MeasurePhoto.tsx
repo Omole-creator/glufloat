@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { foodPhotoFor } from "@/lib/foodPhotos";
 import { cleanFoodName } from "@/lib/foodName";
 import type { Food } from "@/lib/types";
+import { getFood } from "@/lib/search";
 import { SkipMark } from "./MeasureGuide";
 
 /**
@@ -50,6 +51,11 @@ export function FoodPhotoButton({ food, size = "md" }: { food: Food; size?: "sm"
   const p = foodPhotoFor(food.id);
   if (!p) return null;
   const name = cleanFoodName(food.name);
+  // A bigger serving from the blue card (or a search plate) carries its own
+  // words, but the picture is of the card's usual amount. Say so, so six
+  // snails beside a picture of three never reads as a mistake.
+  const usual = getFood(food.id)?.portionGuidance;
+  const bigger = Boolean(usual && usual !== food.portionGuidance);
   return (
     <PhotoButton
       photo={p.photo}
@@ -57,10 +63,10 @@ export function FoodPhotoButton({ food, size = "md" }: { food: Food; size?: "sm"
       onOpen={() =>
         openMeasureGuide({
           photo: p.photo,
-          alt: p.drawing ? `A drawing of the right amount of ${name}` : p.alt,
+          alt: p.drawing ? `A drawing of the usual amount of ${name}` : p.alt,
           title: name,
-          size: p.skip ? "Best to skip" : "The right amount",
-          how: food.portionGuidance,
+          size: p.skip ? "Best to skip" : bigger ? "The usual size" : "The right amount",
+          how: bigger ? `${food.portionGuidance} The picture shows the usual size.` : food.portionGuidance,
           skip: p.skip,
         })
       }
