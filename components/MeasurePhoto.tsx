@@ -4,6 +4,10 @@ import Image from "next/image";
 import { Pointer } from "lucide-react";
 import { measuresIn, openMeasureGuide, type Measure } from "@/lib/measures";
 import { cn } from "@/lib/utils";
+import { foodPhotoFor } from "@/lib/foodPhotos";
+import { cleanFoodName } from "@/lib/foodName";
+import type { Food } from "@/lib/types";
+import { SkipMark } from "./MeasureGuide";
 
 /**
  * The real photo of a household measure, as a button that opens it full size
@@ -25,30 +29,81 @@ export function MeasurePhotoButton({
   forFood: string;
   size?: "sm" | "md";
 }) {
+  return (
+    <PhotoButton
+      photo={measure.photo}
+      label={`See ${measure.name.toLowerCase()} full size, for ${forFood}`}
+      onOpen={() => openMeasureGuide(measure.key)}
+      badge={measure.badge}
+      size={size}
+    />
+  );
+}
+
+/**
+ * A real photo of the food itself at its card's amount (lib/foodPhotos.ts),
+ * for a card that names no household measure ("Two eggs"). Opens full size
+ * with the card's own words underneath. A food with "None at all" carries the
+ * red skip mark, small here and large in the full view.
+ */
+export function FoodPhotoButton({ food, size = "md" }: { food: Food; size?: "sm" | "md" }) {
+  const p = foodPhotoFor(food.id);
+  if (!p) return null;
+  const name = cleanFoodName(food.name);
+  return (
+    <PhotoButton
+      photo={p.photo}
+      label={`See how much ${name} to eat, full size`}
+      onOpen={() =>
+        openMeasureGuide({
+          photo: p.photo,
+          alt: p.alt,
+          title: name,
+          size: p.skip ? "Best to skip" : "The right amount",
+          how: food.portionGuidance,
+          skip: p.skip,
+        })
+      }
+      skip={p.skip}
+      size={size}
+    />
+  );
+}
+
+function PhotoButton({
+  photo,
+  label,
+  onOpen,
+  badge,
+  skip,
+  size,
+}: {
+  photo: string;
+  label: string;
+  onOpen: () => void;
+  badge?: string;
+  skip?: boolean;
+  size: "sm" | "md";
+}) {
   const box = size === "md" ? "h-16 w-16" : "h-11 w-11";
   return (
     <button
       type="button"
-      onClick={() => openMeasureGuide(measure.key)}
-      aria-label={`See ${measure.name.toLowerCase()} full size, for ${forFood}`}
+      onClick={onOpen}
+      aria-label={label}
       className={cn(
         "group relative shrink-0 overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-black/5 transition-transform hover:scale-[1.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2",
         box,
       )}
     >
-      <Image
-        src={measure.photo}
-        alt=""
-        fill
-        sizes={size === "md" ? "64px" : "44px"}
-        className="object-cover"
-      />
-      {measure.badge && (
+      <Image src={photo} alt="" fill sizes={size === "md" ? "64px" : "44px"} className="object-cover" />
+      {skip && <SkipMark className="absolute inset-[10%]" />}
+      {badge && (
         <span
           aria-hidden
           className="absolute left-0.5 top-0.5 rounded-md bg-white/95 px-1 text-[10px] font-bold leading-4 text-ink shadow-sm"
         >
-          {measure.badge}
+          {badge}
         </span>
       )}
       <span

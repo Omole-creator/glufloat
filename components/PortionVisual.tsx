@@ -2,7 +2,8 @@ import type { Food, PortionSize } from "@/lib/types";
 import { portionVisual, type PortionKey } from "@/lib/portionVisual";
 import { cleanFoodName } from "@/lib/foodName";
 import { measuresIn } from "@/lib/measures";
-import { MeasureChips, MeasurePhotoButton } from "./MeasurePhoto";
+import { FoodPhotoButton, MeasureChips, MeasurePhotoButton } from "./MeasurePhoto";
+import { foodPhotoFor } from "@/lib/foodPhotos";
 
 /**
  * The meal builder's Small/Normal/Large tap only ever nudged the verdict
@@ -224,6 +225,7 @@ function Icon({ k }: { k: PortionKey }) {
 /**
  * The picture beside "how much to eat". When the card names a household
  * measure (a fist, a cup, a big spoon...), it is the REAL photo of that measure,
+ * else a real photo of the food at its card's amount (lib/foodPhotos.ts),
  * tappable to see it full size (co-founder dietitian, 2026-10-08: drawings did
  * not work for her patients). A card that names no measure ("Two eggs", "One
  * slice") keeps its drawing of the food.
@@ -233,6 +235,7 @@ function PortionPicture({ food, size }: { food: Food; size: "sm" | "md" }) {
   if (measure) {
     return <MeasurePhotoButton measure={measure} forFood={cleanFoodName(food.name)} size={size} />;
   }
+  if (foodPhotoFor(food.id)) return <FoodPhotoButton food={food} size={size} />;
   const { key } = portionVisual(food);
   return size === "md" ? (
     <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg bg-white shadow-sm">

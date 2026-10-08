@@ -117,7 +117,13 @@ export default function MeasureGuide() {
           {(view.size || view.how) && (
             <div className="mt-4">
               {view.size && (
-                <p className="inline-block rounded-full bg-brand/10 px-3 py-1 text-sm font-bold text-brand">
+                <p
+                  className={
+                    view.skip
+                      ? "inline-block rounded-full bg-verdict-red/10 px-3 py-1 text-sm font-bold text-verdict-red"
+                      : "inline-block rounded-full bg-brand/10 px-3 py-1 text-sm font-bold text-brand"
+                  }
+                >
                   {view.size}
                 </p>
               )}
