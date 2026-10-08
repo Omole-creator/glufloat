@@ -559,6 +559,11 @@ const SIZE_PLATES_LUNCH: string[][] = [
   ["roasted-yam", "pepper-sauce", "fish"],
   ["boiled-plantain-unripe", "efo-riro", "fish"],
   ["boiled-yam", "garden-egg-sauce", "fish"],
+  // Founder, 2026-10-08: a plate that was yellow even at the right size turns
+  // green with one more green food, when that food is really served with it.
+  ["jollof-rice", "fish", "coleslaw"],
+  ["yam-porridge", "fish", "ugu"],
+  ["unripe-plantain-porridge", "fish", "ugu"],
 ];
 const SIZE_PLATES_BREAKFAST: string[][] = [
   ["boiled-water-yam", "egg-sauce"],
@@ -570,6 +575,10 @@ const SIZE_PLATES_BREAKFAST: string[][] = [
   ["golden-morn", "eggs"],
   ["weetabix", "groundnut"],
   ["masa", "miyan-taushe", "chicken"],
+  ["boiled-yam", "garden-egg-sauce", "eggs"],
+  ["boiled-plantain-unripe", "garden-egg-sauce", "eggs"],
+  ["boiled-plantain-ripe", "garden-egg-sauce", "eggs"],
+  ["whole-wheat-bread", "eggs", "moi-moi"],
 ];
 
 /** The starch on each GluFloat-size plate: the foods that must be eaten at the card's size. */
