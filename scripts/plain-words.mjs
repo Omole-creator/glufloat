@@ -173,6 +173,9 @@ const LOGIC = {
 
 /** The card title is read before anything else, so it gets plain words too. */
 const NAMES = {
+  // "Salad" is what Nigerians call it (founder, 2026-10-08); "coleslaw" stays
+  // an alias so search still finds it.
+  coleslaw: "Salad",
   "plain-yogurt": "Plain Yogurt (no sugar)",
   "evaporated-milk": "Evaporated Milk (no sugar)",
   "soy-milk": "Soy Milk (no sugar)",
