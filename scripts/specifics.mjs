@@ -95,7 +95,7 @@ const pairingAdvice = {
 };
 
 const portionGuidance = {
-  "isi-ewu": "One small bowl. That is about three-quarters of a cup (150g).",
+  "isi-ewu": "Three medium pieces of goat head with a little of the sauce (about 150g). Put together, the pieces fill your palm.",
   aadun: "One small piece (about 40g).",
   pito: "One small cup (200ml), rarely.",
   "evaporated-milk": "One tablespoon in tea or pap, with no sugar.",

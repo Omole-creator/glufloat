@@ -109,7 +109,13 @@ const COOKED = {
   adalu: "One and a half big spoons of the cooked dish (150g).",
   "unripe-plantain-porridge": "Two big spoons of the cooked porridge (200g). Serve it with plenty of vegetables.",
   "dan-wake": "One small plate. That is about one cup of the cooked dumplings (150g).",
-  abacha: "One small plate. That is about one cup of the dish as it is served (150g).",
+  // "One small plate. That is about one cup" gave two sizes at once (founder,
+  // 2026-10-09). Abacha is shreds in sauce, not pieces, so the cup stays, like
+  // the other chopped mixtures.
+  abacha: "One cup of abacha, as it is served (150g).",
+  // Goat head is eaten in pieces: counted, not a cup (founder, 2026-10-09).
+  // Same palm as the Goat Meat card; the extra weight is the sauce.
+  "isi-ewu": "Three medium pieces of goat head with a little of the sauce (about 150g). Put together, the pieces fill your palm.",
   // Counted in pieces, not a cup (founder, 2026-10-09): the same three slices as
   // the Fried Plantain card and the same five pieces as the Gizzard card, 60g + 90g.
   gizdodo: "Three small slices of fried plantain and five pieces of gizzard (about 150g).",
@@ -626,7 +632,8 @@ for (const f of foods) {
 const PIECES = new Set(["protein", "tuber", "plantain", "snack", "nut", "corn"]);
 for (const f of foods) {
   if (!PIECES.has(f.category)) continue;
-  if (/porridge|dish|plate|tin|spread|salad|seed|nkwobi|isi-ewu|corned|tuna|popcorn|tapioca|sweet-corn|butter|egusi|sesame/i.test(f.id + " " + f.portionGuidance)) continue;
+  // abacha is shredded cassava in sauce, a mixture like salad: the cup stays.
+  if (/porridge|dish|plate|tin|spread|salad|abacha|seed|nkwobi|isi-ewu|corned|tuna|popcorn|tapioca|sweet-corn|butter|egusi|sesame/i.test(f.id + " " + f.portionGuidance)) continue;
   if (/\bcups?\b|size of (an?|one|two) eggs?|matchbox|tennis ball|golf ball|deck of cards/i.test(f.portionGuidance))
     problems.push(`${f.id}: count the pieces, do not compare them with an object -> ${f.portionGuidance}`);
 }

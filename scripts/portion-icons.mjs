@@ -111,7 +111,7 @@ const ICONS = {
   "roasted-corn": "cob",
   "sweet-corn": "half-cup",
   "popcorn-plain": "cup",
-  abacha: "bowl",
+  abacha: "cup",
 
   // Soups eaten by the spoon, and the leafy ones you may eat freely.
   "egusi-soup": "bowl",
@@ -131,7 +131,7 @@ const ICONS = {
   "editan-soup": "bowl",
   "atama-soup": "bowl",
   "ofe-akwu": "bowl",
-  "isi-ewu": "bowl",
+  "isi-ewu": "pieces",
   nkwobi: "bowl",
   "tomato-stew": "bowl",
   ayamase: "bowl",
