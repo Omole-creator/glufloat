@@ -92,6 +92,10 @@ const COOKED = {
   // words were promising a size 40g bigger than white rice. Since 2026-10-09 it is
   // treated exactly like white rice (co-founder dietitian), so it takes white
   // rice's size word for word.
+  // "Half a small tin" showed a whole open tin in every picture, which reads as
+  // "eat the tin". A small tin holds about 4 sardines, so half is 2 (founder,
+  // 2026-10-09). 60g is the serving food-composition already used.
+  sardine: "Two sardines from the tin (about 60g).",
   "parboiled-rice": "Half a cup of cooked rice. That is about the size of a tennis ball (90g).",
 
   // Cooked dishes served in a bowl or on a plate.

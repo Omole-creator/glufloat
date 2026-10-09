@@ -329,12 +329,16 @@ D["egg-sauce"] = () =>
   specks(122, 130, 46, 22, 8, "#3fa03a", 95, 2.4);
 D["egg-roll"] = () =>
   plate() + oval(120, 128, 42, 32, -10, grad("#f9cf86", "#d98a3a", "#94501a")) + specks(120, 128, 30, 22, 30, "#a8601f", 96, 1.5);
+// Two sardines on a plate: the card's amount (2026-10-09), not a tin.
 D.sardine = () =>
-  shadow(120, 178, 86, 10) +
-  `<rect x="34" y="78" width="172" height="100" rx="26" fill="${lin("#e6ebef", "#a8b3bd")}"/><rect x="44" y="88" width="152" height="80" rx="20" fill="#d4a24a"/>` +
-  `<rect x="120" y="88" width="76" height="80" fill="#c9cfd5"/><path d="M120 88 L120 168" stroke="#9aa5ae" stroke-width="2"/>` +
-  [104, 136]
-    .map((y) => `<path d="M50 ${y} Q80 ${y - 12} 116 ${y - 2} L116 ${y + 8} Q80 ${y + 14} 50 ${y + 6} Z" fill="${lin("#d6dde3", "#8e9aa4")}"/><path d="M60 ${y + 1} l50 0" stroke="#6c7680" stroke-width="1.5"/>`)
+  plate() +
+  [[100, -8], [146, 6]]
+    .map(([y, r]) =>
+      `<g transform="rotate(${r} 120 ${y})">` +
+      `<path d="M58 ${y} Q100 ${y - 17} 160 ${y - 4} L182 ${y - 14} L178 ${y} L182 ${y + 14} L160 ${y + 4} Q100 ${y + 17} 58 ${y} Z" fill="${lin("#e7edf2", "#7f8d99")}" stroke="#5f6b75" stroke-width="2"/>` +
+      `<path d="M74 ${y - 2} Q110 ${y - 8} 152 ${y - 2}" stroke="#4d6a86" stroke-width="3" fill="none" opacity=".55"/>` +
+      `<circle cx="70" cy="${y - 3}" r="3.2" fill="#2b3640"/></g>`,
+    )
     .join("");
 D["monkey-kola"] = () =>
   plate() + [[92, 128, -15], [150, 124, 10]].map(([x, y, r]) => oval(x, y, 26, 21, r, grad("#ffd27a", "#e89a2c", "#a85b0e"))).join("");
