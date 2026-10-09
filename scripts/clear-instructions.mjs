@@ -110,7 +110,9 @@ const COOKED = {
   "unripe-plantain-porridge": "Two big spoons of the cooked porridge (200g). Serve it with plenty of vegetables.",
   "dan-wake": "One small plate. That is about one cup of the cooked dumplings (150g).",
   abacha: "One small plate. That is about one cup of the dish as it is served (150g).",
-  gizdodo: "One small plate. That is about one cup of the dish as it is served (150g). It is plantain with gizzard.",
+  // Counted in pieces, not a cup (founder, 2026-10-09): the same three slices as
+  // the Fried Plantain card and the same five pieces as the Gizzard card, 60g + 90g.
+  gizdodo: "Three small slices of fried plantain and five pieces of gizzard (about 150g).",
   "potato-salad": "Half a cup of the made salad (about 130g).",
 
   // Pasta, couscous and noodles. Name the food after "of", never "a cup, cooked".

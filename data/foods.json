@@ -6135,7 +6135,7 @@
     "carbLoad": "medium",
     "gi": "medium",
     "baseVerdict": "yellow",
-    "portionGuidance": "One small plate. That is about one cup of the dish as it is served (150g). It is plantain with gizzard.",
+    "portionGuidance": "Three small slices of fried plantain and five pieces of gizzard (about 150g).",
     "pairingAdvice": "The gizzard is the good part. Keep the fried plantain to three small slices (60g).",
     "frequency": "About 3 times a week.",
     "logicNote": "Gizzard is body-building food with very little starch. The fried ripe plantain is the sugar to watch.",
@@ -6143,7 +6143,7 @@
       "local"
     ],
     "healthNote": "This food is fried or heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, keep to the size shown below and use less oil. Boiled or grilled is better.",
-    "portionIcon": "bowl",
+    "portionIcon": "pieces",
     "calories": 270,
     "proteinG": 12,
     "fatG": 13.5,

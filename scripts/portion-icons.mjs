@@ -70,7 +70,7 @@ const ICONS = {
   "boiled-plantain-ripe": "plantain",
   boli: "plantain",
   "unripe-plantain-porridge": "bowl",
-  gizdodo: "bowl",
+  gizdodo: "pieces",
 
   // Beans and other legumes.
   "cooked-beans": "half-cup",

@@ -111,7 +111,7 @@ const portionGuidance = {
   // (2026-08-31, direct instruction: "do not say eat 1-2 egg. state the
   // exact number").
   "fried-egg": "Two eggs (about 100g). Fry them in one teaspoon of oil.",
-  gizdodo: "A small plate, about one cup (150g). Plantain with the gizzard.",
+  gizdodo: "Three small slices of fried plantain and five pieces of gizzard (about 150g).",
   // "A rare treat only, one" reads as a broken sentence and sometimes leaves
   // "one" with no noun. Reword to "Avoid. If you do have it, only <amount>."
   "chin-chin": "Avoid. If you do have it, only a small handful (about 30g).",
