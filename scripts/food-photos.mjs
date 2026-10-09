@@ -190,6 +190,18 @@ const BOX = {
   soko: [0.23, 0.32, 0.5, 0.5],
   // Loose seeds lie beside the plate: kept out.
   agbalumo: [0.17, 0.3, 0.45, 0.48],
+  // The 9 foods that showed a measure instead of themselves (2026-10-10).
+  gizdodo: [0.32, 0.22, 0.41, 0.5],
+  nkwobi: [0.29, 0.15, 0.43, 0.64],
+  "moi-moi": [0.32, 0.21, 0.37, 0.58],
+  okpa: [0.22, 0.25, 0.49, 0.57],
+  ekuru: [0.26, 0.25, 0.5, 0.54],
+  "dan-wake": [0.31, 0.28, 0.39, 0.5],
+  // A water glass and a fork sit beside the plate: kept out.
+  "beans-and-plantain": [0.26, 0.13, 0.46, 0.6, "pad"],
+  wara: [0.33, 0.26, 0.34, 0.4],
+  // Both glasses (one cup and half a cup); the water glass stays out.
+  "nigerian-salad": [0.16, 0.08, 0.69, 0.84, "pad"],
   // Words are printed under the food in these: the box stops above them.
   beetroot: [0.22, 0.18, 0.57, 0.57, "pad"],
   zucchini: [0.25, 0.2, 0.5, 0.5, "pad"],

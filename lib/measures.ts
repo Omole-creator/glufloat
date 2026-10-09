@@ -101,8 +101,8 @@ export const MEASURES: Measure[] = [
     name: "Your palm",
     size: "The flat inside of your hand",
     how: "Open your hand flat. The food should cover your palm, not your fingers.",
-    photo: "/img/measures/palm.jpg",
-    alt: "An open hand, palm up",
+    photo: "/img/measures/palm-hand.jpg",
+    alt: "A hand held palm up, fingers a little curled",
     match: /\bpalm\b(?![- ](oil|wine|fruit))/i,
   },
   {

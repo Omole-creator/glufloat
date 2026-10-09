@@ -16,7 +16,8 @@ import sharp from "sharp";
  * Unsplash ids, for the record:
  *   cup-glass-250ml and fist-closed are the founder's own photos (2026-10-09);
  *   they replaced a mug (Unsplash 6TjDbd5PNTU) and a fist (h4elZPxUXLU).
- *   palm zabFZL-OYAk, tennis-ball VEW78A1YZ6I,
+ *   palm-hand is the founder's own photo (2026-10-10); it replaced the
+ *   Unsplash palm zabFZL-OYAk. tennis-ball VEW78A1YZ6I,
  *   matchbox e0OS4EQHX2o, deck-of-cards IEISYENbXp8, teaspoon and tablespoon
  *   from Pexels (see PHOTOS),
  *   golf-ball uy5ZEqUOscs, thumb 3KEFp35FVB0, pinch zet6NIY02hI,
@@ -28,7 +29,8 @@ const PHOTOS = {
   // fist. New file names, because next/image caches by URL.
   "cup-glass-250ml": { left: 0.28, top: 0.13, size: 0.44 },
   "fist-closed": { left: 0.29, top: 0.17, size: 0.41 },
-  palm: "centre",
+  // The founder's palm (2026-10-10): fingertips to wrist, the arm cut off.
+  "palm-hand": { px: { left: 170, top: 0, size: 768 } },
   "tennis-ball": "attention",
   matchbox: "centre",
   "deck-of-cards": "centre",
