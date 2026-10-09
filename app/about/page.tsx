@@ -12,6 +12,20 @@ export const metadata: Metadata = {
     "GluFloat is a digital health startup helping people living with diabetes make better food choices without giving up the meals they love.",
 };
 
+// The founders' own words (2026-10-09). Change them only on their say.
+const FOUNDERS = [
+  {
+    name: "Omole Usuangbon",
+    photo: "/img/founder.jpg",
+    bio: "Omole Usuangbon is a pharmacist, entrepreneur, and one of the founders of GluFloat. Drawing on his pharmacy background and passion for digital health, he co-founded GluFloat to make diabetes nutrition simple and practical for Africans. He is also the founder of JobMingle, a career development platform that has helped thousands of people access digital skills and employment opportunities.",
+  },
+  {
+    name: "Favour Chiamaka",
+    photo: "/img/cofounder-favour.jpg",
+    bio: "Favour Chiamaka is a registered dietitian with four years of practice and one of the founders of GluFloat. Drawing on her expertise in nutrition and diabetes care, she helps people living with diabetes enjoy familiar African foods while making smarter food choices. Through GluFloat, she helps users make practical, personalised food decisions that support steadier blood sugar without giving up the meals they grew up eating.",
+  },
+];
+
 export default function AboutPage() {
   return (
     <>
@@ -82,40 +96,48 @@ export default function AboutPage() {
           </div>
         </section>
 
-        {/* About the founder */}
+        {/* About the founders */}
         <section className="bg-white py-16 sm:py-20">
-          <div className="mx-auto max-w-5xl px-4 sm:px-6">
-            <div className="grid items-center gap-10 md:grid-cols-[320px_1fr]">
-              <Reveal direction="left" className="mx-auto">
-                <div className="overflow-hidden rounded-3xl shadow-[0_24px_50px_-20px_rgba(12,42,71,0.45)]">
-                  <Image
-                    src="/img/founder.jpg"
-                    alt="Omole Usuangbon, founder of GluFloat"
-                    width={320}
-                    height={366}
-                    className="h-auto w-72 object-cover"
-                  />
-                </div>
-              </Reveal>
+          <div className="mx-auto max-w-5xl space-y-16 px-4 sm:px-6 sm:space-y-20">
+            {FOUNDERS.map((f, i) => (
+              <div
+                key={f.name}
+                className={
+                  i % 2
+                    ? "grid items-center gap-10 md:grid-cols-[1fr_320px]"
+                    : "grid items-center gap-10 md:grid-cols-[320px_1fr]"
+                }
+              >
+                <Reveal
+                  direction={i % 2 ? "right" : "left"}
+                  className={i % 2 ? "mx-auto md:order-2" : "mx-auto"}
+                >
+                  <div className="overflow-hidden rounded-3xl shadow-[0_24px_50px_-20px_rgba(12,42,71,0.45)]">
+                    <Image
+                      src={f.photo}
+                      alt={`${f.name}, one of the founders of GluFloat`}
+                      width={320}
+                      height={366}
+                      className="h-auto w-72 object-cover"
+                    />
+                  </div>
+                </Reveal>
 
-              <Reveal direction="right" delay={120}>
-                <span className="text-sm font-semibold text-leaf-deep">
-                  About the founder
-                </span>
-                <h2 className="mt-2 font-display text-2xl font-bold text-ink sm:text-3xl">
-                  Omole Usuangbon
-                </h2>
-                <p className="mt-4 text-[17px] leading-relaxed text-ink-soft">
-                  Omole Usuangbon is a pharmacist, entrepreneur, and founder of
-                  GluFloat. Drawing on his pharmacy background and passion for
-                  digital health, he created GluFloat to make diabetes nutrition
-                  simple and practical for Africans. He is also the founder of
-                  JobMingle, a career development platform that has helped
-                  thousands of people access digital skills and employment
-                  opportunities.
-                </p>
-              </Reveal>
-            </div>
+                <Reveal direction={i % 2 ? "left" : "right"} delay={120}>
+                  {i === 0 && (
+                    <span className="text-sm font-semibold text-leaf-deep">
+                      About the founders
+                    </span>
+                  )}
+                  <h2 className="mt-2 font-display text-2xl font-bold text-ink sm:text-3xl">
+                    {f.name}
+                  </h2>
+                  <p className="mt-4 text-[17px] leading-relaxed text-ink-soft">
+                    {f.bio}
+                  </p>
+                </Reveal>
+              </div>
+            ))}
           </div>
         </section>
 

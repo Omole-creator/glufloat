@@ -19,3 +19,12 @@ await sharp(`${root}/pic6.jpg`)
   .jpeg({ quality: 84 })
   .toFile("public/img/founder.jpg");
 console.log("founder.jpg written");
+
+// Co-founder portrait (Favour Chiamaka), same size as the founder's. Cropped
+// from the top: her face sits high in the photo.
+await sharp(`${root}/favour.jpg`)
+  .rotate()
+  .resize(560, 640, { fit: "cover", position: "top" })
+  .jpeg({ quality: 84 })
+  .toFile("public/img/cofounder-favour.jpg");
+console.log("cofounder-favour.jpg written");

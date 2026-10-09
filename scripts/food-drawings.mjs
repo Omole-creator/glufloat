@@ -1,4 +1,4 @@
-import { mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 
 /**
  * Colour drawings of the foods that have NO honest real photo on Unsplash or
@@ -552,8 +552,15 @@ D.donkwa = () => plate() + [[96, 126, -14], [144, 124, 12]].map(([x, y, r]) => r
 // same way it does over the skip photos, so the list lives with the drawings.
 const SKIP = ["malt-drink", "energy-drink", "condensed-milk", "sugarcane-juice", "canned-fruit"];
 
+// A real photo always wins (lib/foodPhotos.ts): a food that has one is not
+// drawn, and its old drawing is removed so nothing ships that is never shown.
 let n = 0;
 for (const [id, draw] of Object.entries(D)) {
+  if (existsSync(`public/img/food-portions/${id}.jpg`)) {
+    delete D[id];
+    rmSync(`${OUT}/${id}.svg`, { force: true });
+    continue;
+  }
   writeFileSync(`${OUT}/${id}.svg`, svg(draw()));
   n++;
 }
@@ -567,7 +574,7 @@ writeFileSync(
 ` +
     `export const DRAWN_FOODS: readonly string[] = ${JSON.stringify(Object.keys(D).sort())};
 ` +
-    `export const DRAWN_SKIP: readonly string[] = ${JSON.stringify(SKIP)};
+    `export const DRAWN_SKIP: readonly string[] = ${JSON.stringify(SKIP.filter((id) => D[id]))};
 `,
 );
 console.log(`${n} drawings written`);

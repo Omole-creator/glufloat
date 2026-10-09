@@ -25,7 +25,6 @@ const CROPS = {
   // background, instead of cropping square and pulling in a neighbour.
   banana: { left: 0.62, top: 0.36, width: 0.36, height: 0.5, pad: true },
   "chocolate-spread": { left: 0.6, top: 0.42, width: 0.4, height: 0.32, pad: true },
-  bacon: { left: 0, top: 0.125, width: 1, height: 0.265, pad: true },
   beer: { left: 0.27, top: 0.16, width: 0.37, height: 0.72, pad: true },
   almond: { left: 0.04, top: 0.06, width: 0.62, height: 0.88, pad: true },
   "french-fries": { left: 0.3, top: 0.3, width: 0.42, height: 0.28, pad: true },
@@ -74,6 +73,115 @@ const BLUR = {
   "seasoning-cube": [{ left: 0.5, top: 0.72, width: 0.25, height: 0.18, sigma: 7 }],
 };
 
+
+/**
+ * The founder's own photos (2026-10-09), one per food, each counted against
+ * its card before use. `BOX` is the food in the photo (left, top, width,
+ * height, as fractions). The output is the smallest square around it, so a
+ * neighbour, a hand or a bowl of extra meat behind the plate stays out. When
+ * that square would not fit, or would take in the words printed under the
+ * food (`pad`), the box itself is set on a plain background instead.
+ */
+const BOX = {
+  suya: [0.12, 0.3, 0.76, 0.4],
+  kilishi: [0.14, 0.2, 0.72, 0.65],
+  boli: [0.34, 0.3, 0.36, 0.45],
+  "puff-puff": [0.33, 0.27, 0.33, 0.47],
+  buns: [0.33, 0.27, 0.33, 0.47],
+  doughnut: [0.3, 0.3, 0.42, 0.42],
+  cake: [0.36, 0.18, 0.28, 0.56],
+  masa: [0.27, 0.3, 0.46, 0.44],
+  "kuli-kuli": [0.22, 0.2, 0.56, 0.48],
+  ojojo: [0.14, 0.2, 0.74, 0.7],
+  "egg-roll": [0.33, 0.24, 0.34, 0.52],
+  samosa: [0.33, 0.2, 0.33, 0.55],
+  "spring-roll": [0.27, 0.3, 0.46, 0.44],
+  "small-chops": [0.24, 0.25, 0.53, 0.6],
+  // The thumb stays in: the card says each piece is the size of your thumb.
+  donkwa: [0.33, 0.25, 0.65, 0.55],
+  kokoro: [0.24, 0.35, 0.49, 0.4],
+  aadun: [0.31, 0.25, 0.37, 0.5],
+  robo: [0.27, 0.25, 0.43, 0.5],
+  "coconut-candy": [0.28, 0.22, 0.42, 0.55],
+  pancakes: [0.3, 0.25, 0.42, 0.52],
+  "chocolate-bar": [0.32, 0.3, 0.34, 0.42],
+  "peanut-candy": [0.33, 0.28, 0.33, 0.45],
+  "baba-dudu": [0.36, 0.25, 0.26, 0.45],
+  alkaki: [0.36, 0.27, 0.26, 0.45],
+  beef: [0.31, 0.25, 0.38, 0.5],
+  "goat-meat": [0.3, 0.25, 0.4, 0.5],
+  turkey: [0.29, 0.18, 0.43, 0.55],
+  snail: [0.3, 0.24, 0.38, 0.48],
+  "prawns-crayfish": [0.27, 0.27, 0.44, 0.5],
+  pomo: [0.34, 0.32, 0.34, 0.42],
+  liver: [0.27, 0.3, 0.46, 0.45],
+  // The photo holds a chicken leg AND a fish; the card is ONE piece, so only the leg.
+  "fried-chicken-fish": [0.22, 0.3, 0.3, 0.55],
+  "dambu-nama": [0.27, 0.24, 0.5, 0.6],
+  periwinkle: [0.27, 0.2, 0.46, 0.6],
+  stockfish: [0.37, 0.39, 0.27, 0.32, "pad"],
+  // A hand rests by the plate in these: the box stays clear of the fingers.
+  shaki: [0.34, 0.3, 0.32, 0.36, "pad"],
+  // A bowl of more gizzard and grasscutter sits behind the plate: kept out.
+  gizzard: [0.32, 0.3, 0.34, 0.42, "pad"],
+  grasscutter: [0.33, 0.28, 0.32, 0.4, "pad"],
+  "beef-regular": [0.34, 0.3, 0.32, 0.38, "pad"],
+  "scrambled-egg": [0.27, 0.29, 0.48, 0.5, "pad"],
+  "egg-sauce": [0.18, 0.2, 0.62, 0.68],
+  asun: [0.24, 0.12, 0.52, 0.72],
+  "ram-meat": [0.28, 0.15, 0.5, 0.65],
+  kidney: [0.05, 0.1, 0.85, 0.85],
+  // An open tin of sardines sits top left: kept out.
+  bacon: [0.21, 0.31, 0.62, 0.52],
+  "cow-leg": [0.28, 0.2, 0.44, 0.55],
+  "cow-tail": [0.31, 0.2, 0.4, 0.58],
+  "smoked-fish": [0.3, 0.2, 0.44, 0.56],
+  sausage: [0.31, 0.3, 0.42, 0.45],
+  pawpaw: [0.31, 0.22, 0.4, 0.52],
+  soursop: [0.31, 0.22, 0.4, 0.52],
+  ube: [0.26, 0.18, 0.5, 0.6],
+  sugarcane: [0.33, 0.22, 0.36, 0.5],
+  grapes: [0.32, 0.2, 0.38, 0.52],
+  "golden-melon": [0.3, 0.22, 0.4, 0.54],
+  "monkey-kola": [0.3, 0.25, 0.38, 0.47],
+  pomelo: [0.31, 0.2, 0.42, 0.55],
+  sweetsop: [0.3, 0.12, 0.4, 0.62],
+  "hog-plum": [0.34, 0.22, 0.32, 0.48],
+  fig: [0.32, 0.2, 0.38, 0.5],
+  "canned-fruit": [0.2, 0, 0.6, 1],
+  groundnut: [0.2, 0.08, 0.6, 0.86],
+  walnut: [0.2, 0.08, 0.6, 0.86],
+  "bitter-kola": [0.34, 0.25, 0.32, 0.45],
+  "kola-nut": [0.36, 0.27, 0.28, 0.45],
+  ugu: [0.03, 0.03, 0.94, 0.94],
+  waterleaf: [0.17, 0.03, 0.68, 0.94],
+  "okra-veg": [0.06, 0.1, 0.86, 0.8],
+  lettuce: [0.05, 0.05, 0.9, 0.9],
+  broccoli: [0.03, 0.25, 0.94, 0.45],
+  cauliflower: [0.05, 0.3, 0.9, 0.45],
+  mushroom: [0.28, 0.12, 0.42, 0.86],
+  "boiled-yam": [0.33, 0.25, 0.34, 0.46],
+  "fried-yam": [0.33, 0.25, 0.34, 0.46],
+  "roasted-yam": [0.33, 0.25, 0.34, 0.46],
+  "sweet-potato": [0.3, 0.2, 0.4, 0.5],
+  cocoyam: [0.33, 0.25, 0.34, 0.5],
+  "boiled-water-yam": [0.33, 0.27, 0.34, 0.48],
+  "boiled-corn": [0.21, 0.18, 0.52, 0.54],
+  "roasted-corn": [0.2, 0.2, 0.67, 0.58],
+  "coconut-bread": [0.24, 0.28, 0.5, 0.5],
+  baguette: [0.32, 0.2, 0.38, 0.52],
+  "eko-agidi": [0.32, 0.22, 0.38, 0.5],
+  weetabix: [0.27, 0.25, 0.46, 0.45],
+  "malt-drink": [0.32, 0.12, 0.36, 0.7],
+  "sugarcane-juice": [0.3, 0.15, 0.4, 0.7],
+  // Words are printed under the food in these: the box stops above them.
+  beetroot: [0.22, 0.18, 0.57, 0.57, "pad"],
+  zucchini: [0.25, 0.2, 0.5, 0.5, "pad"],
+  celery: [0.22, 0.08, 0.57, 0.74, "pad"],
+  akara: [0.3, 0.14, 0.4, 0.62, "pad"],
+  dodo: [0.31, 0.15, 0.38, 0.55, "pad"],
+};
+
 const SRC = "../food-photos";
 const OUT = "public/img/food-portions";
 mkdirSync(OUT, { recursive: true });
@@ -110,14 +218,29 @@ for (const file of readdirSync(SRC).filter((f) => f.endsWith(".jpg"))) {
     src = out;
   }
   let img = sharp(src);
-  const c = CROPS[id];
+  let c = CROPS[id];
+  if (BOX[id]) {
+    const { width: W, height: H } = await sharp(src).metadata();
+    const [l, t, w, h, pad] = BOX[id];
+    const side = Math.max(w * W, h * H);
+    if (pad || side > Math.min(W, H)) {
+      c = { left: l, top: t, width: w, height: h, pad: true };
+    } else {
+      // The smallest square around the food, slid back inside the photo.
+      const cx = (l + w / 2) * W, cy = (t + h / 2) * H;
+      const x = Math.min(Math.max(cx - side / 2, 0), W - side);
+      const y = Math.min(Math.max(cy - side / 2, 0), H - side);
+      c = { left: x / W, top: y / H, width: side / W, height: side / H };
+    }
+  }
   if (c) {
     const { width, height } = await sharp(src).metadata();
+    const left = Math.round(width * c.left), top = Math.round(height * c.top);
     img = img.extract({
-      left: Math.round(width * c.left),
-      top: Math.round(height * c.top),
-      width: Math.round(width * c.width),
-      height: Math.round(height * c.height),
+      left,
+      top,
+      width: Math.min(Math.round(width * c.width), width - left),
+      height: Math.min(Math.round(height * c.height), height - top),
     });
   }
   if (c?.pad) {
@@ -126,8 +249,11 @@ for (const file of readdirSync(SRC).filter((f) => f.endsWith(".jpg"))) {
     // A plain colour from the cut itself, never a blurred copy of the whole
     // photo: that showed blurry extra dates behind the one date, which reads
     // as "more than one".
-    const { dominant } = await sharp(fg).stats();
-    await sharp({ create: { width: 720, height: 720, channels: 3, background: dominant } })
+    let { dominant: background } = await sharp(fg).stats();
+    // The founder's photos: a plain light band, the colour of the plates
+    // they are shot on, rather than a muddy mix of plate and table.
+    if (BOX[id]) background = { r: 244, g: 242, b: 238 };
+    await sharp({ create: { width: 720, height: 720, channels: 3, background } })
       .composite([{ input: fg, left: Math.round((720 - meta.width) / 2), top: Math.round((720 - meta.height) / 2) }])
       .jpeg({ quality: 82, mozjpeg: true })
       .toFile(`${OUT}/${id}.jpg`);
