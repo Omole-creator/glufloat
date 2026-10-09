@@ -108,7 +108,11 @@ const COOKED = {
   "ekpang-nkukwo": "One and a half big spoons of the cooked dish (150g).",
   adalu: "One and a half big spoons of the cooked dish (150g).",
   "unripe-plantain-porridge": "Two big spoons of the cooked porridge (200g). Serve it with plenty of vegetables.",
-  "dan-wake": "One small plate. That is about one cup of the cooked dumplings (150g).",
+  // Counted, not "a small plate, about one cup" (two sizes at once). Founder,
+  // 2026-10-09. Same 150g, so the nutrition figures do not move.
+  "dan-wake": "About eight small dumplings (150g).",
+  // One size only: the plate was a second, vaguer size beside the cups.
+  "nigerian-salad": "One and a half cups of the salad (about 150g).",
   // "One small plate. That is about one cup" gave two sizes at once (founder,
   // 2026-10-09). Abacha is shreds in sauce, not pieces, so the cup stays, like
   // the other chopped mixtures.
@@ -298,7 +302,9 @@ const EXACT = {
   "garden-egg-sauce": "One big spoon of sauce (125ml).",
   "pepper-sauce": "Half a big spoon (60ml).",
   // "Bowl" was a fourth size with no photo (founder chose big spoons, 2026-10-08).
-  nkwobi: "One big spoon (125ml).",
+  // Cow foot is eaten in pieces: counted, like isi ewu (founder, 2026-10-09).
+  // 125g is the serving the nutrition figures already used.
+  nkwobi: "Three medium pieces of cow foot with a little of the sauce (about 125g). Put together, the pieces fill your palm.",
   "pepper-soup": "Eat as much as you like. Four big spoons (500ml) is a good start.",
   "native-soup": "One big spoon of soup (125ml).",
 };

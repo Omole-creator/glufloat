@@ -52,9 +52,9 @@ export const MEASURES: Measure[] = [
     name: "One cup",
     size: "250ml",
     badge: "250ml",
-    how: "Every cup in GluFloat is a normal tea mug like this one, filled to one finger below the top. That is 250ml. Do not fill it to the brim: a full mug holds more. Half a cup is 125ml: fill the mug to just under halfway.",
-    photo: "/img/measures/cup-mug-250ml.jpg",
-    alt: "A plain white tea mug",
+    how: "Every cup in GluFloat is a normal drinking glass like this one, filled to one finger below the top. That is 250ml. Do not fill it to the brim: a full glass holds more. Half a cup is 125ml: fill the glass to just under halfway.",
+    photo: "/img/measures/cup-glass-250ml.jpg",
+    alt: "A plain drinking glass",
     match: /\bcups?\b/i,
   },
   {
@@ -92,8 +92,8 @@ export const MEASURES: Measure[] = [
     name: "Your fist",
     size: "About as big as your closed hand",
     how: "Close your hand tight. The food should be no bigger than your own fist.",
-    photo: "/img/measures/fist.jpg",
-    alt: "A closed fist held up against a plain wall",
+    photo: "/img/measures/fist-closed.jpg",
+    alt: "A closed fist resting on a table",
     match: /\bfist/i,
   },
   {

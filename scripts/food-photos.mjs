@@ -182,6 +182,14 @@ const BOX = {
   "mixed-nuts": [0.2, 0.08, 0.6, 0.86],
   "fruit-salad": [0.27, 0.18, 0.46, 0.55],
   "green-beans": [0.02, 0.08, 0.96, 0.86],
+  // The 6 retaken photos (2026-10-09).
+  "boiled-plantain-unripe": [0.29, 0.13, 0.42, 0.62],
+  sardine: [0.26, 0.55, 0.5, 0.28, "pad"],
+  "fish-roll": [0.18, 0.46, 0.5, 0.4],
+  "velvet-tamarind": [0.2, 0.36, 0.52, 0.44],
+  soko: [0.23, 0.32, 0.5, 0.5],
+  // Loose seeds lie beside the plate: kept out.
+  agbalumo: [0.17, 0.3, 0.45, 0.48],
   // Words are printed under the food in these: the box stops above them.
   beetroot: [0.22, 0.18, 0.57, 0.57, "pad"],
   zucchini: [0.25, 0.2, 0.5, 0.5, "pad"],

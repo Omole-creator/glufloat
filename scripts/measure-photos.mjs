@@ -14,9 +14,9 @@ import sharp from "sharp";
  *   node scripts/measure-photos.mjs
  *
  * Unsplash ids, for the record:
- *   cup-mug-250ml Unsplash 6TjDbd5PNTU (a plain household mug; replaced a lab-style
- *   measuring cup on the founder's word, which had replaced an unclear close-up),
- *   fist h4elZPxUXLU, palm zabFZL-OYAk, tennis-ball VEW78A1YZ6I,
+ *   cup-glass-250ml and fist-closed are the founder's own photos (2026-10-09);
+ *   they replaced a mug (Unsplash 6TjDbd5PNTU) and a fist (h4elZPxUXLU).
+ *   palm zabFZL-OYAk, tennis-ball VEW78A1YZ6I,
  *   matchbox e0OS4EQHX2o, deck-of-cards IEISYENbXp8, teaspoon and tablespoon
  *   from Pexels (see PHOTOS),
  *   golf-ball uy5ZEqUOscs, thumb 3KEFp35FVB0, pinch zet6NIY02hI,
@@ -24,10 +24,10 @@ import sharp from "sharp";
  *   big-spoon WBX-ZLr8P7I (a metal ladle full of soup: one big spoon, 125ml)
  */
 const PHOTOS = {
-  "cup-mug-250ml": "centre",
-  // The fist is small in the middle of a wide frame. Cut out the middle half
-  // first (fractions of the source) so it fills the square.
-  fist: { left: 0.25, top: 0.08, size: 0.5 },
+  // The founder's own cup and fist (2026-10-09), replacing the Unsplash mug and
+  // fist. New file names, because next/image caches by URL.
+  "cup-glass-250ml": { left: 0.28, top: 0.13, size: 0.44 },
+  "fist-closed": { left: 0.29, top: 0.17, size: 0.41 },
   palm: "centre",
   "tennis-ball": "attention",
   matchbox: "centre",
