@@ -174,12 +174,21 @@ const BOX = {
   weetabix: [0.27, 0.25, 0.46, 0.45],
   "malt-drink": [0.32, 0.12, 0.36, 0.7],
   "sugarcane-juice": [0.3, 0.15, 0.4, 0.7],
+  // Added 2026-10-09 on the founder's word: the count is written on the card.
+  "chin-chin": [0.24, 0.28, 0.53, 0.5],
+  "cassava-chips": [0.17, 0.17, 0.67, 0.66],
+  "cashew-nut": [0.2, 0.08, 0.6, 0.86],
+  "tiger-nut": [0.2, 0.08, 0.6, 0.86],
+  "mixed-nuts": [0.2, 0.08, 0.6, 0.86],
+  "fruit-salad": [0.27, 0.18, 0.46, 0.55],
+  "green-beans": [0.02, 0.08, 0.96, 0.86],
   // Words are printed under the food in these: the box stops above them.
   beetroot: [0.22, 0.18, 0.57, 0.57, "pad"],
   zucchini: [0.25, 0.2, 0.5, 0.5, "pad"],
   celery: [0.22, 0.08, 0.57, 0.74, "pad"],
   akara: [0.3, 0.14, 0.4, 0.62, "pad"],
   dodo: [0.31, 0.15, 0.38, 0.55, "pad"],
+  "boiled-plantain-ripe": [0.33, 0.22, 0.34, 0.48, "pad"],
 };
 
 const SRC = "../food-photos";

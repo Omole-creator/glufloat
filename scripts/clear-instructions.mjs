@@ -89,9 +89,10 @@ const COOKED = {
   "rice-and-beans": "Three-quarters of a cup of the cooked rice and beans (about 130g). Use more beans than rice.",
   // Parboiled read "Half a cup, cooked (about 130g)", but 130g is the cooked-BEANS
   // anchor. Half a cup of cooked rice is 90g on every other rice card, so the same
-  // words were promising a size 40g bigger than white rice. Parboiled is medium GI,
-  // the same band as brown, ofada and basmati, so it takes the same size they do.
-  "parboiled-rice": "Three-quarters of a cup of cooked rice (about 120g).",
+  // words were promising a size 40g bigger than white rice. Since 2026-10-09 it is
+  // treated exactly like white rice (co-founder dietitian), so it takes white
+  // rice's size word for word.
+  "parboiled-rice": "Half a cup of cooked rice. That is about the size of a tennis ball (90g).",
 
   // Cooked dishes served in a bowl or on a plate.
   "yam-porridge": "One and a half big spoons of the cooked porridge (150g).",

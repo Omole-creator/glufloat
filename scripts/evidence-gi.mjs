@@ -74,6 +74,12 @@ const CORRECTIONS = {
       "A corn swallow. It still pushes your sugar up fast, so keep to one fist-size ball (100g) and eat it with a green vegetable soup.",
     why: "tuwo masara measured GI 86.8. Was medium, which sat below tuwo shinkafa (95.8) and tuwo dawa (85.3) for no reason.",
   },
+  "parboiled-rice": {
+    gi: "high",
+    logicNote:
+      "Most rice sold in bags in Nigeria is parboiled. Look at the bag. If it says parboiled, this is your rice. It pushes your sugar up fast, the same as white rice. Eat less of it, and add vegetables and fish, meat, or egg to slow it down.",
+    why: "co-founder dietitian, 2026-10-09: treat parboiled rice like white rice (half a cup, 2 times a week). Founder agreed. A tightening, so one source is enough under the asymmetry rule. The pilot trial's GI 50-60 (EVIDENCE.md section 2) is not enough to hold it BETTER than white rice against a dietitian's call.",
+  },
   "tuwo-dawa": {
     gi: "high",
     why: "tuwo dawa (sorghum swallow) measured GI 85.3. Whole grain, but still high. Drops to 2 times a week under the high-GI rule.",

@@ -176,6 +176,9 @@ const NAMES = {
   // "Salad" is what Nigerians call it (founder, 2026-10-08); "coleslaw" stays
   // an alias so search still finds it.
   coleslaw: "Salad",
+  // Nigerians eat parboiled rice every day without knowing the word: most
+  // bagged rice is parboiled at the mill (co-founder dietitian, 2026-10-09).
+  "parboiled-rice": "Parboiled Rice (most bagged rice)",
   "plain-yogurt": "Plain Yogurt (no sugar)",
   "evaporated-milk": "Evaporated Milk (no sugar)",
   "soy-milk": "Soy Milk (no sugar)",

@@ -530,7 +530,6 @@ const STEADY_PLATES: string[][] = [
   ["cocoyam-fufu", "okra-soup", "fish"],
   ["basmati-rice", "efo-riro", "fish"],
   ["rice-and-beans", "tomato-stew", "fish"],
-  ["parboiled-rice", "tomato-stew", "chicken"],
   ["spaghetti", "tomato-stew", "chicken"],
   ["macaroni", "tomato-stew", "fish"],
 ];
@@ -553,6 +552,8 @@ const SIZE_PLATES_LUNCH: string[][] = [
   ["lafun", "ewedu", "fish"],
   ["white-rice", "tomato-stew", "chicken"],
   ["white-rice", "efo-riro", "fish"],
+  // Treated like white rice since 2026-10-09 (co-founder dietitian).
+  ["parboiled-rice", "tomato-stew", "chicken"],
   ["jollof-rice", "coleslaw", "chicken"],
   ["fried-rice", "coleslaw", "chicken"],
   ["coconut-rice", "coleslaw", "chicken"],

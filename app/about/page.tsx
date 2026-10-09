@@ -96,9 +96,14 @@ export default function AboutPage() {
           </div>
         </section>
 
-        {/* About the founders */}
+        {/* Meet the founders */}
         <section className="bg-white py-16 sm:py-20">
           <div className="mx-auto max-w-5xl space-y-16 px-4 sm:px-6 sm:space-y-20">
+            <Reveal>
+              <h2 className="text-center font-display text-3xl font-bold text-ink sm:text-4xl">
+                Meet the Founders
+              </h2>
+            </Reveal>
             {FOUNDERS.map((f, i) => (
               <div
                 key={f.name}
@@ -124,14 +129,9 @@ export default function AboutPage() {
                 </Reveal>
 
                 <Reveal direction={i % 2 ? "left" : "right"} delay={120}>
-                  {i === 0 && (
-                    <span className="text-sm font-semibold text-leaf-deep">
-                      About the founders
-                    </span>
-                  )}
-                  <h2 className="mt-2 font-display text-2xl font-bold text-ink sm:text-3xl">
+                  <h3 className="font-display text-2xl font-bold text-ink sm:text-3xl">
                     {f.name}
-                  </h2>
+                  </h3>
                   <p className="mt-4 text-[17px] leading-relaxed text-ink-soft">
                     {f.bio}
                   </p>

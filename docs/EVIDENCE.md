@@ -234,6 +234,15 @@ only a general classification, and parboiled is the rice most Nigerians actually
 eat: marking it high would drop it to 2 a week and seed staple meals RED. **Held
 at medium. This is the first thing to put in front of the dietitian.**
 
+**Settled 2026-10-09: high, treated exactly like white rice.** The co-founder
+dietitian's call, agreed by the founder: half a cup (90g), 2 times a week. A
+tightening, so one source is enough under the asymmetry rule. The display name
+is now "Parboiled Rice (most bagged rice)", because people eat it daily without
+knowing the word. Its blue-card plate moved from the steady plates to the
+right-size plates, next to white rice. Owners: `evidence-gi.mjs` (gi,
+logicNote), `clear-instructions.mjs` (size), `portion-icons.mjs` (icon),
+`plain-words.mjs` (name).
+
 Also noted, not acted on: palm wine measures **11** (we say medium; the frequency
 is pinned to monthly by the alcohol rule regardless, so the band is not doing any
 work), and plain popcorn's literature spans **55–89**, which straddles two bands.
