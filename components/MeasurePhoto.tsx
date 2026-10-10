@@ -28,7 +28,7 @@ export function MeasurePhotoButton({
 }: {
   measure: Measure;
   forFood: string;
-  size?: "sm" | "md";
+  size?: "sm" | "md" | "lg";
 }) {
   return (
     <PhotoButton
@@ -55,7 +55,7 @@ export function UsualSizePhotoButton({
   measure: Measure;
   food: Food;
   usual: string;
-  size?: "sm" | "md";
+  size?: "sm" | "md" | "lg";
 }) {
   const name = cleanFoodName(food.name);
   return (
@@ -83,7 +83,7 @@ export function UsualSizePhotoButton({
  * with the card's own words underneath. A food with "None at all" carries the
  * red skip mark, small here and large in the full view.
  */
-export function FoodPhotoButton({ food, size = "md" }: { food: Food; size?: "sm" | "md" }) {
+export function FoodPhotoButton({ food, size = "md" }: { food: Food; size?: "sm" | "md" | "lg" }) {
   const p = foodPhotoFor(food.id);
   if (!p) return null;
   const name = cleanFoodName(food.name);
@@ -125,9 +125,9 @@ function PhotoButton({
   onOpen: () => void;
   badge?: string;
   skip?: boolean;
-  size: "sm" | "md";
+  size: "sm" | "md" | "lg";
 }) {
-  const box = size === "md" ? "h-16 w-16" : "h-11 w-11";
+  const box = size === "lg" ? "h-24 w-24 rounded-2xl" : size === "md" ? "h-16 w-16" : "h-11 w-11";
   return (
     <button
       type="button"
@@ -142,7 +142,7 @@ function PhotoButton({
         src={photo}
         alt=""
         fill
-        sizes={size === "md" ? "64px" : "44px"}
+        sizes={size === "lg" ? "96px" : size === "md" ? "64px" : "44px"}
         className="object-cover"
         unoptimized={photo.endsWith(".svg")}
       />
@@ -150,7 +150,7 @@ function PhotoButton({
       {badge && (
         <span
           aria-hidden
-          className="absolute left-0.5 top-0.5 rounded-md bg-white/95 px-1 text-[10px] font-bold leading-4 text-ink shadow-sm"
+          className="absolute left-1 top-1 rounded-md bg-white/95 px-1 text-[10px] font-bold leading-4 text-ink shadow-sm"
         >
           {badge}
         </span>
@@ -158,11 +158,11 @@ function PhotoButton({
       <span
         aria-hidden
         className={cn(
-          "tap-hint absolute bottom-0.5 right-0.5 flex items-center justify-center rounded-full bg-white text-brand shadow-md",
-          size === "md" ? "h-6 w-6" : "h-5 w-5",
+          "tap-hint absolute bottom-1 right-1 flex items-center justify-center rounded-full bg-white text-brand shadow-md",
+          size === "sm" ? "h-5 w-5" : "h-6 w-6",
         )}
       >
-        <Pointer className={size === "md" ? "h-3.5 w-3.5" : "h-3 w-3"} strokeWidth={2.4} />
+        <Pointer className={size === "sm" ? "h-3 w-3" : "h-3.5 w-3.5"} strokeWidth={2.4} />
       </span>
     </button>
   );

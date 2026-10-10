@@ -5,6 +5,13 @@ import { measuresIn } from "@/lib/measures";
 import { FoodPhotoButton, MeasureChips, MeasurePhotoButton, UsualSizePhotoButton } from "./MeasurePhoto";
 import { foodPhotoFor } from "@/lib/foodPhotos";
 import { getFood } from "@/lib/search";
+import { Scale } from "lucide-react";
+
+const DOT = {
+  green: "bg-verdict-green",
+  yellow: "bg-verdict-yellow",
+  red: "bg-verdict-red",
+} as const;
 
 /**
  * The meal builder's Small/Normal/Large tap only ever nudged the verdict
@@ -246,7 +253,7 @@ export function showsFoodItself(food: Food): boolean {
   return (PIECE_CATEGORIES.has(food.category) || SHOWN_AS_ITSELF.has(food.id)) && Boolean(foodPhotoFor(food.id));
 }
 
-function PortionPicture({ food, size }: { food: Food; size: "sm" | "md" }) {
+function PortionPicture({ food, size }: { food: Food; size: "sm" | "md" | "lg" }) {
   if (showsFoodItself(food)) return <FoodPhotoButton food={food} size={size} />;
   const measure = measuresIn(food.portionGuidance)[0];
   if (measure) {
@@ -262,15 +269,11 @@ function PortionPicture({ food, size }: { food: Food; size: "sm" | "md" }) {
   }
   if (foodPhotoFor(food.id)) return <FoodPhotoButton food={food} size={size} />;
   const { key } = portionVisual(food);
-  return size === "md" ? (
-    <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg bg-white shadow-sm">
-      <span className="h-12 w-12">
-        <Icon k={key} />
-      </span>
-    </span>
-  ) : (
-    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-white shadow-sm">
-      <span className="h-8 w-8">
+  const box = size === "lg" ? "h-24 w-24 rounded-2xl" : size === "md" ? "h-16 w-16 rounded-lg" : "h-11 w-11 rounded-lg";
+  const inner = size === "lg" ? "h-16 w-16" : size === "md" ? "h-12 w-12" : "h-8 w-8";
+  return (
+    <span className={`flex shrink-0 items-center justify-center bg-white shadow-sm ring-1 ring-black/5 ${box}`}>
+      <span className={inner}>
         <Icon k={key} />
       </span>
     </span>
@@ -280,13 +283,14 @@ function PortionPicture({ food, size }: { food: Food; size: "sm" | "md" }) {
 /** Full-width portion guide: the picture + the clear "how much" text. */
 export default function PortionVisual({ food }: { food: Food }) {
   return (
-    <div className="flex items-center gap-3 rounded-xl bg-mist p-3">
-      <PortionPicture food={food} size="md" />
+    <div className="flex items-center gap-4 rounded-2xl bg-gradient-to-br from-mist to-white p-3 ring-1 ring-brand/10">
+      <PortionPicture food={food} size="lg" />
       <div className="min-w-0">
-        <p className="text-[11px] font-bold uppercase tracking-wider text-ink/60">
+        <p className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-brand">
+          <Scale className="h-3.5 w-3.5" strokeWidth={2.4} aria-hidden />
           How much to eat
         </p>
-        <p className="mt-0.5 text-sm font-medium text-ink">
+        <p className="mt-1 text-sm font-medium text-ink">
           {food.portionGuidance}
         </p>
         <MeasureChips
@@ -300,16 +304,23 @@ export default function PortionVisual({ food }: { food: Food }) {
   );
 }
 
-/** Compact chip used in the meal builder (icon + the food + the clear amount). */
+/**
+ * One food's row in the meal builder's "How much of each to eat": a large
+ * photo of the size beside the food's name and amount, on its own tile so
+ * each food reads as a separate thing to put on the plate.
+ */
 export function PortionMini({ food, portion = "normal" }: { food: Food; portion?: PortionSize }) {
   const note = sizeNote(portion);
   return (
-    <div className="flex items-center gap-2.5">
-      <PortionPicture food={food} size="sm" />
+    <div className="flex items-center gap-3 rounded-2xl bg-white p-2 pr-2.5 shadow-[0_6px_20px_-12px_rgba(12,42,71,0.35)] ring-1 ring-brand/10">
+      <PortionPicture food={food} size="lg" />
       <div className="min-w-0 text-xs">
-        <p className="font-semibold text-ink">{cleanFoodName(food.name)}</p>
-        {note && <p className="font-semibold text-ink-soft">{note}</p>}
-        <p className="text-ink-soft">{food.portionGuidance}</p>
+        <p className="flex items-center gap-1.5 font-semibold text-ink">
+          <span aria-hidden className={`h-2 w-2 shrink-0 rounded-full ${DOT[food.baseVerdict]}`} />
+          {cleanFoodName(food.name)}
+        </p>
+        {note && <p className="mt-0.5 font-semibold text-ink-soft">{note}</p>}
+        <p className="mt-0.5 leading-relaxed text-ink-soft">{food.portionGuidance}</p>
         <MeasureChips
           text={food.portionGuidance}
           forFood={cleanFoodName(food.name)}

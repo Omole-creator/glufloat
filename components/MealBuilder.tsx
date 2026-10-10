@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Check, AlertTriangle, X, Plus, Utensils } from "lucide-react";
+import { Check, AlertTriangle, X, Plus, Utensils, Sparkles, Scale, CalendarDays } from "lucide-react";
 import { searchFoods } from "@/lib/search";
 import { scoreMeal } from "@/lib/verdictEngine";
 import type { Food, MealItem } from "@/lib/types";
@@ -31,22 +31,30 @@ const DOT = {
   red: "bg-verdict-red",
 } as const;
 
+// Yellow is a light colour, so its band carries dark text; green and red
+// carry white. The band is the one place the traffic light fills a surface.
 const VERDICT_UI = {
   green: {
-    band: "bg-verdict-green",
-    card: "border-verdict-green/50 bg-verdict-green/5",
+    band: "bg-gradient-to-br from-verdict-green to-leaf text-white",
+    ring: "ring-verdict-green/40",
+    iconChip: "bg-white/25 ring-white/40",
+    eyebrow: "text-white/85",
     Icon: Check,
     word: "Good to eat",
   },
   yellow: {
-    band: "bg-verdict-yellow",
-    card: "border-verdict-yellow/60 bg-verdict-yellow/5",
+    band: "bg-gradient-to-br from-verdict-yellow to-[#f5d34a] text-ink",
+    ring: "ring-verdict-yellow/60",
+    iconChip: "bg-white/45 ring-white/60",
+    eyebrow: "text-ink/70",
     Icon: AlertTriangle,
     word: "Eat with care",
   },
   red: {
-    band: "bg-verdict-red",
-    card: "border-verdict-red/50 bg-verdict-red/5",
+    band: "bg-gradient-to-br from-verdict-red to-[#c0392b] text-white",
+    ring: "ring-verdict-red/40",
+    iconChip: "bg-white/25 ring-white/40",
+    eyebrow: "text-white/85",
     Icon: X,
     word: "Better to skip",
   },
@@ -217,36 +225,49 @@ export default function MealBuilder({
       <div>
         <div
           key={`${result.verdict}-${items.length}`}
-          className={`overflow-hidden rounded-2xl border-2 shadow-[0_16px_40px_-18px_rgba(12,42,71,0.35)] ${
-            showVerdict ? ui.card : "border-line bg-white"
+          className={`overflow-hidden rounded-3xl bg-white shadow-[0_24px_60px_-28px_rgba(12,42,71,0.45)] ring-1 ${
+            showVerdict ? ui.ring : "ring-line"
           }`}
         >
-          {/* big colour band with the plain word */}
+          {/* big colour band with the plain word and the headline */}
           <div
-            className={`verdict-pop flex items-center gap-4 px-6 py-5 text-white ${
-              showVerdict ? ui.band : "bg-ink/80"
+            className={`verdict-pop relative overflow-hidden px-5 pb-5 pt-5 sm:px-6 ${
+              showVerdict ? ui.band : "bg-gradient-to-br from-ink/85 to-ink/70 text-white"
             }`}
           >
-            <span className="green-burst flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-white/25">
-              {showVerdict ? (
-                <ui.Icon className="h-8 w-8" strokeWidth={3} />
-              ) : (
-                <span className="text-2xl">?</span>
-              )}
-            </span>
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-widest text-white/80">
-                Your answer
-              </p>
-              <p className="font-display text-2xl font-bold leading-tight">
-                {showVerdict ? ui.word : "Add your food"}
-              </p>
+            <span
+              aria-hidden
+              className="pointer-events-none absolute -right-10 -top-12 h-40 w-40 rounded-full bg-white/15 blur-2xl"
+            />
+            <div className="relative flex items-center gap-4">
+              <span
+                className={`green-burst flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl ring-1 ${
+                  showVerdict ? ui.iconChip : "bg-white/20 ring-white/30"
+                }`}
+              >
+                {showVerdict ? (
+                  <ui.Icon className="h-8 w-8" strokeWidth={3} />
+                ) : (
+                  <span className="text-2xl">?</span>
+                )}
+              </span>
+              <div className="min-w-0">
+                <p className={`text-xs font-semibold uppercase tracking-widest ${showVerdict ? ui.eyebrow : "text-white/80"}`}>
+                  Your answer
+                </p>
+                <p className="font-display text-2xl font-bold leading-tight">
+                  {showVerdict ? ui.word : "Add your food"}
+                </p>
+              </div>
             </div>
+            <p className="relative mt-3 text-base font-semibold">
+              {result.headline}
+            </p>
           </div>
 
-          <div className="p-6">
+          <div className="answer-rise space-y-4 p-5 sm:p-6">
             {/* Warns before a rule is broken, e.g. a second fast-sugar meal today. */}
-            <div className="mb-4 empty:mb-0">
+            <div className="empty:hidden">
               {showVerdict && (
                 <IntakeWarning
                   key={items.map((i) => i.food.id).join()}
@@ -255,25 +276,25 @@ export default function MealBuilder({
               )}
             </div>
 
-            <p className="text-base font-semibold text-ink">
-              {result.headline}
-            </p>
-
             {/* Carbs leads calories, same order as the search card and
                 TodaysMeal — the number that matters for insulin dosing. */}
             {showVerdict && totals.carbG > 0 && (
-              <div className="mt-2 flex flex-wrap gap-2">
-                <span className="inline-flex items-center rounded-full bg-mist px-3 py-1 text-xs font-bold text-ink">
-                  {totals.carbG}g carbs
-                </span>
-                {totals.calories > 0 && (
-                  <span className="inline-flex items-center rounded-full bg-mist px-3 py-1 text-xs font-semibold text-ink-soft">
-                    {totals.calories} kcal
-                  </span>
-                )}
-                <span className="basis-full text-xs text-ink-soft">
+              <div>
+                <div className="grid grid-cols-2 gap-2.5">
+                  <p className="rounded-2xl bg-gradient-to-br from-brand to-brand-deep px-4 py-3 text-white shadow-[0_10px_24px_-14px_rgba(27,95,170,0.9)]">
+                    <span className="block font-display text-2xl font-bold leading-none">{totals.carbG}g</span>
+                    <span className="mt-1 block text-xs font-semibold text-white/85"> carbs</span>
+                  </p>
+                  {totals.calories > 0 && (
+                    <p className="rounded-2xl bg-brand/[0.07] px-4 py-3 text-brand-deep ring-1 ring-inset ring-brand/15">
+                      <span className="block font-display text-2xl font-bold leading-none">{totals.calories}</span>
+                      <span className="mt-1 block text-xs font-semibold text-brand-deep/75"> kcal</span>
+                    </p>
+                  )}
+                </div>
+                <p className="mt-2 text-xs text-ink-soft">
                   For the right size of each food, shown below.
-                </span>
+                </p>
               </div>
             )}
 
@@ -281,7 +302,7 @@ export default function MealBuilder({
                 these. No "make this meal better" button here: they are already
                 in the builder, and the plate in front of them is the lever. */}
             {showVerdict && (
-              <div className="mt-3 empty:mt-0">
+              <div className="empty:hidden">
                 <ReadingRecall
                   key={items.map((i) => i.food.id).join()}
                   foods={items.map((i) => i.food)}
@@ -290,29 +311,35 @@ export default function MealBuilder({
             )}
 
             {showVerdict && medicationNote && (
-              <div className="mt-3 flex items-start gap-2.5 rounded-xl border border-line bg-mist p-3">
-                <Pill className="mt-0.5 h-4 w-4 shrink-0 text-ink/60" strokeWidth={2.2} />
+              <div className="flex items-start gap-3 rounded-2xl bg-mist p-3.5 ring-1 ring-inset ring-line">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white text-ink/60 shadow-sm">
+                  <Pill className="h-4 w-4" strokeWidth={2.2} />
+                </span>
                 <p className="text-sm text-ink">{medicationNote}</p>
               </div>
             )}
 
             {result.breakdown.length > 0 && (
-              <ul className="mt-4 space-y-1.5 border-t border-line pt-4 text-sm leading-relaxed text-ink-soft">
+              <ul className="space-y-2.5 rounded-2xl bg-mist/70 p-4 text-sm leading-relaxed text-ink-soft">
                 {result.breakdown.map((b, idx) => (
-                  <li key={idx} className="flex gap-2">
-                    <span className="text-ink-soft/50">•</span>
-                    {b}
+                  <li key={idx} className="flex gap-3">
+                    <span
+                      aria-hidden
+                      className="mt-[7px] h-2 w-2 shrink-0 rounded-full bg-brand ring-4 ring-brand/15"
+                    />
+                    <span>{b}</span>
                   </li>
                 ))}
               </ul>
             )}
 
             {result.fixes.length > 0 ? (
-              <div className="mt-4 rounded-xl bg-mint p-4">
-                <p className="text-sm font-bold text-leaf-deep">
+              <div className="overflow-hidden rounded-2xl bg-mint ring-1 ring-inset ring-leaf/20">
+                <p className="flex items-center gap-2 bg-gradient-to-r from-leaf to-leaf-deep px-4 py-2.5 text-sm font-bold text-white">
+                  <Sparkles className="h-4 w-4" strokeWidth={2.4} aria-hidden />
                   Do this to make it green:
                 </p>
-                <ul className="mt-2 space-y-2 text-sm text-ink">
+                <ul className="space-y-2.5 p-4 text-sm text-ink">
                   {(() => {
                     let step = 0;
                     return result.fixes.map((f, idx) => {
@@ -322,7 +349,7 @@ export default function MealBuilder({
                         return (
                           <li
                             key={idx}
-                            className="rounded-lg border border-verdict-red/40 bg-verdict-red/10 px-3 py-2 font-medium text-verdict-red"
+                            className="rounded-xl border-l-4 border-verdict-red bg-verdict-red/10 px-3 py-2 font-medium text-verdict-red"
                           >
                             {f}
                           </li>
@@ -330,11 +357,11 @@ export default function MealBuilder({
                       }
                       step += 1;
                       return (
-                        <li key={idx} className="flex gap-2">
-                          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-leaf text-xs font-bold text-white">
+                        <li key={idx} className="flex gap-3">
+                          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-leaf text-xs font-bold text-white shadow-[0_4px_10px_-4px_rgba(62,155,79,0.9)]">
                             {step}
                           </span>
-                          <span>{f}</span>
+                          <span className="pt-0.5">{f}</span>
                         </li>
                       );
                     });
@@ -342,8 +369,10 @@ export default function MealBuilder({
                 </ul>
               </div>
             ) : showVerdict && result.verdict === "green" ? (
-              <div className="green-burst mt-4 flex items-center gap-3 rounded-xl bg-verdict-green/10 p-4">
-                <Check className="h-6 w-6 shrink-0 text-leaf-deep" strokeWidth={3} />
+              <div className="green-burst flex items-center gap-3 rounded-2xl bg-gradient-to-br from-verdict-green/15 to-mint p-4 ring-1 ring-inset ring-verdict-green/25">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-leaf text-white shadow-[0_6px_14px_-6px_rgba(62,155,79,0.9)]">
+                  <Check className="h-5 w-5" strokeWidth={3} />
+                </span>
                 <p className="text-sm font-semibold text-ink">
                   Nothing to change. This is a good meal for your sugar.
                 </p>
@@ -360,13 +389,14 @@ export default function MealBuilder({
                   ),
                 ];
                 return notes.length > 0 ? (
-                  <div className="mt-4 space-y-2">
+                  <div className="space-y-2">
                     {notes.map((n, idx) => (
                       <div
                         key={idx}
-                        className="rounded-xl border border-verdict-red/40 bg-verdict-red/10 p-3"
+                        className="rounded-2xl border-l-4 border-verdict-red bg-verdict-red/[0.08] p-3.5"
                       >
-                        <p className="text-[11px] font-bold uppercase tracking-wider text-verdict-red">
+                        <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-verdict-red">
+                          <AlertTriangle className="h-3.5 w-3.5" strokeWidth={2.6} aria-hidden />
                           Please note
                         </p>
                         <p className="mt-1 text-sm text-ink">{n}</p>
@@ -386,13 +416,14 @@ export default function MealBuilder({
                   ),
                 ];
                 return notes.length > 0 ? (
-                  <div className="mt-4 space-y-2">
+                  <div className="space-y-2">
                     {notes.map((n, idx) => (
                       <div
                         key={idx}
-                        className="rounded-xl border border-line bg-mist p-3"
+                        className="rounded-2xl bg-mist p-3.5 ring-1 ring-inset ring-line"
                       >
-                        <p className="text-[11px] font-bold uppercase tracking-wider text-ink/60">
+                        <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-ink/60">
+                          <Pill className="h-3.5 w-3.5" strokeWidth={2.4} aria-hidden />
                           If you take medicine
                         </p>
                         <p className="mt-1 text-sm text-ink">{n}</p>
@@ -403,11 +434,14 @@ export default function MealBuilder({
               })()}
 
             {showVerdict && (
-              <div className="mt-4 border-t border-line pt-4">
-                <p className="text-xs font-bold uppercase tracking-wider text-ink/60">
+              <div className="-mx-2 rounded-3xl bg-gradient-to-b from-mist to-mist/30 p-2 pt-3.5 sm:mx-0 sm:p-3 sm:pt-4">
+                <p className="flex items-center gap-2 px-1 text-xs font-bold uppercase tracking-wider text-brand">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand text-white">
+                    <Scale className="h-4 w-4" strokeWidth={2.4} aria-hidden />
+                  </span>
                   How much of each to eat
                 </p>
-                <div className="mt-3 space-y-3">
+                <div className="mt-3 space-y-2.5">
                   {items.map((i) => (
                     <PortionMini key={i.food.id} food={i.food} />
                   ))}
@@ -416,30 +450,37 @@ export default function MealBuilder({
             )}
 
             {showVerdict && often && (
-              <div className="mt-4 border-t border-line pt-4">
-                <p className="text-xs font-bold uppercase tracking-wider text-ink/60">
+              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-brand to-brand-deep p-4 text-white shadow-[0_14px_30px_-16px_rgba(15,61,117,0.9)]">
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute -bottom-10 -right-6 h-28 w-28 rounded-full bg-white/10 blur-xl"
+                />
+                <p className="relative flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-white/80">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/15 ring-1 ring-white/25">
+                    <CalendarDays className="h-4 w-4" strokeWidth={2.4} aria-hidden />
+                  </span>
                   How often
                 </p>
-                <p className="mt-2 text-base font-semibold text-ink">
+                <p className="relative mt-2.5 text-base font-semibold">
                   {often.text}
                 </p>
                 {often.reason && (
-                  <p className="mt-1 text-sm text-ink-soft">{often.reason}</p>
+                  <p className="relative mt-1 text-sm text-white/80">{often.reason}</p>
                 )}
               </div>
             )}
 
             {showVerdict && (
-              <div className="mt-4 border-t border-line pt-4">
+              <div className="space-y-2.5 pt-1">
                 {ate ? (
-                  <span className="flex w-full items-center justify-center gap-2 rounded-full border-2 border-verdict-green/50 bg-verdict-green/10 px-5 py-3 text-sm font-bold text-leaf-deep">
+                  <span className="flex w-full items-center justify-center gap-2 rounded-full border-2 border-verdict-green/50 bg-verdict-green/10 px-5 py-3.5 text-sm font-bold text-leaf-deep">
                     <Check className="h-4 w-4" strokeWidth={3} /> Added to your
                     food
                   </span>
                 ) : (
                   <button
                     onClick={logEaten}
-                    className="flex w-full items-center justify-center gap-2 rounded-full bg-leaf px-5 py-3 text-sm font-bold text-white transition-transform hover:scale-[1.02]"
+                    className="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-leaf to-leaf-deep px-5 py-3.5 text-sm font-bold text-white shadow-[0_12px_26px_-12px_rgba(44,122,60,0.95)] transition-transform hover:-translate-y-0.5 active:translate-y-0"
                   >
                     <Utensils className="h-4 w-4" /> I ate this meal
                   </button>
@@ -462,11 +503,6 @@ export default function MealBuilder({
                   verdict={result.verdict}
                   onLogged={onLogged}
                 />
-              </div>
-            )}
-
-            {showVerdict && (
-              <div className="mt-3 border-t border-line pt-4">
                 <ShareOnWhatsApp text={mealShareMessage(items, result, often)} />
               </div>
             )}
