@@ -152,16 +152,10 @@ function PhotoButton({
         src={photo}
         alt=""
         fill
-        sizes={size === "fill" ? "(max-width: 640px) 45vw, 260px" : size === "lg" ? "96px" : size === "md" ? "64px" : "44px"}
+        sizes={size === "fill" ? "128px" : size === "lg" ? "96px" : size === "md" ? "64px" : "44px"}
         className="object-cover transition-transform duration-500 group-hover:scale-105"
         unoptimized={photo.endsWith(".svg")}
       />
-      {big && (
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/25 to-transparent"
-        />
-      )}
       {skip && <SkipMark className="absolute inset-[10%]" />}
       {badge && (
         <span
@@ -172,11 +166,16 @@ function PhotoButton({
         </span>
       )}
       {big ? (
-        <span aria-hidden className="absolute bottom-1.5 right-1.5 flex h-9 w-9 items-center justify-center">
-          <span className="tap-ring absolute inset-0 rounded-full bg-brand/40" />
-          <span className="tap-hint relative flex h-9 w-9 items-center justify-center rounded-full bg-brand text-white shadow-[0_6px_14px_-4px_rgba(15,61,117,0.8)] ring-2 ring-white">
-            <Pointer className="h-[18px] w-[18px]" strokeWidth={2.4} />
+        // Founder, 2026-10-10: a hand alone did not tell older users the
+        // photo opens, so the big photos say it in words as well.
+        <span
+          aria-hidden
+          className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-1 bg-brand/90 py-1 text-[11px] font-bold text-white"
+        >
+          <span className="tap-hint inline-flex">
+            <Pointer className="h-3.5 w-3.5" strokeWidth={2.4} />
           </span>
+          Tap to see
         </span>
       ) : (
         <span

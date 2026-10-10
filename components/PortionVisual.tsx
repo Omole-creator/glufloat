@@ -314,22 +314,24 @@ export default function PortionVisual({ food }: { food: Food }) {
 }
 
 /**
- * One food in the meal builder's "How much of each to eat" gallery: a big
- * photo of the size on top (tap it to see it full size), then the food's name
- * and amount. Laid out two to a row by MealBuilder.
+ * One food's row in the meal builder's "How much of each to eat": a large
+ * photo of the size beside the food's name and amount (founder, 2026-10-10:
+ * one food per row, photo on the left), each on its own tile.
  */
 export function PortionMini({ food, portion = "normal" }: { food: Food; portion?: PortionSize }) {
   const note = sizeNote(portion);
   return (
-    <div className="flex flex-col rounded-2xl bg-white p-2 shadow-[0_8px_22px_-12px_rgba(12,42,71,0.4)] ring-1 ring-brand/10">
-      <PortionPicture food={food} size="fill" />
-      <div className="min-w-0 px-1 pb-1 pt-2.5 text-xs">
+    <div className="flex items-center gap-3 rounded-2xl bg-white p-2 pr-2.5 shadow-[0_8px_22px_-12px_rgba(12,42,71,0.4)] ring-1 ring-brand/10">
+      <div className="w-24 shrink-0">
+        <PortionPicture food={food} size="fill" />
+      </div>
+      <div className="min-w-0 text-xs">
         <p className="flex items-start gap-1.5 font-semibold text-ink">
           <span aria-hidden className={`mt-1 h-2 w-2 shrink-0 rounded-full ${DOT[food.baseVerdict]}`} />
           {cleanFoodName(food.name)}
         </p>
         {note && <p className="mt-0.5 font-semibold text-ink-soft">{note}</p>}
-        <p className="mt-1 leading-relaxed text-ink-soft">{food.portionGuidance}</p>
+        <p className="mt-0.5 leading-relaxed text-ink-soft">{food.portionGuidance}</p>
         <MeasureChips
           text={food.portionGuidance}
           forFood={cleanFoodName(food.name)}
