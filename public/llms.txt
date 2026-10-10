@@ -1,6 +1,6 @@
 # GluFloat
 
-> GluFloat is a Nigerian diabetes food app. It tells a person with diabetes whether a Nigerian food or meal is good to eat, how much to eat, and how often, using a green, yellow or red answer. It covers eba, amala, fufu, pounded yam, rice, plantain, beans, pap, soups and 1,400+ other Nigerian food names.
+> GluFloat is a Nigerian diabetes food app. It tells a person with diabetes whether a Nigerian food or meal is good to eat, how much to eat, and how often, using a green, yellow or red answer. It covers eba, amala, fufu, pounded yam, rice, plantain, beans, pap, soups and 1,500+ other Nigerian food names.
 
 GluFloat is built for people in Nigeria managing type 2 diabetes, and for their families and health workers. It suggests a meal for breakfast, lunch and dinner, lets a person check any food or build a plate, keeps a record of what they ate and their own sugar test numbers, and makes a report they can send to their doctor on WhatsApp. The food advice uses measured glycaemic index values for Nigerian staples where they exist.
 

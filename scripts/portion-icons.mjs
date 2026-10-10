@@ -381,6 +381,23 @@ const ICONS = {
   baguette: "avoid",
   "dried-fruit": "avoid",
   "canned-fruit": "avoid",
+  // Added 2026-10-10 (scripts/add-foods-2026-10.mjs).
+  acha: "fist",
+  "boiled-cassava": "pieces",
+  akidi: "half-cup",
+  "kunun-gyada": "glass",
+  mosa: "avoid",
+  "dodo-ikire": "avoid",
+  ebiripo: "pieces",
+  "bush-mango": "whole-fruit",
+  "miyan-yakuwa": "free",
+  "efo-igbo": "free",
+  moringa: "free",
+  pork: "pieces",
+  "guinea-fowl": "pieces",
+  rabbit: "pieces",
+  "quail-eggs": "eggs",
+  "local-spices": "pinch",
 };
 
 const foods = JSON.parse(readFileSync(FILE, "utf8"));

@@ -25,7 +25,7 @@ const FAQS: { q: string; a: string }[] = [
   },
   {
     q: "Will my own food be in the app?",
-    a: "Yes. We have over 1,400 of our foods: eba, amala, jollof, moi moi, suya, zobo, and many more. If yours is not there yet, we add new ones every month.",
+    a: "Yes. We have over 1,500 of our foods: eba, amala, jollof, moi moi, suya, zobo, and many more. If yours is not there yet, we add new ones every month.",
   },
   {
     q: "I take insulin. Is this for me too?",

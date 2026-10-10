@@ -33,7 +33,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Glufloat | Eat your food again, without the fear",
     description:
-      "Green, yellow, or red answers on 1,400+ Nigerian foods, with the simple fix that turns your meal green. Made for people living with diabetes.",
+      "Green, yellow, or red answers on 1,500+ Nigerian foods, with the simple fix that turns your meal green. Made for people living with diabetes.",
     type: "website",
     siteName: SITE_NAME,
     locale: "en_NG",
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Glufloat | Eat your food again, without the fear",
     description:
-      "Green, yellow, or red answers on 1,400+ Nigerian foods, with the fix that turns your meal green.",
+      "Green, yellow, or red answers on 1,500+ Nigerian foods, with the fix that turns your meal green.",
   },
 };
 

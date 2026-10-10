@@ -275,7 +275,7 @@ export default async function PostPage({ params }: Props) {
                   Check your food before you eat it.
                 </h2>
                 <p className="mt-3 max-w-xl text-white/85">
-                  Search from 1,400+ Nigerian foods and meals to instantly see
+                  Search from 1,500+ Nigerian foods and meals to instantly see
                   whether it&apos;s green, yellow, or red for your diabetes and
                   discover simple changes that can turn it into a better choice.
                 </p>

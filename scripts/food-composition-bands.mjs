@@ -198,4 +198,8 @@ export const DEFAULT_SERVING_G = {
   "flavoured-milk": 200,
   alkaki: 15,
   "canned-fruit": 80,
+  // Added 2026-10-10: same serving as the leaves and spice they sit beside.
+  "efo-igbo": 60,
+  moringa: 60,
+  "local-spices": 2,
 };

@@ -51,6 +51,7 @@ const foods = JSON.parse(readFileSync(FILE, "utf8"));
 // PER_100G is "estimated" — a well-established nutrition figure for that
 // dish, not a table lookup.
 const TABLE_GROUNDED = new Set([
+  "acha",
   "garri-eba",
   "pap",
   "white-rice",
@@ -462,6 +463,28 @@ const PER_100G = {
   indomie: [436, 9, 17, 60, 2, 250, 1700],
   spaghetti: [131, 5, 1.1, 25, 1.8, 45, 1],
   macaroni: [131, 5, 1.1, 25, 1.8, 45, 1],
+  // Added 2026-10-10 (scripts/add-foods-2026-10.mjs). Sources in
+  // ../reports/Nigerian foods nutrition and GI.md at the repo's parent folder.
+  acha: [145, 2.9, 1.3, 28.9, 3.1, 110, 2], // NFCT 2016 01_01_02, boiled
+  "boiled-cassava": [121, 1.1, 0.3, 27, 3.2, 114, 1], // WAFCT 2019 02_003
+  akidi: [113, 8.2, 0.6, 14.8, 7.9, 387, 6], // WAFCT 2019 03_026, black cowpea boiled
+  // Nkama et al. 1995 (groundnut-rice blend); K/Na from the kunu card.
+  "kunun-gyada": [72, 2.3, 1, 12.2, 0.15, 70, 5],
+  mosa: [375, 2.1, 16.9, 51.7, 3.7, 785, 325], // WAFCT 02_084, deep-fried plantain (near-equivalent)
+  // Kayode et al. 2013 lab control; fibre/K/Na from WAFCT 02_084.
+  "dodo-ikire": [409, 4.6, 13.9, 66.5, 3.7, 785, 325],
+  ebiripo: [143, 3.4, 0.3, 30.4, 2.1, 447, 8], // WAFCT 02_006, boiled cocoyam (near-equivalent)
+  "bush-mango": [61, 0.9, 0.2, 15.7, 1, 220, 2], // PROTA pulp; K/Na from dry-weight, worked out
+  "miyan-yakuwa": [104, 3.5, 7.9, 3.6, 2, 169, 332], // WAFCT 14_014 hibiscus-leaf sauce (near-equivalent)
+  "efo-igbo": [48, 4.4, 0.8, 3.7, 4.2, 443, 26], // WAFCT 04_013 eggplant/gboma leaves
+  moringa: [81, 8.4, 1.4, 4.5, 8.2, 405, 9], // WAFCT 04_011
+  pork: [173, 27.2, 6.3, 0, 0, 357, 47], // USDA 168254, lean loin roasted
+  "guinea-fowl": [110, 20.6, 2.5, 0, 0, 220, 69], // USDA 174471
+  rabbit: [197, 29.1, 8.1, 0, 0, 383, 47], // USDA 172522, roasted
+  "quail-eggs": [180.5, 16.6, 12.5, 0.4, 0, 164, 170], // NFCT 09_03_02 boiled; K/Na WAFCT
+  // Average of alligator pepper, ehuru and uda (Adeyeye & Fagbohun 2005,
+  // Ekeanyanwu 2009, Molecules 2019). A 2g pinch, so small either way.
+  "local-spices": [257, 9.6, 13.2, 27.4, 39.9, 1000, 80],
 };
 
 // Alcoholic drinks get most of their energy from alcohol (~7 kcal/g), not

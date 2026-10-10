@@ -96,6 +96,8 @@ const MEAT_WORDS = [
   "nkwobi", "offal", "assorted meat", "assorted", "suya", "kilishi", "asun",
   "balangu", "tsire", "dambu", "bush meat", "grasscutter", "abodi", "corned beef",
   "pork", "bacon", "ham",
+  // All mammal muscle meat is red meat (WHO/IARC), so rabbit too, 2026-10-10.
+  "rabbit",
 ];
 
 // Salty or heavily processed foods.
@@ -113,7 +115,7 @@ const FRIED_WORDS = [
   "chin chin", "chips", "crisps", "fries", "french fries", "kuli kuli", "ojojo",
   "samosa", "spring roll", "egg roll", "fish roll", "meat pie", "sausage roll",
   "doughnut", "donut", "small chops", "boli", "kokoro", "buns", "scotch egg",
-  "gala", "burger", "robo", "alkaki",
+  "gala", "burger", "robo", "alkaki", "mosa",
 ];
 
 // Oily or fatty soups (only checked on soups).

@@ -23,7 +23,7 @@ const PLANS: PricingPlan[] = [
     isPopular: false,
     description: "7 days free. No card needed. Stop anytime.",
     features: [
-      "Check any of 1,400+ Nigerian foods before you eat",
+      "Check any of 1,500+ Nigerian foods before you eat",
       "Get personalized breakfast, lunch, and dinner recommendations every day",
       "Build a meal and get personalized guidance on it",
       "Test your sugar before and 2 hours after a meal, and see the change",
@@ -133,7 +133,7 @@ export default function Home() {
               <TrafficLight size="sm" active="cycle" />
             </div>
             <div className="absolute -bottom-5 right-4 rounded-2xl bg-white px-4 py-3 text-left shadow-[0_18px_40px_-14px_rgba(6,26,50,0.6)] sm:right-6">
-              <p className="font-display text-lg font-bold leading-none text-brand">1,400+</p>
+              <p className="font-display text-lg font-bold leading-none text-brand">1,500+</p>
               <p className="mt-1 text-xs font-semibold text-ink-soft">Nigerian foods checked</p>
             </div>
           </>
@@ -228,7 +228,7 @@ export default function Home() {
             </h2>
             <p className={LEAD}>
               The popular food apps were built abroad. They don&apos;t know jollof, eba or amala,
-              and they don&apos;t know we eat with soup. GluFloat knows over 1,400 of our own foods.
+              and they don&apos;t know we eat with soup. GluFloat knows over 1,500 of our own foods.
             </p>
           </Reveal>
 
@@ -290,7 +290,7 @@ export default function Home() {
             </Reveal>
             <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {[
-                { end: 1400, suffix: "+", unit: "Nigerian foods", label: "and we add more every month" },
+                { end: 1500, suffix: "+", unit: "Nigerian foods", label: "and we add more every month" },
                 { end: 7, suffix: "", unit: "registered dietitians", label: "reviewed our food guidance" },
                 { end: 3, suffix: "", unit: "clear colours", label: "green, yellow or red" },
                 { end: 10, suffix: " sec", unit: "to an answer", label: "faster than dishing the food" },
