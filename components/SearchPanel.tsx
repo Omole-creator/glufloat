@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Check, Plus, Pointer } from "lucide-react";
-import { searchFoods } from "@/lib/search";
+import { matchedAlias, searchFoods } from "@/lib/search";
 import type { Food } from "@/lib/types";
 import VerdictCard from "./VerdictCard";
 import { events } from "@/lib/analytics";
@@ -31,12 +31,17 @@ export default function SearchPanel({
 } = {}) {
   const [query, setQuery] = useState("");
   const [picked, setPicked] = useState<Food | null>(null);
+  // The other name the person found this card by ("Bonga" for Smoked Fish),
+  // so the card can say the advice is the same even though the picture shows
+  // the card's own food. Null when they found it by its own name.
+  const [pickedAs, setPickedAs] = useState<string | null>(null);
   const [ate, setAte] = useState(false);
 
   // Open to a food handed in from outside.
   useEffect(() => {
     if (initialFood) {
       setPicked(initialFood);
+      setPickedAs(null);
       setAte(false);
       setQuery("");
     }
@@ -44,12 +49,13 @@ export default function SearchPanel({
 
   const results = useMemo(() => searchFoods(query), [query]);
 
-  const pick = (food: Food) => {
+  const pick = (food: Food, as: string | null = null) => {
     events.foodChecked(food.name);
     void trackUsage("food_search");
     // Checking a food is NOT eating it. Nothing is saved to the food record here;
     // the person logs it only if they tap "I ate this" below.
     setPicked(food);
+    setPickedAs(as);
     setAte(false);
     setQuery("");
   };
@@ -96,12 +102,19 @@ export default function SearchPanel({
           {results.map((f) => (
             <li key={f.id}>
               <button
-                onClick={() => pick(f)}
+                onClick={() => pick(f, matchedAlias(f, query, cleanFoodName(f.name)))}
                 className="flex w-full items-center justify-between px-5 py-3 text-left text-sm transition-colors hover:bg-mist"
               >
-                <span className="font-medium text-ink">{cleanFoodName(f.name)}</span>
+                <span className="min-w-0">
+                  <span className="block font-medium text-ink">{cleanFoodName(f.name)}</span>
+                  {matchedAlias(f, query, cleanFoodName(f.name)) && (
+                    <span className="block text-xs text-ink-soft">
+                      Same advice for {matchedAlias(f, query, cleanFoodName(f.name))}
+                    </span>
+                  )}
+                </span>
                 <span
-                  className={`h-3 w-3 shrink-0 rounded-full ${
+                  className={`ml-3 h-3 w-3 shrink-0 rounded-full ${
                     f.baseVerdict === "green"
                       ? "bg-verdict-green"
                       : f.baseVerdict === "yellow"
@@ -124,10 +137,17 @@ export default function SearchPanel({
 
       {picked && (
         <div className="mt-4">
+          {pickedAs && (
+            <p className="mb-3 rounded-xl bg-mist px-4 py-3 text-sm text-ink">
+              {pickedAs} follows the same advice as {cleanFoodName(picked.name)}.
+              Same size, same number of times. The picture shows{" "}
+              {cleanFoodName(picked.name).toLowerCase()}.
+            </p>
+          )}
           <VerdictCard
             food={picked}
             onFix={onBuildMeal ? () => onBuildMeal(picked) : undefined}
-            onSwap={pick}
+            onSwap={(f) => pick(f)}
           />
           <div className="mt-3 flex flex-col gap-2 sm:flex-row">
             {ate ? (

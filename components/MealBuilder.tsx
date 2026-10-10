@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Check, AlertTriangle, X, Plus, Utensils, Sparkles, Scale, CalendarDays, Wheat, Flame, Pointer } from "lucide-react";
-import { searchFoods } from "@/lib/search";
+import { matchedAlias, searchFoods } from "@/lib/search";
 import { scoreMeal } from "@/lib/verdictEngine";
 import type { Food, MealItem } from "@/lib/types";
 import { PortionMini } from "./PortionVisual";
@@ -182,8 +182,15 @@ export default function MealBuilder({
                   onClick={() => add(f)}
                   className="flex w-full items-center justify-between px-5 py-3 text-left text-sm transition-colors hover:bg-mint"
                 >
-                  <span className="font-medium text-ink">{cleanFoodName(f.name)}</span>
-                  <span className="flex items-center gap-1 text-xs font-bold text-leaf">
+                  <span className="min-w-0">
+                    <span className="block font-medium text-ink">{cleanFoodName(f.name)}</span>
+                    {matchedAlias(f, query, cleanFoodName(f.name)) && (
+                      <span className="block text-xs text-ink-soft">
+                        Same advice for {matchedAlias(f, query, cleanFoodName(f.name))}
+                      </span>
+                    )}
+                  </span>
+                  <span className="ml-3 flex shrink-0 items-center gap-1 text-xs font-bold text-leaf">
                     <Plus className="h-3.5 w-3.5" /> Add
                   </span>
                 </button>
