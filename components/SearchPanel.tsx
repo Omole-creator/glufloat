@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Check, Plus } from "lucide-react";
+import { Check, Plus, Pointer } from "lucide-react";
 import { searchFoods } from "@/lib/search";
 import type { Food } from "@/lib/types";
 import VerdictCard from "./VerdictCard";
@@ -137,9 +137,12 @@ export default function SearchPanel({
             ) : (
               <button
                 onClick={logEaten}
-                className="flex flex-1 items-center justify-center gap-2 rounded-full bg-leaf px-5 py-3 text-sm font-bold text-white transition-transform hover:scale-[1.02]"
+                className="cta-pulse flex flex-1 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-leaf to-leaf-deep px-5 py-4 text-sm font-bold text-white transition-transform hover:-translate-y-0.5 active:translate-y-0"
               >
                 <Plus className="h-4 w-4" strokeWidth={3} /> I ate this
+                <span aria-hidden className="tap-bob ml-1">
+                  <Pointer className="h-5 w-5" strokeWidth={2.4} />
+                </span>
               </button>
             )}
           </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Check, AlertTriangle, X, Plus, Utensils, Sparkles, Scale, CalendarDays } from "lucide-react";
+import { Check, AlertTriangle, X, Plus, Utensils, Sparkles, Scale, CalendarDays, Wheat, Flame, Pointer } from "lucide-react";
 import { searchFoods } from "@/lib/search";
 import { scoreMeal } from "@/lib/verdictEngine";
 import type { Food, MealItem } from "@/lib/types";
@@ -239,7 +239,23 @@ export default function MealBuilder({
               aria-hidden
               className="pointer-events-none absolute -right-10 -top-12 h-40 w-40 rounded-full bg-white/15 blur-2xl"
             />
-            <div className="relative flex items-center gap-4">
+            {/* A small traffic light, the lit lamp matching the answer. */}
+            <span
+              aria-hidden
+              className="absolute right-4 top-4 flex flex-col gap-1 rounded-full bg-ink/85 p-1.5 shadow-md ring-1 ring-white/30"
+            >
+              {(["red", "yellow", "green"] as const).map((c) => (
+                <span
+                  key={c}
+                  className={`h-2.5 w-2.5 rounded-full ${
+                    showVerdict && result.verdict === c
+                      ? `${DOT[c]} shadow-[0_0_8px_2px_rgba(255,255,255,0.6)]`
+                      : "bg-white/15"
+                  }`}
+                />
+              ))}
+            </span>
+            <div className="relative flex items-center gap-4 pr-8">
               <span
                 className={`green-burst flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl ring-1 ${
                   showVerdict ? ui.iconChip : "bg-white/20 ring-white/30"
@@ -281,12 +297,14 @@ export default function MealBuilder({
             {showVerdict && totals.carbG > 0 && (
               <div>
                 <div className="grid grid-cols-2 gap-2.5">
-                  <p className="rounded-2xl bg-gradient-to-br from-brand to-brand-deep px-4 py-3 text-white shadow-[0_10px_24px_-14px_rgba(27,95,170,0.9)]">
+                  <p className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-brand to-brand-deep px-4 py-3 text-white shadow-[0_10px_24px_-14px_rgba(27,95,170,0.9)]">
+                    <Wheat aria-hidden className="absolute -bottom-2 -right-2 h-14 w-14 text-white/15" strokeWidth={1.8} />
                     <span className="block font-display text-2xl font-bold leading-none">{totals.carbG}g</span>
                     <span className="mt-1 block text-xs font-semibold text-white/85"> carbs</span>
                   </p>
                   {totals.calories > 0 && (
-                    <p className="rounded-2xl bg-brand/[0.07] px-4 py-3 text-brand-deep ring-1 ring-inset ring-brand/15">
+                    <p className="relative overflow-hidden rounded-2xl bg-brand/[0.07] px-4 py-3 text-brand-deep ring-1 ring-inset ring-brand/15">
+                      <Flame aria-hidden className="absolute -bottom-2 -right-2 h-14 w-14 text-brand/10" strokeWidth={1.8} />
                       <span className="block font-display text-2xl font-bold leading-none">{totals.calories}</span>
                       <span className="mt-1 block text-xs font-semibold text-brand-deep/75"> kcal</span>
                     </p>
@@ -320,12 +338,16 @@ export default function MealBuilder({
             )}
 
             {result.breakdown.length > 0 && (
-              <ul className="space-y-2.5 rounded-2xl bg-mist/70 p-4 text-sm leading-relaxed text-ink-soft">
+              <ul className="rounded-2xl bg-mist/70 p-4 text-sm leading-relaxed text-ink-soft">
                 {result.breakdown.map((b, idx) => (
-                  <li key={idx} className="flex gap-3">
+                  <li key={idx} className="relative flex gap-3 pb-3 last:pb-0">
+                    {/* the line joining one point to the next */}
+                    {idx < result.breakdown.length - 1 && (
+                      <span aria-hidden className="absolute bottom-0 left-[4px] top-[18px] w-0.5 rounded-full bg-brand/20" />
+                    )}
                     <span
                       aria-hidden
-                      className="mt-[7px] h-2 w-2 shrink-0 rounded-full bg-brand ring-4 ring-brand/15"
+                      className="relative mt-[7px] h-2.5 w-2.5 shrink-0 rounded-full bg-brand ring-4 ring-brand/15"
                     />
                     <span>{b}</span>
                   </li>
@@ -441,7 +463,7 @@ export default function MealBuilder({
                   </span>
                   How much of each to eat
                 </p>
-                <div className="mt-3 space-y-2.5">
+                <div className="mt-3 grid grid-cols-2 items-start gap-2.5">
                   {items.map((i) => (
                     <PortionMini key={i.food.id} food={i.food} />
                   ))}
@@ -480,9 +502,12 @@ export default function MealBuilder({
                 ) : (
                   <button
                     onClick={logEaten}
-                    className="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-leaf to-leaf-deep px-5 py-3.5 text-sm font-bold text-white shadow-[0_12px_26px_-12px_rgba(44,122,60,0.95)] transition-transform hover:-translate-y-0.5 active:translate-y-0"
+                    className="cta-pulse flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-leaf to-leaf-deep px-5 py-4 text-sm font-bold text-white transition-transform hover:-translate-y-0.5 active:translate-y-0"
                   >
                     <Utensils className="h-4 w-4" /> I ate this meal
+                    <span aria-hidden className="tap-bob ml-1">
+                      <Pointer className="h-5 w-5" strokeWidth={2.4} />
+                    </span>
                   </button>
                 )}
                 <StartMealSheet

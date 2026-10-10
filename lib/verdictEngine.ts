@@ -156,7 +156,7 @@ export function scoreMeal(items: MealItem[]): MealResult {
     score = s.gi === "high" && s.baseVerdict !== "green" ? 0 : seedScore(s.baseVerdict);
     breakdown.push(
       s.gi === "high"
-        ? `${cleanFoodName(s.name)} turns to sugar fast, so we start careful.`
+        ? `${cleanFoodName(s.name)} turns to sugar fast, so we have to be careful.`
         : `${cleanFoodName(s.name)} is the main thing to watch here.`,
     );
   } else {

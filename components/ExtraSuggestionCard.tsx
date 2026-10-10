@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Apple, Clock, Plus, RefreshCw } from "lucide-react";
+import { Apple, Clock, Plus, Pointer, RefreshCw } from "lucide-react";
 import { extraTimingFor, SNACK_COPY, type ExtraSuggestionSet, type ExtraOption } from "@/lib/nextMeal";
 import type { NamedMeal } from "@/lib/mealtime";
 import { saveCheck } from "@/lib/history";
@@ -157,7 +157,7 @@ export default function ExtraSuggestionCard({ set }: { set: ExtraSuggestionSet }
         </>
       )}
 
-      <div className="mt-3 flex items-center justify-between border-t border-leaf/15 pt-3">
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-leaf/15 pt-3">
         <p className="text-sm font-semibold text-ink-soft">
           Total: <span className="text-ink">{variant.totalCarbG}g carbs</span>{" "}
           <span className="text-ink-soft">({variant.totalCalories} kcal)</span>
@@ -165,9 +165,12 @@ export default function ExtraSuggestionCard({ set }: { set: ExtraSuggestionSet }
         <button
           type="button"
           onClick={logEaten}
-          className="flex items-center gap-1.5 rounded-full bg-leaf px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-leaf-deep"
+          className="cta-pulse flex shrink-0 items-center gap-1.5 rounded-full bg-gradient-to-r from-leaf to-leaf-deep px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-leaf-deep"
         >
           <Plus className="h-4 w-4" strokeWidth={3} /> {set.snack ? "I ate my snack" : "I ate this too"}
+          <span aria-hidden className="tap-bob">
+            <Pointer className="h-4 w-4" strokeWidth={2.4} />
+          </span>
         </button>
       </div>
     </div>

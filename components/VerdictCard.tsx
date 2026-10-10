@@ -7,7 +7,7 @@ import PortionVisual from "./PortionVisual";
 import ShareOnWhatsApp from "./ShareOnWhatsApp";
 import IntakeWarning from "./IntakeWarning";
 import ReadingRecall from "./ReadingRecall";
-import { AlertTriangle, ArrowRight, CalendarDays, Pill, Sparkles, Utensils } from "lucide-react";
+import { AlertTriangle, ArrowRight, CalendarDays, Flame, Pill, Sparkles, Utensils, Wheat } from "lucide-react";
 
 // The band is the one place the traffic light fills a surface. Yellow is a
 // light colour, so it carries dark text; green and red carry white.
@@ -80,12 +80,14 @@ export default function VerdictCard({
             the number that matters for insulin dosing (carb counting). */}
         {(food.carbG ?? 0) > 0 && (
           <div className="grid grid-cols-2 gap-2.5">
-            <p className="rounded-2xl bg-gradient-to-br from-brand to-brand-deep px-4 py-3 text-white shadow-[0_10px_24px_-14px_rgba(27,95,170,0.9)]">
+            <p className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-brand to-brand-deep px-4 py-3 text-white shadow-[0_10px_24px_-14px_rgba(27,95,170,0.9)]">
+              <Wheat aria-hidden className="absolute -bottom-2 -right-2 h-14 w-14 text-white/15" strokeWidth={1.8} />
               <span className="block font-display text-2xl font-bold leading-none">{food.carbG}g</span>
               <span className="mt-1 block text-xs font-semibold text-white/85"> carbs</span>
             </p>
             {(food.calories ?? 0) > 0 && (
-              <p className="rounded-2xl bg-brand/[0.07] px-4 py-3 text-brand-deep ring-1 ring-inset ring-brand/15">
+              <p className="relative overflow-hidden rounded-2xl bg-brand/[0.07] px-4 py-3 text-brand-deep ring-1 ring-inset ring-brand/15">
+                <Flame aria-hidden className="absolute -bottom-2 -right-2 h-14 w-14 text-brand/10" strokeWidth={1.8} />
                 <span className="block font-display text-2xl font-bold leading-none">{food.calories}</span>
                 <span className="mt-1 block text-xs font-semibold text-brand-deep/75"> kcal</span>
               </p>

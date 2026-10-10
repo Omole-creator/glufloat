@@ -290,6 +290,34 @@ body {
   }
 }
 
+/* A ring that keeps rippling out from the big "tap this" hand. */
+@keyframes tap-ring {
+  0% { transform: scale(1); opacity: 0.7; }
+  80%, 100% { transform: scale(1.9); opacity: 0; }
+}
+.tap-ring { animation: tap-ring 1.6s ease-out infinite; }
+
+/* ---------- "I ate this" buttons keep pulsing (founder, 2026-10-10) ----------
+   People were choosing and eating a meal without tapping to record it. The
+   button breathes a green glow all the time, and a hand taps beside the words. */
+@keyframes cta-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(62, 155, 79, 0.55), 0 12px 26px -12px rgba(44, 122, 60, 0.95); }
+  70% { box-shadow: 0 0 0 14px rgba(62, 155, 79, 0), 0 12px 26px -12px rgba(44, 122, 60, 0.95); }
+  100% { box-shadow: 0 0 0 0 rgba(62, 155, 79, 0), 0 12px 26px -12px rgba(44, 122, 60, 0.95); }
+}
+.cta-pulse { animation: cta-pulse 1.8s ease-out infinite; }
+@keyframes tap-bob {
+  0%, 100% { transform: translate(0, 0) rotate(-12deg); }
+  50% { transform: translate(-2px, 3px) rotate(-12deg) scale(0.9); }
+}
+.tap-bob { animation: tap-bob 0.9s ease-in-out infinite; display: inline-flex; }
+@media (prefers-reduced-motion: reduce) {
+  .tap-ring { animation: none; opacity: 0; }
+  /* Still easy to spot without movement: a steady glow ring. */
+  .cta-pulse { animation: none; box-shadow: 0 0 0 4px rgba(62, 155, 79, 0.3), 0 12px 26px -12px rgba(44, 122, 60, 0.95); }
+  .tap-bob { animation: none; }
+}
+
 /* ---------- no sideways scrolling on a phone (error sweep, 2026-10-08) ----------
  * The "reveal-right" cards start 24px to the right and slide in when they
  * scroll into view; until then they made the home page wider than a phone and

@@ -28,7 +28,7 @@ export function MeasurePhotoButton({
 }: {
   measure: Measure;
   forFood: string;
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "fill";
 }) {
   return (
     <PhotoButton
@@ -55,7 +55,7 @@ export function UsualSizePhotoButton({
   measure: Measure;
   food: Food;
   usual: string;
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "fill";
 }) {
   const name = cleanFoodName(food.name);
   return (
@@ -83,7 +83,7 @@ export function UsualSizePhotoButton({
  * with the card's own words underneath. A food with "None at all" carries the
  * red skip mark, small here and large in the full view.
  */
-export function FoodPhotoButton({ food, size = "md" }: { food: Food; size?: "sm" | "md" | "lg" }) {
+export function FoodPhotoButton({ food, size = "md" }: { food: Food; size?: "sm" | "md" | "lg" | "fill" }) {
   const p = foodPhotoFor(food.id);
   if (!p) return null;
   const name = cleanFoodName(food.name);
@@ -125,16 +125,26 @@ function PhotoButton({
   onOpen: () => void;
   badge?: string;
   skip?: boolean;
-  size: "sm" | "md" | "lg";
+  size: "sm" | "md" | "lg" | "fill";
 }) {
-  const box = size === "lg" ? "h-24 w-24 rounded-2xl" : size === "md" ? "h-16 w-16" : "h-11 w-11";
+  // "fill" takes its parent's width (the meal answer's photo gallery); the
+  // big sizes carry a bold blue hand so the photo reads as a button.
+  const big = size === "lg" || size === "fill";
+  const box =
+    size === "fill"
+      ? "w-full aspect-square rounded-2xl"
+      : size === "lg"
+        ? "h-24 w-24 rounded-2xl"
+        : size === "md"
+          ? "h-16 w-16"
+          : "h-11 w-11";
   return (
     <button
       type="button"
       onClick={onOpen}
       aria-label={label}
       className={cn(
-        "group relative shrink-0 overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-black/5 transition-transform hover:scale-[1.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2",
+        "group relative shrink-0 overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-black/5 transition-transform hover:scale-[1.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2",
         box,
       )}
     >
@@ -142,28 +152,40 @@ function PhotoButton({
         src={photo}
         alt=""
         fill
-        sizes={size === "lg" ? "96px" : size === "md" ? "64px" : "44px"}
-        className="object-cover"
+        sizes={size === "fill" ? "(max-width: 640px) 45vw, 260px" : size === "lg" ? "96px" : size === "md" ? "64px" : "44px"}
+        className="object-cover transition-transform duration-500 group-hover:scale-105"
         unoptimized={photo.endsWith(".svg")}
       />
+      {big && (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/25 to-transparent"
+        />
+      )}
       {skip && <SkipMark className="absolute inset-[10%]" />}
       {badge && (
         <span
           aria-hidden
-          className="absolute left-1 top-1 rounded-md bg-white/95 px-1 text-[10px] font-bold leading-4 text-ink shadow-sm"
+          className="absolute left-1.5 top-1.5 rounded-md bg-white/95 px-1.5 text-[10px] font-bold leading-4 text-ink shadow-sm"
         >
           {badge}
         </span>
       )}
-      <span
-        aria-hidden
-        className={cn(
-          "tap-hint absolute bottom-1 right-1 flex items-center justify-center rounded-full bg-white text-brand shadow-md",
-          size === "sm" ? "h-5 w-5" : "h-6 w-6",
-        )}
-      >
-        <Pointer className={size === "sm" ? "h-3 w-3" : "h-3.5 w-3.5"} strokeWidth={2.4} />
-      </span>
+      {big ? (
+        <span aria-hidden className="absolute bottom-1.5 right-1.5 flex h-9 w-9 items-center justify-center">
+          <span className="tap-ring absolute inset-0 rounded-full bg-brand/40" />
+          <span className="tap-hint relative flex h-9 w-9 items-center justify-center rounded-full bg-brand text-white shadow-[0_6px_14px_-4px_rgba(15,61,117,0.8)] ring-2 ring-white">
+            <Pointer className="h-[18px] w-[18px]" strokeWidth={2.4} />
+          </span>
+        </span>
+      ) : (
+        <span
+          aria-hidden
+          className="tap-hint absolute bottom-0.5 right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-white text-brand shadow-md"
+        >
+          <Pointer className="h-3 w-3" strokeWidth={2.4} />
+        </span>
+      )}
     </button>
   );
 }
