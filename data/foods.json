@@ -8,7 +8,8 @@
       "white garri",
       "yellow garri",
       "cassava swallow",
-      "cassava flakes"
+      "cassava flakes",
+      "ijebu garri"
     ],
     "category": "swallow",
     "role": "starch",
@@ -382,7 +383,8 @@
       "firewood jollof",
       "smoky jollof",
       "palm oil jollof",
-      "ready jollof pouch"
+      "ready jollof pouch",
+      "iwuk edesi"
     ],
     "category": "rice",
     "role": "starch",
@@ -907,7 +909,9 @@
       "spiced plantain chips",
       "salted plantain chips",
       "sweet plantain chips",
-      "unripe plantain chips"
+      "unripe plantain chips",
+      "ipekere",
+      "kpekere"
     ],
     "category": "snack",
     "role": "starch",
@@ -1164,7 +1168,8 @@
       "puff puff",
       "puff",
       "skewered puff-puff",
-      "mandazi"
+      "mandazi",
+      "kpof kpof"
     ],
     "category": "snack",
     "role": "sugar",
@@ -1907,7 +1912,9 @@
       "efo elegusi",
       "egusi mix",
       "ofe egusi leaf",
-      "ofe egusi akwu"
+      "ofe egusi akwu",
+      "ofe achara",
+      "achara soup"
     ],
     "category": "soup",
     "role": "soup",
@@ -2145,7 +2152,9 @@
       "ofe okro",
       "ila alasepo",
       "ila asepo",
-      "okra pepper soup"
+      "okra pepper soup",
+      "otong soup",
+      "otong"
     ],
     "category": "soup",
     "role": "soup",
@@ -2370,7 +2379,8 @@
     "aliases": [
       "pepper soup",
       "peppersoup",
-      "ofe azu"
+      "ofe azu",
+      "point and kill"
     ],
     "category": "soup",
     "role": "soup",
@@ -2555,7 +2565,8 @@
       "fish tail",
       "fish cheeks",
       "fish roe",
-      "boneless fish fillet"
+      "boneless fish fillet",
+      "kote"
     ],
     "category": "protein",
     "role": "protein",
@@ -2724,7 +2735,8 @@
       "kanda",
       "roasted ponmo",
       "boiled cow skin",
-      "smoked cow skin"
+      "smoked cow skin",
+      "kpomo"
     ],
     "category": "protein",
     "role": "protein",
@@ -5393,7 +5405,8 @@
     "aliases": [
       "bitter leaf",
       "onugbu leaf",
-      "bitterleaf"
+      "bitterleaf",
+      "ewuro"
     ],
     "category": "vegetable",
     "role": "vegetable",
@@ -8926,7 +8939,8 @@
     "name": "Cow Leg",
     "aliases": [
       "cow leg",
-      "cow foot"
+      "cow foot",
+      "bokoto"
     ],
     "category": "protein",
     "role": "protein",
@@ -8986,7 +9000,9 @@
       "smoked catfish",
       "smoked tilapia",
       "smoked croaker",
-      "smoked sardine"
+      "smoked sardine",
+      "bonga",
+      "bonga fish"
     ],
     "category": "protein",
     "role": "protein",
