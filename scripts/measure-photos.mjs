@@ -30,6 +30,8 @@ const PHOTOS = {
   "cup-glass-250ml": { left: 0.28, top: 0.13, size: 0.44 },
   "fist-closed": { left: 0.29, top: 0.17, size: 0.41 },
   // The founder's palm (2026-10-10): fingertips to wrist, the arm cut off.
+  // The open palm (founder, 2026-10-10), for "as wide as your palm".
+  "palm-open": "centre",
   "palm-hand": { px: { left: 170, top: 0, size: 768 } },
   "tennis-ball": "attention",
   matchbox: "centre",

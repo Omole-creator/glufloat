@@ -8,20 +8,28 @@ import { saveCheck } from "@/lib/history";
 import { trackUsage } from "@/lib/usage";
 import { scoreMeal } from "@/lib/verdictEngine";
 import { showToast } from "@/components/Toast";
-import { MeasureChips } from "@/components/MeasurePhoto";
+import { FoodPhotoButton, MeasureChips } from "@/components/MeasurePhoto";
 
 /** One food's row — shared between the typical set and any automatic top-up. */
 function ExtraRow({ item, meal, snack }: { item: ExtraOption; meal: NamedMeal; snack: boolean }) {
   return (
     <li className="rounded-xl bg-white/70 p-3">
-      <div className="flex items-start justify-between gap-3">
-        <p className="font-semibold text-ink">{item.name}</p>
-        <p className="shrink-0 text-right font-display text-sm font-bold text-leaf-deep">
-          {item.carbG}g carbs
-          <span className="block text-xs font-semibold text-ink-soft">{item.calories} kcal</span>
-        </p>
+      <div className="flex items-start gap-3">
+        {/* The food's own photo (founder, 2026-10-10), same as its search card.
+            Handed this serving's words, so a bigger serving than the card's
+            usual one opens as "The usual size". Nothing shows without a photo. */}
+        <FoodPhotoButton food={{ ...item.food, portionGuidance: item.instruction }} size="sm" />
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between gap-3">
+            <p className="font-semibold text-ink">{item.name}</p>
+            <p className="shrink-0 text-right font-display text-sm font-bold text-leaf-deep">
+              {item.carbG}g carbs
+              <span className="block text-xs font-semibold text-ink-soft">{item.calories} kcal</span>
+            </p>
+          </div>
+          <p className="mt-1 text-xs leading-snug text-ink-soft">{item.instruction}</p>
+        </div>
       </div>
-      <p className="mt-1 text-xs leading-snug text-ink-soft">{item.instruction}</p>
       <MeasureChips text={item.instruction} forFood={item.name} className="mt-1.5" />
       {!snack && extraTimingFor(item.food.id, meal) && (
         <p className="mt-1.5 flex items-start gap-1.5 text-xs font-semibold leading-snug text-leaf-deep">

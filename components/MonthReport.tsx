@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Download, Droplet, Plus, Trash2, ClipboardList } from "lucide-react";
 import { jsPDF } from "jspdf";
 import {
@@ -67,6 +68,11 @@ export default function MonthReport({
 }) {
   const [items, setItems] = useState<CheckedMeal[] | null>(null);
   const [loose, setLoose] = useState<Reading[]>([]);
+  /**
+   * A delete waits here until the person says yes (founder, 2026-10-10:
+   * warn first, because nothing deleted from the report can be got back).
+   */
+  const [pending, setPending] = useState<{ title: string; run: () => void } | null>(null);
   // The newest 3-month sugar test, whenever it was taken: it covers months,
   // not days, so it is not cut to this month like everything else here.
   const [hba1c, setHba1c] = useState<Hba1c | null>(null);
@@ -164,7 +170,7 @@ export default function MonthReport({
   /** One bin, used on an attached reading and on a loose one. */
   const ReadingBin = ({ r }: { r: Reading }) => (
     <button
-      onClick={() => removeReading(r.id)}
+      onClick={() => setPending({ title: "Delete this sugar test?", run: () => removeReading(r.id) })}
       // Named by its own value and moment, so no two bins on the page share an
       // accessible name (a real problem for a screen reader, and it fails
       // Playwright's strict mode).
@@ -803,7 +809,7 @@ export default function MonthReport({
                                   <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${DOT[i.verdict]}`} />
                                   <span className="min-w-0 flex-1 truncate text-sm text-ink">{displayLabel(i.label)}</span>
                                   <button
-                                    onClick={() => remove(i.id)}
+                                    onClick={() => setPending({ title: "Delete this meal?", run: () => remove(i.id) })}
                                     aria-label={`Remove ${i.label}`}
                                     className="shrink-0 rounded-full p-1 text-ink-soft/50 transition-colors hover:bg-verdict-red/10 hover:text-verdict-red"
                                   >
@@ -874,10 +880,15 @@ export default function MonthReport({
                       <p className="text-sm font-bold text-ink">{formatHba1c(hba1c)}</p>
                     </div>
                     <button
-                      onClick={() => {
-                        void deleteHba1c(hba1c.id);
-                        setHba1c(null);
-                      }}
+                      onClick={() =>
+                        setPending({
+                          title: "Delete this 3-month sugar test?",
+                          run: () => {
+                            void deleteHba1c(hba1c.id);
+                            setHba1c(null);
+                          },
+                        })
+                      }
                       aria-label={`Remove the ${hba1c.percent}% 3-month sugar test`}
                       className="shrink-0 rounded-full p-1 text-ink-soft/50 transition-colors hover:bg-verdict-red/10 hover:text-verdict-red"
                     >
@@ -908,6 +919,32 @@ export default function MonthReport({
           </div>
         </>
       )}
+
+      <Dialog open={pending !== null} onOpenChange={(open) => !open && setPending(null)}>
+        <DialogContent className="max-w-sm rounded-3xl">
+          <DialogTitle className="font-display text-lg font-bold text-ink">{pending?.title}</DialogTitle>
+          <DialogDescription className="text-sm text-ink-soft">
+            Once you delete it, it is gone for good. You cannot get it back.
+          </DialogDescription>
+          <div className="mt-2 flex flex-col gap-2 sm:flex-row-reverse">
+            <button
+              onClick={() => {
+                pending?.run();
+                setPending(null);
+              }}
+              className="flex-1 rounded-full bg-verdict-red px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-verdict-red/90"
+            >
+              Yes, delete it
+            </button>
+            <button
+              onClick={() => setPending(null)}
+              className="flex-1 rounded-full border border-line px-5 py-3 text-sm font-semibold text-ink transition-colors hover:bg-mist"
+            >
+              No, keep it
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }

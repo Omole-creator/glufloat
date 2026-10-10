@@ -20,6 +20,7 @@ export type MeasureKey =
   | "tablespoon"
   | "fist"
   | "palm"
+  | "palm-open"
   | "meat-chunks"
   | "handful"
   | "thumb"
@@ -96,14 +97,26 @@ export const MEASURES: Measure[] = [
     alt: "A closed fist resting on a table",
     match: /\bfist/i,
   },
+  // Two palm photos (founder, 2026-10-10): "as wide as your palm" (one flat
+  // piece) shows the open hand; "fill your palm" (pieces put together) and
+  // every other palm line show the hand held a little curled.
+  {
+    key: "palm-open",
+    name: "As wide as your palm",
+    size: "The flat inside of your hand",
+    how: "Open your hand flat. The piece should be as wide as your palm, not your fingers.",
+    photo: "/img/measures/palm-open.jpg",
+    alt: "An open hand, palm facing up, fingers together",
+    match: /as wide as your palm/i,
+  },
   {
     key: "palm",
     name: "Your palm",
-    size: "The flat inside of your hand",
-    how: "Open your hand flat. The food should cover your palm, not your fingers.",
+    size: "The inside of your hand",
+    how: "Put the food in your hand. Together, it should fill your palm and no more.",
     photo: "/img/measures/palm-hand.jpg",
     alt: "A hand held palm up, fingers a little curled",
-    match: /\bpalm\b(?![- ](oil|wine|fruit))/i,
+    match: /(?<!as wide as your )\bpalm\b(?![- ](oil|wine|fruit))/i,
   },
   {
     key: "meat-chunks",
