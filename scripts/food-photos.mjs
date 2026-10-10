@@ -212,6 +212,19 @@ const BOX = {
   // One handful of sliced utazi (founder, 2026-10-10). The whole hand stays in,
   // so the size reads as a handful; too wide for a square, so it is padded.
   utazi: [0.2, 0.08, 0.78, 0.8, "pad"],
+  // The 11 foods added 2026-10-10, photographed by the founder, each counted
+  // against its card. "pad" where a salt bowl or a hand sits beside the plate.
+  "boiled-cassava": [0.37, 0.28, 0.33, 0.45],
+  mosa: [0.36, 0.3, 0.29, 0.33],
+  "dodo-ikire": [0.32, 0.2, 0.38, 0.56],
+  ebiripo: [0.31, 0.45, 0.39, 0.36, "pad"],
+  "bush-mango": [0.32, 0.16, 0.35, 0.56],
+  "efo-igbo": [0.17, 0.21, 0.63, 0.6, "pad"],
+  moringa: [0.31, 0.15, 0.39, 0.7],
+  "quail-eggs": [0.22, 0.26, 0.56, 0.54],
+  pork: [0.27, 0.32, 0.43, 0.4, "pad"],
+  "guinea-fowl": [0.24, 0.22, 0.52, 0.58, "pad"],
+  rabbit: [0.27, 0.2, 0.46, 0.52],
 };
 
 const SRC = "../food-photos";
