@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Check, Plus, Pointer } from "lucide-react";
+import { Check, Link2, Plus, Pointer } from "lucide-react";
 import { matchedAlias, searchFoods } from "@/lib/search";
 import type { Food } from "@/lib/types";
 import VerdictCard from "./VerdictCard";
@@ -138,11 +138,17 @@ export default function SearchPanel({
       {picked && (
         <div className="mt-4">
           {pickedAs && (
-            <p className="mb-3 rounded-xl bg-mist px-4 py-3 text-sm text-ink">
-              {pickedAs} follows the same advice as {cleanFoodName(picked.name)}.
-              Same size, same number of times. The picture shows{" "}
-              {cleanFoodName(picked.name).toLowerCase()}.
-            </p>
+            <div className="mb-3 rounded-2xl border-l-4 border-brand bg-brand/[0.07] p-3.5">
+              <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-brand">
+                <Link2 className="h-3.5 w-3.5" strokeWidth={2.6} aria-hidden />
+                Same advice
+              </p>
+              <p className="mt-1 text-sm text-ink">
+                {pickedAs} follows the same advice as {cleanFoodName(picked.name)}.
+                Eat the same size, the same number of times. Use the size shown
+                below.
+              </p>
+            </div>
           )}
           <VerdictCard
             food={picked}
