@@ -249,6 +249,11 @@ const PIECE_CATEGORIES = new Set(["protein", "tuber", "plantain", "snack", "nut"
 // a palm (founder, 2026-10-09). Their photo leads once it exists; until then
 // the card keeps its measure, so this list is safe to hold ahead of the photos.
 const SHOWN_AS_ITSELF = new Set(["moi-moi", "okpa", "ekuru", "dan-wake", "beans-and-plantain", "wara", "nigerian-salad", "utazi"]);
+// Cards whose own photo already shows the measure, so the measure button under
+// it is left out (utazi: the photo IS one handful; the general handful photo
+// is a hand of almonds, which only confused. Founder, 2026-10-10).
+const NO_MEASURE_CHIPS = new Set(["utazi"]);
+
 export function showsFoodItself(food: Food): boolean {
   return (PIECE_CATEGORIES.has(food.category) || SHOWN_AS_ITSELF.has(food.id)) && Boolean(foodPhotoFor(food.id));
 }
@@ -302,12 +307,14 @@ export default function PortionVisual({ food }: { food: Food }) {
         <p className="mt-1 text-sm font-medium text-ink">
           {food.portionGuidance}
         </p>
-        <MeasureChips
-          text={food.portionGuidance}
-          forFood={cleanFoodName(food.name)}
-          skipFirst={!showsFoodItself(food)}
-          className="mt-2"
-        />
+        {!NO_MEASURE_CHIPS.has(food.id) && (
+          <MeasureChips
+            text={food.portionGuidance}
+            forFood={cleanFoodName(food.name)}
+            skipFirst={!showsFoodItself(food)}
+            className="mt-2"
+          />
+        )}
       </div>
     </div>
   );
@@ -332,12 +339,14 @@ export function PortionMini({ food, portion = "normal" }: { food: Food; portion?
         </p>
         {note && <p className="mt-0.5 font-semibold text-ink-soft">{note}</p>}
         <p className="mt-0.5 leading-relaxed text-ink-soft">{food.portionGuidance}</p>
-        <MeasureChips
-          text={food.portionGuidance}
-          forFood={cleanFoodName(food.name)}
-          skipFirst={!showsFoodItself(food)}
-          className="mt-1.5"
-        />
+        {!NO_MEASURE_CHIPS.has(food.id) && (
+          <MeasureChips
+            text={food.portionGuidance}
+            forFood={cleanFoodName(food.name)}
+            skipFirst={!showsFoodItself(food)}
+            className="mt-1.5"
+          />
+        )}
       </div>
     </div>
   );
