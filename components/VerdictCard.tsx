@@ -2,7 +2,7 @@ import type { Food } from "@/lib/types";
 import { plainFrequency } from "@/lib/frequency";
 import { cleanFoodName } from "@/lib/foodName";
 import { foodShareMessage } from "@/lib/shareMessage";
-import { saferSwaps } from "@/lib/variety";
+import { isCrossGroupSwap, saferSwaps } from "@/lib/variety";
 import PortionVisual from "./PortionVisual";
 import ShareOnWhatsApp from "./ShareOnWhatsApp";
 import IntakeWarning from "./IntakeWarning";
@@ -135,8 +135,9 @@ export default function VerdictCard({
               Try this instead
             </p>
             <p className="mt-1 text-sm text-ink">
-              {cleanFoodName(swap.name)} is in the same food group and will not
-              push your sugar up as fast.
+              {isCrossGroupSwap(food, swap)
+                ? `${cleanFoodName(swap.name)} is a better snack. It will not push your sugar up as fast.`
+                : `${cleanFoodName(swap.name)} is in the same food group and will not push your sugar up as fast.`}
             </p>
             {onSwap && (
               <button

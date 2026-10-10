@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Send, FlaskConical } from "lucide-react";
 import RichEditor from "./RichEditor";
+import { EDIT_EMAIL_EVENT, type EditEmailDetail } from "./SentEmails";
 
 type Sender = { id: string; name: string; email: string; verified: boolean };
 type List = { key: string; label: string; count: number };
@@ -29,6 +30,26 @@ export default function Compose({
   const [testEmail, setTestEmail] = useState("omole@glufloat.com");
   const [busy, setBusy] = useState<"" | "test" | "send">("");
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [initialHtml, setInitialHtml] = useState("");
+  const [editingCopy, setEditingCopy] = useState(false);
+
+  // "Edit" on a sent email: fill the form with a copy. A sent email cannot be
+  // changed, so sending this makes a new email.
+  useEffect(() => {
+    const onEdit = (e: Event) => {
+      const d = (e as CustomEvent<EditEmailDetail>).detail;
+      setSubject(d.subject);
+      if (d.senderId && senders.some((s) => s.id === d.senderId)) setSenderId(d.senderId);
+      setHtml(d.html);
+      setEmpty(!d.html.replace(/<[^>]+>/g, "").trim());
+      setInitialHtml(d.html);
+      setResetKey((k) => k + 1);
+      setEditingCopy(true);
+      setMsg(null);
+    };
+    window.addEventListener(EDIT_EMAIL_EVENT, onEdit);
+    return () => window.removeEventListener(EDIT_EMAIL_EVENT, onEdit);
+  }, [senders]);
 
   const people = lists.filter((l) => groups.includes(l.key)).reduce((s, l) => s + l.count, 0);
   const toggle = (k: string) => setGroups((g) => (g.includes(k) ? g.filter((x) => x !== k) : [...g, k]));
@@ -51,6 +72,8 @@ export default function Compose({
         setHtml("");
         setEmpty(true);
         setGroups([]);
+        setInitialHtml("");
+        setEditingCopy(false);
         setResetKey((k) => k + 1);
       }
     } catch {
@@ -61,6 +84,11 @@ export default function Compose({
 
   return (
     <div className="space-y-4">
+      {editingCopy && (
+        <p className="rounded-xl border-l-4 border-brand bg-brand/[0.07] px-4 py-3 text-sm text-ink">
+          You are editing a copy of an email that was already sent. Pick who it goes to, then send it as a new email.
+        </p>
+      )}
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="text-sm">
           <span className="mb-1 block font-semibold text-ink">From</span>
@@ -104,6 +132,7 @@ export default function Compose({
         <span className="mb-1 block font-semibold text-ink">Message</span>
         <RichEditor
           resetKey={resetKey}
+          initialHtml={initialHtml}
           nameToken={nameToken}
           onChange={(h, isEmpty) => {
             setHtml(h);

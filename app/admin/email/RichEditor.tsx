@@ -21,16 +21,20 @@ export default function RichEditor({
   onChange,
   nameToken,
   resetKey,
+  initialHtml = "",
 }: {
   onChange: (html: string, isEmpty: boolean) => void;
   /** Inserted by the Name button; the server turns it into Mailyte's tag. */
   nameToken: string;
-  /** Change it to clear the box (after a send). */
+  /** Change it to clear the box (after a send), or to load initialHtml. */
   resetKey: number;
+  /** What the box starts with when resetKey changes (an email opened by Edit). */
+  initialHtml?: string;
 }) {
   const editor = useEditor(
     {
       immediatelyRender: false,
+      content: initialHtml,
       extensions: [
         StarterKit.configure({
           heading: { levels: [2] },

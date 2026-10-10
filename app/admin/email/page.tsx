@@ -10,6 +10,7 @@ import AdminCard from "../AdminCard";
 import AdminTile from "../AdminTile";
 import Compose from "./Compose";
 import AddContact from "./AddContact";
+import SentEmails from "./SentEmails";
 
 export const dynamic = "force-dynamic";
 
@@ -20,13 +21,6 @@ const ROWS = [
   { key: "unset", label: "Not set" },
 ] as const;
 
-const STATE: Record<string, string> = {
-  sent: "Sent",
-  sending: "Sending",
-  scheduled: "Scheduled",
-  paused: "Paused",
-  canceled: "Cancelled",
-};
 
 /** Write and send emails to users, through Mailyte. */
 export default async function EmailPage() {
@@ -68,6 +62,7 @@ export default async function EmailPage() {
         <AdminTile label="Caregiver" value={String(table.caregiver)} icon={HeartHandshake} tone="green" />
       </div>
 
+      <div id="write-email" className="scroll-mt-24">
       <AdminCard className="mt-4" title="Write an email">
         {senders.length > 0 ? (
           <Compose
@@ -79,39 +74,9 @@ export default async function EmailPage() {
           <p className="text-sm text-ink-soft">No sender found in Mailyte.</p>
         )}
       </AdminCard>
+      </div>
 
-      <AdminCard className="mt-4" title="Sent emails" flush>
-        {sent.length === 0 ? (
-          <p className="px-5 pb-5 text-sm text-ink-soft sm:px-6">None yet.</p>
-        ) : (
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-line text-left text-xs uppercase tracking-wider text-ink-soft">
-                <th className="px-5 py-2 sm:px-6">Subject</th>
-                <th className="px-3 py-2">Date</th>
-                <th className="px-3 py-2">Status</th>
-                <th className="px-3 py-2 text-right">Sent</th>
-                <th className="px-3 py-2 text-right">Opened</th>
-                <th className="px-5 py-2 text-right sm:px-6">Clicked</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sent.map((c) => (
-                <tr key={c.id} className="border-b border-line last:border-0">
-                  <td className="px-5 py-3 font-semibold text-ink sm:px-6">{c.subject}</td>
-                  <td className="px-3 py-3 text-ink-soft">
-                    {new Date(c.when).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
-                  </td>
-                  <td className="px-3 py-3 text-ink-soft">{STATE[c.state] ?? c.state}</td>
-                  <td className="px-3 py-3 text-right">{c.sent ?? "—"}</td>
-                  <td className="px-3 py-3 text-right">{c.opened ?? "—"}</td>
-                  <td className="px-5 py-3 text-right sm:px-6">{c.clicked ?? "—"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </AdminCard>
+      <SentEmails sent={sent} />
 
       <AdminCard className="mt-4" title="Lists" flush>
         <table className="w-full text-sm">

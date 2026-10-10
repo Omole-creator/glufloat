@@ -21,14 +21,30 @@ for (const food of FOODS) {
     `${food.id}: swap never suggests the food itself`,
     swaps.every((s) => s.id !== food.id),
   );
+  // Same group, except a snack, which swaps to a whole-food snack (lib/variety.ts SNACK_SWAPS).
   assertTrue(
-    `${food.id}: every swap is the same category`,
-    swaps.every((s) => s.category === food.category),
+    `${food.id}: every swap is the same category, or a whole-food snack for a snack`,
+    swaps.every((s) => s.category === food.category || (food.category === "snack" && ["groundnut", "tiger-nut", "garden-egg", "cashew-nut", "cucumber"].includes(s.id))),
+  );
+  assertTrue(
+    `${food.id}: no swap carries its own red warning box`,
+    swaps.every((s) => !s.healthNote),
+  );
+  assertTrue(
+    `${food.id}: a snack is never swapped for meat`,
+    food.category !== "snack" || swaps.every((s) => s.role !== "protein"),
   );
   assertTrue(
     `${food.id}: every swap is green (never a sideways or worse swap)`,
     swaps.every((s) => s.baseVerdict === "green"),
   );
+}
+
+// 1b. The fried and sweet snacks that used to be told "try suya" or "try
+// nkwobi" now get a real snack.
+for (const id of ["puff-puff", "chin-chin", "plantain-chips", "dodo-ikire", "mosa"]) {
+  const sw = saferSwaps(FOODS.find((f) => f.id === id)!, 3);
+  assertTrue(`${id}: offered a whole-food snack`, sw.length > 0 && !sw.some((s) => ["suya", "nkwobi"].includes(s.id)));
 }
 
 // 2. A red staple with a real green sibling in its category gets one --------

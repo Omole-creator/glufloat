@@ -330,8 +330,50 @@ export async function sendCampaign(id: string): Promise<void> {
   if (r.status >= 400) throw new Error(`Mailyte refused to send (${r.status}).`);
 }
 
-export async function deleteCampaign(id: string): Promise<void> {
-  await my(`/campaigns/${id}`, { method: "DELETE" });
+/** Delete a campaign. Returns false if Mailyte refused (never throws, so the
+ *  draft clean-up after a test can never turn a good test into an error). */
+export async function deleteCampaign(id: string): Promise<boolean> {
+  const r = await my(`/campaigns/${id}`, { method: "DELETE" });
+  return r.status < 400;
+}
+
+/**
+ * One sent email, ready to be edited as a NEW email in the composer. A sent
+ * email cannot be changed (it is already in people's inboxes), so "Edit" opens
+ * a copy. The GluFloat frame added by `emailHtml()` is taken off, and the
+ * name tag is turned back into the editor's Name token.
+ * The field names are read defensively: Mailyte's list endpoint nests the
+ * subject under `content`, so the single endpoint is read the same way first.
+ */
+export async function getCampaignForEdit(
+  id: string,
+): Promise<{ subject: string; html: string; senderId: string | null } | null> {
+  const r = await my<{
+    subject?: string;
+    html?: string;
+    sender_id?: string;
+    sender?: { id?: string };
+    content?: { subject?: string; html?: string; sender_id?: string };
+  }>(`/campaigns/${id}`);
+  const d = r.data;
+  if (r.status >= 400 || !d) return null;
+  const subject = d.content?.subject ?? d.subject ?? "";
+  const full = d.content?.html ?? d.html ?? "";
+  if (!full) return null;
+  return {
+    subject,
+    html: bodyOfEmail(full).split(NAME_TAG).join(NAME_TOKEN),
+    senderId: d.sender_id ?? d.content?.sender_id ?? d.sender?.id ?? null,
+  };
+}
+
+/** The message inside the frame `emailHtml()` puts round every email. */
+export function bodyOfEmail(full: string): string {
+  const start = full.indexOf('<td style="padding:24px;font-size:16px;line-height:1.6">');
+  if (start < 0) return full;
+  const from = full.indexOf(">", start) + 1;
+  const end = full.indexOf('</td></tr>\n<tr><td style="padding:16px 24px 24px', from);
+  return (end > from ? full.slice(from, end) : full.slice(from)).trim();
 }
 
 /** The list ids for these kinds of people. */
