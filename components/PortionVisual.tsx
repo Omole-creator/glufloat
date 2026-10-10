@@ -248,7 +248,7 @@ const PIECE_CATEGORIES = new Set(["protein", "tuber", "plantain", "snack", "nut"
 // Outside those groups, but people know them by sight better than by a cup or
 // a palm (founder, 2026-10-09). Their photo leads once it exists; until then
 // the card keeps its measure, so this list is safe to hold ahead of the photos.
-const SHOWN_AS_ITSELF = new Set(["moi-moi", "okpa", "ekuru", "dan-wake", "beans-and-plantain", "wara", "nigerian-salad"]);
+const SHOWN_AS_ITSELF = new Set(["moi-moi", "okpa", "ekuru", "dan-wake", "beans-and-plantain", "wara", "nigerian-salad", "utazi"]);
 export function showsFoodItself(food: Food): boolean {
   return (PIECE_CATEGORIES.has(food.category) || SHOWN_AS_ITSELF.has(food.id)) && Boolean(foodPhotoFor(food.id));
 }

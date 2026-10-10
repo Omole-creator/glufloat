@@ -175,6 +175,7 @@ export const FOOD_PHOTOS: Record<string, FoodPhoto> = {
   "scent-leaf": { alt: "A bunch of scent leaf", source: "founder" },
   lettuce: { alt: "Six big lettuce leaves", source: "founder" },
   "bitterleaf-veg": { alt: "Washed bitter leaf on a plate", source: "founder" },
+  utazi: { alt: "One handful of thinly sliced utazi leaves", source: "founder" },
   broccoli: { alt: "Eight small pieces of broccoli on a plate", source: "founder" },
   cauliflower: { alt: "Eight small pieces of cauliflower on a plate", source: "founder" },
   beetroot: { alt: "Two slices of beetroot", source: "founder" },

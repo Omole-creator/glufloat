@@ -209,6 +209,9 @@ const BOX = {
   akara: [0.3, 0.14, 0.4, 0.62, "pad"],
   dodo: [0.31, 0.15, 0.38, 0.55, "pad"],
   "boiled-plantain-ripe": [0.33, 0.22, 0.34, 0.48, "pad"],
+  // One handful of sliced utazi (founder, 2026-10-10). The whole hand stays in,
+  // so the size reads as a handful; too wide for a square, so it is padded.
+  utazi: [0.2, 0.08, 0.78, 0.8, "pad"],
 };
 
 const SRC = "../food-photos";
