@@ -2133,14 +2133,12 @@ export function suggestSnack(
   const left = extrasGap - covered;
   if (left < MIN_GAP_KCAL) return null;
   const onCard = new Set(extras ? extras.variants.flatMap((v) => v.items.map((o) => o.food.id)) : []);
-  const fresh = suggestExtras(left, dayKey, meal, conditions, personalKey, weekCounts, snack, onCard);
-  // Different foods from the meal's card first. If that cannot get close to
-  // the number (the other foods are mostly light vegetables and fruit), the
-  // full list is used: each food's safe amount is per sitting, and the snack
-  // is hours after the meal, so meeting the day's target comes first.
-  const closeness = (s: ExtraSuggestionSet | null) =>
-    s ? Math.abs(left - s.variants[0].totalCalories) : Infinity;
-  if (closeness(fresh) <= 60) return fresh;
-  const any = suggestExtras(left, dayKey, meal, conditions, personalKey, weekCounts, snack);
-  return closeness(any) < closeness(fresh) ? any : fresh;
+  // Never a food that is on the meal's extras card (founder, 2026-10-11).
+  // The snack is only about 3 hours after the extras, and each food's safe
+  // amount is for one sitting, so the same walnuts twice in an evening is
+  // double the safe amount; it also reads as a glitch. If the other foods
+  // cannot reach the number, the snack gives the closest it safely can and
+  // the day ends a little short. This replaced the 2026-10-08 fallback that
+  // reused the card's foods to meet the target first.
+  return suggestExtras(left, dayKey, meal, conditions, personalKey, weekCounts, snack, onCard);
 }

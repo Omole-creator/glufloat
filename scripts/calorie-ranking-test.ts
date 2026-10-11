@@ -407,6 +407,17 @@ for (const meal of MEALS) {
       if (snack && snack.variants[0].items.length > MAX_EXTRA_ITEMS) {
         fail(`${meal} snack at a ${dailyTarget}kcal target has ${snack.variants[0].items.length} foods, never more than ${MAX_EXTRA_ITEMS}`);
       }
+      // Never a food from the meal's extras card (founder, 2026-10-11).
+      if (snack && extra) {
+        const onCard = new Set(extra.variants.flatMap((v) => v.items.map((o) => o.food.id)));
+        for (const v of snack.variants) {
+          for (const o of v.items) {
+            if (onCard.has(o.food.id)) {
+              fail(`${meal} snack at a ${dailyTarget}kcal target on ${dayKey} repeats ${o.food.id} from the extras card`);
+            }
+          }
+        }
+      }
       // A real person picks ONE variant to eat; both are built to close the
       // same gap independently, so using the first one (the default shown)
       // is representative of any real choice.
@@ -481,7 +492,13 @@ for (const meal of MEALS) {
   // kidney_disease profile (its extras stay small for the protein limit).
   // Only a truly impossible 50,000kcal may still fall short, and even then no
   // card may hold more than MAX_EXTRA_ITEMS foods.
+  // **2026-10-11 (founder): the snack never reuses a food from the meal's
+  // extras card** (double the one-sitting safe amount within ~3 hours). Up to
+  // 5,500kcal still closes within HIGH_FLOOR; 6,000kcal now ends up to ~500kcal
+  // short on some days (measured 287-504), an accepted trade-off, so it gets
+  // its own looser EXTREME_FLOOR rather than a silently loosened shared one.
   const HIGH_FLOOR = 250;
+  const EXTREME_FLOOR = 600;
   for (const [conds, targets] of [
     [[], [3500, 4000, 4500, 5000, 5500, 6000]],
     [["kidney_disease"], [3000, 3500, 4000]],
@@ -489,9 +506,10 @@ for (const meal of MEALS) {
     for (const dailyTarget of targets) {
       for (const dayKey of days) {
         const { residual } = walkFullDay(dailyTarget, dayKey, conds);
-        if (residual > HIGH_FLOOR) {
+        const floor = dailyTarget >= 6000 ? EXTREME_FLOOR : HIGH_FLOOR;
+        if (residual > floor) {
           fail(
-            `a ${dailyTarget}kcal target${conds.length ? ` (${conds.join(",")})` : ""} on ${dayKey} left ${residual}kcal unclosed; snacks should close it within ${HIGH_FLOOR}kcal`,
+            `a ${dailyTarget}kcal target${conds.length ? ` (${conds.join(",")})` : ""} on ${dayKey} left ${residual}kcal unclosed; snacks should close it within ${floor}kcal`,
           );
         }
       }
