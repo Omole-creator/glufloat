@@ -375,6 +375,34 @@ function watDayKey(d: Date): string {
   return `${d.getUTCFullYear()}-${d.getUTCMonth()}-${d.getUTCDate()}`;
 }
 
+/**
+ * Today's (Nigerian time) saved meals as food ids and sizes, for the daily
+ * caps on extras (lib/nextMeal.ts gramsEatenToday). Rows saved before
+ * data-collection-schema.sql have no ids and are skipped; an empty list on
+ * any failure, which only means no cap is reduced.
+ */
+export async function todaysFoodSizes(): Promise<{ foodIds: string[]; sizes: string[] }[]> {
+  try {
+    const supabase = createClient();
+    const todayK = watDayKey(wat(Date.now()));
+    const since = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+    const { data, error } = await supabase
+      .from("meal_checks")
+      .select("checked_at,food_ids,sizes")
+      .gte("checked_at", since);
+    if (error) return [];
+    return (data ?? [])
+      .filter((r) => watDayKey(wat(new Date(r.checked_at as string).getTime())) === todayK)
+      .filter((r) => Array.isArray(r.food_ids) && r.food_ids.length > 0)
+      .map((r) => ({
+        foodIds: r.food_ids as string[],
+        sizes: Array.isArray(r.sizes) ? (r.sizes as string[]) : [],
+      }));
+  } catch {
+    return [];
+  }
+}
+
 const foodCalories = new Map(FOODS.map((f) => [f.name, f.calories ?? 0]));
 
 /**

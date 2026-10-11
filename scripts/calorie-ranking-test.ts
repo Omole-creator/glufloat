@@ -31,6 +31,8 @@ import {
   suggestSnack,
   GLUFLOAT_SIZE_STARCHES,
   isWeeklyLimited,
+  NUT_GROUP,
+  NUT_DAILY_MAX_G,
 } from "../lib/nextMeal";
 import type { Condition } from "../lib/personalization";
 import { getFood } from "../lib/search";
@@ -375,6 +377,10 @@ for (const meal of MEALS) {
     conditions: Condition[] = [],
   ): { residual: number; totals: Record<NamedMeal, number>; extraItems: Record<NamedMeal, number> } {
     let eatenToday = 0;
+    // Grams of each extra-type food eaten so far today, exactly as the app
+    // passes it (lib/useTodaysCalories.ts): the daily caps read it.
+    const usedToday = new Map<string, number>();
+    const eat = (id: string, grams: number) => usedToday.set(id, (usedToday.get(id) ?? 0) + grams);
     const totals = {} as Record<NamedMeal, number>;
     const extraItems = {} as Record<NamedMeal, number>;
     for (const meal of MEALS) {
@@ -400,10 +406,13 @@ for (const meal of MEALS) {
       // big target's extra eating is spread across all 3 meals, not
       // front-loaded into one.
       const extrasGap = Math.max(0, mealShare - plateCal);
-      const extra = suggestExtras(extrasGap, dayKey, meal, conditions);
+      // A groundnut on the plate is eaten at the same sitting (app does the same).
+      const plateNut = idea.foods.find((f) => NUT_GROUP.has(f.id));
+      if (plateNut) eat(plateNut.id, idea.scaledSide?.food.id === plateNut.id ? idea.scaledSide.grams : 30);
+      const extra = suggestExtras(extrasGap, dayKey, meal, conditions, "", new Map(), undefined, undefined, usedToday);
       // The snack after this meal (only for a very high target), exactly as
       // lib/useTodaysCalories.ts builds it.
-      const snack = suggestSnack(meal, extrasGap, extra, dayKey, conditions);
+      const snack = suggestSnack(meal, extrasGap, extra, dayKey, conditions, "", new Map(), usedToday);
       if (snack && snack.variants[0].items.length > MAX_EXTRA_ITEMS) {
         fail(`${meal} snack at a ${dailyTarget}kcal target has ${snack.variants[0].items.length} foods, never more than ${MAX_EXTRA_ITEMS}`);
       }
@@ -423,6 +432,21 @@ for (const meal of MEALS) {
       // is representative of any real choice.
       const mealTotal =
         plateCal + (extra ? extra.variants[0].totalCalories : 0) + (snack ? snack.variants[0].totalCalories : 0);
+      for (const o of extra?.variants[0].items ?? []) eat(o.food.id, o.grams);
+      for (const o of snack?.variants[0].items ?? []) eat(o.food.id, o.grams);
+      // The daily caps hold whichever variant is picked (2026-10-11).
+      for (const set of [extra, snack]) {
+        for (const v of set?.variants ?? []) {
+          let nuts = 0;
+          for (const [id, g] of usedToday) if (NUT_GROUP.has(id)) nuts += g;
+          for (const o of v.items) if (NUT_GROUP.has(o.food.id)) nuts += o.grams;
+          if (set === extra) for (const o of extra?.variants[0].items ?? []) if (NUT_GROUP.has(o.food.id)) nuts -= o.grams;
+          if (set === snack) for (const o of snack?.variants[0].items ?? []) if (NUT_GROUP.has(o.food.id)) nuts -= o.grams;
+          if (nuts > NUT_DAILY_MAX_G + 0.5) {
+            fail(`${dailyTarget}kcal on ${dayKey}: by ${meal} a ${set?.snack ?? "extras"} option puts the day at ${nuts}g of nuts, over ${NUT_DAILY_MAX_G}g`);
+          }
+        }
+      }
       totals[meal] = mealTotal;
       extraItems[meal] = extra ? extra.variants[0].items.length : 0;
       eatenToday += mealTotal;
@@ -446,8 +470,12 @@ for (const meal of MEALS) {
   // hide a regression.
   const TIGHT_FLOOR = 70;
   const days = ["2026-08-01", "2026-08-10", "2026-08-15", "2026-08-20", "2026-08-29"];
-  for (const dailyTarget of [2500, 2800, 2900, 3200, 3430]) {
-    const floor = TIGHT_FLOOR;
+  // 2026-10-11: nuts share one 60g daily total (lib/nextMeal.ts NUT_GROUP)
+  // and targets are worked out the clinic way (lib/tdee.ts clinicalTarget),
+  // so only 5.7% of sedentary-to-moderate profiles land above 2,700. Up to
+  // 2,500 still closes within TIGHT_FLOOR; 2,600-2,700 within ~105 (measured).
+  for (const dailyTarget of [2000, 2200, 2400, 2500, 2600, 2700]) {
+    const floor = dailyTarget <= 2500 ? TIGHT_FLOOR : 150;
     for (const dayKey of days) {
       const { residual, totals } = walkFullDay(dailyTarget, dayKey);
       if (residual > floor) {
@@ -497,8 +525,14 @@ for (const meal of MEALS) {
   // 5,500kcal still closes within HIGH_FLOOR; 6,000kcal now ends up to ~500kcal
   // short on some days (measured 287-504), an accepted trade-off, so it gets
   // its own looser EXTREME_FLOOR rather than a silently loosened shared one.
-  const HIGH_FLOOR = 250;
-  const EXTREME_FLOOR = 600;
+  // **2026-10-11: no longer "must close".** With nuts capped at 60g a day
+  // (NUT_GROUP), a target above ~2,700 cannot be met with safe food, and
+  // that is the founder's accepted trade-off. clinicalTarget now keeps most
+  // targets under it. What these targets must still do is DELIVER what the
+  // caps safely allow: measured, every day delivered at least 2,300kcal
+  // (2,100 with kidney disease). A drop below that is a regression.
+  const MIN_DELIVERED = 2300;
+  const MIN_DELIVERED_KIDNEY = 2100;
   for (const [conds, targets] of [
     [[], [3500, 4000, 4500, 5000, 5500, 6000]],
     [["kidney_disease"], [3000, 3500, 4000]],
@@ -506,10 +540,11 @@ for (const meal of MEALS) {
     for (const dailyTarget of targets) {
       for (const dayKey of days) {
         const { residual } = walkFullDay(dailyTarget, dayKey, conds);
-        const floor = dailyTarget >= 6000 ? EXTREME_FLOOR : HIGH_FLOOR;
+        const minDelivered = conds.includes("kidney_disease") ? MIN_DELIVERED_KIDNEY : MIN_DELIVERED;
+        const floor = dailyTarget - minDelivered;
         if (residual > floor) {
           fail(
-            `a ${dailyTarget}kcal target${conds.length ? ` (${conds.join(",")})` : ""} on ${dayKey} left ${residual}kcal unclosed; snacks should close it within ${floor}kcal`,
+            `a ${dailyTarget}kcal target${conds.length ? ` (${conds.join(",")})` : ""} on ${dayKey} left ${residual}kcal unclosed; the day should still deliver at least ${minDelivered}kcal`,
           );
         }
       }

@@ -10,19 +10,7 @@ import {
   type Goal,
   type ActivityLevel,
 } from "@/lib/personalization";
-import {
-  bmr,
-  tdee,
-  calorieTarget,
-  bmi,
-  bmiCategory,
-  BMI_CATEGORY_LABEL,
-  CONDITIONS,
-  CONDITION_LABEL,
-  ACTIVITY_DESCRIPTION,
-  type Sex,
-  type Condition,
-} from "@/lib/tdee";
+import { bmr, bmi, bmiCategory, BMI_CATEGORY_LABEL, CONDITIONS, CONDITION_LABEL, ACTIVITY_DESCRIPTION, type Sex, type Condition, clinicalTarget } from "@/lib/tdee";
 import {
   readPersonalizationProfile,
   savePersonalizationProfile,
@@ -327,10 +315,17 @@ export default function PersonalizationSettings({
   const next = () => goTo(index + 1 < steps.length ? steps[index + 1] : null);
   const back = () => goTo(index > 0 ? steps[index - 1] : null);
 
-  const bmrValue =
-    sex && ageYears && weightKg && heightCm ? bmr(sex, weightKg, heightCm, ageYears) : null;
-  const tdeeValue = bmrValue != null && activityLevel ? tdee(bmrValue, activityLevel) : null;
-  const targetValue = tdeeValue != null ? calorieTarget(tdeeValue, goals) : null;
+  // The clinic way (lib/tdee.ts clinicalTarget): the same numbers every other
+  // screen plans the day with.
+  const clinical =
+    sex && ageYears && weightKg && heightCm && activityLevel
+      ? clinicalTarget(sex, weightKg, heightCm, ageYears, activityLevel, goals)
+      : null;
+  const bmrValue = sex && ageYears && weightKg && heightCm
+    ? clinical?.bmr ?? bmr(sex, weightKg, heightCm, ageYears)
+    : null;
+  const tdeeValue = clinical?.tdee ?? null;
+  const targetValue = clinical?.target ?? null;
   // Needs only weight/height, so it can show before sex/age/activity are in.
   const bmiValue = weightKg && heightCm ? bmi(weightKg, heightCm) : null;
 
@@ -586,6 +581,19 @@ export default function PersonalizationSettings({
               </p>
             )}
           </div>
+          {/* Why a gain or muscle goal adds no food (lib/tdee.ts clinicalTarget). */}
+          {clinical?.skippedGoals.includes("gain_weight") && (
+            <p className="mt-3 border-t border-white/25 pt-3 text-sm text-white/90">
+              At your weight, GluFloat plans to keep your weight steady, not add to it. Talk to your
+              doctor before you try to gain weight.
+            </p>
+          )}
+          {clinical?.skippedGoals.includes("build_muscle") && (
+            <p className="mt-3 border-t border-white/25 pt-3 text-sm text-white/90">
+              Your muscle goal still shapes your meals. At your weight, GluFloat does not add extra
+              food for it.
+            </p>
+          )}
         </div>
       )}
       {/* Weight and height alone are enough for this, so it does not wait on

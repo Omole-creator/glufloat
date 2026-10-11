@@ -14,7 +14,7 @@ import {
 import { currentMeal, localDayKey, type NamedMeal } from "@/lib/mealtime";
 import { readPersonalizationProfile, PERSONALIZATION_CHANGED } from "@/lib/personalizationProfile";
 import { caloriesEatenToday, foodCountsThisWeek, INTAKE_CHANGED } from "@/lib/history";
-import { bmr, tdee, calorieTarget } from "@/lib/tdee";
+import { clinicalTarget } from "@/lib/tdee";
 import { rememberSuggested } from "@/lib/mealImpressions";
 import { trackUsage } from "@/lib/usage";
 import { cleanFoodName } from "@/lib/foodName";
@@ -47,7 +47,7 @@ async function mealTargets(personalize: boolean): Promise<{
   if (!personalize || !p.sex || !p.ageYears || !p.weightKg || !p.heightCm || !p.activityLevel) {
     return { targets: {}, conditions };
   }
-  const daily = calorieTarget(tdee(bmr(p.sex, p.weightKg, p.heightCm, p.ageYears), p.activityLevel), p.goals);
+  const daily = clinicalTarget(p.sex, p.weightKg, p.heightCm, p.ageYears, p.activityLevel, p.goals).target;
   const eaten = await caloriesEatenToday();
   const now = ORDER.indexOf(currentMeal());
   const targets: Partial<Record<NamedMeal, number>> = {};

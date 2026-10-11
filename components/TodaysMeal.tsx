@@ -20,7 +20,7 @@ import {
   type MedTime,
 } from "@/lib/personalizationProfile";
 import { biasVector, type PlateAxes } from "@/lib/personalization";
-import { bmr, tdee, calorieTarget } from "@/lib/tdee";
+import { clinicalTarget } from "@/lib/tdee";
 import { medicationAppliesToMeal, medicationTimingCopy } from "@/lib/medicationTiming";
 import { toAvoid, writeShown, writeSkipped } from "@/lib/mealRotationMemory";
 import { logImpression, rememberSuggested, type ImpressionPlate } from "@/lib/mealImpressions";
@@ -165,7 +165,7 @@ export default function TodaysMeal({
       if (!personalize) return null;
       const p = profileRef.current;
       if (!p.sex || !p.ageYears || !p.weightKg || !p.heightCm || !p.activityLevel) return null;
-      const dailyTarget = calorieTarget(tdee(bmr(p.sex, p.weightKg, p.heightCm, p.ageYears), p.activityLevel), p.goals);
+      const dailyTarget = clinicalTarget(p.sex, p.weightKg, p.heightCm, p.ageYears, p.activityLevel, p.goals).target;
       const eatenToday = await caloriesEatenToday();
       // mealShareFor: the SAME share lib/useTodaysCalories.ts sizes the extras
       // and snacks against, so the plate and the green cards never disagree.

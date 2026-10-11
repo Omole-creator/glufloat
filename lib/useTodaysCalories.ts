@@ -1,15 +1,17 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { caloriesEatenToday, foodCountsThisWeek, loggedFoodCounts, likedFoodCounts, INTAKE_CHANGED } from "@/lib/history";
+import { caloriesEatenToday, foodCountsThisWeek, loggedFoodCounts, likedFoodCounts, todaysFoodSizes, INTAKE_CHANGED } from "@/lib/history";
 import { readPersonalizationProfile, personalRotationKey, PERSONALIZATION_CHANGED } from "@/lib/personalizationProfile";
-import { bmr, tdee, calorieTarget } from "@/lib/tdee";
+import { clinicalTarget } from "@/lib/tdee";
 import {
   suggestExtras,
   suggestSnack,
   mealShareFor,
   planForDay,
   mealIdeaCalories,
+  gramsEatenToday,
+  NUT_GROUP,
   type ExtraSuggestionSet,
 } from "@/lib/nextMeal";
 import { currentMeal, localDayKey } from "@/lib/mealtime";
@@ -178,10 +180,7 @@ export function useTodaysCalories(show: boolean): TodaysCalories {
       setShortByKcal(0);
       return;
     }
-    const dailyTarget = calorieTarget(
-      tdee(bmr(p.sex, p.weightKg, p.heightCm, p.ageYears), p.activityLevel),
-      p.goals,
-    );
+    const dailyTarget = clinicalTarget(p.sex, p.weightKg, p.heightCm, p.ageYears, p.activityLevel, p.goals).target;
     const eatenToday = await caloriesEatenToday();
     const trueLeft = Math.max(0, dailyTarget - eatenToday);
     const meal = currentMeal();
@@ -189,10 +188,11 @@ export function useTodaysCalories(show: boolean): TodaysCalories {
     // mealShareFor, the SAME function components/TodaysMeal.tsx uses to pick
     // the plate, so the plate and the extras are sized against one number.
     const mealShare = mealShareFor(dailyTarget, eatenToday, p.mealPattern, meal, p.conditions);
-    const [counts, liked, weekCounts] = await Promise.all([
+    const [counts, liked, weekCounts, todayRows] = await Promise.all([
       loggedFoodCounts(),
       likedFoodCounts(),
       foodCountsThisWeek(),
+      todaysFoodSizes(),
     ]);
     const bias = biasVector({ goals: p.goals, activityLevel: p.activityLevel, conditions: p.conditions });
     const personalKey = personalRotationKey(p);
@@ -218,14 +218,22 @@ export function useTodaysCalories(show: boolean): TodaysCalories {
     // mealIdeaCalories's own doc for the bug that pattern already caused
     // once.
     const extrasGap = Math.max(0, mealShare - mealIdeaCalories(idea));
-    const extras = suggestExtras(extrasGap, dayKey, meal, p.conditions, personalKey, weekCounts);
+    // The daily caps (lib/nextMeal.ts NUT_GROUP): what was eaten today, plus a
+    // groundnut on this meal's own plate, which is eaten at the same sitting.
+    const usedToday = gramsEatenToday(todayRows);
+    const plateNut = idea.foods.find((f) => NUT_GROUP.has(f.id));
+    if (plateNut) {
+      const grams = idea.scaledSide?.food.id === plateNut.id ? idea.scaledSide.grams : gramsEatenToday([{ foodIds: [plateNut.id], sizes: ["normal"] }]).get(plateNut.id) ?? 0;
+      usedToday.set(plateNut.id, (usedToday.get(plateNut.id) ?? 0) + grams);
+    }
+    const extras = suggestExtras(extrasGap, dayKey, meal, p.conditions, personalKey, weekCounts, undefined, undefined, usedToday);
     // The best any variant reaches — usually variants[0] (sized closest to
     // the gap), but take the max in case a later variant ever does better,
     // so this never overstates a shortfall that a variant already covers.
     const bestVariantKcal = extras
       ? Math.max(...extras.variants.map((v) => v.totalCalories))
       : 0;
-    const snackSet = suggestSnack(meal, extrasGap, extras, dayKey, p.conditions, personalKey, weekCounts);
+    const snackSet = suggestSnack(meal, extrasGap, extras, dayKey, p.conditions, personalKey, weekCounts, usedToday);
     const snackKcal = snackSet ? snackSet.variants[0].totalCalories : 0;
     setTarget(dailyTarget);
     setSnack(snackSet);

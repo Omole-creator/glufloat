@@ -10,6 +10,7 @@ import {
   remainingMealCalorieTarget,
   ACTIVITY_MULTIPLIER,
   ACTIVITY_LEVELS,
+  clinicalTarget,
 } from "../lib/tdee";
 
 let failures = 0;
@@ -140,6 +141,44 @@ assertEqual(
   remainingMealCalorieTarget(1800, 0, ["breakfast", "lunch", "dinner"], "breakfast"),
   600,
 );
+
+// ---- clinicalTarget (2026-10-11): the clinic way ---------------------------
+{
+  // Normal weight (65kg, 170cm, BMI 22.5): same as the old chain exactly.
+  const normal = clinicalTarget("male", 65, 170, 35, "moderate", ["maintain"]);
+  assertEqual("normal BMI: target = old calorieTarget(tdee(bmr))", normal.target,
+    calorieTarget(tdee(bmr("male", 65, 170, 35), "moderate"), ["maintain"]), 0);
+  assertTrue("normal BMI: full weight used", !normal.usedAdjustedWeight);
+
+  // Normal BMI keeps the muscle surplus; underweight keeps the gain surplus.
+  const muscle = clinicalTarget("male", 65, 170, 35, "moderate", ["build_muscle"]);
+  assertTrue("BMI under 25 keeps the build_muscle surplus", muscle.skippedGoals.length === 0 &&
+    muscle.target === calorieTarget(tdee(bmr("male", 65, 170, 35), "moderate"), ["build_muscle"]));
+  const thin = clinicalTarget("female", 45, 165, 30, "light", ["gain_weight"]);
+  assertTrue("BMI under 18.5 keeps the gain_weight surplus", thin.skippedGoals.length === 0);
+
+  // Overweight (BMI ~27.7): gain and muscle surpluses are left out.
+  const over = clinicalTarget("male", 85, 175, 40, "moderate", ["gain_weight", "build_muscle"]);
+  assertTrue("BMI 25-30 drops gain_weight and build_muscle surpluses",
+    over.skippedGoals.includes("gain_weight") && over.skippedGoals.includes("build_muscle"));
+  assertEqual("BMI 25-30: target = maintenance", over.target,
+    calorieTarget(tdee(bmr("male", 85, 175, 40), "moderate"), []), 0);
+  assertTrue("BMI 25-30: full weight still used", !over.usedAdjustedWeight);
+
+  // Obese (110kg, 175cm, BMI ~35.9): adjusted weight, ideal + 40% of the excess.
+  const obese = clinicalTarget("male", 110, 175, 40, "moderate", ["maintain"]);
+  const ideal = 50 + 0.9055 * (175 - 152.4);
+  const adjusted = ideal + 0.4 * (110 - ideal);
+  assertTrue("BMI 30+: adjusted weight used", obese.usedAdjustedWeight);
+  assertEqual("BMI 30+: resting energy from adjusted weight", obese.bmr, bmr("male", adjusted, 175, 40), 0.01);
+  assertTrue("BMI 30+: lower than the full-weight target",
+    obese.target < calorieTarget(tdee(bmr("male", 110, 175, 40), "moderate"), ["maintain"]));
+
+  // Lose weight still subtracts at any BMI, and the 1,200 floor holds.
+  const lose = clinicalTarget("female", 120, 150, 70, "sedentary", ["lose_weight"]);
+  assertTrue("lose_weight is never skipped", !lose.skippedGoals.includes("lose_weight"));
+  assertTrue("1,200kcal floor holds", lose.target >= 1200);
+}
 
 if (failures > 0) {
   console.error(`\n${failures} failure(s).`);

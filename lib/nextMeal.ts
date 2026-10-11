@@ -1772,7 +1772,12 @@ function sizeExtra(candidate: ExtraCandidate, food: Food, targetKcal: number): E
   }
   const kcalPerUnit = baseKcal / candidate.baseUnits;
   const gramsPerUnit = candidate.baseGrams / candidate.baseUnits;
-  const maxUnits = Math.max(candidate.baseUnits, Math.round(candidate.maxGrams / gramsPerUnit));
+  // A daily cap (dailyCapped) can leave less room than one normal serving:
+  // then fewer whole units, never rounded up past the room left.
+  const maxUnits =
+    candidate.maxGrams < candidate.baseGrams
+      ? Math.max(1, Math.floor(candidate.maxGrams / gramsPerUnit + 1e-9))
+      : Math.max(candidate.baseUnits, Math.round(candidate.maxGrams / gramsPerUnit));
   const cappedTarget = Math.min(targetKcal, maxUnits * kcalPerUnit);
   const units = Math.max(1, Math.min(maxUnits, Math.round(cappedTarget / kcalPerUnit)));
   const grams = Math.round(units * gramsPerUnit);
@@ -1820,6 +1825,7 @@ function buildVariant(
   pool: { candidate: ExtraCandidate; food: Food }[],
   startIdx: number,
   targetKcal: number,
+  nutLeft = Infinity,
 ): ExtraVariant {
   const n = pool.length;
   const margin = acceptableDiff(targetKcal);
@@ -1850,7 +1856,14 @@ function buildVariant(
     if (left < MIN_ADD_KCAL) continue;
     for (let j = 0; j < n; j++) {
       if (j === i) continue;
-      const sizedSecond = sizeExtra(pool[j].candidate, pool[j].food, left);
+      // Two nuts on one card share what is left of the day's nut total.
+      let second = pool[j].candidate;
+      if (NUT_GROUP.has(pool[i].candidate.id) && NUT_GROUP.has(second.id)) {
+        const room = nutLeft - sizedFirst.grams;
+        if (room < second.baseGrams / second.baseUnits) continue;
+        if (room < second.maxGrams) second = { ...second, maxGrams: room };
+      }
+      const sizedSecond = sizeExtra(second, pool[j].food, left);
       const total = sizedFirst.calories + sizedSecond.calories;
       const diff = Math.abs(total - targetKcal);
       if (diff <= margin) return finishVariant([sizedFirst, sizedSecond]);
@@ -1921,6 +1934,88 @@ function guardedCandidate(candidate: ExtraCandidate, food: Food, capProtein: boo
 }
 
 /**
+ * A DAILY cap on every extra, not just a per-sitting one (2026-10-11, the
+ * founder asked "is this too much to eat in a day?" and the answer was yes:
+ * the per-sitting caps let the same person eat 60g of walnuts at dinner and
+ * 60g of cashews at bedtime, 120g of nuts in one evening).
+ *
+ *  - Each extra's own `maxGrams` is now the most of it in a whole day,
+ *    counting what was already eaten today and what is already on today's
+ *    cards.
+ *  - All nuts and nut butter share ONE daily total, NUT_DAILY_MAX_G (60g,
+ *    about two small handfuls), groundnut on a breakfast plate included. 30g
+ *    a day is the usual advice and 60g is the top of what the nut studies
+ *    used (docs/EVIDENCE.md section 9), so 60g is the ceiling, never the aim.
+ *
+ * The cost, accepted: very high calorie targets end the day shorter, because
+ * nuts were the main way extras closed a big gap.
+ */
+export const NUT_GROUP: ReadonlySet<string> = new Set([
+  "walnut",
+  "cashew-nut",
+  "tiger-nut",
+  "peanut-butter",
+  "groundnut",
+]);
+export const NUT_DAILY_MAX_G = 60;
+
+/** A serving's normal grams, for turning a saved "normal" / "less:0.5" size into grams. */
+function baseGramsFor(id: string): number | null {
+  const extra = READY_TO_EAT_EXTRAS.find((c) => c.id === id);
+  if (extra) return extra.baseGrams;
+  return MAIN_SIDE_CONFIG[id]?.baseGrams ?? null;
+}
+
+/**
+ * Grams of each extra-type food already eaten today, from today's saved meals
+ * (their `food_ids` and `sizes`, lib/history.ts todaysFoodSizes). A size is
+ * either grams ("60g", what the extras card and the blue card save) or a
+ * word ("normal", "less:0.5", "more:2", old "half"/"large") times the
+ * food's normal grams. Foods that are not extras or a breakfast side are
+ * skipped: no cap reads them.
+ */
+export function gramsEatenToday(rows: { foodIds: string[]; sizes: string[] }[]): Map<string, number> {
+  const used = new Map<string, number>();
+  for (const r of rows) {
+    r.foodIds.forEach((id, i) => {
+      const size = (r.sizes[i] ?? "normal").trim();
+      const g = /^(\d+(\.\d+)?)g$/.exec(size);
+      let grams: number | null = g ? Number(g[1]) : null;
+      if (grams === null) {
+        const base = baseGramsFor(id);
+        if (base === null) return;
+        const m = /^(less|more):(\d+(\.\d+)?)$/.exec(size);
+        const factor = m ? Number(m[2]) : size === "half" ? 0.5 : size === "large" ? 1.5 : 1;
+        grams = base * factor;
+      }
+      used.set(id, (used.get(id) ?? 0) + grams);
+    });
+  }
+  return used;
+}
+
+/** Nut grams in a map of grams by food. */
+function nutGrams(used: ReadonlyMap<string, number>): number {
+  let total = 0;
+  for (const [id, g] of used) if (NUT_GROUP.has(id)) total += g;
+  return total;
+}
+
+/** `candidate` with its ceiling lowered to what today still allows, or null if nothing is left. */
+function dailyCapped(
+  candidate: ExtraCandidate,
+  used: ReadonlyMap<string, number>,
+  nutLeft: number,
+): ExtraCandidate | null {
+  let room = candidate.maxGrams - (used.get(candidate.id) ?? 0);
+  if (NUT_GROUP.has(candidate.id)) room = Math.min(room, nutLeft);
+  if (room >= candidate.maxGrams) return candidate;
+  if (!candidate.scalable) return room >= candidate.baseGrams ? candidate : null;
+  if (room < candidate.baseGrams / candidate.baseUnits) return null;
+  return { ...candidate, maxGrams: room };
+}
+
+/**
  * 2 real, swappable ways to close THIS meal's own share of today's calorie
  * gap — each one a real, exactly-sized, NEVER-repeated food (or two, only
  * when one food's safe maximum is not enough on its own). Which pair of
@@ -1965,6 +2060,7 @@ export function suggestExtras(
   weekCounts: Map<string, number> = new Map(),
   snack?: SnackTime,
   excludeIds: ReadonlySet<string> = new Set(),
+  usedToday: ReadonlyMap<string, number> = new Map(),
 ): ExtraSuggestionSet | null {
   // Dinner is the last chance of the day (its bedtime snack only exists for
   // very high targets), so a smaller gap still gets a card there instead of
@@ -1972,6 +2068,7 @@ export function suggestExtras(
   const minGap = meal === "dinner" && !snack ? LAST_MEAL_MIN_GAP_KCAL : MIN_GAP_KCAL;
   if (!remainingKcal || remainingKcal < minGap) return null;
   const capProtein = conditions.includes("kidney_disease");
+  const nutLeft = NUT_DAILY_MAX_G - nutGrams(usedToday);
   // A snack leaves out the foods already on that meal's extras card, so the
   // person is not handed walnuts twice in one morning. If that would leave
   // fewer than 2 foods, the full list is used instead.
@@ -1983,7 +2080,10 @@ export function suggestExtras(
     .filter((candidate) => !candidate.weeklyLimit || (weekCounts.get(candidate.id) ?? 0) < candidate.weeklyLimit)
     .map((candidate) => ({ candidate, food: getFood(candidate.id) }))
     .filter((p): p is { candidate: ExtraCandidate; food: Food } => p.food != null)
-    .map((p) => ({ candidate: guardedCandidate(p.candidate, p.food, capProtein), food: p.food }));
+    .map((p) => ({ candidate: guardedCandidate(p.candidate, p.food, capProtein), food: p.food }))
+    // What today still allows of each food, and of nuts together (NUT_GROUP).
+    .map((p) => ({ candidate: dailyCapped(p.candidate, usedToday, nutLeft), food: p.food }))
+    .filter((p): p is { candidate: ExtraCandidate; food: Food } => p.candidate != null);
   if (pool.length === 0) return null;
 
   // At most 2 variants (fewer only if the pool itself is smaller). Which
@@ -1996,7 +2096,7 @@ export function suggestExtras(
   const salt = (personalKey ? hash(personalKey) : 0) + hash(snack ? `${meal}#${snack}` : meal);
   const dayStart = (((dayNumber(dayKey) + salt) % n) + n) % n;
   const numVariants = Math.min(2, n);
-  const first = buildVariant(pool, dayStart, remainingKcal);
+  const first = buildVariant(pool, dayStart, remainingKcal, nutLeft);
   const variants: ExtraVariant[] = [first];
 
   if (numVariants === 2) {
@@ -2008,9 +2108,9 @@ export function suggestExtras(
     // foods to draw from. Falls back to the immediate next index (today's
     // old behaviour) only if every rotation truly converges — a pool of 2,
     // or a gap so large it needs the entire pool either way.
-    let second = buildVariant(pool, (dayStart + 1) % n, remainingKcal);
+    let second = buildVariant(pool, (dayStart + 1) % n, remainingKcal, nutLeft);
     for (let step = 2; step <= n - 1 && compositionKey(second) === firstIds; step++) {
-      second = buildVariant(pool, (dayStart + step) % n, remainingKcal);
+      second = buildVariant(pool, (dayStart + step) % n, remainingKcal, nutLeft);
     }
     variants.push(second);
   }
@@ -2127,6 +2227,7 @@ export function suggestSnack(
   conditions: Condition[] = [],
   personalKey = "",
   weekCounts: Map<string, number> = new Map(),
+  usedToday: ReadonlyMap<string, number> = new Map(),
 ): ExtraSuggestionSet | null {
   const snack = SNACK_AFTER[meal];
   const covered = extras ? extras.variants[0].totalCalories : 0;
@@ -2140,5 +2241,13 @@ export function suggestSnack(
   // cannot reach the number, the snack gives the closest it safely can and
   // the day ends a little short. This replaced the 2026-10-08 fallback that
   // reused the card's foods to meet the target first.
-  return suggestExtras(left, dayKey, meal, conditions, personalKey, weekCounts, snack, onCard);
+  // What is on the meal's card counts as eaten today (the most of each food
+  // any variant offers), so the snack never takes the day past a daily cap.
+  const used = new Map(usedToday);
+  if (extras) {
+    const most = new Map<string, number>();
+    for (const v of extras.variants) for (const o of v.items) most.set(o.food.id, Math.max(most.get(o.food.id) ?? 0, o.grams));
+    for (const [id, g] of most) used.set(id, (used.get(id) ?? 0) + g);
+  }
+  return suggestExtras(left, dayKey, meal, conditions, personalKey, weekCounts, snack, onCard, used);
 }

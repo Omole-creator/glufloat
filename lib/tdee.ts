@@ -126,6 +126,64 @@ export function calorieTarget(tdeeValue: number, goals: Goal[]): number {
 }
 
 /**
+ * The daily target the way a diabetes clinic works it out (founder,
+ * 2026-10-11; replaces calling calorieTarget(tdee(bmr(...))) directly, which
+ * gave a 110kg very active person aiming to "build muscle" a target no
+ * dietitian would write, and nuts piled up to meet it).
+ *
+ *  - BMI 30 or more: the resting energy uses an ADJUSTED weight, ideal
+ *    weight (Devine) plus 40% of the weight above it. Full body weight
+ *    overstates the need, because fat burns far less than muscle.
+ *  - "Gain weight" only adds its surplus when BMI is under 18.5
+ *    (underweight). Adding weight on purpose worsens type 2 diabetes.
+ *  - "Build muscle" only adds its surplus when BMI is under 25. Above that,
+ *    the goal still steers the meals (lib/personalization.ts), but no extra
+ *    food is added on top.
+ *
+ * `skippedGoals` names the goals whose surplus was left out, so "My details"
+ * can say why in plain words. The 1,200kcal floor stays.
+ */
+export interface ClinicalTarget {
+  bmr: number;
+  tdee: number;
+  target: number;
+  usedAdjustedWeight: boolean;
+  skippedGoals: Goal[];
+}
+
+/** Devine ideal body weight, kg. */
+function idealWeightKg(sex: Sex, heightCm: number): number {
+  return (sex === "male" ? 50 : 45.5) + 0.9055 * (heightCm - 152.4);
+}
+
+export function clinicalTarget(
+  sex: Sex,
+  weightKg: number,
+  heightCm: number,
+  ageYears: number,
+  activityLevel: ActivityLevel,
+  goals: Goal[],
+): ClinicalTarget {
+  const b = bmi(weightKg, heightCm);
+  const ideal = idealWeightKg(sex, heightCm);
+  const usedAdjustedWeight = b >= 30 && weightKg > ideal;
+  const weight = usedAdjustedWeight ? ideal + 0.4 * (weightKg - ideal) : weightKg;
+  const bmrValue = bmr(sex, weight, heightCm, ageYears);
+  const tdeeValue = tdee(bmrValue, activityLevel);
+  const skippedGoals = goals.filter(
+    (g) => (g === "gain_weight" && b >= 18.5) || (g === "build_muscle" && b >= 25),
+  );
+  const kept = goals.filter((g) => !skippedGoals.includes(g));
+  return {
+    bmr: bmrValue,
+    tdee: tdeeValue,
+    target: calorieTarget(tdeeValue, kept),
+    usedAdjustedWeight,
+    skippedGoals,
+  };
+}
+
+/**
  * A house formula (documented, not a lone research finding — same footing as
  * the weekly-frequency numbers in docs/EVIDENCE.md §8, pending dietitian
  * sign-off): about 37.5% of calories from carbohydrate, which sits under the

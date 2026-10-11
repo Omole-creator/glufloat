@@ -673,6 +673,22 @@ last 7 days, from any screen, the snack card stops offering it. Never scaled
 past the card's own one small fruit (fruit is sugar). Timing line: with the
 meal or just after, not on an empty stomach.
 
+### 2026-10-11: the caps are now DAILY, and nuts share one total
+
+The per-sitting ceilings above let one person eat 60g of walnuts with dinner
+and 60g of cashews at bedtime, about three hours apart: 120g of nuts in an
+evening. Each extra's `maxGrams` is now the most of it in a whole day
+(counting what was eaten today and what is on today's cards), and all nuts
+and nut butter, groundnut on a breakfast plate included, share one daily
+total of **60g** (`NUT_DAILY_MAX_G`, `lib/nextMeal.ts`). About 30g a day is
+the common guidance; 60g is the top of what the nut-feeding trials used. A
+house rule, same footing as section 8, pending dietitian sign-off.
+
+Cost, accepted by the founder: a target above about 2,700kcal can no longer be
+met with safe food. Targets are now worked out the clinic way
+(`clinicalTarget`, `lib/tdee.ts`: adjusted weight at BMI 30+, no gain or muscle
+surplus unless BMI is under 18.5 or 25), which keeps most people under it.
+
 ## 10. Main-plate protein scaling: how far a serving may safely grow
 
 **Not a research finding on its own — a house bound, same footing as §9,
