@@ -29,6 +29,7 @@ import LogReading from "@/components/LogReading";
 import MealTestDue from "@/components/MealTestDue";
 import PushOptIn from "@/components/PushOptIn";
 import InviteFriends from "@/components/InviteFriends";
+import WeighInReminder from "@/components/WeighInReminder";
 import LogHbA1c from "@/components/LogHbA1c";
 import ReadingNudge from "@/components/ReadingNudge";
 import TypewriterHeadline from "@/components/TypewriterHeadline";
@@ -564,6 +565,10 @@ export default function AppPage() {
                   at most 3 times (components/PushOptIn.tsx). */}
               <PushOptIn />
 
+              {/* Once a month: a fresh weight keeps the calorie target right
+                  (components/WeighInReminder.tsx). */}
+              <WeighInReminder />
+
               <DashboardSnapshot show={canUseGoalPersonalization(access)} />
 
               <FirstStepsChecklist
@@ -605,6 +610,11 @@ export default function AppPage() {
               <PersonalizationSettings
                 showGoals={canUseGoalPersonalization(access)}
                 onSaved={scrollToMeal}
+                dietitian={{
+                  canChat: canUseDietitianChat(access),
+                  onOpenChat: () => selectTab("dietitian"),
+                  premiumUrl: withEmail(PAYSTACK_URLS.dietitian),
+                }}
               />
             </div>
 

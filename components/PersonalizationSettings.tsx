@@ -190,8 +190,12 @@ type StepId =
 export default function PersonalizationSettings({
   showGoals,
   onSaved,
+  dietitian,
 }: {
   showGoals: boolean;
+  /** Where "Talk to our dietitian first" leads: the chat for a Premium member,
+   *  the Premium payment page for everyone else (founder, 2026-10-11). */
+  dietitian?: { canChat: boolean; onOpenChat: () => void; premiumUrl: string };
   /** Called after "Save my details" — the caller sends the person to today's
    *  meal card, so "did it save?" is answered a second, unmissable way beyond
    *  the toast (founder instruction, 2026-08-29). */
@@ -598,9 +602,30 @@ export default function PersonalizationSettings({
                   : muscle
                     ? "We still pick meals that help you build muscle. But for your weight, we will not add more food."
                     : null;
-            return line ? (
-              <p className="mt-3 border-t border-white/25 pt-3 text-sm text-white/90">{line}</p>
-            ) : null;
+            if (!line) return null;
+            return (
+              <div className="mt-3 border-t border-white/25 pt-3">
+                <p className="text-sm text-white/90">{line}</p>
+                {gain && dietitian && (
+                  dietitian.canChat ? (
+                    <button
+                      type="button"
+                      onClick={dietitian.onOpenChat}
+                      className="mt-2.5 inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-sm font-bold text-brand transition-colors hover:bg-white/90"
+                    >
+                      Chat with our dietitian
+                    </button>
+                  ) : (
+                    <a
+                      href={dietitian.premiumUrl}
+                      className="mt-2.5 inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-sm font-bold text-brand transition-colors hover:bg-white/90"
+                    >
+                      Get GluFloat Premium to chat with our dietitian
+                    </a>
+                  )
+                )}
+              </div>
+            );
           })()}
         </div>
       )}
