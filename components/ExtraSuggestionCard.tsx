@@ -79,7 +79,14 @@ function ExtraRow({ item, meal, snack }: { item: ExtraOption; meal: NamedMeal; s
  * the gap), the card simply appears again; nothing here silently blocks a
  * second, real log.
  */
-export default function ExtraSuggestionCard({ set }: { set: ExtraSuggestionSet }) {
+export default function ExtraSuggestionCard({
+  set,
+  onLogged,
+}: {
+  set: ExtraSuggestionSet;
+  /** Called after "I ate this too" saves (TodaysExtras then shows the snack). */
+  onLogged?: () => void;
+}) {
   const [index, setIndex] = useState(0);
   const variant = set.variants[index % set.variants.length];
 
@@ -106,6 +113,7 @@ export default function ExtraSuggestionCard({ set }: { set: ExtraSuggestionSet }
     });
     void trackUsage("meal_logged");
     showToast("Added to your food");
+    onLogged?.();
   };
 
   return (

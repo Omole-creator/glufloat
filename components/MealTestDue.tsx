@@ -406,7 +406,8 @@ export default function MealTestDue({ onOpenReport }: { onOpenReport: () => void
         </label>
         {/* Shaped like the screen of a sugar meter, same as when the meal began. */}
         <div className="mt-2 rounded-3xl bg-gradient-to-b from-[#0B2E5C] to-[#124A8C] p-3 shadow-[0_16px_36px_-18px_rgba(11,46,92,0.8)]">
-          <input
+          <div className="relative">
+            <input
             id="gf-after"
             value={typed}
             onChange={(e) => {
@@ -415,8 +416,11 @@ export default function MealTestDue({ onOpenReport }: { onOpenReport: () => void
             }}
             inputMode="decimal"
             autoComplete="off"
-            className="w-full rounded-2xl bg-white/10 px-4 py-4 text-center font-display text-4xl font-bold tabular-nums tracking-wide text-white outline-none ring-2 ring-white/15 transition-colors focus:ring-white/60"
+            placeholder=" "
+                      className="meter-input w-full rounded-2xl bg-white/10 px-4 py-4 text-center font-display text-4xl font-bold tabular-nums tracking-wide text-white outline-none ring-2 ring-white/15 transition-colors focus:ring-white/60"
           />
+            <span aria-hidden className="fake-caret" />
+          </div>
         </div>
         {parsed && <p className="mt-2 text-center text-sm text-ink-soft">{echoLine(parsed)}</p>}
         {refer && (

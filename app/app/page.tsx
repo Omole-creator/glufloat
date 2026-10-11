@@ -572,9 +572,14 @@ export default function AppPage() {
                 onGoToMeal={scrollToMeal}
               />
 
-              {/* Straight under the answer, because a reading is the one
-                  thing only this person can tell us, and the app can say
-                  nothing about their own body until they do. */}
+              <VarietyNudge onOpenFood={openInSearch} />
+
+              {/* Invite a friend: 5 free days when they pay (lib/referral.ts).
+                  Also ties a newly invited account to its inviter. */}
+              <InviteFriends />
+
+              {/* Under the invite card (founder, 2026-10-11). The nudge stays
+                  right after it, because it says "tap ... above". */}
               <div id="log-reading" className="scroll-mt-24">
                 <LogReading />
                 <div className="mt-2.5">
@@ -591,12 +596,6 @@ export default function AppPage() {
                   scrollToPanel();
                 }}
               />
-
-              <VarietyNudge onOpenFood={openInSearch} />
-
-              {/* Invite a friend: 5 free days when they pay (lib/referral.ts).
-                  Also ties a newly invited account to its inviter. */}
-              <InviteFriends />
             </div>
 
             {/* Saving sends the person down to today's meal (`onSaved`) so a
