@@ -581,19 +581,27 @@ export default function PersonalizationSettings({
               </p>
             )}
           </div>
-          {/* Why a gain or muscle goal adds no food (lib/tdee.ts clinicalTarget). */}
-          {clinical?.skippedGoals.includes("gain_weight") && (
-            <p className="mt-3 border-t border-white/25 pt-3 text-sm text-white/90">
-              At your weight, GluFloat plans to keep your weight steady, not add to it. Talk to your
-              doctor before you try to gain weight.
-            </p>
-          )}
-          {clinical?.skippedGoals.includes("build_muscle") && (
-            <p className="mt-3 border-t border-white/25 pt-3 text-sm text-white/90">
-              Your muscle goal still shapes your meals. At your weight, GluFloat does not add extra
-              food for it.
-            </p>
-          )}
+          {/* Why a gain or muscle goal adds no food (lib/tdee.ts clinicalTarget).
+              One line, founder's words (2026-10-11): both goals together get
+              one combined line, not two that say nearly the same thing. Only
+              weight gain sends them to the dietitian; building muscle is good
+              at any weight. */}
+          {(() => {
+            const skipped = clinical?.skippedGoals ?? [];
+            const gain = skipped.includes("gain_weight");
+            const muscle = skipped.includes("build_muscle");
+            const line =
+              gain && muscle
+                ? "We still pick meals that help you build muscle. But for your weight, we will not add more food to help you gain weight. Talk to our dietitian first."
+                : gain
+                  ? "For your weight, we will not add more food to help you gain weight. Talk to our dietitian first."
+                  : muscle
+                    ? "We still pick meals that help you build muscle. But for your weight, we will not add more food."
+                    : null;
+            return line ? (
+              <p className="mt-3 border-t border-white/25 pt-3 text-sm text-white/90">{line}</p>
+            ) : null;
+          })()}
         </div>
       )}
       {/* Weight and height alone are enough for this, so it does not wait on
