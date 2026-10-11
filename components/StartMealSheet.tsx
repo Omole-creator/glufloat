@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { ArrowLeft, Bell, Check, Clock, Droplet, X } from "lucide-react";
+import { useEffect, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
+import { ArrowLeft, ArrowRight, Bell, Check, Clock, Droplet, UtensilsCrossed, X } from "lucide-react";
 import type { Food, PortionSize, Verdict } from "@/lib/types";
 import { cleanFoodName } from "@/lib/foodName";
 import { dangerLine, echoLine, formatBoth, parseReading } from "@/lib/glucose";
@@ -100,6 +101,21 @@ export default function StartMealSheet({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
+  // While it is open, the page underneath stays still and Escape closes it.
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !busy) onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [open, onClose, busy]);
+
   if (!open) return null;
 
   const parsed = parseReading(typed);
@@ -185,231 +201,349 @@ export default function StartMealSheet({
   };
 
   const choice = (active: boolean) =>
-    `w-full rounded-2xl border-2 px-4 py-3.5 text-left transition-colors ${
-      active ? "border-brand bg-brand/5" : "border-line bg-white hover:border-brand/40"
+    `flex w-full items-start gap-3 rounded-2xl border-2 px-4 py-4 text-left transition-all ${
+      active
+        ? "border-brand bg-brand/5 shadow-[0_10px_24px_-14px_rgba(27,95,170,0.6)]"
+        : "border-line bg-white hover:border-brand/40"
     }`;
-  const primary =
-    "flex w-full items-center justify-center gap-2 rounded-full bg-leaf px-5 py-3.5 text-sm font-bold text-white transition-colors hover:bg-leaf-deep disabled:opacity-50";
-
-  return (
-    <div
-      className="fixed inset-0 z-[80] flex items-end justify-center bg-ink/50 backdrop-blur-sm sm:items-center sm:p-4"
-      onClick={close}
+  const radio = (active: boolean) => (
+    <span
+      aria-hidden
+      className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${
+        active ? "border-brand bg-brand" : "border-line bg-white"
+      }`}
     >
+      {active && <Check className="h-3 w-3 text-white" strokeWidth={3.5} />}
+    </span>
+  );
+  const primary =
+    "flex w-full items-center justify-center gap-2 rounded-full bg-leaf px-5 py-4 text-sm font-bold text-white shadow-[0_14px_30px_-12px_rgba(62,155,79,0.7)] transition-colors hover:bg-leaf-deep disabled:opacity-50 disabled:shadow-none";
+
+  // Each step's question lives in the coloured band at the top, so the white
+  // part below holds only what you tap.
+  const TITLE: Record<Step, string> = {
+    when: "When are you eating this?",
+    amount: "How much is on your plate?",
+    test: "Test your sugar first",
+    done: "Enjoy your meal",
+  };
+  const done = step === "done";
+  const names = items.map((it) => cleanFoodName(it.food.name));
+
+  // The one button for the step, pinned to the bottom of the screen.
+  let footer: ReactNode = null;
+  if (step === "when") {
+    footer = (
+      <button type="button" onClick={() => setStep("amount")} className={primary}>
+        Next <ArrowRight className="h-4 w-4" />
+      </button>
+    );
+  } else if (step === "amount") {
+    footer = eatingNow ? (
+      <button type="button" onClick={() => askHowMuch() && setStep("test")} className={primary}>
+        Next <ArrowRight className="h-4 w-4" />
+      </button>
+    ) : (
+      <button type="button" onClick={saveEaten} disabled={busy} className={primary}>
+        {busy ? "Saving..." : "Save"}
+      </button>
+    );
+  } else if (step === "test") {
+    footer = (
+      <>
+        <button
+          type="button"
+          onClick={() => start(true)}
+          disabled={busy || (!pending && !parsed)}
+          className={primary}
+        >
+          {busy ? "Saving..." : "Start my meal"}
+        </button>
+        <button
+          type="button"
+          onClick={() => start(false)}
+          disabled={busy}
+          className="mt-1 w-full rounded-full py-3 text-sm font-semibold text-ink-soft transition-colors hover:text-ink disabled:opacity-50"
+        >
+          Skip the test this time
+        </button>
+      </>
+    );
+  } else if (done && started) {
+    footer = (
+      <button type="button" onClick={onClose} className={primary}>
+        Done
+      </button>
+    );
+  }
+
+  // Drawn straight onto <body>. Inside the answer card it sat under an
+  // ancestor with a transform (the card's rise-in animation), which pins a
+  // "fixed" box to that card instead of the screen: it showed squeezed into
+  // the middle of the page instead of filling it.
+  return createPortal(
+    <div className="fixed inset-0 z-[80] flex justify-end">
+      <div className="fade-in absolute inset-0 bg-ink/50 backdrop-blur-sm" onClick={close} aria-hidden />
       <div
         role="dialog"
         aria-modal="true"
         aria-label="Save your meal"
-        onClick={(e) => e.stopPropagation()}
-        className="verdict-pop relative max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-3xl bg-white px-5 pb-8 pt-4 shadow-2xl sm:rounded-3xl sm:pb-6"
+        className="sheet-in relative flex h-[100dvh] w-full flex-col overflow-hidden bg-mist shadow-2xl sm:max-w-md"
       >
-        {/* Top bar: back, where you are, close. */}
-        <div className="flex h-10 items-center justify-between">
-          {step !== "when" && step !== "done" ? (
+        {/* ---- the coloured band: where you are, and the question ---- */}
+        <header
+          className={`relative shrink-0 overflow-hidden px-5 pb-8 pt-3 text-white ${
+            done
+              ? "bg-gradient-to-br from-[#1f7a3a] via-[#2e9b4f] to-[#3eb35f]"
+              : "bg-gradient-to-br from-[#0B2E5C] via-[#124A8C] to-[#1B5FAA]"
+          }`}
+        >
+          <div aria-hidden className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-white/10 blur-2xl" />
+          <div className="relative flex h-11 items-center justify-between">
+            {step !== "when" && !done ? (
+              <button
+                type="button"
+                onClick={back}
+                aria-label="Go back a step"
+                className="-ml-2 flex h-11 w-11 items-center justify-center rounded-full text-white/80 transition-colors hover:bg-white/10 hover:text-white"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </button>
+            ) : (
+              <span className="h-11 w-11" />
+            )}
+            {!done && (
+              <span className="text-xs font-bold uppercase tracking-widest text-white/70">
+                Step {stepNo} of {steps.length}
+              </span>
+            )}
             <button
               type="button"
-              onClick={back}
-              aria-label="Go back a step"
-              className="-ml-1 flex h-10 w-10 items-center justify-center rounded-full text-ink-soft transition-colors hover:bg-mist hover:text-ink"
+              onClick={close}
+              aria-label="Close the save meal box"
+              className="-mr-2 flex h-11 w-11 items-center justify-center rounded-full text-white/80 transition-colors hover:bg-white/10 hover:text-white"
             >
-              <ArrowLeft className="h-5 w-5" />
+              <X className="h-5 w-5" />
             </button>
-          ) : (
-            <span className="h-10 w-10" />
-          )}
-          {step !== "done" && (
-            <div className="flex items-center gap-1.5" aria-label={`Step ${stepNo} of ${steps.length}`}>
+          </div>
+
+          {!done && (
+            <div className="relative mt-2 flex gap-1.5" aria-hidden>
               {steps.map((s, i) => (
                 <span
                   key={s}
-                  className={`h-1.5 rounded-full transition-all ${i < stepNo ? "w-6 bg-brand" : "w-1.5 bg-line"}`}
+                  className={`h-1.5 flex-1 rounded-full transition-colors duration-300 ${
+                    i < stepNo ? "bg-white" : "bg-white/25"
+                  }`}
                 />
               ))}
             </div>
           )}
-          <button
-            type="button"
-            onClick={close}
-            aria-label="Close the save meal box"
-            className="-mr-1 flex h-10 w-10 items-center justify-center rounded-full text-ink-soft transition-colors hover:bg-mist hover:text-ink"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
 
-        <div key={step} className="step-in mt-2">
-          {/* ---- 1. When ---- */}
-          {step === "when" && (
-            <>
-              <h2 className="font-display text-xl font-bold text-ink">When are you eating this?</h2>
-              <div className="mt-4 space-y-2.5">
+          <div key={`h-${step}`} className="step-in relative mt-5">
+            {done ? (
+              <span className="green-burst flex h-14 w-14 items-center justify-center rounded-full bg-white text-leaf-deep">
+                <Check className="h-7 w-7" strokeWidth={3} />
+              </span>
+            ) : (
+              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15 ring-1 ring-white/25">
+                {step === "test" ? <Droplet className="h-6 w-6" /> : <UtensilsCrossed className="h-6 w-6" />}
+              </span>
+            )}
+            <h2 className="mt-4 font-display text-2xl font-bold leading-tight">{TITLE[step]}</h2>
+            {step === "amount" && (
+              <p className="mt-1 text-sm text-white/80">Compare it with the right size shown below.</p>
+            )}
+            {step === "test" && (
+              <p className="mt-1 text-sm text-white/80">
+                Do it before your first bite. Your doctor can then see how much this meal moves your sugar.
+              </p>
+            )}
+          </div>
+
+          {/* What is being saved, always in view. */}
+          {!done && (
+            <div className="relative mt-4 flex flex-wrap gap-1.5">
+              {names.map((n, i) => (
+                <span
+                  key={`${n}-${i}`}
+                  className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-white ring-1 ring-white/20"
+                >
+                  {n}
+                </span>
+              ))}
+            </div>
+          )}
+        </header>
+
+        {/* ---- what you tap ---- */}
+        <div className="relative -mt-4 flex-1 overflow-y-auto rounded-t-3xl bg-mist px-5 pb-6 pt-6">
+          <div key={step} className="step-in">
+            {/* ---- 1. When ---- */}
+            {step === "when" && (
+              <div className="space-y-3">
                 <button type="button" onClick={() => setEatingNow(true)} aria-pressed={eatingNow} className={choice(eatingNow)}>
-                  <span className="block text-sm font-bold text-ink">I&apos;m about to eat it</span>
-                  <span className="mt-0.5 block text-xs text-ink-soft">
-                    Test and record your sugar before you eat, then 2 hours after eating.
+                  {radio(eatingNow)}
+                  <span>
+                    <span className="block text-sm font-bold text-ink">I&apos;m about to eat it</span>
+                    <span className="mt-1 block text-xs leading-relaxed text-ink-soft">
+                      Test and record your sugar before you eat, then 2 hours after eating.
+                    </span>
                   </span>
                 </button>
                 <button type="button" onClick={() => setEatingNow(false)} aria-pressed={!eatingNow} className={choice(!eatingNow)}>
-                  <span className="block text-sm font-bold text-ink">I already ate it</span>
-                  <span className="mt-0.5 block text-xs text-ink-soft">We&apos;ll add it to your food list.</span>
+                  {radio(!eatingNow)}
+                  <span>
+                    <span className="block text-sm font-bold text-ink">I already ate it</span>
+                    <span className="mt-1 block text-xs leading-relaxed text-ink-soft">
+                      We&apos;ll add it to your food list.
+                    </span>
+                  </span>
                 </button>
               </div>
-              <button type="button" onClick={() => setStep("amount")} className={`${primary} mt-6`}>
-                Next
-              </button>
-            </>
-          )}
+            )}
 
-          {/* ---- 2. How much ---- */}
-          {step === "amount" && (
-            <>
-              <h2 className="font-display text-xl font-bold text-ink">How much is on your plate?</h2>
-              <p className="mt-1 text-sm text-ink-soft">Compare it with the right size shown below.</p>
-              <div className="mt-4 space-y-3">
-                {items.map((it, i) => {
-                  const name = cleanFoodName(it.food.name);
-                  // A bigger blue-card serving arrives as a food copy whose
-                  // portionGuidance is that serving in household words. Use
-                  // them when they really are for those grams; a bare "163g"
-                  // means nothing to someone with no scale.
-                  const pg = it.food.portionGuidance;
-                  const size = it.grams
-                    ? pg.includes(`${it.grams}g`)
-                      ? pg
-                      : `About ${it.grams}g today.`
-                    : firstSentence(pg);
-                  const current = amounts[i] ?? it.portion;
-                  return (
-                    <div key={it.food.id} className="rounded-2xl bg-mist/70 p-3.5">
-                      <p className="text-sm font-bold text-ink">{name}</p>
-                      {size && <p className="mt-0.5 text-xs text-ink-soft">Right size: {size}</p>}
-                      <MeasureChips text={size} forFood={name} className="mt-1.5" />
-                      <div className="mt-2.5 grid grid-cols-3 gap-1 rounded-full bg-white p-1 ring-1 ring-line">
-                        {AMOUNTS.map((a) => {
-                          const active = current === a.key;
-                          return (
-                            <button
-                              key={a.key}
-                              type="button"
-                              onClick={() => {
-                                setProblem("");
-                                setAmounts((cur) => {
-                                  const next = [...cur];
-                                  next[i] = a.key;
-                                  return next;
-                                });
-                                setHowMuch((cur) => {
-                                  const next = [...cur];
-                                  next[i] = null;
-                                  return next;
-                                });
-                              }}
-                              aria-pressed={active}
-                              aria-label={`${a.aria} ${name}`}
-                              className={`rounded-full py-2 text-xs font-bold transition-colors ${
-                                active ? "bg-brand text-white" : "text-ink-soft hover:text-ink"
-                              }`}
-                            >
-                              {a.label}
-                            </button>
-                          );
-                        })}
-                      </div>
-                      {current !== "normal" && (
-                        <div className="mt-2.5">
-                          <p className="text-xs font-semibold text-ink">
-                            About how much {current === "large" ? "more" : "less"}?
+            {/* ---- 2. How much ---- */}
+            {step === "amount" && (
+              <>
+                <div className="space-y-3">
+                  {items.map((it, i) => {
+                    const name = cleanFoodName(it.food.name);
+                    // A bigger blue-card serving arrives as a food copy whose
+                    // portionGuidance is that serving in household words. Use
+                    // them when they really are for those grams; a bare "163g"
+                    // means nothing to someone with no scale.
+                    const pg = it.food.portionGuidance;
+                    const size = it.grams
+                      ? pg.includes(`${it.grams}g`)
+                        ? pg
+                        : `About ${it.grams}g today.`
+                      : firstSentence(pg);
+                    const current = amounts[i] ?? it.portion;
+                    return (
+                      <div
+                        key={it.food.id}
+                        className="rounded-2xl bg-white p-4 shadow-[0_4px_20px_-12px_rgba(12,42,71,0.25)] ring-1 ring-ink/[0.05]"
+                      >
+                        <p className="text-sm font-bold text-ink">{name}</p>
+                        {size && (
+                          <p className="mt-1 text-xs leading-relaxed text-ink-soft">
+                            <span className="font-semibold text-ink">Right size: </span>
+                            {size}
                           </p>
-                          <div className="mt-1.5 flex flex-wrap gap-1.5">
-                            {(current === "large" ? MORE_AMOUNTS : LESS_AMOUNTS).map((h) => {
-                              const on = howMuch[i] === h.key;
-                              return (
-                                <button
-                                  key={h.key}
-                                  type="button"
-                                  onClick={() => {
-                                    setProblem("");
-                                    setHowMuch((cur) => {
-                                      const next = [...cur];
-                                      next[i] = h.key;
-                                      return next;
-                                    });
-                                  }}
-                                  aria-pressed={on}
-                                  aria-label={`${h.label} ${name}`}
-                                  className={`rounded-full px-3 py-1.5 text-xs font-bold ring-1 transition-colors ${
-                                    on ? "bg-brand text-white ring-brand" : "bg-white text-ink-soft ring-line hover:text-ink"
-                                  }`}
-                                >
-                                  {h.label}
-                                </button>
-                              );
-                            })}
-                          </div>
+                        )}
+                        <MeasureChips text={size} forFood={name} className="mt-2" />
+                        <div className="mt-3 grid grid-cols-3 gap-1 rounded-full bg-mist p-1">
+                          {AMOUNTS.map((a) => {
+                            const active = current === a.key;
+                            return (
+                              <button
+                                key={a.key}
+                                type="button"
+                                onClick={() => {
+                                  setProblem("");
+                                  setAmounts((cur) => {
+                                    const next = [...cur];
+                                    next[i] = a.key;
+                                    return next;
+                                  });
+                                  setHowMuch((cur) => {
+                                    const next = [...cur];
+                                    next[i] = null;
+                                    return next;
+                                  });
+                                }}
+                                aria-pressed={active}
+                                aria-label={`${a.aria} ${name}`}
+                                className={`rounded-full py-2.5 text-xs font-bold transition-all ${
+                                  active ? "bg-brand text-white shadow-sm" : "text-ink-soft hover:text-ink"
+                                }`}
+                              >
+                                {a.label}
+                              </button>
+                            );
+                          })}
                         </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-              {ateMore && (
-                <p className="mt-3 text-xs text-ink-soft">
-                  Got it. We&apos;ll save what you ate. Next time, keep to the right size.
-                </p>
-              )}
-              {problem && <p className="mt-3 text-sm font-semibold text-verdict-red">{problem}</p>}
-              {eatingNow ? (
-                <button type="button" onClick={() => askHowMuch() && setStep("test")} className={`${primary} mt-6`}>
-                  Next
-                </button>
-              ) : (
-                <button type="button" onClick={saveEaten} disabled={busy} className={`${primary} mt-6`}>
-                  {busy ? "Saving..." : "Save"}
-                </button>
-              )}
-            </>
-          )}
+                        {current !== "normal" && (
+                          <div className="mt-3 rounded-xl bg-brand/5 p-3">
+                            <p className="text-xs font-semibold text-ink">
+                              About how much {current === "large" ? "more" : "less"}?
+                            </p>
+                            <div className="mt-2 flex flex-wrap gap-1.5">
+                              {(current === "large" ? MORE_AMOUNTS : LESS_AMOUNTS).map((h) => {
+                                const on = howMuch[i] === h.key;
+                                return (
+                                  <button
+                                    key={h.key}
+                                    type="button"
+                                    onClick={() => {
+                                      setProblem("");
+                                      setHowMuch((cur) => {
+                                        const next = [...cur];
+                                        next[i] = h.key;
+                                        return next;
+                                      });
+                                    }}
+                                    aria-pressed={on}
+                                    aria-label={`${h.label} ${name}`}
+                                    className={`rounded-full px-3 py-2 text-xs font-bold ring-1 transition-colors ${
+                                      on ? "bg-brand text-white ring-brand" : "bg-white text-ink-soft ring-line hover:text-ink"
+                                    }`}
+                                  >
+                                    {h.label}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+                {ateMore && (
+                  <p className="mt-3 rounded-xl bg-white px-4 py-3 text-xs text-ink-soft ring-1 ring-line">
+                    Got it. We&apos;ll save what you ate. Next time, keep to the right size.
+                  </p>
+                )}
+              </>
+            )}
 
-          {/* ---- 3. Test before eating ---- */}
-          {step === "test" && (
-            <>
-              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-brand/10 text-brand">
-                <Droplet className="h-5 w-5" />
-              </span>
-              <h2 className="mt-3 font-display text-xl font-bold text-ink">Test your sugar first</h2>
-              <p className="mt-1 text-sm text-ink-soft">
-                Do it before your first bite. Your doctor can then see how much this meal moves your sugar.
-              </p>
-
-              {pending ? (
-                <p className="mt-4 rounded-2xl bg-mist/70 px-4 py-3 text-sm text-ink">
+            {/* ---- 3. Test before eating ---- */}
+            {step === "test" &&
+              (pending ? (
+                <div className="rounded-2xl bg-white p-4 text-sm text-ink ring-1 ring-ink/[0.05]">
                   We&apos;ll use the test you saved at {timeLabel(pending.takenAt)}:{" "}
                   <strong>{formatBoth(pending.mgdl)}</strong>
-                </p>
+                </div>
               ) : (
                 <>
-                  <label htmlFor="gf-before" className="mt-4 block text-sm font-semibold text-ink">
+                  {/* Shaped like the screen of a sugar meter, so it is plain
+                      which number goes here. */}
+                  <label htmlFor="gf-before" className="block text-sm font-semibold text-ink">
                     Your sugar before eating
                   </label>
-                  <input
-                    id="gf-before"
-                    value={typed}
-                    onChange={(e) => {
-                      setTyped(e.target.value);
-                      setProblem("");
-                    }}
-                    inputMode="decimal"
-                    autoComplete="off"
-                    className="mt-1.5 w-full rounded-2xl border-2 border-line bg-white px-4 py-3 text-lg font-semibold text-ink outline-none transition-colors focus:border-brand"
-                  />
-                  {parsed && <p className="mt-2 text-sm text-ink-soft">{echoLine(parsed)}</p>}
+                  <div className="mt-2 rounded-3xl bg-gradient-to-b from-[#0B2E5C] to-[#124A8C] p-3 shadow-[0_16px_36px_-18px_rgba(11,46,92,0.8)]">
+                    <input
+                      id="gf-before"
+                      value={typed}
+                      onChange={(e) => {
+                        setTyped(e.target.value);
+                        setProblem("");
+                      }}
+                      inputMode="decimal"
+                      autoComplete="off"
+                      className="w-full rounded-2xl bg-white/10 px-4 py-4 text-center font-display text-4xl font-bold tabular-nums tracking-wide text-white outline-none ring-2 ring-white/15 transition-colors focus:ring-white/60"
+                    />
+                  </div>
+                  {parsed && <p className="mt-2 text-center text-sm text-ink-soft">{echoLine(parsed)}</p>}
                   {refer && (
                     <p className="mt-3 rounded-2xl border border-verdict-red/50 bg-verdict-red/5 px-4 py-3 text-sm font-semibold text-ink">
                       {refer}
                     </p>
                   )}
                   {parsed && needConsent && (
-                    <label className="mt-3 flex cursor-pointer items-start gap-3 rounded-2xl border border-line px-4 py-3">
+                    <label className="mt-3 flex cursor-pointer items-start gap-3 rounded-2xl bg-white px-4 py-3 ring-1 ring-line">
                       <input
                         type="checkbox"
                         checked={agreed}
@@ -424,88 +558,69 @@ export default function StartMealSheet({
                     </label>
                   )}
                 </>
-              )}
+              ))}
 
-              {problem && <p className="mt-3 text-sm font-semibold text-verdict-red">{problem}</p>}
+            {/* ---- 4. Done ---- */}
+            {done && started && (
+              <>
+                <div className="rounded-3xl bg-white p-5 shadow-[0_8px_30px_-16px_rgba(12,42,71,0.35)] ring-1 ring-ink/[0.05]">
+                  <p className="flex items-center gap-2 text-sm font-bold text-ink">
+                    <Clock className="h-4 w-4 text-brand" />
+                    Test again at {timeLabel(dueAt(started.startedAt).toISOString())}
+                  </p>
+                  <p className="mt-1 text-sm text-ink-soft">
+                    That&apos;s 2 hours from now. We&apos;ll remind you on the home screen.
+                  </p>
+                  <p className="mt-4 border-t border-line pt-4 text-sm text-ink">
+                    {started.beforeMgdl !== null ? (
+                      <>
+                        Before eating: <strong>{formatBoth(started.beforeMgdl)}</strong>
+                      </>
+                    ) : (
+                      "No test before this meal. Your 2-hour test still helps."
+                    )}
+                  </p>
+                </div>
 
-              <button
-                type="button"
-                onClick={() => start(true)}
-                disabled={busy || (!pending && !parsed)}
-                className={`${primary} mt-6`}
-              >
-                {busy ? "Saving..." : "Start my meal"}
-              </button>
-              <button
-                type="button"
-                onClick={() => start(false)}
-                disabled={busy}
-                className="mt-2 w-full rounded-full py-3 text-sm font-semibold text-ink-soft transition-colors hover:text-ink disabled:opacity-50"
-              >
-                Skip the test this time
-              </button>
-            </>
-          )}
+                {pushState === "offer" && (
+                  <button
+                    type="button"
+                    onClick={turnOnPush}
+                    className="mt-3 flex w-full items-center justify-center gap-2 rounded-full border-2 border-line bg-white py-3 text-sm font-bold text-ink transition-colors hover:border-brand"
+                  >
+                    <Bell className="h-4 w-4 text-brand" /> Remind me on this phone too
+                  </button>
+                )}
+                {pushState === "offer" && (
+                  <p className="mt-1.5 text-center text-xs text-ink-soft">
+                    On an iPhone, add GluFloat to your home screen first.
+                  </p>
+                )}
+                {pushState === "on" && (
+                  <p className="mt-3 text-center text-sm font-semibold text-leaf-deep">
+                    Done. This phone will remind you.
+                  </p>
+                )}
+                {pushState === "failed" && (
+                  <p className="mt-3 text-center text-sm text-ink-soft">
+                    This phone could not turn on reminders. We&apos;ll still remind you on the home screen.
+                  </p>
+                )}
+              </>
+            )}
 
-          {/* ---- 4. Done ---- */}
-          {step === "done" && started && (
-            <>
-              <span className="green-burst flex h-12 w-12 items-center justify-center rounded-full bg-leaf text-white">
-                <Check className="h-6 w-6" strokeWidth={3} />
-              </span>
-              <h2 className="mt-3 font-display text-xl font-bold text-ink">Enjoy your meal</h2>
-
-              <div className="mt-4 rounded-2xl bg-brand/5 p-4 ring-1 ring-brand/15">
-                <p className="flex items-center gap-2 text-sm font-bold text-ink">
-                  <Clock className="h-4 w-4 text-brand" />
-                  Test again at {timeLabel(dueAt(started.startedAt).toISOString())}
-                </p>
-                <p className="mt-1 text-sm text-ink-soft">
-                  That&apos;s 2 hours from now. We&apos;ll remind you on the home screen.
-                </p>
-                <p className="mt-3 border-t border-brand/10 pt-3 text-sm text-ink">
-                  {started.beforeMgdl !== null ? (
-                    <>
-                      Before eating: <strong>{formatBoth(started.beforeMgdl)}</strong>
-                    </>
-                  ) : (
-                    "No test before this meal. Your 2-hour test still helps."
-                  )}
-                </p>
-              </div>
-
-              {pushState === "offer" && (
-                <button
-                  type="button"
-                  onClick={turnOnPush}
-                  className="mt-3 flex w-full items-center justify-center gap-2 rounded-full border-2 border-line py-3 text-sm font-bold text-ink transition-colors hover:border-brand"
-                >
-                  <Bell className="h-4 w-4 text-brand" /> Remind me on this phone too
-                </button>
-              )}
-              {pushState === "offer" && (
-                <p className="mt-1.5 text-center text-xs text-ink-soft">
-                  On an iPhone, add GluFloat to your home screen first.
-                </p>
-              )}
-              {pushState === "on" && (
-                <p className="mt-3 text-center text-sm font-semibold text-leaf-deep">
-                  Done. This phone will remind you.
-                </p>
-              )}
-              {pushState === "failed" && (
-                <p className="mt-3 text-center text-sm text-ink-soft">
-                  This phone could not turn on reminders. We&apos;ll still remind you on the home screen.
-                </p>
-              )}
-
-              <button type="button" onClick={onClose} className={`${primary} mt-6`}>
-                Done
-              </button>
-            </>
-          )}
+            {problem && <p className="mt-4 text-sm font-semibold text-verdict-red">{problem}</p>}
+          </div>
         </div>
+
+        {/* ---- the step's button, always under the thumb ---- */}
+        {footer && (
+          <div className="shrink-0 border-t border-line bg-white px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3">
+            {footer}
+          </div>
+        )}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

@@ -31,6 +31,22 @@ export const PAYSTACK_URLS: Record<Tier, string> = {
   dietitian: "https://paystack.shop/pay/glufloat-dietitian",
 };
 
+/**
+ * The yearly pages: one fixed-amount page per tier, at the amounts in
+ * lib/pricing.ts TIER_YEARLY_AMOUNTS (N14,400 / N24,000 / N43,200). The
+ * Monthly/Yearly switch only appears while YEARLY_ENABLED is true, so a
+ * visitor can never be sent to a page that does not exist yet. Turn it on
+ * only once all three pages are live in the Paystack dashboard with these
+ * exact slugs and amounts that cannot be edited by the buyer.
+ */
+export const YEARLY_ENABLED = true;
+
+export const PAYSTACK_YEARLY_URLS: Record<Tier, string> = {
+  basic: "https://paystack.shop/pay/glufloat-yearly",
+  plus: "https://paystack.shop/pay/glufloat-plus-yearly",
+  dietitian: "https://paystack.shop/pay/glufloat-premium-yearly",
+};
+
 /** Kept for any code that has not moved to PAYSTACK_URLS yet. Same value as basic. */
 export const PAYSTACK_URL = PAYSTACK_URLS.basic;
 

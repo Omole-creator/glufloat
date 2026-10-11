@@ -31,6 +31,7 @@ keys are in Vercel, the app code (which I'm building) takes over.
    | 18 | `finance-schema.sql` | `finance_expenses`, `finance_income`, `founder_loan_moves` for `/admin/finance` (expenses, other money in, founder loans). Amounts in kobo. RLS on with NO policies: only the admin routes (service role) touch them. Idempotent; the finance pages say "waiting for the database update" and keep the forms off until it runs. |
    | 19 | `meal-response-schema.sql` | `meal_checks.started_at` and `.reminder_sent_at` for **meal tests** (a meal with a sugar test before it and 2 hours after, the co-founder dietitian's design, 2026-10-07). The two sugar tests themselves need nothing new: they are `glucose_readings` rows on the meal with `context` before/after. Must run AFTER #16. Idempotent. Until it runs, the app remembers a started meal on the device and `/api/push/meal-test` answers 503. |
    | 20 | `email-consent-schema.sql` | `profiles.email_updates` (yes / no / not asked) and `.email_updates_at`, for Mailyte emails (2026-10-07). Asked in `/app` on the My details tab. `/admin/email` sends only the people who said yes. Idempotent. Until it runs, the question is hidden and `/admin/email` says it is waiting. |
+   | 21 | `referral-schema.sql` | **Invite a friend** (2026-10-11): `referral_codes` (each member's `/i/<code>`), `referrals` (who invited whom, first invite wins) and `referral_rewards` (5 free days, once per invited person). RLS: read own rows only, no write policy, so only the server can write. Idempotent. Until it runs, the invite card stays hidden and payments work exactly as before. |
 
    Two things worth knowing about that order. **Five of these files each contain
    their own `create or replace function public.handle_new_user()`**, and the last
@@ -76,6 +77,12 @@ keys are in Vercel, the app code (which I'm building) takes over.
    250000 / 450000) must match `TIER_AMOUNTS` in `lib/pricing.ts` — the
    webhook tells the three tiers apart ONLY by the amount charged, so a
    mismatch here silently grants the wrong tier.
+5. **Three yearly pages, 20% off 12 months** (live 2026-10-11, checked by
+   fetching each page): `glufloat-yearly` at ₦14,400, `glufloat-plus-yearly`
+   at ₦24,000, `glufloat-premium-yearly` at ₦43,200. Slugs must match
+   `PAYSTACK_YEARLY_URLS` in `lib/access.ts` and amounts `TIER_YEARLY_AMOUNTS`
+   in `lib/pricing.ts`. A yearly amount buys 365 days, any other 30. The
+   Monthly/Yearly switch is controlled by `YEARLY_ENABLED` in `lib/access.ts`.
 
 ## 3. Vercel environment variables
 

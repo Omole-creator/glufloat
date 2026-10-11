@@ -1,11 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
-import { tierForAmount } from "@/lib/pricing";
-import { upsertSubscription } from "@/lib/subscriptionWrite";
+import { grantPayment } from "@/lib/paymentGrant";
 
 export const dynamic = "force-dynamic";
-
-const MONTH_MS = 30 * 24 * 60 * 60 * 1000;
 
 /**
  * Link a finished Paystack payment to the signed-in account, by reference.
@@ -84,27 +81,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: "already_claimed" }, { status: 409 });
   }
 
-  await admin.from("payments").upsert(
-    {
-      user_id: user.id,
-      email: (tx.customer?.email || user.email || "").toLowerCase(),
-      reference,
-      amount: tx.amount,
-      status: "success",
-      paid_at: tx.paid_at || new Date().toISOString(),
-    },
-    { onConflict: "reference" },
-  );
-
-  await upsertSubscription(admin, {
-    user_id: user.id,
-    status: "active",
-    current_period_end: new Date(Date.now() + MONTH_MS).toISOString(),
+  // One grant per payment, with paid days adding up (lib/paymentGrant.ts).
+  const result = await grantPayment(admin, {
+    uid: user.id,
+    reference,
     amount: tx.amount,
-    tier: tierForAmount(tx.amount),
-    paystack_customer_code: tx.customer?.customer_code ?? null,
-    updated_at: new Date().toISOString(),
+    email: (tx.customer?.email || user.email || "").toLowerCase(),
+    paidAt: tx.paid_at || new Date().toISOString(),
+    customerCode: tx.customer?.customer_code ?? null,
   });
+  if (result === "conflict") {
+    return NextResponse.json({ ok: false, error: "already_claimed" }, { status: 409 });
+  }
 
   return NextResponse.json({ ok: true });
 }

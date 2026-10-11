@@ -8,20 +8,35 @@ import {
   pushPermission,
   enablePush,
 } from "@/lib/push";
+import { INTAKE_CHANGED, recentChecks } from "@/lib/history";
 
-// The day (in the browser's local time) this device was last shown the offer.
-const LAST_SHOWN_KEY = "gf_push_lastshown";
-const todayKey = () => {
-  const d = new Date();
-  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
-};
+// How many times this device has been offered reminders, and when last.
+const OFFERS_KEY = "gf_push_offers";
+const MAX_OFFERS = 3;
+const GAP_MS = 3 * 24 * 60 * 60 * 1000;
+
+function readOffers(): { count: number; last: number } {
+  try {
+    const v = JSON.parse(localStorage.getItem(OFFERS_KEY) ?? "");
+    if (typeof v?.count === "number" && typeof v?.last === "number") return v;
+  } catch {
+    /* nothing stored yet */
+  }
+  return { count: 0, last: 0 };
+}
 
 /**
- * A gentle offer of a meal-time reminder, shown AT MOST ONCE A DAY until the
- * person turns it on (founder rule). Once accepted, the browser's permission is
- * "granted", so it never shows again. Once blocked, it also stops. If they just
- * wave it away, it stays gone for the rest of the day and offers again tomorrow.
- * Not a permission popup on open (that gets refused): a small card they choose.
+ * A gentle offer of a meal-time reminder (rebuilt 2026-10-11). It used to
+ * appear once a day from the very first visit, which a brand-new user read as
+ * being nagged before the app had done anything for them, so it was taken off
+ * the screen. Now it waits for the moment the app has earned it:
+ *
+ *  - only once the person has saved at least one meal (they have seen what
+ *    GluFloat does), and it can appear the moment that first meal is saved;
+ *  - at most 3 times on this device, at least 3 days apart;
+ *  - never again once the phone's permission is "granted" or "denied".
+ *
+ * A small card they choose, never a permission popup on open.
  */
 export default function PushOptIn() {
   const [show, setShow] = useState(false);
@@ -31,22 +46,32 @@ export default function PushOptIn() {
 
   useEffect(() => {
     if (!pushSupported() || !pushConfigured()) return;
-    // "granted" = they accepted (never nag again); "denied" = blocked (do not
-    // nag). Only "default" (not asked yet) can be offered.
-    if (pushPermission() !== "default") return;
-    try {
-      if (localStorage.getItem(LAST_SHOWN_KEY) === todayKey()) return; // shown today already
-      localStorage.setItem(LAST_SHOWN_KEY, todayKey()); // remember we showed it today
-    } catch {
-      /* storage blocked: still show it this once */
-    }
-    setShow(true);
+    let shown = false;
+    const consider = async () => {
+      if (shown) return;
+      // "granted" = they accepted; "denied" = blocked. Only "default" is offered.
+      if (pushPermission() !== "default") return;
+      const offers = readOffers();
+      if (offers.count >= MAX_OFFERS || Date.now() - offers.last < GAP_MS) return;
+      const saved = await recentChecks(1);
+      if (!saved.length) return;
+      shown = true;
+      try {
+        localStorage.setItem(OFFERS_KEY, JSON.stringify({ count: offers.count + 1, last: Date.now() }));
+      } catch {
+        /* storage blocked: still show it this once */
+      }
+      setShow(true);
+    };
+    void consider();
+    // The first saved meal is the moment to ask, without a reload.
+    window.addEventListener(INTAKE_CHANGED, consider);
+    return () => window.removeEventListener(INTAKE_CHANGED, consider);
   }, []);
 
   if (!show) return null;
 
-  // "Not now" just hides it. The once-a-day record above already stops it from
-  // coming back until tomorrow, so there is nothing else to write.
+  // "Not now" just hides it. The record above already keeps it away for 3 days.
   const dismiss = () => setShow(false);
 
   const turnOn = async () => {

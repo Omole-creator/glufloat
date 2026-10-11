@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/client";
 import { TRIAL_DAYS } from "@/lib/trial";
-import type { Tier } from "@/lib/pricing";
+import { isYearlyAmount, type Tier } from "@/lib/pricing";
 export type { Tier };
 
 // Account-based access (replaces the old localStorage gating). A user's access
@@ -22,14 +22,14 @@ export type Access =
   // deliberately carries no `tier`, because the ONE thing trial never grants is
   // the dietitian tier. See canUseDietitianChat below.
   | { status: "trial"; daysLeft: number }
-  | { status: "subscribed"; daysLeft: number; tier: Tier }
+  | { status: "subscribed"; daysLeft: number; tier: Tier; yearly: boolean }
   // Trial ended, no active subscription. `lapsed` means they have paid before, so
   // this is a renewal and not a first sale. The screen has to say "your month is
   // over", never "your free trial is over", to somebody who paid us last month.
   // `previousTier` is whatever they last paid for (null if never), so a renewal
   // offers the SAME tier back rather than silently downgrading a Plus/Dietitian
   // subscriber to Basic pricing.
-  | { status: "expired"; lapsed: boolean; previousTier: Tier | null };
+  | { status: "expired"; lapsed: boolean; previousTier: Tier | null; previousYearly: boolean };
 
 /**
  * Can this person use goal/activity/meal-pattern personalization right now?
@@ -81,7 +81,7 @@ export async function getAccess(): Promise<{
       .single(),
     supabase
       .from("subscriptions")
-      .select("status,current_period_end,tier")
+      .select("status,current_period_end,tier,amount")
       .eq("user_id", user.id)
       .maybeSingle(),
   ]);
@@ -100,7 +100,7 @@ export async function getAccess(): Promise<{
       .select("status,current_period_end")
       .eq("user_id", user.id)
       .maybeSingle();
-    sub = plain.data ? { ...plain.data, tier: "basic" } : null;
+    sub = plain.data ? { ...plain.data, tier: "basic", amount: null } : null;
   }
 
   const name = (profile?.name ?? "").trim() || null;
@@ -118,7 +118,7 @@ export async function getAccess(): Promise<{
       return {
         email: user.email ?? null,
         name,
-        access: { status: "subscribed", daysLeft, tier },
+        access: { status: "subscribed", daysLeft, tier, yearly: isYearlyAmount(sub.amount) },
       };
   }
 
@@ -136,7 +136,7 @@ export async function getAccess(): Promise<{
     return {
       email: user.email ?? null,
       name,
-      access: { status: "expired", lapsed: !!sub, previousTier },
+      access: { status: "expired", lapsed: !!sub, previousTier, previousYearly: isYearlyAmount(sub?.amount) },
     };
   }
 

@@ -1,16 +1,21 @@
 "use client";
 
+import { useState } from "react";
 import { motion, type Variants } from "framer-motion";
 import { Check, Star } from "lucide-react";
 import TrialCta from "@/components/TrialCta";
+import BillingToggle from "@/components/BillingToggle";
+import { YEARLY_ENABLED } from "@/lib/access";
+import { nairaLabel, TIER_AMOUNTS, TIER_YEARLY_AMOUNTS } from "@/lib/pricing";
 
 /**
  * The 3-tier pricing section. Adapted from a generic shadcn pricing block, with
  * these deliberate departures — all correctness-driven, not stylistic:
  *
- *  - No monthly/annual toggle, no confetti, no USD/@number-flow currency
- *    animation. Paystack here is one-time-charge only (no annual billing
- *    exists), so a toggle would advertise something that does not work.
+ *  - A Monthly/Yearly toggle, but only while YEARLY_ENABLED (lib/access.ts)
+ *    is on, i.e. once the three yearly Paystack pages exist. Before that it
+ *    would advertise something that does not work. No confetti, no USD
+ *    currency animation.
  *  - Prices are the same static "N1,500" style already used everywhere else on
  *    the site, not a currency-formatted number.
  *  - Every button is the SAME <TrialCta/> used elsewhere: access-aware, and
@@ -55,6 +60,7 @@ export function Pricing({
   title: string;
   description?: string;
 }) {
+  const [yearly, setYearly] = useState(false);
   return (
     <div>
       <div className="text-center">
@@ -66,12 +72,18 @@ export function Pricing({
         )}
       </div>
 
+      {YEARLY_ENABLED && (
+        <div className="mt-8 flex justify-center">
+          <BillingToggle yearly={yearly} onChange={setYearly} />
+        </div>
+      )}
+
       <motion.div
         variants={container}
         initial="hidden"
         whileInView="show"
         viewport={{ once: true, amount: 0.2 }}
-        className="mx-auto mt-12 grid max-w-5xl gap-6 sm:grid-cols-3"
+        className={`mx-auto ${YEARLY_ENABLED ? "mt-8" : "mt-12"} grid max-w-5xl gap-6 sm:grid-cols-3`}
       >
         {plans.map((plan) => (
           <motion.div
@@ -112,13 +124,23 @@ export function Pricing({
                 plan.isPopular ? "text-white" : "text-ink"
               }`}
             >
-              {plan.price}
+              {yearly ? nairaLabel(TIER_YEARLY_AMOUNTS[plan.tier]) : plan.price}
               <span
                 className={`text-base font-medium ${plan.isPopular ? "text-white/70" : "text-ink-soft"}`}
               >
-                /month
+                {yearly ? "/year" : "/month"}
               </span>
             </p>
+            {yearly && (
+              <p
+                className={`relative mt-2 text-sm font-semibold ${
+                  plan.isPopular ? "text-white/85" : "text-leaf-deep"
+                }`}
+              >
+                That is {nairaLabel(TIER_YEARLY_AMOUNTS[plan.tier] / 12)} a month. You save{" "}
+                {nairaLabel(TIER_AMOUNTS[plan.tier] * 12 - TIER_YEARLY_AMOUNTS[plan.tier])}.
+              </p>
+            )}
 
             {plan.intro && (
               <p

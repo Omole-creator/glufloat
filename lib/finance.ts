@@ -20,7 +20,7 @@
 
 import { categoryOf, type ExpenseRow, type Founder, type IncomeRow, type LoanMoveRow } from "./financeConfig";
 import { parsePeriod, step, type Period } from "./period";
-import { tierForAmount, TIER_AMOUNTS, type Tier } from "./pricing";
+import { monthlyValue, tierForAmount, TIER_AMOUNTS, type Tier } from "./pricing";
 
 export const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -232,7 +232,8 @@ export type Metrics = ReturnType<typeof investorMetrics>;
 export function investorMetrics(input: FinanceInput, w: Win) {
   const now = input.now;
   const live = input.subs.filter((s) => isLiveSub(s, now));
-  const mrr = sum(live.map((s) => s.amount || 0));
+  // A yearly payment is worth a twelfth of itself each month.
+  const mrr = sum(live.map((s) => monthlyValue(s.amount)));
   const paying = live.length;
   const arpu = paying ? mrr / paying : null;
 

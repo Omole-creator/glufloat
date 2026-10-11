@@ -1,5 +1,6 @@
 import { inPeriod, type Period } from "@/lib/period";
 import { GROUPS, inGroup, type Group } from "@/lib/userType";
+import { monthlyValue } from "@/lib/pricing";
 
 /**
  * Subscriptions, split by who the person is and month by month. Moved here
@@ -74,7 +75,8 @@ export function subscriptionReport({
         .reduce((n, p) => n + (p.amount || 0), 0),
       // What the live subscriptions are worth a month, at the price each one
       // actually pays (Basic, Plus or Dietitian), not one flat price.
-      monthly: live.reduce((n, s) => n + (s.amount || 0), 0),
+      // A yearly plan counts as a twelfth of its price each month.
+      monthly: live.reduce((n, s) => n + monthlyValue(s.amount), 0),
     };
   }
   const byType = GROUPS.map(metricsFor);

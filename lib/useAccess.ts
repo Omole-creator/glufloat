@@ -76,7 +76,7 @@ export function useAccess(): AccessState {
       setState((s) =>
         // "basic" here is only ever a placeholder for the instant before the
         // real account answer lands — never guess a higher tier while waiting.
-        s.ready ? s : { ...s, access: { status: "subscribed", daysLeft: 30, tier: "basic" } },
+        s.ready ? s : { ...s, access: { status: "subscribed", daysLeft: 30, tier: "basic", yearly: false } },
       );
     }
 

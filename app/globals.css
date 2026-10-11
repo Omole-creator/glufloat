@@ -266,6 +266,34 @@ body {
   .step-in { animation: none; }
 }
 
+/* ---------- saving a meal (StartMealSheet) ----------
+   A full screen that rises from the bottom on a phone, and a panel that slides
+   in from the right on a wider screen, so recording a meal feels like its own
+   place rather than a box over the page. */
+@keyframes sheet-up {
+  from { transform: translateY(100%); }
+  to { transform: none; }
+}
+@keyframes sheet-left {
+  from { transform: translateX(100%); }
+  to { transform: none; }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.sheet-in { animation: sheet-up 0.38s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@media (min-width: 640px) {
+  .sheet-in { animation-name: sheet-left; }
+}
+.fade-in { animation: fade-in 0.25s ease-out both; }
+/* The 2-hour clock on the meal test card fills slowly as time passes. */
+.clock-fill { transition: stroke-dashoffset 0.8s ease-out; }
+@media (prefers-reduced-motion: reduce) {
+  .sheet-in, .fade-in { animation: none; }
+  .clock-fill { transition: none; }
+}
+
 /* The admin email editor (app/admin/email/RichEditor.tsx). Tailwind's reset
    strips heading, list and quote styles, so give them back here. */
 .email-editor p { margin: 0 0 0.75rem; }

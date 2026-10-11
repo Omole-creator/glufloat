@@ -27,6 +27,8 @@ import FirstStepsChecklist from "@/components/FirstStepsChecklist";
 import TodaysExtras from "@/components/TodaysExtras";
 import LogReading from "@/components/LogReading";
 import MealTestDue from "@/components/MealTestDue";
+import PushOptIn from "@/components/PushOptIn";
+import InviteFriends from "@/components/InviteFriends";
 import LogHbA1c from "@/components/LogHbA1c";
 import ReadingNudge from "@/components/ReadingNudge";
 import TypewriterHeadline from "@/components/TypewriterHeadline";
@@ -35,7 +37,9 @@ import DashboardBottomNav, { type DashboardTabDef } from "@/components/Dashboard
 import DashboardLeftNav from "@/components/DashboardLeftNav";
 import ChatWithDietitian from "@/components/ChatWithDietitian";
 import PersonalizationSettings from "@/components/PersonalizationSettings";
-import { PAYSTACK_URLS, pendingReference, clearPendingReference } from "@/lib/access";
+import { PAYSTACK_URLS, PAYSTACK_YEARLY_URLS, YEARLY_ENABLED, pendingReference, clearPendingReference } from "@/lib/access";
+import BillingToggle from "@/components/BillingToggle";
+import { nairaLabel, TIER_AMOUNTS, TIER_YEARLY_AMOUNTS } from "@/lib/pricing";
 import { TIER_LABEL } from "@/lib/pricing";
 import {
   getAccess,
@@ -129,6 +133,9 @@ export default function AppPage() {
   const [access, setAccess] = useState<Access | null>(null);
   const [email, setEmail] = useState<string | null>(null);
   const [name, setName] = useState<string | null>(null);
+  // Monthly or yearly on the plan picker. Until they tap, a lapsed yearly
+  // member sees yearly first, everyone else monthly.
+  const [payYearlyChoice, setPayYearly] = useState<boolean | null>(null);
   // Seeds let one part of the app hand a food to another: a recent chip opens in
   // search, and a suggested or single food starts a meal in the builder.
   const [seedSearch, setSeedSearch] = useState<Food | null>(null);
@@ -301,6 +308,9 @@ export default function AppPage() {
 
   if (access === null) return null; // loading / redirecting
 
+  const payYearly =
+    payYearlyChoice ?? (access.status === "expired" && access.previousYearly);
+
   // Prefill the buyer's account email on Paystack so the webhook can match the
   // payment to this account.
   const withEmail = (url: string) =>
@@ -309,11 +319,13 @@ export default function AppPage() {
   // Trial ended and no active subscription. This is the SINGLE paywall — the
   // landing page never links straight to Paystack, it always lands here.
   if (access.status === "expired") {
-    const TIER_COPY: { tier: "basic" | "plus" | "dietitian"; price: string; blurb: string }[] = [
-      { tier: "basic", price: "N1,500", blurb: "Every answer and the full Meal Builder" },
-      { tier: "plus", price: "N2,500", blurb: "Basic, plus meals picked around your goal" },
-      { tier: "dietitian", price: "N4,500", blurb: "Plus, and a dietitian in your corner" },
+    const TIER_COPY: { tier: "basic" | "plus" | "dietitian"; blurb: string }[] = [
+      { tier: "basic", blurb: "Every answer and the full Meal Builder" },
+      { tier: "plus", blurb: "Basic, plus meals picked around your goal" },
+      { tier: "dietitian", blurb: "Plus, and a dietitian in your corner" },
     ];
+    // Yearly only when the yearly pages exist (lib/access.ts).
+    const showYearly = YEARLY_ENABLED && payYearly;
     // A renewal is highlighted at the SAME tier they last paid for, never a
     // silent downgrade to Basic pricing. Someone who never paid starts at
     // Basic, same as before.
@@ -326,16 +338,25 @@ export default function AppPage() {
             {/* Somebody who paid us last month must never be told their free trial
                 is over. `lapsed` is how getAccess tells the two apart. */}
             <h1 className="font-display text-2xl font-bold text-ink">
-              {access.lapsed ? "Your month is over." : "Your free trial is over."}
+              {access.lapsed
+                ? access.previousYearly
+                  ? "Your year is over."
+                  : "Your month is over."
+                : "Your free trial is over."}
             </h1>
             <p className="mt-2 text-sm leading-relaxed text-ink-soft">
               Choose a plan to keep Glufloat. Cancel any time.
             </p>
+            {YEARLY_ENABLED && (
+              <div className="mt-6">
+                <BillingToggle yearly={payYearly} onChange={setPayYearly} />
+              </div>
+            )}
             <div className="mt-6 space-y-3">
               {TIER_COPY.map((t) => (
                 <a
                   key={t.tier}
-                  href={withEmail(PAYSTACK_URLS[t.tier])}
+                  href={withEmail((showYearly ? PAYSTACK_YEARLY_URLS : PAYSTACK_URLS)[t.tier])}
                   className={`block rounded-2xl border p-4 text-left transition-colors ${
                     t.tier === currentTier
                       ? "border-brand bg-brand/5"
@@ -344,7 +365,10 @@ export default function AppPage() {
                 >
                   <span className="flex items-center justify-between">
                     <span className="font-display text-sm font-bold text-ink">
-                      {TIER_LABEL[t.tier]} — {t.price} / month
+                      {TIER_LABEL[t.tier]} —{" "}
+                      {showYearly
+                        ? `${nairaLabel(TIER_YEARLY_AMOUNTS[t.tier])} / year`
+                        : `${nairaLabel(TIER_AMOUNTS[t.tier])} / month`}
                     </span>
                     {t.tier === currentTier && (
                       <span className="rounded-full bg-brand px-2.5 py-0.5 text-xs font-bold text-white">
@@ -353,6 +377,12 @@ export default function AppPage() {
                     )}
                   </span>
                   <span className="mt-1 block text-sm text-ink-soft">{t.blurb}</span>
+                  {showYearly && (
+                    <span className="mt-1 block text-sm font-semibold text-leaf-deep">
+                      That is {nairaLabel(TIER_YEARLY_AMOUNTS[t.tier] / 12)} a month. You save{" "}
+                      {nairaLabel(TIER_AMOUNTS[t.tier] * 12 - TIER_YEARLY_AMOUNTS[t.tier])}.
+                    </span>
+                  )}
                 </a>
               ))}
             </div>
@@ -390,11 +420,16 @@ export default function AppPage() {
   // door the next morning. daysLeft is TRIAL_DAYS on the start day, so 1 is the last
   // day whatever the length.
   const trialEnding = access.status === "trial" && access.daysLeft <= 1;
+  // A yearly member renews for a year, at the yearly price, on the yearly page.
+  const renewYearly = access.status === "subscribed" && access.yearly && YEARLY_ENABLED;
   const renewPriceLabel =
     access.status === "subscribed"
-      ? { basic: "N1,500", plus: "N2,500", dietitian: "N4,500" }[access.tier]
+      ? nairaLabel((renewYearly ? TIER_YEARLY_AMOUNTS : TIER_AMOUNTS)[access.tier])
       : "";
-  const renewUrl = access.status === "subscribed" ? withEmail(PAYSTACK_URLS[access.tier]) : "";
+  const renewUrl =
+    access.status === "subscribed"
+      ? withEmail((renewYearly ? PAYSTACK_YEARLY_URLS : PAYSTACK_URLS)[access.tier])
+      : "";
 
   return (
     <>
@@ -406,7 +441,7 @@ export default function AppPage() {
 
       {renewSoon && (
         <div className="fixed inset-x-0 top-16 z-40 bg-verdict-yellow/95 px-4 py-2.5 text-center text-sm font-semibold text-ink shadow-md">
-          Your month ends in {access.daysLeft} {access.daysLeft === 1 ? "day" : "days"}.{" "}
+          Your {access.status === "subscribed" && access.yearly ? "year" : "month"} ends in {access.daysLeft} {access.daysLeft === 1 ? "day" : "days"}.{" "}
           <a href={renewUrl} className="underline hover:text-brand-deep">
             Renew for {renewPriceLabel} to keep Glufloat.
           </a>
@@ -525,6 +560,10 @@ export default function AppPage() {
                   (founder instruction, 2026-08-30). */}
               <TodaysExtras show={canUseGoalPersonalization(access)} />
 
+              {/* Meal reminders, offered only once a meal has been saved, and
+                  at most 3 times (components/PushOptIn.tsx). */}
+              <PushOptIn />
+
               <DashboardSnapshot show={canUseGoalPersonalization(access)} />
 
               <FirstStepsChecklist
@@ -554,6 +593,10 @@ export default function AppPage() {
               />
 
               <VarietyNudge onOpenFood={openInSearch} />
+
+              {/* Invite a friend: 5 free days when they pay (lib/referral.ts).
+                  Also ties a newly invited account to its inviter. */}
+              <InviteFriends />
             </div>
 
             {/* Saving sends the person down to today's meal (`onSaved`) so a

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { createAdminClient } from "@/lib/supabase/server";
 import { tierForAmount } from "@/lib/pricing";
+import { grantPayment } from "@/lib/paymentGrant";
 import { upsertSubscription } from "@/lib/subscriptionWrite";
 
 export const dynamic = "force-dynamic";
@@ -53,29 +54,17 @@ export async function POST(request: Request) {
   }
 
   if (type === "charge.success") {
-    const uid = await payerUserId();
-    await admin.from("payments").upsert(
-      {
-        user_id: uid,
-        email,
-        reference: data.reference,
-        amount: data.amount,
-        status: "success",
-        paid_at: data.paid_at || new Date().toISOString(),
-      },
-      { onConflict: "reference" },
-    );
-    if (uid) {
-      await upsertSubscription(admin, {
-        user_id: uid,
-        status: "active",
-        current_period_end: new Date(Date.now() + MONTH_MS).toISOString(),
-        amount: data.amount,
-        tier: tierForAmount(data.amount),
-        paystack_customer_code: data.customer?.customer_code ?? null,
-        updated_at: new Date().toISOString(),
-      });
-    }
+    // One grant per payment, with paid days adding up (lib/paymentGrant.ts).
+    // If the payer cannot be matched yet, the payment is still saved and the
+    // /unlock claim attaches it to the signed-in buyer.
+    await grantPayment(admin, {
+      uid: await payerUserId(),
+      reference: data.reference,
+      amount: data.amount,
+      email,
+      paidAt: data.paid_at || new Date().toISOString(),
+      customerCode: data.customer?.customer_code ?? null,
+    });
   } else if (type === "subscription.create") {
     const uid = await payerUserId();
     if (uid) {
