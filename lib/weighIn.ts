@@ -11,6 +11,8 @@
  */
 import { createClient } from "@/lib/supabase/client";
 import { readPersonalizationProfile, savePersonalizationProfile } from "@/lib/personalizationProfile";
+import { bmi } from "@/lib/tdee";
+import { weightFlag, weightGoal, type WeightFlag } from "@/lib/weightTrend";
 
 export const WEIGH_IN_EVERY_DAYS = 30;
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -52,4 +54,28 @@ export async function saveWeighIn(weightKg: number): Promise<boolean> {
     }
   }
   return true;
+}
+
+/**
+ * The weight flag for this person, or null (lib/weightTrend.ts). Read for the
+ * doctor's report and the Premium dietitian chat. Any failure reads as no flag.
+ */
+export async function currentWeightFlag(): Promise<WeightFlag | null> {
+  try {
+    const since = new Date(Date.now() - 120 * DAY_MS).toISOString();
+    const [{ data, error }, p] = await Promise.all([
+      createClient()
+        .from("weight_history")
+        .select("weight_kg,recorded_at")
+        .gte("recorded_at", since)
+        .order("recorded_at", { ascending: true }),
+      readPersonalizationProfile(),
+    ]);
+    if (error || !data) return null;
+    const points = data.map((r) => ({ kg: Number(r.weight_kg), at: r.recorded_at as string }));
+    const b = p.weightKg && p.heightCm ? bmi(p.weightKg, p.heightCm) : null;
+    return weightFlag(points, weightGoal(p.goals, b));
+  } catch {
+    return null;
+  }
 }

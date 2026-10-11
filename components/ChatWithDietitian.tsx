@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { Stethoscope } from "lucide-react";
 import { getAssignedDietitian, type AssignedDietitian } from "@/lib/dietitianChat";
+import { currentWeightFlag } from "@/lib/weighIn";
+import { weightFlagLine } from "@/lib/weightTrend";
 
 const GREETING = "Hi, I have diabetes and I would like some guidance.";
 
@@ -23,11 +25,17 @@ const GREETING = "Hi, I have diabetes and I would like some guidance.";
  */
 export default function ChatWithDietitian() {
   const [dietitian, setDietitian] = useState<AssignedDietitian | null>(null);
+  // Weight gone the wrong way 2 months running (lib/weightTrend.ts): shown
+  // here and put into the first message, so the dietitian sees it at once.
+  const [weightLine, setWeightLine] = useState<string | null>(null);
 
   useEffect(() => {
     let alive = true;
     getAssignedDietitian().then((d) => {
       if (alive && d) setDietitian(d);
+    });
+    currentWeightFlag().then((f) => {
+      if (alive && f) setWeightLine(weightFlagLine(f));
     });
     return () => {
       alive = false;
@@ -36,7 +44,8 @@ export default function ChatWithDietitian() {
 
   if (!dietitian) return null;
 
-  const href = `https://wa.me/${dietitian.whatsappNumber}?text=${encodeURIComponent(GREETING)}`;
+  const message = weightLine ? `${GREETING}\n\n${weightLine}` : GREETING;
+  const href = `https://wa.me/${dietitian.whatsappNumber}?text=${encodeURIComponent(message)}`;
 
   return (
     <div className="flex items-start gap-3 rounded-2xl bg-white p-4 shadow-[0_6px_28px_-14px_rgba(12,42,71,0.2)] ring-1 ring-brand/10">
@@ -48,6 +57,12 @@ export default function ChatWithDietitian() {
         <p className="mt-0.5 text-sm text-ink-soft">
           Open WhatsApp and chat directly with your own dietitian.
         </p>
+        {weightLine && (
+          <div className="mt-3 rounded-xl bg-mist/70 px-3 py-2.5">
+            <p className="text-xs font-semibold text-ink-soft">We will add this to your first message:</p>
+            <p className="mt-0.5 text-sm text-ink">{weightLine}</p>
+          </div>
+        )}
         <a
           href={href}
           target="_blank"

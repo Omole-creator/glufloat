@@ -23,6 +23,8 @@ import {
   looseMonthReadings,
 } from "@/lib/glucoseLog";
 import { type Hba1c, deleteHba1c, formatHba1c, latestHba1c } from "@/lib/hba1c";
+import { currentWeightFlag } from "@/lib/weighIn";
+import { weightFlagLine } from "@/lib/weightTrend";
 import { formatChange, mealTestNumber, minutesLabel } from "@/lib/mealResponse";
 import { mealTestReport, periodLabel, trendPoints } from "@/lib/mealTestReport";
 import { accessOnce } from "@/lib/useAccess";
@@ -76,6 +78,8 @@ export default function MonthReport({
   // The newest 3-month sugar test, whenever it was taken: it covers months,
   // not days, so it is not cut to this month like everything else here.
   const [hba1c, setHba1c] = useState<Hba1c | null>(null);
+  // Weight gone the wrong way 2 months running, for a clinician to look at.
+  const [weightLine, setWeightLine] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   /** Which part of the report is on screen. Null until the person picks one. */
   const [tab, setTab] = useState<ReportView | null>(null);
@@ -105,6 +109,7 @@ export default function MonthReport({
       void monthChecks().then(setItems);
       void looseMonthReadings().then(setLoose);
       void latestHba1c().then(setHba1c);
+      void currentWeightFlag().then((f) => setWeightLine(f ? weightFlagLine(f) : null));
     };
     load();
     window.addEventListener(READINGS_CHANGED, load);
@@ -120,7 +125,7 @@ export default function MonthReport({
   const list = items ?? [];
   // A reading on its own is a report too. Somebody who tests first thing in the
   // morning and logs nothing else still has something worth handing over.
-  const hasData = list.length > 0 || loose.length > 0 || hba1c !== null;
+  const hasData = list.length > 0 || loose.length > 0 || hba1c !== null || weightLine !== null;
   const anyReadings =
     loose.length > 0 ||
     hba1c !== null ||
@@ -548,6 +553,25 @@ export default function MonthReport({
       y += 9;
     }
 
+    // The weight flag: numbers and the goal, for the doctor to judge.
+    if (weightLine) {
+      nextPageIfNeeded(262);
+      fill([235, 242, 250]);
+      doc.roundedRect(M - 2, y - 5, 182, 9, 1.5, 1.5, "F");
+      ink(BRAND);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.text("For my doctor or dietitian to look at", M + 1, y + 1);
+      y += 12;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      for (const ln of doc.splitTextToSize(weightLine, 170) as string[]) {
+        doc.text(ln, M + 6, y);
+        y += 5;
+      }
+      y += 4;
+    }
+
     doc.setFontSize(8);
     doc.setTextColor(150);
     doc.text(
@@ -598,6 +622,7 @@ export default function MonthReport({
         loose,
         hba1c ? formatHba1c(hba1c) : null,
         { patient, period, report },
+        weightLine,
       );
       window.open(
         `https://wa.me/?text=${encodeURIComponent(text)}`,
@@ -691,6 +716,15 @@ export default function MonthReport({
             <Stat n={report.stats.complete} label={report.stats.complete === 1 ? "Meal test" : "Meal tests"} />
             <Stat n={allTests} label={allTests === 1 ? "Sugar test" : "Sugar tests"} />
           </div>
+
+          {/* Weight gone the wrong way 2 months running (lib/weightTrend.ts).
+              Above the tabs, so a doctor sees it whichever tab is open. */}
+          {weightLine && (
+            <div className="mt-4 rounded-2xl bg-mist/70 px-4 py-3">
+              <p className="text-xs font-semibold text-ink-soft">For your doctor or dietitian to look at</p>
+              <p className="mt-0.5 text-sm text-ink">{weightLine}</p>
+            </div>
+          )}
 
           <div role="tablist" aria-label="What to show" className="mt-5 grid grid-cols-3 gap-1 rounded-full bg-mist p-1">
             {TABS.map((t) => (

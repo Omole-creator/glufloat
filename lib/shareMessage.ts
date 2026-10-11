@@ -80,6 +80,7 @@ export function monthReportMessage(
   loose: Reading[] = [],
   hba1c: string | null = null,
   mealTests: { patient: string | null; period: string; report: MealTestReport } | null = null,
+  weightLine: string | null = null,
 ): string {
   const blocks: string[] = ["My food this month, from Glufloat."];
 
@@ -191,6 +192,11 @@ export function monthReportMessage(
   // The 3-month sugar test, already formatted ("7.2% (tested 12 Sep 2026)").
   if (hba1c) {
     blocks.push(`My 3-month sugar test (HbA1c): ${hba1c}`);
+  }
+
+  // The weight flag (lib/weightTrend.ts), same words as the screen and PDF.
+  if (weightLine) {
+    blocks.push(`For my doctor or dietitian to look at:\n${weightLine}`);
   }
 
   blocks.push(CTA);
