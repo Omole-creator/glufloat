@@ -1,8 +1,11 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import type { Food } from "@/lib/types";
 import { plainFrequency } from "@/lib/frequency";
 import { cleanFoodName } from "@/lib/foodName";
 import { foodShareMessage } from "@/lib/shareMessage";
-import { isCrossGroupSwap, kunuSweetenTips, saferSwaps } from "@/lib/variety";
+import { isCrossGroupSwap, kunuSweetenTips, nextSwallowSwapTurn, saferSwaps } from "@/lib/variety";
 import PortionVisual from "./PortionVisual";
 import ShareOnWhatsApp from "./ShareOnWhatsApp";
 import IntakeWarning from "./IntakeWarning";
@@ -47,8 +50,14 @@ export default function VerdictCard({
   // The exchange-list move a dietitian makes in the room: not green, so offer
   // the closest real same-group food that already is, rather than only
   // explaining why this one is not. Green foods need no swap.
+  // A swallow's swap takes turns among the slower swallows, one per look
+  // (founder, 2026-10-12). Read after mount: it is a device counter.
+  const [swapTurn, setSwapTurn] = useState(0);
+  useEffect(() => {
+    if (food.category === "swallow") setSwapTurn(nextSwallowSwapTurn());
+  }, [food.id, food.category]);
   const swap =
-    food.baseVerdict !== "green" ? saferSwaps(food, 1)[0] : undefined;
+    food.baseVerdict !== "green" ? saferSwaps(food, 1, swapTurn)[0] : undefined;
   // Kunu gets fruit to sweeten it instead of a zobo swap (dietitian, 2026-10-12).
   const sweeten = food.baseVerdict !== "green" ? kunuSweetenTips(food) : [];
 

@@ -5,7 +5,7 @@
  *
  *   npx tsx scripts/one-voice-test.ts
  */
-import { planForDay, platesWithFood, ideasFor, mealIdeaCalories, mealIdeaCarbs, mealIdeaFoodsForBuilder, GLUFLOAT_SIZE_STARCHES, SIZE_GROUP_LIMIT } from "../lib/nextMeal";
+import { planForDay, platesWithFood, ideasFor, mealIdeaCalories, mealIdeaCarbs, mealIdeaFoodsForBuilder, GLUFLOAT_SIZE_STARCHES, SIZE_GROUP_LIMIT, SWALLOW_IDS, SWALLOW_WEEKLY_LIMIT } from "../lib/nextMeal";
 import { scoreMeal } from "../lib/verdictEngine";
 import type { NamedMeal } from "../lib/mealtime";
 import type { Condition } from "../lib/personalization";
@@ -97,13 +97,16 @@ console.log("One voice: every blue-card plate reads the same in search.");
   if (fails) process.exit(1);
 }
 
-// 5. GluFloat-size plates (eba, semo, white rice...): at most 2 of each, and
-//    at most 2 of them all together, eaten in 7 days. They tell the person the
-//    size, and "Check a meal" scores the starch at that size.
+// 5. GluFloat-size plates (white rice, yam, plantain...): at most 2 of each,
+//    and at most 2 of them all together, eaten in 7 days. The swallows have
+//    their own shared count of 4 (founder, 2026-10-12). They tell the person
+//    the size, and "Check a meal" scores the starch at that size.
 {
-  const isSize = (p: { foods: { id: string }[] }) => p.foods.some((f) => GLUFLOAT_SIZE_STARCHES.has(f.id));
-  const group = new Map([["garri-eba", 1], ["semovita", 1]]); // 2 eaten in total
-  const one = new Map([["garri-eba", 2]]); // eba at its own limit
+  const isSize = (p: { foods: { id: string }[] }) => p.foods.some((f) => GLUFLOAT_SIZE_STARCHES.has(f.id) && !SWALLOW_IDS.has(f.id));
+  const isSwallow = (p: { foods: { id: string }[] }) => p.foods.some((f) => SWALLOW_IDS.has(f.id));
+  const group = new Map([["white-rice", 1], ["boiled-yam", 1]]); // 2 eaten in total
+  const one = new Map([["garri-eba", 4]]); // eba four times: the swallow week is used up
+  const mixed = new Map([["garri-eba", 1], ["tuwo-shinkafa", 1], ["amala-yam", 1], ["fufu-akpu", 1]]);
   let sawSize = false;
   for (let d = 1; d <= 28; d++) {
     const day = `2026-11-${String(d).padStart(2, "0")}`;
@@ -119,13 +122,36 @@ console.log("One voice: every blue-card plate reads the same in search.");
         const capped = planForDay(meal, day, new Map(), off, [], new Map(), null, null, [], "", group);
         check(!isSize(capped), `${meal} ${day}: a GluFloat-size plate served after 2 eaten this week`);
         const ebaOut = planForDay(meal, day, new Map(), off, [], new Map(), null, null, [], "", one);
-        check(!ebaOut.foods.some((f) => f.id === "garri-eba"), `${meal} ${day}: eba served after 2 this week`);
+        check(!isSwallow(ebaOut), `${meal} ${day}: a swallow served after eba 4 times this week`);
+        const mixOut = planForDay(meal, day, new Map(), off, [], new Map(), null, null, [], "", mixed);
+        check(!isSwallow(mixOut), `${meal} ${day}: a swallow served after 4 different swallows this week`);
+      }
+    // Dinner may carry a swallow, under the same count.
+    for (const off of [0, 1, 2, 3, 4]) {
+      const capped = planForDay("dinner", day, new Map(), off, [], new Map(), null, null, [], "", one);
+      check(!isSwallow(capped), `dinner ${day}: a swallow served after 4 this week`);
+    }
+  }
+  // Three swallows eaten: one more is still allowed, and eba may be it.
+  check(platesWithFood("garri-eba", {}, [], new Map([["garri-eba", 3]])).lunch.length > 0, "search should still show eba at 3 swallows");
+  check(platesWithFood("garri-eba", {}, [], one).lunch.length === 0, "search should hide eba once 4 swallows are eaten");
+  check(platesWithFood("acha").dinner.length > 0, "acha plates should be offered at dinner");
+  check(SWALLOW_WEEKLY_LIMIT === 4, "swallow limit should be 4");
+  // "Which swallows do you eat?": only ticked traditional swallows come up.
+  for (let d = 1; d <= 28; d++) {
+    const day = `2026-11-${String(d).padStart(2, "0")}`;
+    for (const meal of ["lunch", "dinner"] as const)
+      for (const off of [0, 1, 2]) {
+        const p = planForDay(meal, day, new Map(), off, [], new Map(), null, null, [], "", new Map(), ["tuwo-shinkafa", "acha"]);
+        const other = p.foods.find((f) => SWALLOW_IDS.has(f.id) && !["tuwo-shinkafa", "acha"].includes(f.id));
+        check(!other, `${meal} ${day}: ${other?.id} offered to someone who eats only tuwo shinkafa and acha`);
       }
   }
   check(sawSize, "no GluFloat-size plate ever came up in 28 days");
-  check(platesWithFood("garri-eba", {}, [], group).lunch.length === 0, "search should hide eba once the group is full");
+  check(platesWithFood("white-rice", {}, [], group).lunch.length === 0, "search should hide white rice once the group is full");
   check(platesWithFood("garri-eba").lunch.length > 0, "search should show eba plates under the limit");
+  check(platesWithFood("garri-eba", {}, [], group).lunch.length > 0, "eba keeps its own count, apart from the rice/yam group");
   check(SIZE_GROUP_LIMIT === 2, "group limit should be 2");
   if (fails) process.exit(1);
-  console.log("GluFloat-size plates: size line shown, kept in Check a meal, 2 each and 2 in total a week.");
+  console.log("GluFloat-size plates: size line shown, kept in Check a meal, 2 each and 2 in total a week; swallows 4 a week in total, lunch or dinner, only the ones ticked.");
 }

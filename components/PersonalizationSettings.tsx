@@ -15,6 +15,7 @@ import {
   readPersonalizationProfile,
   savePersonalizationProfile,
   MED_TYPE_OPTIONS,
+  SWALLOW_OPTIONS,
   type MedTime,
   type MedType,
 } from "@/lib/personalizationProfile";
@@ -158,6 +159,7 @@ type StepId =
   | "medTimes"
   | "medRelation"
   | "medTypes"
+  | "swallows"
   | "goals"
   | "activity"
   | "sex"
@@ -213,6 +215,7 @@ export default function PersonalizationSettings({
   const [medTimes, setMedTimes] = useState<MedTime[]>([]);
   const [medRelationToFood, setMedRelationToFood] = useState<"before" | "after" | null>(null);
   const [medTypes, setMedTypes] = useState<MedType[]>([]);
+  const [swallows, setSwallows] = useState<string[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [saved, setSaved] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
@@ -235,6 +238,7 @@ export default function PersonalizationSettings({
       setMedTimes(p.medTimes);
       setMedRelationToFood(p.medRelationToFood);
       setMedTypes(p.medTypes);
+      setSwallows(p.swallows);
       // Answered before: open on the summary, not on question 1 again.
       const answeredBefore =
         p.medDosesPerDay != null || p.conditions.length > 0 || p.sex != null || p.activityLevel != null;
@@ -242,7 +246,7 @@ export default function PersonalizationSettings({
       setSavedSnap(
         JSON.stringify([
           p.goals, p.activityLevel, p.sex, p.ageYears, p.weightKg, p.heightCm,
-          p.conditions, p.medDosesPerDay, p.medTimes, p.medRelationToFood, p.medTypes,
+          p.conditions, p.medDosesPerDay, p.medTimes, p.medRelationToFood, p.medTypes, p.swallows,
         ]),
       );
       setLoaded(true);
@@ -253,6 +257,8 @@ export default function PersonalizationSettings({
     setGoals((cur) => (cur.includes(g) ? cur.filter((x) => x !== g) : [...cur, g]));
   const toggleCondition = (c: Condition) =>
     setConditions((cur) => (cur.includes(c) ? cur.filter((x) => x !== c) : [...cur, c]));
+  const toggleSwallow = (id: string) =>
+    setSwallows((cur) => (cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]));
   const toggleMedTime = (t: MedTime) =>
     setMedTimes((cur) => (cur.includes(t) ? cur.filter((x) => x !== t) : [...cur, t]));
   // "I don't know the name" stands alone; picking a name clears it.
@@ -277,6 +283,7 @@ export default function PersonalizationSettings({
       medTimes,
       medRelationToFood,
       medTypes,
+      swallows,
     });
 
   const save = async () => {
@@ -298,7 +305,7 @@ export default function PersonalizationSettings({
 
   const snapshot = JSON.stringify([
     goals, activityLevel, sex, ageYears, weightKg, heightCm,
-    conditions, medDosesPerDay, medTimes, medRelationToFood, medTypes,
+    conditions, medDosesPerDay, medTimes, medRelationToFood, medTypes, swallows,
   ]);
   const unsaved = loaded && snapshot !== savedSnap;
 
@@ -309,6 +316,7 @@ export default function PersonalizationSettings({
     "conditions",
     "medDoses",
     ...(takesMedicine ? (["medTimes", "medRelation", "medTypes"] as StepId[]) : []),
+    "swallows",
     ...(showGoals ? (["goals", "activity", "sex", "body"] as StepId[]) : []),
   ];
   const index = step ? steps.indexOf(step) : steps.length;
@@ -405,6 +413,16 @@ export default function PersonalizationSettings({
         </OptionRow>
       )),
     },
+    swallows: {
+      title: "Which swallows do you eat?",
+      help: "Tick all that apply. We will only show you these.",
+      answered: swallows.length > 0,
+      body: SWALLOW_OPTIONS.map((o) => (
+        <OptionRow key={o.value} multi active={swallows.includes(o.value)} onClick={() => toggleSwallow(o.value)}>
+          {o.label}
+        </OptionRow>
+      )),
+    },
     goals: {
       title: "What are your goals?",
       help: "Tick all that apply.",
@@ -472,6 +490,12 @@ export default function PersonalizationSettings({
       value: medTypes.length
         ? medTypes.map((t) => MED_TYPE_OPTIONS.find((o) => o.value === t)?.label ?? t).join(", ")
         : null,
+    },
+    swallows: {
+      label: "Swallows you eat",
+      value: swallows.length
+        ? SWALLOW_OPTIONS.filter((o) => swallows.includes(o.value)).map((o) => o.label).join(", ")
+        : "All of them",
     },
     goals: { label: "Goals", value: goals.length ? goals.map((g) => GOAL_LABEL[g]).join(", ") : null },
     activity: { label: "How active", value: activityLevel ? ACTIVITY_LABEL[activityLevel] : null },

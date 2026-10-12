@@ -17,8 +17,8 @@
     "gi": "high",
     "baseVerdict": "yellow",
     "portionGuidance": "One ball the size of your fist. That is about half a cup of the cooked swallow (100g).",
-    "pairingAdvice": "Vegetable soup (efo, edikang ikong) and fish, chicken, or an egg.",
-    "frequency": "About 2 times a week.",
+    "pairingAdvice": "Efo riro, edikang ikong, okra soup, or afang soup, with fish or chicken.",
+    "frequency": "About 4 times a week.",
     "logicNote": "Turns to sugar fast. The size you eat, and the soup you eat it with, are everything.",
     "tags": [
       "local",
@@ -48,8 +48,8 @@
     "gi": "high",
     "baseVerdict": "yellow",
     "portionGuidance": "One ball the size of your fist. That is about half a cup of the cooked swallow (100g).",
-    "pairingAdvice": "Egusi or vegetable soup plus meat or fish.",
-    "frequency": "About 2 times a week.",
+    "pairingAdvice": "Edikang ikong, bitterleaf soup, or egusi soup, with fish or chicken.",
+    "frequency": "About 4 times a week.",
     "logicNote": "Smooth and dense. Easy to overeat. Slow it with the rough part of food and body-building food.",
     "tags": [
       "local",
@@ -79,8 +79,8 @@
     "gi": "high",
     "baseVerdict": "yellow",
     "portionGuidance": "One ball the size of your fist. That is about half a cup of the cooked swallow (100g).",
-    "pairingAdvice": "Ewedu and gbegiri plus fish, chicken, or an egg.",
-    "frequency": "About 2 times a week.",
+    "pairingAdvice": "Ewedu and gbegiri, or efo riro, with fish or chicken.",
+    "frequency": "About 4 times a week.",
     "logicNote": "Slightly friendlier than white swallows but still a starch. The size matters.",
     "tags": [
       "local",
@@ -110,8 +110,8 @@
     "gi": "medium",
     "baseVerdict": "yellow",
     "portionGuidance": "One ball the size of your fist. That is about half a cup of the cooked swallow (100g).",
-    "pairingAdvice": "Vegetable soup and fish, chicken, or an egg.",
-    "frequency": "About 3 times a week.",
+    "pairingAdvice": "Efo riro, or ewedu and gbegiri, with fish or chicken.",
+    "frequency": "About 4 times a week.",
     "logicNote": "Often a smarter swap than cassava or yam swallow.",
     "tags": [
       "local",
@@ -142,8 +142,8 @@
     "gi": "high",
     "baseVerdict": "yellow",
     "portionGuidance": "One ball the size of your fist. That is about half a cup of the cooked swallow (100g).",
-    "pairingAdvice": "Vegetable soup plus fish, chicken, or an egg.",
-    "frequency": "About 2 times a week.",
+    "pairingAdvice": "Okra soup, oha soup, or bitterleaf soup, with fish or chicken.",
+    "frequency": "About 4 times a week.",
     "logicNote": "High starch. Eat less of it and eat it with soup.",
     "tags": [
       "local",
@@ -173,8 +173,8 @@
     "gi": "high",
     "baseVerdict": "yellow",
     "portionGuidance": "One ball the size of your fist. That is about half a cup of the cooked swallow (100g).",
-    "pairingAdvice": "Vegetable soup and fish, chicken, or an egg.",
-    "frequency": "About 2 times a week.",
+    "pairingAdvice": "Efo riro, okra soup, or edikang ikong, with fish or chicken.",
+    "frequency": "About 4 times a week.",
     "logicNote": "White wheat flour. Pushes your sugar up fast.",
     "tags": [
       "staple"
@@ -202,8 +202,8 @@
     "gi": "high",
     "baseVerdict": "yellow",
     "portionGuidance": "One ball the size of your fist. That is about half a cup of the cooked swallow (100g).",
-    "pairingAdvice": "Vegetable soup and fish, chicken, or an egg.",
-    "frequency": "About 2 times a week.",
+    "pairingAdvice": "Okra soup or efo riro, with fish or chicken.",
+    "frequency": "About 4 times a week.",
     "logicNote": "Wheat swallow has more of the rough part of food than semo or eba, but it still turns to sugar fast. Keep to one fist-size ball.",
     "tags": [
       "swap"
@@ -231,7 +231,7 @@
     "gi": "low",
     "baseVerdict": "green",
     "portionGuidance": "One ball the size of your fist. That is about half a cup of the cooked swallow (100g).",
-    "pairingAdvice": "Any vegetable soup and fish, chicken, or an egg.",
+    "pairingAdvice": "Efo riro, okra soup, or edikang ikong, with fish or chicken.",
     "frequency": "About 3 times a week.",
     "logicNote": "One of the friendliest swallows. More of the rough part of food, slower rise.",
     "tags": [
@@ -263,8 +263,8 @@
     "gi": "high",
     "baseVerdict": "yellow",
     "portionGuidance": "One ball the size of your fist. That is about half a cup of the cooked swallow (100g).",
-    "pairingAdvice": "Miyan kuka or vegetable soup plus fish, chicken, or an egg.",
-    "frequency": "About 2 times a week.",
+    "pairingAdvice": "Miyan kuka, miyan taushe, or miyan kubewa, with fish or chicken.",
+    "frequency": "About 4 times a week.",
     "logicNote": "Soft white rice paste. Fast sugar.",
     "tags": [
       "local",
@@ -294,8 +294,8 @@
     "gi": "high",
     "baseVerdict": "yellow",
     "portionGuidance": "One ball the size of your fist. That is about half a cup of the cooked swallow (100g).",
-    "pairingAdvice": "Vegetable soup plus fish, chicken, or an egg.",
-    "frequency": "About 2 times a week.",
+    "pairingAdvice": "Miyan kubewa, miyan kuka, or miyan yakuwa, with fish or chicken.",
+    "frequency": "About 4 times a week.",
     "logicNote": "A corn swallow. It still pushes your sugar up fast, so keep to one fist-size ball (100g) and eat it with a green vegetable soup.",
     "tags": [
       "local",
@@ -324,8 +324,8 @@
     "gi": "high",
     "baseVerdict": "yellow",
     "portionGuidance": "One ball the size of your fist. That is about half a cup of the cooked swallow (100g).",
-    "pairingAdvice": "Banga soup plus fish.",
-    "frequency": "About 2 times a week.",
+    "pairingAdvice": "Banga soup or owho soup, with fish or chicken.",
+    "frequency": "About 4 times a week.",
     "logicNote": "Very dense starch, so keep to the size shown below.",
     "tags": [
       "local"
@@ -6030,8 +6030,8 @@
     "gi": "high",
     "baseVerdict": "yellow",
     "portionGuidance": "One ball the size of your fist. That is about half a cup of the cooked swallow (100g).",
-    "pairingAdvice": "Vegetable soup like ewedu or efo, plus fish, chicken, or an egg.",
-    "frequency": "About 2 times a week.",
+    "pairingAdvice": "Ewedu or efo riro, with fish or chicken.",
+    "frequency": "About 4 times a week.",
     "logicNote": "Cassava swallow. Turns to sugar fast, so the size you eat, and the soup you eat it with, matter most.",
     "tags": [
       "local",
@@ -8764,8 +8764,8 @@
     "gi": "medium",
     "baseVerdict": "yellow",
     "portionGuidance": "One ball the size of your fist. That is about half a cup of the cooked swallow (100g).",
-    "pairingAdvice": "A green vegetable soup, like efo riro or okra, plus fish or meat.",
-    "frequency": "About 3 times a week.",
+    "pairingAdvice": "Oha soup or okra soup, with fish or chicken.",
+    "frequency": "About 4 times a week.",
     "logicNote": "A soft cocoyam swallow. More of the rough part of food than eba, but still a starch, so keep to one fist-size ball (100g).",
     "tags": [],
     "portionIcon": "fist",
@@ -9589,8 +9589,8 @@
     "gi": "high",
     "baseVerdict": "yellow",
     "portionGuidance": "One ball the size of your fist. That is about half a cup of the cooked swallow (100g).",
-    "pairingAdvice": "A green vegetable soup like miyan kuka or okra, plus fish or meat.",
-    "frequency": "About 2 times a week.",
+    "pairingAdvice": "Miyan kuka or miyan kubewa, with fish or chicken.",
+    "frequency": "About 4 times a week.",
     "logicNote": "A sorghum swallow. Whole grain, but still a starch, so keep to one fist-size ball (100g).",
     "tags": [
       "local",
@@ -10009,8 +10009,8 @@
     "gi": "high",
     "baseVerdict": "yellow",
     "portionGuidance": "One ball the size of your fist. That is about half a cup of the cooked acha (100g).",
-    "pairingAdvice": "A green vegetable soup like okra or miyan kuka, plus fish or meat.",
-    "frequency": "About 2 times a week.",
+    "pairingAdvice": "Miyan kuka, miyan kubewa, or okra soup, with fish or chicken.",
+    "frequency": "About 4 times a week.",
     "logicNote": "A small northern grain, eaten as tuwo or boiled. It is still a starch, so keep to one fist-size ball (100g).",
     "tags": [
       "local",

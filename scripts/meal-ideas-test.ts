@@ -10,7 +10,7 @@
  *
  * It exits non-zero rather than let a bad plate through.
  */
-import { ideasFor, planForDay, GLUFLOAT_SIZE_STARCHES, isWeeklyLimited, NON_LOW_GROUP_LIMIT } from "../lib/nextMeal";
+import { ideasFor, planForDay, GLUFLOAT_SIZE_STARCHES, isWeeklyLimited, NON_LOW_GROUP_LIMIT, SWALLOW_IDS, SWALLOW_WEEKLY_LIMIT } from "../lib/nextMeal";
 import { getFood } from "../lib/search";
 import { scoreMeal } from "../lib/verdictEngine";
 import type { NamedMeal } from "../lib/mealtime";
@@ -56,6 +56,8 @@ for (const meal of MEALS) {
     // white rice...; green only at their card's size). Never at dinner.
     for (const f of items) {
       if (f.baseVerdict === "yellow" && f.role === "starch" && meal !== "dinner") continue;
+      // The traditional swallows may be at dinner too (founder, 2026-10-12).
+      if (f.baseVerdict === "yellow" && SWALLOW_IDS.has(f.id)) continue;
       if (f.baseVerdict !== "green") {
         fail(`${where}: ${f.id} is ${f.baseVerdict}, not green`);
       }
@@ -93,7 +95,7 @@ for (const meal of MEALS) {
     //     and lunch may). lib/nextMeal.ts's DINNER filter enforces this at
     //     module load; this asserts the enforcement actually held.
     if (meal === "dinner") {
-      const moderate = items.filter((f) => f.gi === "medium");
+      const moderate = items.filter((f) => f.gi === "medium" && !SWALLOW_IDS.has(f.id));
       if (moderate.length > 0) {
         fail(`${where}: moderate-GI food at dinner: ${moderate.map((f) => f.id).join(", ")}`);
       }
@@ -226,7 +228,7 @@ for (const meal of MEALS) {
   for (const meal of MEALS) {
     ideasFor(meal).forEach((ids, i) => {
       if (ids.some((id) => isWeeklyLimited(id))) {
-        if (meal === "dinner") fail(`dinner[${i}]: a limited starch at dinner`);
+        if (meal === "dinner" && !ids.some((id) => SWALLOW_IDS.has(id))) fail(`dinner[${i}]: a limited starch at dinner`);
         return;
       }
       for (const id of ids) {
@@ -235,6 +237,7 @@ for (const meal of MEALS) {
       }
     });
   }
+  if (SWALLOW_WEEKLY_LIMIT > 4) fail(`SWALLOW_WEEKLY_LIMIT is ${SWALLOW_WEEKLY_LIMIT}; the dietitian set 4 a week`);
   if (NON_LOW_GROUP_LIMIT > 7) fail(`NON_LOW_GROUP_LIMIT is ${NON_LOW_GROUP_LIMIT}; more than 7 of 21 meals would not be low-GI`);
 }
 

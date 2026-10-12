@@ -36,6 +36,31 @@ export const MED_TYPE_OPTIONS: { value: MedType; label: string }[] = [
 ];
 const VALID_MED_TYPES = new Set<string>(MED_TYPE_OPTIONS.map((o) => o.value));
 
+/**
+ * "Which swallows do you eat?" (profiles.swallows, swallow-schema.sql). Free on
+ * every tier. The blue card only offers the traditional swallows ticked here;
+ * nothing ticked means every swallow takes its turn. Oat swallow is not on the
+ * list: it is always offered (founder, 2026-10-12). The ids match SWALLOW_IDS
+ * in lib/nextMeal.ts.
+ */
+export const SWALLOW_OPTIONS: { value: string; label: string }[] = [
+  { value: "garri-eba", label: "Eba (garri)" },
+  { value: "pounded-yam", label: "Pounded yam" },
+  { value: "amala-yam", label: "Amala (yam flour)" },
+  { value: "amala-plantain", label: "Amala (plantain flour)" },
+  { value: "fufu-akpu", label: "Fufu (akpu)" },
+  { value: "cocoyam-fufu", label: "Cocoyam fufu" },
+  { value: "lafun", label: "Lafun" },
+  { value: "semovita", label: "Semovita" },
+  { value: "wheat-swallow", label: "Wheat swallow" },
+  { value: "tuwo-shinkafa", label: "Tuwo shinkafa" },
+  { value: "tuwo-masara", label: "Tuwo masara" },
+  { value: "tuwo-dawa", label: "Tuwo dawa" },
+  { value: "acha", label: "Acha" },
+  { value: "starch-delta", label: "Delta starch" },
+];
+const VALID_SWALLOWS = new Set<string>(SWALLOW_OPTIONS.map((o) => o.value));
+
 export interface PersonalizationProfile {
   goals: Goal[];
   activityLevel: ActivityLevel | null;
@@ -49,6 +74,8 @@ export interface PersonalizationProfile {
   medTimes: MedTime[];
   medRelationToFood: "before" | "after" | null;
   medTypes: MedType[];
+  /** The traditional swallows they eat. Empty = all of them. */
+  swallows: string[];
 }
 
 const EMPTY: PersonalizationProfile = {
@@ -64,6 +91,7 @@ const EMPTY: PersonalizationProfile = {
   medTimes: [],
   medRelationToFood: null,
   medTypes: [],
+  swallows: [],
 };
 
 const VALID_GOALS = new Set<string>(["maintain", "lose_weight", "gain_weight", "build_muscle"]);
@@ -127,6 +155,15 @@ export async function readPersonalizationProfile(): Promise<PersonalizationProfi
     } catch {
       /* column not there yet */
     }
+    // Its own read too (swallow-schema.sql), for the same reason.
+    let swallows: string[] = [];
+    try {
+      const sw = await supabase.from("profiles").select("swallows").eq("id", user.id).single();
+      const raw = (sw.data as { swallows?: unknown } | null)?.swallows;
+      swallows = (Array.isArray(raw) ? raw : []).filter((t): t is string => VALID_SWALLOWS.has(t));
+    } catch {
+      /* column not there yet */
+    }
     const goals = (Array.isArray(data.goals) ? data.goals : []).filter(
       (g): g is Goal => VALID_GOALS.has(g),
     );
@@ -153,6 +190,7 @@ export async function readPersonalizationProfile(): Promise<PersonalizationProfi
       medTimes,
       medRelationToFood,
       medTypes,
+      swallows,
     };
   } catch {
     return EMPTY;
@@ -234,6 +272,13 @@ export async function savePersonalizationProfile(p: PersonalizationProfile): Pro
         .eq("id", user.id));
     }
     if (error) return false;
+    // Its own write, so a database without swallow-schema.sql still saves
+    // everything else.
+    try {
+      await supabase.from("profiles").update({ swallows: p.swallows }).eq("id", user.id);
+    } catch {
+      /* column not there yet */
+    }
     if (p.weightKg != null && p.weightKg !== previousWeight) {
       try {
         await supabase.from("weight_history").insert({ weight_kg: p.weightKg });

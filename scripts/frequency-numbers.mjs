@@ -58,6 +58,20 @@ const OVERRIDES = {
 };
 
 /**
+ * The traditional swallows (every swallow but oat swallow). Co-founder
+ * dietitian, 2026-10-12, founder's decisions: about 4 times a week, always
+ * at one fist-size ball and with a named vegetable soup and fish or chicken.
+ * In the app all of them together share ONE count of 4 a week
+ * (`SWALLOW_WEEKLY_LIMIT` in lib/nextMeal.ts), so the card and the blue card
+ * agree. Keep this list in step with `SWALLOW_IDS` there.
+ */
+const SWALLOW_GROUP = new Set([
+  "garri-eba", "pounded-yam", "amala-yam", "amala-plantain", "fufu-akpu",
+  "cocoyam-fufu", "lafun", "semovita", "wheat-swallow", "tuwo-shinkafa",
+  "tuwo-masara", "tuwo-dawa", "acha", "starch-delta",
+]);
+
+/**
  * Alcohol. Not a frequency the literature sets, but the ADA warns that alcohol
  * inhibits gluconeogenesis and can cause hypoglycaemia up to 24 hours later,
  * especially on insulin or secretagogues. Held at once a month. See
@@ -85,6 +99,7 @@ const DAILY_BUT_LIMITED = new Set(["salt", "seasoning-cube"]);
  */
 function capFor(f) {
   if (OVERRIDES[f.id]) return OVERRIDES[f.id];
+  if (SWALLOW_GROUP.has(f.id)) return 4;
   switch (f.role) {
     case "legume":
       // Measured GI 17-41 across Nigerian cowpea and African yam bean.
@@ -241,6 +256,8 @@ const tooOften = foods.filter((f) => {
   if (f.role !== "starch") return false;
   const n = f.frequency.match(/About (\d+) times a week/);
   if (f.baseVerdict === "red" && n) return true;
+  // The swallows are the dietitian's one exception: 4 a week, never more.
+  if (SWALLOW_GROUP.has(f.id)) return !n || Number(n[1]) > 4;
   return f.gi === "high" && n && Number(n[1]) > 2;
 });
 if (tooOften.length) {

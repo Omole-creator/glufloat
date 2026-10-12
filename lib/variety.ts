@@ -66,8 +66,9 @@ export function kunuSweetenTips(food: Food): SweetenTip[] {
  * cholesterol or kidney problems. That rules out red, organ and processed meat,
  * oily soups and fried food as suggestions, even when they are green for sugar.
  */
-export function saferSwaps(food: Food, limit = 3): Food[] {
+export function saferSwaps(food: Food, limit = 3, turn = 0): Food[] {
   if (KUNU_IDS.has(food.id)) return [];
+  if (food.category === "swallow") return slowerSwallows(food, turn).slice(0, limit);
   let candidates: Food[];
   if (food.category === "snack") {
     if (MEAL_LIKE_SNACKS.has(food.id)) return [];
@@ -96,6 +97,46 @@ export function saferSwaps(food: Food, limit = 3): Food[] {
     });
   }
   return candidates.slice(0, limit);
+}
+
+/**
+ * The swallows that really raise sugar more slowly, in a fixed order (co-founder
+ * dietitian + founder, 2026-10-12). Oat swallow is the only green one; plantain
+ * amala and cocoyam fufu are yellow but medium, so still slower than eba,
+ * pounded yam, fufu or tuwo. Swapping eba for tuwo would be a sideways move, so
+ * no other swallow is ever offered here.
+ */
+const SLOWER_SWALLOWS = ["oat-swallow", "amala-plantain", "cocoyam-fufu"];
+const GI_RANK: Record<Food["gi"], number> = { low: 0, medium: 1, high: 2 };
+
+/**
+ * The slower swallows for this swallow, rotated by `turn` so each takes its
+ * turn first and oat swallow is not the only one ever shown (founder: "evenly
+ * distributed"). Only swallows slower than the one searched.
+ */
+function slowerSwallows(food: Food, turn: number): Food[] {
+  const list = SLOWER_SWALLOWS.map((id) => FOODS.find((f) => f.id === id)).filter(
+    (f): f is Food => !!f && f.id !== food.id && GI_RANK[f.gi] < GI_RANK[food.gi] && !f.healthNote,
+  );
+  if (list.length === 0) return list;
+  const k = ((turn % list.length) + list.length) % list.length;
+  return [...list.slice(k), ...list.slice(0, k)];
+}
+
+const SWAP_TURN_KEY = "gf_swallow_swap_turn";
+
+/**
+ * The next turn for the swallow swap, counted on this device so the three
+ * slower swallows come round evenly, one per look. Storage blocked: turn 0.
+ */
+export function nextSwallowSwapTurn(): number {
+  try {
+    const n = Number(localStorage.getItem(SWAP_TURN_KEY) ?? "0") || 0;
+    localStorage.setItem(SWAP_TURN_KEY, String(n + 1));
+    return n;
+  } catch {
+    return 0;
+  }
 }
 
 /** True when the swap comes from a different food group (a snack swapped for

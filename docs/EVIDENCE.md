@@ -883,3 +883,35 @@ holds the guard): without kidney disease, every target up to 2,500kcal ends
 within 100kcal, and up to 2,700kcal 99.9% of days land within 10%. With kidney
 disease the extras stay at their normal size (body-building food limit), so
 targets above about 2,200kcal end short on purpose.
+
+## 14. Swallows: 4 a week, and oat swallow held to its card (2026-10-12)
+
+**Co-founder dietitian's call, decided point by point by the founder.** The
+traditional swallows (eba, pounded yam, amala, fufu, cocoyam fufu, lafun,
+semovita, wheat swallow, tuwo shinkafa/masara/dawa, acha, Delta starch) go from
+"About 2 times a week" (plantain amala and cocoyam fufu: 3) to **"About 4 times
+a week"**, as ONE shared count: four different swallows or the same one four
+times both use up the week. Always one fist-size ball, with a named vegetable
+soup and fish or chicken.
+
+**Why this is defensible, and its limits.** The soup and the fish slow the
+swallow down, and the fist-size ball (100g, 23 to 30g carbohydrate) keeps the
+load of one sitting moderate. But every swallow plate still raises sugar fast
+even with the soup (§2), so the size is non-negotiable, and the 7-of-21 cap on
+fast/medium-sugar meals (two-thirds of the week slow) is unchanged. Variety and
+familiar food were the dietitian's main argument: a plan built on one swallow
+(oat swallow, served 7 to 9 times a week before this) is a plan people stop
+following.
+
+**Asymmetry rule, stated plainly.** This marks foods as better (2 to 4) on one
+source, the co-founder dietitian, which the rule above normally does not allow.
+The founder decided it, like the other weekly counts it is a house rule awaiting
+signed dietitian sign-off (§8), and it rests on the size and the soup, not on any
+new GI measurement.
+
+**Oat swallow is now held to its own card's 3 a week** (and beans and ukwa to
+their 4) on the blue card. Before, its card said 3 while it sat on 44 lunch and
+dinner plates. Swallows may now be at dinner (the low-GI-dinner rule's one
+exception). "Try this instead" on a swallow offers only slower swallows (oat
+swallow, plantain amala, cocoyam fufu), in turn; never tuwo for eba, which would
+be a sideways move.

@@ -34,11 +34,31 @@ for (const food of FOODS) {
     `${food.id}: a snack is never swapped for meat`,
     food.category !== "snack" || swaps.every((s) => s.role !== "protein"),
   );
+  // A swallow may also swap to a yellow swallow that raises sugar more slowly
+  // (plantain amala, cocoyam fufu; founder, 2026-10-12). Never sideways.
+  const rank = { low: 0, medium: 1, high: 2 } as const;
   assertTrue(
-    `${food.id}: every swap is green (never a sideways or worse swap)`,
-    swaps.every((s) => s.baseVerdict === "green"),
+    `${food.id}: every swap is green, or a slower swallow (never a sideways or worse swap)`,
+    swaps.every((s) => s.baseVerdict === "green" || (food.category === "swallow" && rank[s.gi] < rank[food.gi])),
   );
 }
+
+// 1c. A swallow's swap takes turns evenly across the slower swallows.
+for (const id of ["garri-eba", "tuwo-shinkafa", "acha", "pounded-yam"]) {
+  const food = FOODS.find((f) => f.id === id)!;
+  const shown = [0, 1, 2, 3, 4, 5].map((t) => saferSwaps(food, 1, t)[0]?.id);
+  const tally = new Map<string, number>();
+  for (const s of shown) if (s) tally.set(s, (tally.get(s) ?? 0) + 1);
+  assertTrue(
+    `${id}: six looks show oat swallow, plantain amala and cocoyam fufu twice each`,
+    tally.size === 3 && [...tally.values()].every((n) => n === 2),
+  );
+}
+const plantainAmala = FOODS.find((f) => f.id === "amala-plantain")!;
+assertTrue(
+  "amala-plantain: only oat swallow is slower",
+  saferSwaps(plantainAmala, 3).map((s) => s.id).join() === "oat-swallow",
+);
 
 // 1b. The fried and sweet snacks that used to be told "try suya" or "try
 // nkwobi" now get a real snack.

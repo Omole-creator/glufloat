@@ -39,6 +39,7 @@ const NO_PROFILE: PersonalizationProfile = {
   medTimes: [],
   medRelationToFood: null,
   medTypes: [],
+  swallows: [],
 };
 
 const MEAL_ICON = {
@@ -199,6 +200,7 @@ export default function TodaysMeal({
         profileRef.current.conditions,
         personalRotationKey(profileRef.current),
         await foodCountsThisWeek(),
+        profileRef.current.swallows,
       );
       setIdea(next);
       setOffset(0);
@@ -319,6 +321,7 @@ export default function TodaysMeal({
         profileRef.current.conditions,
         personalRotationKey(profileRef.current),
         week,
+        profileRef.current.swallows,
       );
       setIdea(next);
       writeShown(meal, dayKey, next.index);

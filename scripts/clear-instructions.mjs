@@ -501,6 +501,25 @@ const REAL_PAIRINGS = {
   "moi-moi":
     "Moi moi goes well with oats, pap, or one cup of salad. Make the oats or pap with water and add no sugar.",
   chickpeas: "In stews and soups, with vegetables.",
+
+  // Every swallow names its real soups and protein, never a bare "vegetable
+  // soup" (co-founder dietitian + founder, 2026-10-12). Each line matches the
+  // swallow's own blue-card plates in SWALLOW_PLATES (lib/nextMeal.ts).
+  "garri-eba": "Efo riro, edikang ikong, okra soup, or afang soup, with fish or chicken.",
+  "pounded-yam": "Edikang ikong, bitterleaf soup, or egusi soup, with fish or chicken.",
+  "amala-yam": "Ewedu and gbegiri, or efo riro, with fish or chicken.",
+  "amala-plantain": "Efo riro, or ewedu and gbegiri, with fish or chicken.",
+  "fufu-akpu": "Okra soup, oha soup, or bitterleaf soup, with fish or chicken.",
+  "cocoyam-fufu": "Oha soup or okra soup, with fish or chicken.",
+  lafun: "Ewedu or efo riro, with fish or chicken.",
+  semovita: "Efo riro, okra soup, or edikang ikong, with fish or chicken.",
+  "wheat-swallow": "Okra soup or efo riro, with fish or chicken.",
+  "tuwo-shinkafa": "Miyan kuka, miyan taushe, or miyan kubewa, with fish or chicken.",
+  "tuwo-masara": "Miyan kubewa, miyan kuka, or miyan yakuwa, with fish or chicken.",
+  "tuwo-dawa": "Miyan kuka or miyan kubewa, with fish or chicken.",
+  acha: "Miyan kuka, miyan kubewa, or okra soup, with fish or chicken.",
+  "starch-delta": "Banga soup or owho soup, with fish or chicken.",
+  "oat-swallow": "Efo riro, okra soup, or edikang ikong, with fish or chicken.",
 };
 
 /**

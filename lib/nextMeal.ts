@@ -528,30 +528,12 @@ const RICE_PLATES: string[][] = [
   ["brown-rice", "tomato-stew", "turkey"],
 ];
 const STEADY_PLATES: string[][] = [
-  ["amala-plantain", "efo-riro", "fish"],
-  ["cocoyam-fufu", "okra-soup", "fish"],
   ["basmati-rice", "efo-riro", "fish"],
   ["rice-and-beans", "tomato-stew", "fish"],
   ["spaghetti", "tomato-stew", "chicken"],
   ["macaroni", "tomato-stew", "fish"],
 ];
 const SIZE_PLATES_LUNCH: string[][] = [
-  ["garri-eba", "efo-riro", "fish"],
-  ["garri-eba", "edikang-ikong", "chicken"],
-  ["garri-eba", "okra-soup", "fish"],
-  ["pounded-yam", "egusi-soup", "fish"],
-  ["pounded-yam", "vegetable-soup", "chicken"],
-  ["amala-yam", "ewedu", "gbegiri", "fish"],
-  ["fufu-akpu", "okra-soup", "fish"],
-  ["fufu-akpu", "oha-soup", "chicken"],
-  ["semovita", "efo-riro", "chicken"],
-  ["semovita", "okra-soup", "fish"],
-  ["wheat-swallow", "vegetable-soup", "fish"],
-  ["tuwo-shinkafa", "miyan-kuka", "chicken"],
-  ["tuwo-masara", "miyan-kubewa", "fish"],
-  ["tuwo-dawa", "miyan-kuka", "chicken"],
-  ["starch-delta", "banga-soup", "fish"],
-  ["lafun", "ewedu", "fish"],
   ["white-rice", "tomato-stew", "chicken"],
   ["white-rice", "efo-riro", "fish"],
   // Treated like white rice since 2026-10-09 (co-founder dietitian).
@@ -584,17 +566,83 @@ const SIZE_PLATES_BREAKFAST: string[][] = [
   ["whole-wheat-bread", "eggs", "moi-moi"],
 ];
 
+/**
+ * The traditional swallows (co-founder dietitian + founder, 2026-10-12). Every
+ * swallow but oat swallow. All of them TOGETHER may be on the card 4 times in
+ * 7 days (`SWALLOW_WEEKLY_LIMIT`): eba, amala, tuwo and fufu once each, or eba
+ * four times, both use up the week. Each card says "About 4 times a week" to
+ * match (`SWALLOW_GROUP` in scripts/frequency-numbers.mjs, keep in step).
+ * Lunch AND dinner, unlike the other limited starches: in many homes,
+ * especially in the north, the swallow is the evening meal.
+ */
+export const SWALLOW_IDS: ReadonlySet<string> = new Set([
+  "garri-eba", "pounded-yam", "amala-yam", "amala-plantain", "fufu-akpu",
+  "cocoyam-fufu", "lafun", "semovita", "wheat-swallow", "tuwo-shinkafa",
+  "tuwo-masara", "tuwo-dawa", "acha", "starch-delta",
+]);
+export const SWALLOW_WEEKLY_LIMIT = 4;
+/** The two swallows that are already green at the normal plate (medium-GI). */
+const STEADY_SWALLOWS = new Set(["amala-plantain", "cocoyam-fufu"]);
+
+/**
+ * Each swallow with the soups it is really eaten with, always with fish or
+ * chicken. Every plate is green in the engine with the swallow at its card's
+ * size (one fist-size ball). The "Eat it with" line on each swallow's card
+ * names these same soups (REAL_PAIRINGS in scripts/clear-instructions.mjs).
+ */
+const SWALLOW_PLATES: string[][] = [
+  ["garri-eba", "efo-riro", "fish"],
+  ["garri-eba", "edikang-ikong", "chicken"],
+  ["garri-eba", "okra-soup", "fish"],
+  ["garri-eba", "afang-soup", "fish"],
+  ["pounded-yam", "egusi-soup", "fish"],
+  ["pounded-yam", "vegetable-soup", "chicken"],
+  ["pounded-yam", "edikang-ikong", "fish"],
+  ["pounded-yam", "bitterleaf-soup", "chicken"],
+  ["amala-yam", "ewedu", "gbegiri", "fish"],
+  ["amala-yam", "efo-riro", "chicken"],
+  ["amala-plantain", "efo-riro", "fish"],
+  ["amala-plantain", "ewedu", "gbegiri", "chicken"],
+  ["fufu-akpu", "okra-soup", "fish"],
+  ["fufu-akpu", "oha-soup", "chicken"],
+  ["fufu-akpu", "bitterleaf-soup", "fish"],
+  ["cocoyam-fufu", "okra-soup", "fish"],
+  ["cocoyam-fufu", "oha-soup", "chicken"],
+  ["lafun", "ewedu", "fish"],
+  ["lafun", "efo-riro", "chicken"],
+  ["semovita", "efo-riro", "chicken"],
+  ["semovita", "okra-soup", "fish"],
+  ["semovita", "edikang-ikong", "fish"],
+  ["wheat-swallow", "vegetable-soup", "fish"],
+  ["wheat-swallow", "okra-soup", "chicken"],
+  ["tuwo-shinkafa", "miyan-kuka", "chicken"],
+  ["tuwo-shinkafa", "miyan-taushe", "fish"],
+  ["tuwo-shinkafa", "miyan-kubewa", "chicken"],
+  ["tuwo-masara", "miyan-kubewa", "fish"],
+  ["tuwo-masara", "miyan-kuka", "chicken"],
+  ["tuwo-masara", "miyan-yakuwa", "fish"],
+  ["tuwo-dawa", "miyan-kuka", "chicken"],
+  ["tuwo-dawa", "miyan-kubewa", "fish"],
+  ["acha", "miyan-kuka", "fish"],
+  ["acha", "miyan-kubewa", "chicken"],
+  ["acha", "okra-soup", "fish"],
+  ["starch-delta", "banga-soup", "fish"],
+  ["starch-delta", "owho-soup", "chicken"],
+];
+
 /** The starch on each GluFloat-size plate: the foods that must be eaten at the card's size. */
-export const GLUFLOAT_SIZE_STARCHES: ReadonlySet<string> = new Set(
-  [...SIZE_PLATES_LUNCH, ...SIZE_PLATES_BREAKFAST].map((p) => p[0]),
-);
-/** At most this many GluFloat-size plates eaten in 7 days, all of them together. */
+export const GLUFLOAT_SIZE_STARCHES: ReadonlySet<string> = new Set([
+  ...[...SIZE_PLATES_LUNCH, ...SIZE_PLATES_BREAKFAST].map((p) => p[0]),
+  ...[...SWALLOW_IDS].filter((id) => !STEADY_SWALLOWS.has(id)),
+]);
+/** At most this many GluFloat-size plates (not swallows, they have their own count) eaten in 7 days. */
 export const SIZE_GROUP_LIMIT = 2;
 
 /** Foods a plate may hold only a set number of times in 7 days. */
 const WEEKLY_PLATE_LIMIT: Record<string, number> = {
   ...Object.fromEntries([...RICE_PLATES, ...STEADY_PLATES].map((p) => [p[0], 3])),
   ...Object.fromEntries([...GLUFLOAT_SIZE_STARCHES].map((id) => [id, 2])),
+  ...Object.fromEntries([...SWALLOW_IDS].map((id) => [id, SWALLOW_WEEKLY_LIMIT])),
 };
 
 /**
@@ -610,20 +658,53 @@ export function isWeeklyLimited(id: string): boolean {
   return WEEKLY_PLATE_LIMIT[id] != null;
 }
 
+/**
+ * Slow-sugar foods whose own card gives a weekly count (founder, 2026-10-12).
+ * Oat swallow sat on 44 lunch and dinner plates and was served 7 to 9 times a
+ * week while its card says 3, the "too much oat swallow" the dietitian saw.
+ * Beans and ukwa are held to their cards' 4 so the same gap does not move onto
+ * them. Kept apart from WEEKLY_PLATE_LIMIT on purpose: these are low-GI and
+ * must NOT count toward the 7 fast/medium-sugar meals.
+ */
+const LOW_WEEKLY_LIMIT: Record<string, number> = {
+  "oat-swallow": 3,
+  "cooked-beans": 4,
+  "beans-porridge": 4,
+  ukwa: 4,
+};
+
 /** A plate that would take a limited food, the GluFloat-size group, or the week's non-low-GI meals past its count. */
 function overWeeklyLimit(ids: string[], weekCounts: Map<string, number>): boolean {
+  if (ids.some((id) => LOW_WEEKLY_LIMIT[id] != null && (weekCounts.get(id) ?? 0) >= LOW_WEEKLY_LIMIT[id])) return true;
   if (ids.some((id) => WEEKLY_PLATE_LIMIT[id] != null && (weekCounts.get(id) ?? 0) >= WEEKLY_PLATE_LIMIT[id])) return true;
   if (ids.some((id) => WEEKLY_PLATE_LIMIT[id] != null)) {
     let limited = 0;
     for (const id of Object.keys(WEEKLY_PLATE_LIMIT)) limited += weekCounts.get(id) ?? 0;
     if (limited >= NON_LOW_GROUP_LIMIT) return true;
   }
-  if (ids.some((id) => GLUFLOAT_SIZE_STARCHES.has(id))) {
+  if (ids.some((id) => GLUFLOAT_SIZE_STARCHES.has(id) && !SWALLOW_IDS.has(id))) {
     let group = 0;
-    for (const id of GLUFLOAT_SIZE_STARCHES) group += weekCounts.get(id) ?? 0;
+    for (const id of GLUFLOAT_SIZE_STARCHES) if (!SWALLOW_IDS.has(id)) group += weekCounts.get(id) ?? 0;
     if (group >= SIZE_GROUP_LIMIT) return true;
   }
+  if (ids.some((id) => SWALLOW_IDS.has(id))) {
+    let group = 0;
+    for (const id of SWALLOW_IDS) group += weekCounts.get(id) ?? 0;
+    if (group >= SWALLOW_WEEKLY_LIMIT) return true;
+  }
   return false;
+}
+
+/** Drops plates holding a traditional swallow the person did not tick. Never empties the list. */
+function filterBySwallows<T extends { idea: { index: number } }>(
+  rows: T[],
+  list: string[][],
+  swallows: string[],
+): T[] {
+  if (swallows.length === 0) return rows;
+  const eats = new Set(swallows);
+  const kept = rows.filter((r) => !list[r.idea.index].some((id) => SWALLOW_IDS.has(id) && !eats.has(id)));
+  return kept.length > 0 ? kept : rows;
 }
 
 /** The plain line that makes a GluFloat-size plate green: the starch at its card's size. */
@@ -647,6 +728,7 @@ const LUNCH: string[][] = [
   ...SIZE_PLATES_LUNCH,
   ...beansPlates(BEANS_PARTNERS),
   ["ukwa", "fish"],
+  ...SWALLOW_PLATES,
 ];
 
 /**
@@ -666,7 +748,11 @@ const DINNER: string[][] = [
   ...soupPlates(5),
   ...beansPlates(["fish", "eggs", "smoked-fish"]),
   ["ukwa", "smoked-fish"],
-].filter((ids) => !hasModerateGi(ids));
+].filter((ids) => !hasModerateGi(ids)).concat(
+  // The traditional swallows are the one exception to the low-GI dinner
+  // (founder, 2026-10-12): green at the right size, and held to 4 a week.
+  SWALLOW_PLATES,
+);
 
 const IDEAS: Record<NamedMeal, string[][]> = {
   breakfast: [...BREAKFAST, ...SIZE_PLATES_BREAKFAST],
@@ -968,6 +1054,7 @@ export function planForDay(
   conditions: Condition[] = [],
   personalKey = "",
   weekCounts: Map<string, number> = new Map(),
+  swallows: string[] = [],
 ): MealIdea {
   const list = IDEAS[meal];
   const n = list.length;
@@ -1000,7 +1087,16 @@ export function planForDay(
     // `diff` defaults to 0 here (no target given) so the pool has a uniform
     // shape whether or not the calorie-target narrowing below runs, and the
     // final sort's `diff` tiebreak (see below) is a no-op in that case.
-    return { idea, eaten: eaten + goalAdjust, tie: hash(`${meal}#${i}`), planCalories, diff: 0, hasScalable };
+    // How far the blue card's own bigger fish or chicken serving can lift this
+    // plate (scaleMainProtein, up to double, never for kidney disease). Used
+    // only by the "big enough" check below, so a lighter plate the scaler can
+    // bring up to size (tuwo with miyan kuka, 2026-10-12) is not dropped.
+    const scaleProtein = idea.foods.find((f) => MAIN_PROTEIN_CONFIG[f.id] != null);
+    const headroom =
+      scaleProtein && !conditions.includes("kidney_disease")
+        ? (scaleProtein.calories ?? 0) * (MAIN_PROTEIN_MAX_MULTIPLIER - 1)
+        : 0;
+    return { idea, eaten: eaten + goalAdjust, tie: hash(`${meal}#${i}`), planCalories, diff: 0, hasScalable, headroom };
   });
 
   // A hard exclusion, not a reorder (see `excludesRiskyProtein` above): drop
@@ -1014,6 +1110,11 @@ export function planForDay(
     );
     if (safe.length > 0) base = safe;
   }
+  // "Which swallows do you eat?" (My details, free on every tier). A plate
+  // with a traditional swallow the person did not tick leaves the rotation.
+  // Nothing ticked means every swallow takes its turn. Oat swallow is never
+  // in the list: it is always offered (founder, 2026-10-12).
+  base = filterBySwallows(base, list, swallows);
   // A food with a weekly count (ofada and brown rice, 3 a week) leaves the
   // rotation once eaten that many times in 7 days.
   if (weekCounts.size > 0) {
@@ -1134,7 +1235,16 @@ export function planForDay(
     // collision" already accepted elsewhere in this file for the extras
     // day-rotation — not claimed to be mathematically impossible.
     const CANDIDATE_POOL = Math.min(12, base.length);
-    const rawDiff = base.map((s) => ({ ...s, diff: Math.abs(s.planCalories - calorieTargetForMeal) }));
+    // A traditional swallow plate is measured at the size the blue card will
+    // really serve: its fish or chicken can be doubled (scaleMainProtein), so
+    // the lighter northern plates (tuwo or acha with miyan kuka, about 500kcal)
+    // are not shut out for anyone with a calorie target (2026-10-12). Every
+    // other plate is measured exactly as before.
+    const reach = (s: (typeof base)[number]) =>
+      list[s.idea.index].some((id) => SWALLOW_IDS.has(id)) && s.planCalories < calorieTargetForMeal
+        ? Math.min(calorieTargetForMeal, s.planCalories + s.headroom)
+        : s.planCalories;
+    const rawDiff = base.map((s) => ({ ...s, diff: Math.abs(reach(s) - calorieTargetForMeal) }));
     const candidates = [...rawDiff].sort((a, b) => a.diff - b.diff).slice(0, CANDIDATE_POOL);
 
     const JITTER_KCAL = 800;
@@ -1173,7 +1283,7 @@ export function planForDay(
     // plates for variety: the ones that pass first, then the biggest of the
     // rest.
     const minPlate = calorieTargetForMeal - extrasDaySupply(conditions) / 4;
-    const bigEnough = (s: { planCalories: number }) => s.planCalories >= minPlate;
+    const bigEnough = (s: { planCalories: number; headroom: number }) => s.planCalories + s.headroom >= minPlate;
     const passing = pool.filter(bigEnough);
     if (passing.length >= MIN_POOL) {
       pool = passing;
