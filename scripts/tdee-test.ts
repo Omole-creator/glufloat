@@ -174,10 +174,23 @@ assertEqual(
   assertTrue("BMI 30+: lower than the full-weight target",
     obese.target < calorieTarget(tdee(bmr("male", 110, 175, 40), "moderate"), ["maintain"]));
 
-  // Lose weight still subtracts at any BMI, and the 1,200 floor holds.
+  // Lose weight (2026-10-12): kept under 65 at any healthy-or-higher BMI and
+  // at 65+ once obese; skipped when underweight, and at 65+ under BMI 30.
   const lose = clinicalTarget("female", 120, 150, 70, "sedentary", ["lose_weight"]);
-  assertTrue("lose_weight is never skipped", !lose.skippedGoals.includes("lose_weight"));
-  assertTrue("1,200kcal floor holds", lose.target >= 1200);
+  assertTrue("65+ and obese: lose_weight kept", !lose.skippedGoals.includes("lose_weight"));
+  assertTrue("women: 1,200kcal floor holds", lose.target >= 1200);
+  const young = clinicalTarget("female", 70, 165, 40, "light", ["lose_weight"]);
+  assertTrue("under 65, BMI 25.7: lose_weight kept", !young.skippedGoals.includes("lose_weight"));
+  const older = clinicalTarget("male", 80, 170, 70, "light", ["lose_weight"]);
+  assertTrue("65+, BMI 27.7: lose_weight skipped", older.skippedGoals.includes("lose_weight"));
+  assertEqual("65+, BMI 27.7: target = maintenance", older.target,
+    calorieTarget(tdee(bmr("male", 80, 170, 70), "light"), [], 1500), 0);
+  const under = clinicalTarget("female", 45, 168, 30, "moderate", ["lose_weight"]);
+  assertTrue("underweight: lose_weight skipped", under.skippedGoals.includes("lose_weight"));
+  const oldMan = clinicalTarget("male", 55, 180, 80, "sedentary", ["lose_weight"]);
+  assertTrue("men: 1,500kcal floor holds", oldMan.target >= 1500);
+  const smallMan = clinicalTarget("male", 40, 150, 80, "sedentary", []);
+  assertEqual("men: floor is exactly 1,500 when the need is lower", smallMan.target, 1500, 0);
 }
 
 if (failures > 0) {

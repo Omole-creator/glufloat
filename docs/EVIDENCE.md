@@ -863,3 +863,23 @@ through that process, not be silently patched here.
 Sources: [Healthline, "Daily Salt Intake: How Much Sodium Should You Have?"](https://www.healthline.com/nutrition/sodium-per-day),
 [URMC, "Watching Salt When You Have Diabetes"](https://www.urmc.rochester.edu/encyclopedia/content?contenttypeid=85&contentid=P00352),
 [Mayo Clinic, "Sodium: How to tame your salt habit"](https://www.mayoclinic.org/healthy-lifestyle/nutrition-and-healthy-eating/in-depth/sodium/art-20045479).
+
+## 13. The daily calorie target: floors and older adults (2026-10-12)
+
+Decided by Claude acting as senior dietitian, approved by the founder.
+
+| Rule | Source |
+|---|---|
+| Lowest target 1,200kcal for women, 1,500kcal for men (men used to share 1,200) | Bottom of the weight-loss ranges in the AHA/ACC/TOS 2013 obesity guideline (1,200-1,500 women, 1,500-1,800 men). Below these, a clinician should supervise. |
+| Age 65+: "lose weight" takes no food away unless BMI is 30 or more; when it applies it is the usual 500kcal cut | ESPEN guideline on clinical nutrition and hydration in geriatrics (Volkert et al., Clin Nutr 2019): weight-reducing diets only for obese older persons with weight-related health problems, with exercise. Cutting food at that age costs muscle. |
+| Any age, BMI under 18.5: "lose weight" takes no food away | Underweight; weight loss is not indicated. |
+
+The method, unchanged: Mifflin-St Jeor; BMI 30+ uses adjusted weight (Devine
+ideal + 40% of the excess); "gain weight" adds 400kcal only under BMI 18.5,
+"build muscle" 250kcal only under BMI 25.
+
+Measured after this change (96,000 simulated days, `scripts/calorie-ranking-test.ts`
+holds the guard): without kidney disease, every target up to 2,500kcal ends
+within 100kcal, and up to 2,700kcal 99.9% of days land within 10%. With kidney
+disease the extras stay at their normal size (body-building food limit), so
+targets above about 2,200kcal end short on purpose.

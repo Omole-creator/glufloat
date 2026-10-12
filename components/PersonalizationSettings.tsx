@@ -594,7 +594,9 @@ export default function PersonalizationSettings({
             const skipped = clinical?.skippedGoals ?? [];
             const gain = skipped.includes("gain_weight");
             const muscle = skipped.includes("build_muscle");
-            const line =
+            // Lose weight skipped (2026-10-12): underweight, or 65+ under BMI 30.
+            const lose = skipped.includes("lose_weight");
+            const gainLine =
               gain && muscle
                 ? "We still pick meals that help you build muscle. But for your weight, we will not add more food to help you gain weight. Talk to our dietitian first."
                 : gain
@@ -602,11 +604,15 @@ export default function PersonalizationSettings({
                   : muscle
                     ? "We still pick meals that help you build muscle. But for your weight, we will not add more food."
                     : null;
+            const loseLine = lose
+              ? "For your age and weight, we will not cut your food to help you lose weight. Eating less now can make you lose muscle. Talk to our dietitian first."
+              : null;
+            const line = [loseLine, gainLine].filter(Boolean).join(" ") || null;
             if (!line) return null;
             return (
               <div className="mt-3 border-t border-white/25 pt-3">
                 <p className="text-sm text-white/90">{line}</p>
-                {gain && dietitian && (
+                {(gain || lose) && dietitian && (
                   dietitian.canChat ? (
                     <button
                       type="button"

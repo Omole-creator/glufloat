@@ -1158,6 +1158,34 @@ export function planForDay(
       close.length >= MIN_POOL
         ? close
         : [...withDiff].sort((a, b) => a.diff - b.diff).slice(0, MIN_POOL);
+
+    // **No plate smaller than the extras can make up (2026-10-12).** The
+    // jitter above can let in a plate far below this meal's share. A sweep of
+    // 96,000 simulated days found that on the days ending short, the plates
+    // were about 200kcal smaller than the same person got with no personal
+    // key, and the safe extras (60g of nuts a day, one coconut serving, fruit,
+    // raw vegetables) had run out by dinner. So a plate may sit below the
+    // share by at most a quarter of what the extras can safely give in a
+    // whole day (measured: every day up to 2,500kcal now closes within
+    // 100kcal, it was up to 354 short). The rotation still keeps MIN_POOL
+    // plates for variety: the ones that pass first, then the biggest of the
+    // rest.
+    const minPlate = calorieTargetForMeal - extrasDaySupply(conditions) / 4;
+    const bigEnough = (s: { planCalories: number }) => s.planCalories >= minPlate;
+    const passing = pool.filter(bigEnough);
+    if (passing.length >= MIN_POOL) {
+      pool = passing;
+    } else if (passing.length < pool.length) {
+      // Too few pass: the ones that do, then the biggest of the rest. Biggest
+      // first, NOT this person's jittered order: any jitter here brought most
+      // of the shortfall back (measured). The cost: two different people now
+      // share a day more often (32 of 100 in calorie-ranking-test, was 9).
+      // One person whose weight changes still gets a different day (0.5%
+      // identical, was 0.0%), which is the case the founder reported.
+      const extraPassing = withDiff.filter((s) => bigEnough(s) && !passing.includes(s));
+      const rest = withDiff.filter((s) => !bigEnough(s)).sort((a, b) => b.planCalories - a.planCalories);
+      pool = [...passing, ...extraPassing, ...rest].slice(0, MIN_POOL);
+    }
     }
   }
 
@@ -1497,7 +1525,9 @@ const READY_TO_EAT_EXTRAS: ExtraCandidate[] = [
     scalable: true,
     baseUnits: 2,
     baseGrams: 15,
-    maxGrams: 22,
+    // 3 seeds (docs/EVIDENCE.md §9: "~22g, about 3 seeds"), written exactly
+    // since sizeExtra no longer rounds past a ceiling (2026-10-12).
+    maxGrams: 22.5,
     describe: (units, grams) => `About ${units} seeds (about ${grams}g).`,
   },
   // Added 2026-10-07 (founder: the snack list was too short). Both pass all
@@ -1772,12 +1802,14 @@ function sizeExtra(candidate: ExtraCandidate, food: Food, targetKcal: number): E
   }
   const kcalPerUnit = baseKcal / candidate.baseUnits;
   const gramsPerUnit = candidate.baseGrams / candidate.baseUnits;
-  // A daily cap (dailyCapped) can leave less room than one normal serving:
-  // then fewer whole units, never rounded up past the room left.
+  // The most whole units that stay within maxGrams. It used to ROUND to the nearest unit, which went past the
+  // ceiling: 26g of nut room left became 2 tablespoons (30g) of peanut
+  // butter, and coconut's 60g ceiling became 67g (fixed 2026-10-12). A daily
+  // cap (dailyCapped) can leave less room than one normal serving: then fewer
+  // whole units, at least one.
+  const fit = Math.floor(candidate.maxGrams / gramsPerUnit + 1e-9);
   const maxUnits =
-    candidate.maxGrams < candidate.baseGrams
-      ? Math.max(1, Math.floor(candidate.maxGrams / gramsPerUnit + 1e-9))
-      : Math.max(candidate.baseUnits, Math.round(candidate.maxGrams / gramsPerUnit));
+    candidate.maxGrams < candidate.baseGrams ? Math.max(1, fit) : Math.max(candidate.baseUnits, fit);
   const cappedTarget = Math.min(targetKcal, maxUnits * kcalPerUnit);
   const units = Math.max(1, Math.min(maxUnits, Math.round(cappedTarget / kcalPerUnit)));
   const grams = Math.round(units * gramsPerUnit);
@@ -2176,6 +2208,28 @@ export function extrasSafeCapacity(conditions: Condition[] = []): number {
     .map((p) => sizeExtra(guardedCandidate(p.c, p.food, capProtein), p.food, 1e9).calories)
     .sort((a, b) => b - a);
   return (kcal[0] ?? 0) + (kcal[1] ?? 0);
+}
+
+/**
+ * What the safe extras can give in ONE whole day, at most: every extra at its
+ * own daily ceiling, with all nuts together held to NUT_DAILY_MAX_G (counted
+ * at the most energy-dense nut, so this is an upper bound). Fruit with a
+ * weekly limit is left out. Used by planForDay to keep plates big enough
+ * that the extras can close the rest.
+ */
+export function extrasDaySupply(conditions: Condition[] = []): number {
+  const capProtein = conditions.includes("kidney_disease");
+  let other = 0;
+  let nutKcalPerG = 0;
+  for (const c of EXTRA_CANDIDATES.breakfast) {
+    if (EXCLUDED_FROM_EXTRAS.has(c.id) || c.weeklyLimit) continue;
+    const food = getFood(c.id);
+    if (!food) continue;
+    const sized = sizeExtra(guardedCandidate(c, food, capProtein), food, 1e9);
+    if (NUT_GROUP.has(c.id)) nutKcalPerG = Math.max(nutKcalPerG, sized.calories / sized.grams);
+    else other += sized.calories;
+  }
+  return Math.round(other + nutKcalPerG * NUT_DAILY_MAX_G);
 }
 
 /**

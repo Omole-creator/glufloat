@@ -120,10 +120,19 @@ const GOAL_CALORIE_ADJUST: Record<Goal, number> = {
  * `lib/useTodaysCalories.ts` and `lib/nextMeal.ts` for the supply-side half
  * of this.
  */
-export function calorieTarget(tdeeValue: number, goals: Goal[]): number {
+export function calorieTarget(tdeeValue: number, goals: Goal[], floor = 1200): number {
   const adjust = goals.reduce((sum, g) => sum + GOAL_CALORIE_ADJUST[g], 0);
-  return Math.max(1200, Math.round(tdeeValue + adjust));
+  return Math.max(floor, Math.round(tdeeValue + adjust));
 }
+
+/**
+ * The lowest daily target GluFloat will ever set (2026-10-12, senior-dietitian
+ * decision approved by the founder): 1,200kcal for women and 1,500kcal for men,
+ * the bottom of the weight-loss ranges in the AHA/ACC/TOS 2013 obesity
+ * guideline. Below these, a diet needs a clinician watching it. Men used to
+ * share the women's 1,200 floor, which put an 80-year-old man on 1,200kcal.
+ */
+export const CALORIE_FLOOR: Record<Sex, number> = { female: 1200, male: 1500 };
 
 /**
  * The daily target the way a diabetes clinic works it out (founder,
@@ -139,9 +148,15 @@ export function calorieTarget(tdeeValue: number, goals: Goal[]): number {
  *  - "Build muscle" only adds its surplus when BMI is under 25. Above that,
  *    the goal still steers the meals (lib/personalization.ts), but no extra
  *    food is added on top.
+ *  - "Lose weight" (2026-10-12) takes no food away when BMI is under 18.5,
+ *    or, at age 65 and over, when BMI is under 30. ESPEN's geriatrics
+ *    guideline (2019): weight-reducing diets only for obese older people with
+ *    a weight-related problem (diabetes is one), because cutting food at that
+ *    age costs muscle. When it applies, it is the usual 500kcal cut.
+ *  - The floor is CALORIE_FLOOR: 1,200kcal women, 1,500kcal men.
  *
  * `skippedGoals` names the goals whose surplus was left out, so "My details"
- * can say why in plain words. The 1,200kcal floor stays.
+ * can say why in plain words.
  */
 export interface ClinicalTarget {
   bmr: number;
@@ -171,13 +186,16 @@ export function clinicalTarget(
   const bmrValue = bmr(sex, weight, heightCm, ageYears);
   const tdeeValue = tdee(bmrValue, activityLevel);
   const skippedGoals = goals.filter(
-    (g) => (g === "gain_weight" && b >= 18.5) || (g === "build_muscle" && b >= 25),
+    (g) =>
+      (g === "gain_weight" && b >= 18.5) ||
+      (g === "build_muscle" && b >= 25) ||
+      (g === "lose_weight" && (b < 18.5 || (ageYears >= 65 && b < 30))),
   );
   const kept = goals.filter((g) => !skippedGoals.includes(g));
   return {
     bmr: bmrValue,
     tdee: tdeeValue,
-    target: calorieTarget(tdeeValue, kept),
+    target: calorieTarget(tdeeValue, kept, CALORIE_FLOOR[sex]),
     usedAdjustedWeight,
     skippedGoals,
   };
