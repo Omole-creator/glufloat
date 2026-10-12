@@ -287,6 +287,8 @@ body {
   .sheet-in { animation-name: sheet-left; }
 }
 .fade-in { animation: fade-in 0.25s ease-out both; }
+/* The phone menu slides in from the right (components/Navbar.tsx). */
+.menu-in { animation: sheet-left 0.32s cubic-bezier(0.22, 1, 0.36, 1) both; }
 /* The sugar box: an empty, untouched box shows a blinking cursor and a soft
    pulse, so it is plain that the number is typed here. Once it is tapped the
    phone's own cursor takes over, and once a number is in, both stop. */
@@ -321,7 +323,7 @@ body {
 /* The 2-hour clock on the meal test card fills slowly as time passes. */
 .clock-fill { transition: stroke-dashoffset 0.8s ease-out; }
 @media (prefers-reduced-motion: reduce) {
-  .sheet-in, .fade-in { animation: none; }
+  .sheet-in, .fade-in, .menu-in { animation: none; }
   .clock-fill { transition: none; }
 }
 

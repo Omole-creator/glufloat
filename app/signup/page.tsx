@@ -28,7 +28,9 @@ export default function SignUpPage() {
   const [userType, setUserType] = useState<UserType | "">("");
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
-  // The two doors (founder, 2026-10-12): a person, or a hospital. The hospital
+  // The two doors (founder, 2026-10-12): a person, or a hospital. "Personal
+  // account" covers someone with diabetes, a family member AND a health worker
+  // signing up alone (founder caught that "me or my family" left them out). The hospital
   // door is a choice at the very top, not a small link under the form.
   const [path, setPath] = useState<"me" | "hospital">("me");
 
@@ -99,8 +101,8 @@ export default function SignUpPage() {
     >
       <div role="tablist" aria-label="Who is this account for?" className="mb-6 grid grid-cols-2 gap-1 rounded-2xl bg-mist p-1">
         {[
-          { id: "me" as const, label: "For me or my family", icon: UserRound },
-          { id: "hospital" as const, label: "For a hospital or clinic", icon: Hospital },
+          { id: "me" as const, label: "Personal account", icon: UserRound },
+          { id: "hospital" as const, label: "Hospital or clinic", icon: Hospital },
         ].map((t) => (
           <button
             key={t.id}

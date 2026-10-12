@@ -12,6 +12,7 @@ import { readInvoiceSettings } from "@/lib/invoiceSettings";
 import RequestActions from "./RequestActions";
 import InvoiceSettingsForm from "./InvoiceSettingsForm";
 import AddHospital from "./AddHospital";
+import TestEmail from "./TestEmail";
 
 export const dynamic = "force-dynamic";
 
@@ -176,8 +177,11 @@ export default async function HospitalsAdminPage() {
       </div>
 
       <div className="mt-6">
-        <AdminCard title="Invoice settings" sub="Printed on every hospital quote and invoice.">
+        <AdminCard title="Invoice settings and alerts" sub="Printed on every hospital quote and invoice. New requests are emailed to glufloat@gmail.com.">
           <InvoiceSettingsForm initial={settings} />
+          <div className="mt-5 border-t border-[#eef2f7] pt-4">
+            <TestEmail />
+          </div>
         </AdminCard>
       </div>
     </AdminShell>

@@ -16,9 +16,11 @@ const FROM = "care@glufloat.com";
 
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c] as string);
 
-export async function notifyFounder(subject: string, rows: [string, string | null | undefined][], link: string): Promise<boolean> {
+export type NotifyResult = { ok: boolean; status: number | null; detail: string };
+
+export async function notifyFounder(subject: string, rows: [string, string | null | undefined][], link: string): Promise<NotifyResult> {
   const key = process.env.MAILYTE_SEND_KEY || process.env.MAILYTE_API_KEY;
-  if (!key) return false;
+  if (!key) return { ok: false, status: null, detail: "No Mailyte key is set on the server." };
   const shown = rows.filter(([, v]) => v && String(v).trim());
   const html = `<div style="font-family:Arial,sans-serif;color:#0c2a47">
 <h2 style="margin:0 0 12px;color:#1b5faa">${esc(subject)}</h2>
@@ -38,8 +40,10 @@ export async function notifyFounder(subject: string, rows: [string, string | nul
       signal: ctrl.signal,
     });
     clearTimeout(t);
-    return res.ok;
-  } catch {
-    return false;
+    if (res.ok) return { ok: true, status: res.status, detail: "Sent." };
+    const j = (await res.json().catch(() => ({}))) as { message?: string };
+    return { ok: false, status: res.status, detail: j.message ?? res.statusText };
+  } catch (e) {
+    return { ok: false, status: null, detail: e instanceof Error ? e.message : "Could not reach Mailyte." };
   }
 }

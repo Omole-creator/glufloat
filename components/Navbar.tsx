@@ -4,7 +4,21 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { ChevronRight, LogOut, Menu, X } from "lucide-react";
+import {
+  BookOpen,
+  ChevronRight,
+  CircleHelp,
+  Hospital as HospitalIcon,
+  LogOut,
+  Menu,
+  PlayCircle,
+  Smartphone,
+  Sparkles,
+  Tag,
+  Users,
+  X,
+  type LucideIcon,
+} from "lucide-react";
 import { signOut as signOutOfAccount } from "@/lib/account";
 import { clearAccessCache, useAccess } from "@/lib/useAccess";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -19,6 +33,17 @@ const LINKS = [
   { href: "/about", label: "About" },
   { href: "/app", label: "The app" },
 ];
+
+/** One icon per link in the phone menu, so each row is easy to find at a glance. */
+const LINK_ICON: Record<string, LucideIcon> = {
+  "/#how": Sparkles,
+  "/#demo": PlayCircle,
+  "/#pricing": Tag,
+  "/#faq": CircleHelp,
+  "/blog": BookOpen,
+  "/about": Users,
+  "/app": Smartphone,
+};
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -184,80 +209,114 @@ export default function Navbar() {
       </nav>
 
       <Dialog open={menuOpen} onOpenChange={setMenuOpen}>
+        {/* The phone menu, redesigned 2026-10-12 (founder: "archaic"). A panel
+            that slides in from the right: a blue header, the links as big rows
+            with an icon each, a card for hospitals, and the one action that
+            matters for this reader pinned at the bottom. */}
         <DialogContent
           hideClose
-          className={`inset-y-0 left-auto right-0 top-0 flex h-full max-h-none w-full max-w-sm translate-x-0 translate-y-0 flex-col gap-0 overflow-y-auto rounded-none border-0 bg-white p-0 shadow-2xl sm:rounded-none ${
+          className={`menu-in inset-y-0 left-auto right-0 top-0 flex h-[100dvh] max-h-none w-[88%] max-w-sm translate-x-0 translate-y-0 flex-col gap-0 overflow-hidden rounded-l-[28px] rounded-r-none border-0 bg-[#f3f6fa] p-0 shadow-2xl ${
             menuOnly ? "" : "lg:hidden"
           }`}
         >
           <DialogTitle className="sr-only">Menu</DialogTitle>
-          <div className="flex items-center justify-between bg-gradient-to-br from-[#0b2e59] to-brand px-5 py-4">
-            <span className="flex items-center gap-2 font-display text-lg font-bold tracking-tight text-white">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white">
-                <Image src="/logo-mark.png" alt="" width={22} height={22} />
+          <div className="relative shrink-0 overflow-hidden bg-gradient-to-br from-[#0b2e59] via-[#124A8C] to-brand px-5 pb-6 pt-5 text-white">
+            <div aria-hidden className="pointer-events-none absolute -right-12 -top-16 h-44 w-44 rounded-full bg-white/10 blur-2xl" />
+            <div className="relative flex items-center justify-between">
+              <span className="flex items-center gap-2 font-display text-lg font-bold tracking-tight">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white">
+                  <Image src="/logo-mark.png" alt="" width={24} height={24} />
+                </span>
+                GLUFLOAT
               </span>
-              GLUFLOAT
-            </span>
-            <button
-              type="button"
-              onClick={() => setMenuOpen(false)}
-              aria-label="Close menu"
-              className="flex h-9 w-9 items-center justify-center rounded-full text-white/85 transition-colors hover:bg-white/10 hover:text-white"
-            >
-              <X className="h-5 w-5" />
-            </button>
+              <button
+                type="button"
+                onClick={() => setMenuOpen(false)}
+                aria-label="Close menu"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white ring-1 ring-inset ring-white/20 transition-colors hover:bg-white/20"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <p className="relative mt-4 text-sm text-white/75">Know what to eat for your diabetes.</p>
           </div>
 
-          <div className="flex flex-1 flex-col px-4 py-4">
-            <div className="space-y-0.5">
-              {LINKS.map((l) => (
-                <Link
-                  key={l.href}
-                  href={l.href}
-                  onClick={() => setMenuOpen(false)}
-                  className="flex items-center justify-between rounded-2xl px-4 py-3.5 text-base font-semibold text-ink transition-colors hover:bg-mist"
-                >
-                  {l.label}
-                  <ChevronRight className="h-4 w-4 text-ink-soft/50" />
-                </Link>
-              ))}
+          <div className="flex-1 overflow-y-auto px-4 pb-4 pt-4">
+            <div className="overflow-hidden rounded-3xl bg-white ring-1 ring-ink/[0.05]">
+              {LINKS.filter((l) => l.href !== "/hospitals").map((l, i) => {
+                const Icon = LINK_ICON[l.href] ?? ChevronRight;
+                const here = !l.href.includes("#") && pathname === l.href;
+                return (
+                  <Link
+                    key={l.href}
+                    href={l.href}
+                    onClick={() => setMenuOpen(false)}
+                    aria-current={here ? "page" : undefined}
+                    className={`flex items-center gap-3.5 px-4 py-3.5 text-base font-semibold transition-colors hover:bg-mist ${
+                      i > 0 ? "border-t border-[#eef2f7]" : ""
+                    } ${here ? "text-brand" : "text-ink"}`}
+                  >
+                    <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${here ? "bg-brand text-white" : "bg-brand/[0.08] text-brand"}`}>
+                      <Icon className="h-4.5 w-4.5" strokeWidth={2.2} />
+                    </span>
+                    <span className="flex-1">{l.label}</span>
+                    <ChevronRight className="h-4 w-4 text-ink-soft/40" />
+                  </Link>
+                );
+              })}
             </div>
-            <div className="mt-auto space-y-3 border-t border-line pt-5">
-              {/* Log in is not repeated here: it already sits in the bar at every
-                  width, and two controls with one name break strict mode. */}
-              {/* "Open app" is pointless when the app is already open. The expired
-                  pill still shows on /app, because paying is the one thing left. */}
-              {!(onApp && sheetAction.href === "/app" && !isLocked) && (
-                <Link
-                  href={sheetAction.href}
-                  onClick={() => setMenuOpen(false)}
-                  className="block rounded-full bg-leaf px-5 py-3.5 text-center text-base font-bold text-white shadow-[0_12px_26px_-12px_rgba(62,155,79,0.9)]"
-                >
-                  {sheetAction.label}
-                </Link>
-              )}
-              {isHospitalStaff && (
-                <Link
-                  href="/hospital"
-                  onClick={() => setMenuOpen(false)}
-                  className="block rounded-full bg-brand px-5 py-3.5 text-center text-base font-bold text-white"
-                >
-                  Hospital dashboard
-                </Link>
-              )}
-              {/* Signing out lives here on EVERY page, not only /app: signed in,
-                  the bar is just the wordmark and this menu, so this is the one
-                  place it can be found from anywhere on the site. */}
-              {menuOnly && (
-                <button
-                  type="button"
-                  onClick={signOut}
-                  className="flex w-full items-center justify-center gap-1.5 rounded-full border border-line bg-white px-5 py-3 text-base font-semibold text-ink-soft transition-colors hover:border-verdict-red hover:text-verdict-red"
-                >
-                  <LogOut className="h-4 w-4" /> Sign out
-                </button>
-              )}
-            </div>
+
+            <Link
+              href="/hospitals"
+              onClick={() => setMenuOpen(false)}
+              className="mt-3 flex items-center gap-3.5 rounded-3xl bg-white p-4 ring-1 ring-ink/[0.05] transition-colors hover:bg-mist"
+            >
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-leaf/10 text-leaf-deep">
+                <HospitalIcon className="h-5 w-5" strokeWidth={2.2} />
+              </span>
+              <span className="flex-1">
+                <span className="block text-base font-bold text-ink">For hospitals</span>
+                <span className="block text-sm text-ink-soft">Care for your patients between visits</span>
+              </span>
+              <ChevronRight className="h-4 w-4 text-ink-soft/40" />
+            </Link>
+          </div>
+
+          <div className="shrink-0 space-y-2.5 border-t border-line bg-white px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4">
+            {/* Log in is not repeated here: it already sits in the bar at every
+                width, and two controls with one name break strict mode. */}
+            {/* "Open app" is pointless when the app is already open. The expired
+                pill still shows on /app, because paying is the one thing left. */}
+            {!(onApp && sheetAction.href === "/app" && !isLocked) && (
+              <Link
+                href={sheetAction.href}
+                onClick={() => setMenuOpen(false)}
+                className="flex h-13 items-center justify-center rounded-full bg-leaf px-5 py-3.5 text-center text-base font-bold text-white shadow-[0_12px_26px_-12px_rgba(62,155,79,0.9)]"
+              >
+                {sheetAction.label}
+              </Link>
+            )}
+            {isHospitalStaff && (
+              <Link
+                href="/hospital"
+                onClick={() => setMenuOpen(false)}
+                className="flex items-center justify-center rounded-full bg-brand px-5 py-3.5 text-center text-base font-bold text-white"
+              >
+                Hospital dashboard
+              </Link>
+            )}
+            {/* Signing out lives here on EVERY page, not only /app: signed in,
+                the bar is just the wordmark and this menu, so this is the one
+                place it can be found from anywhere on the site. */}
+            {menuOnly && (
+              <button
+                type="button"
+                onClick={signOut}
+                className="flex w-full items-center justify-center gap-1.5 rounded-full border border-line bg-white px-5 py-3 text-base font-semibold text-ink-soft transition-colors hover:border-verdict-red hover:text-verdict-red"
+              >
+                <LogOut className="h-4 w-4" /> Sign out
+              </button>
+            )}
           </div>
         </DialogContent>
       </Dialog>
