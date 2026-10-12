@@ -771,7 +771,9 @@ for (const meal of MEALS) {
 //         tapping "View details" opened the meal builder showing that same
 //         fish at its own unscaled 90g portionGuidance. -----------------
 {
-  const idea = planForDay("lunch", "2026-08-29", new Map(), 0, [], new Map(), null, 900);
+  // 1,100kcal, not 900: soups went to 250ml (2026-10-12), so the biggest
+  // lunch plate now reaches 900 without enlarging its fish.
+  const idea = planForDay("lunch", "2026-08-29", new Map(), 0, [], new Map(), null, 1100);
   if (idea.scaledProtein) {
     const builderFoods = mealIdeaFoodsForBuilder(idea);
     const scaled = builderFoods.find((f) => f.id === idea.scaledProtein!.food.id);
@@ -796,7 +798,7 @@ for (const meal of MEALS) {
       fail(`mealIdeaFoodsForBuilder mutated the shared Food object for ${idea.scaledProtein.food.id} — it must only return a clone`);
     }
   } else {
-    fail("mealIdeaFoodsForBuilder test setup: expected a 900kcal lunch target to engage scaleMainProtein on some day/plate");
+    fail("mealIdeaFoodsForBuilder test setup: expected a 1,100kcal lunch target to engage scaleMainProtein on some day/plate");
   }
   // No scaling active (no calorie target given) must return the exact same
   // array reference — no unnecessary cloning for the common case.

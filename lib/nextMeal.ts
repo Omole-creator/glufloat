@@ -46,7 +46,9 @@ const SOUP_PROTEINS = [
   "prawns-crayfish",
   "smoked-fish",
   "stockfish",
-  "pomo",
+  // "pomo" was removed 2026-10-12 (co-founder dietitian): it does not raise
+  // sugar, but it gives the body very little, so the app never puts it on a
+  // plate it recommends. Its own card stays searchable.
   "shaki",
 ];
 

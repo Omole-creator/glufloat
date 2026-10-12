@@ -193,7 +193,9 @@ const COOKED = {
  * The audit at the bottom of this file fails on any range left, and on any
  * "big spoon" that does not say its ml.
  */
-const SOUP_CUP = "One big spoon of soup (125ml).";
+// Soups are two big spoons, 250ml (co-founder dietitian, 2026-10-12: one big
+// spoon was too small a serving of soup). Stews and sauces stay at one.
+const SOUP_CUP = "Two big spoons of soup (250ml).";
 const LEAFY_SOUP = "Eat as much as you like. Two big spoons of soup (250ml) is a good start.";
 // The ONE cup. "Small cup", "small glass" and "tea cup" were three more
 // cups, each a different size in each home. Everything is now said against
@@ -293,10 +295,10 @@ const EXACT = {
   ewedu: LEAFY_SOUP,
   "okazi-soup": LEAFY_SOUP,
   "miyan-kubewa": LEAFY_SOUP,
-  "banga-soup": "One big spoon of soup (125ml). Go easy on the oil.",
-  "atama-soup": "One big spoon of soup (125ml). Go easy on the oil.",
-  "ofe-akwu": "One big spoon of soup (125ml). Go easy on the oil.",
-  "groundnut-soup": "One big spoon of soup (125ml).",
+  "banga-soup": "Two big spoons of soup (250ml). Go easy on the oil.",
+  "atama-soup": "Two big spoons of soup (250ml). Go easy on the oil.",
+  "ofe-akwu": "Two big spoons of soup (250ml). Go easy on the oil.",
+  "groundnut-soup": "Two big spoons of soup (250ml).",
   "tomato-stew": "One big spoon of stew (125ml).",
   ayamase: "One big spoon of stew (125ml).",
   "garden-egg-sauce": "One big spoon of sauce (125ml).",
@@ -306,7 +308,7 @@ const EXACT = {
   // 125g is the serving the nutrition figures already used.
   nkwobi: "Three medium pieces of cow foot with a little of the sauce (about 125g). Put together, the pieces fill your palm.",
   "pepper-soup": "Eat as much as you like. Four big spoons (500ml) is a good start.",
-  "native-soup": "One big spoon of soup (125ml).",
+  "native-soup": "Two big spoons of soup (250ml).",
 };
 
 /**

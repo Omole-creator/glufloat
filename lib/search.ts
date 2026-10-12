@@ -1,4 +1,5 @@
 import foodsData from "@/data/foods.json";
+import { SOUP_DISPLAY } from "./soupNames";
 import type { Food } from "./types";
 
 export const FOODS = foodsData as Food[];
@@ -17,7 +18,8 @@ export function searchFoods(query: string, limit = 8): Food[] {
 
   for (const food of FOODS) {
     const name = norm(food.name);
-    const terms = [name, ...food.aliases.map(norm)];
+    const shown = SOUP_DISPLAY[food.name];
+    const terms = [name, ...(shown ? [norm(shown)] : []), ...food.aliases.map(norm)];
     let rank = Infinity;
 
     for (const t of terms) {

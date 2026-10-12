@@ -112,6 +112,17 @@ function howOftenPhrase(rank: { tier: number; perWeek: number }): string {
 }
 
 /**
+ * How often two or more foods may be had TOGETHER, as a phrase ("about 1 time
+ * a month"): the strictest one decides, the same rule as a plate. Used for
+ * "kunu with one date blended in" (dietitian, 2026-10-12), so the count
+ * follows the date and kunu cards and can never drift from them.
+ */
+export function togetherFrequency(foods: Food[]): string {
+  const worst = foods.reduce((w, f) => (stricter(freqRank(f), freqRank(w)) ? f : w));
+  return howOftenPhrase(freqRank(worst));
+}
+
+/**
  * One answer for the whole plate: the strictest food on it decides.
  *
  * `reason` must say what the food is holding the meal back *from*, in a real

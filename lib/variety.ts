@@ -1,4 +1,5 @@
 import { FOODS } from "./search";
+import { togetherFrequency } from "./frequency";
 import type { Food } from "./types";
 
 /**
@@ -18,6 +19,42 @@ const SNACK_SWAPS = ["groundnut", "tiger-nut", "garden-egg", "cashew-nut", "cucu
 const MEAL_LIKE_SNACKS = new Set(["masa", "abacha", "tapioca", "potato-salad", "pancakes", "waffles"]);
 
 /**
+ * The kunu drinks get no zobo swap (co-founder dietitian, 2026-10-12: someone
+ * who wants kunu is not helped by being told to drink zobo). Instead they are
+ * told to sweeten it with fruit in place of sugar: one date blended in, or half
+ * a banana. The date and the banana keep their own cards' rules, so the count
+ * is the stricter of the drink and the fruit (`togetherFrequency`).
+ */
+const KUNU_IDS = new Set(["kunu", "kunu-aya", "kunun-gyada"]);
+
+export interface SweetenTip {
+  /** The fruit to blend in, so its own card can be opened. */
+  fruit: Food;
+  /** The whole instruction, in plain words. */
+  text: string;
+}
+
+export function kunuSweetenTips(food: Food): SweetenTip[] {
+  if (!KUNU_IDS.has(food.id)) return [];
+  const date = FOODS.find((f) => f.id === "dates");
+  const banana = FOODS.find((f) => f.id === "banana");
+  const tips: SweetenTip[] = [];
+  if (date) {
+    tips.push({
+      fruit: date,
+      text: `Make it with no sugar. If you want it sweet, blend one date into it. Drink it this way ${togetherFrequency([food, date])}.`,
+    });
+  }
+  if (banana) {
+    tips.push({
+      fruit: banana,
+      text: `Or blend half of one medium banana into it instead. Drink it this way ${togetherFrequency([food, banana])}.`,
+    });
+  }
+  return tips;
+}
+
+/**
  * Safe alternatives to a food the person eats a lot: other foods in the SAME
  * group that the app marks green. Same group means the swap is a real one (a
  * swallow for a swallow, a soup for a soup), never an odd pairing. This lets the
@@ -30,6 +67,7 @@ const MEAL_LIKE_SNACKS = new Set(["masa", "abacha", "tapioca", "potato-salad", "
  * oily soups and fried food as suggestions, even when they are green for sugar.
  */
 export function saferSwaps(food: Food, limit = 3): Food[] {
+  if (KUNU_IDS.has(food.id)) return [];
   let candidates: Food[];
   if (food.category === "snack") {
     if (MEAL_LIKE_SNACKS.has(food.id)) return [];

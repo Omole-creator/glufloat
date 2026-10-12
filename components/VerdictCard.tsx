@@ -2,7 +2,7 @@ import type { Food } from "@/lib/types";
 import { plainFrequency } from "@/lib/frequency";
 import { cleanFoodName } from "@/lib/foodName";
 import { foodShareMessage } from "@/lib/shareMessage";
-import { isCrossGroupSwap, saferSwaps } from "@/lib/variety";
+import { isCrossGroupSwap, kunuSweetenTips, saferSwaps } from "@/lib/variety";
 import PortionVisual from "./PortionVisual";
 import ShareOnWhatsApp from "./ShareOnWhatsApp";
 import IntakeWarning from "./IntakeWarning";
@@ -49,6 +49,8 @@ export default function VerdictCard({
   // explaining why this one is not. Green foods need no swap.
   const swap =
     food.baseVerdict !== "green" ? saferSwaps(food, 1)[0] : undefined;
+  // Kunu gets fruit to sweeten it instead of a zobo swap (dietitian, 2026-10-12).
+  const sweeten = food.baseVerdict !== "green" ? kunuSweetenTips(food) : [];
 
   return (
     <div
@@ -148,6 +150,29 @@ export default function VerdictCard({
                 <ArrowRight className="h-4 w-4" aria-hidden />
               </button>
             )}
+          </div>
+        )}
+
+        {sweeten.length > 0 && (
+          <div className="rounded-2xl bg-gradient-to-br from-mint to-verdict-green/10 p-3.5 ring-1 ring-inset ring-verdict-green/30">
+            <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-leaf-deep">
+              <Sparkles className="h-3.5 w-3.5" strokeWidth={2.4} aria-hidden />
+              Try this instead
+            </p>
+            {sweeten.map((t) => (
+              <div key={t.fruit.id} className="mt-2">
+                <p className="text-sm text-ink">{t.text}</p>
+                {onSwap && (
+                  <button
+                    onClick={() => onSwap(t.fruit)}
+                    className="mt-2 inline-flex items-center gap-2 rounded-full bg-leaf px-4 py-2 text-sm font-semibold text-white shadow-[0_8px_18px_-10px_rgba(44,122,60,0.95)] transition-transform hover:-translate-y-0.5"
+                  >
+                    See {cleanFoodName(t.fruit.name)}
+                    <ArrowRight className="h-4 w-4" aria-hidden />
+                  </button>
+                )}
+              </div>
+            ))}
           </div>
         )}
 

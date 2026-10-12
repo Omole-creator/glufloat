@@ -1,4 +1,5 @@
 import { FOODS } from "./search";
+import { SOUP_DISPLAY } from "./soupNames";
 import type { Food } from "./types";
 
 /**
@@ -31,6 +32,7 @@ const PREFIX_STATES = new Set([
 ]);
 
 export function cleanFoodName(name: string): string {
+  if (SOUP_DISPLAY[name]) return SOUP_DISPLAY[name];
   let out = name;
   const m = name.match(/^(.*?)\s*\(([^)]*)\)(.*)$/);
   if (m) {

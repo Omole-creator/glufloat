@@ -106,22 +106,22 @@ export const DEFAULT_SERVING_G = {
   "ice-cream": 60,
   "boiled-corn": 80,
   "roasted-corn": 80,
-  "egusi-soup": 125, // one big spoon is 125ml (founder, 2026-10-08)
-  "ogbono-soup": 125, // one big spoon is 125ml (founder, 2026-10-08)
+  "egusi-soup": 250, // two big spoons, 250ml (co-founder dietitian, 2026-10-12)
+  "ogbono-soup": 250, // two big spoons, 250ml (co-founder dietitian, 2026-10-12)
   "efo-riro": 250,
   "edikang-ikong": 250,
   "afang-soup": 250,
-  "oha-soup": 125, // one big spoon is 125ml (founder, 2026-10-08)
-  "bitterleaf-soup": 125, // one big spoon is 125ml (founder, 2026-10-08)
+  "oha-soup": 250, // two big spoons, 250ml (co-founder dietitian, 2026-10-12)
+  "bitterleaf-soup": 250, // two big spoons, 250ml (co-founder dietitian, 2026-10-12)
   "okra-soup": 250,
   "vegetable-soup": 250,
-  "banga-soup": 125, // one big spoon is 125ml (founder, 2026-10-08)
+  "banga-soup": 250, // two big spoons, 250ml (co-founder dietitian, 2026-10-12)
   ewedu: 250,
-  gbegiri: 125, // one big spoon is 125ml (founder, 2026-10-08)
-  "groundnut-soup": 125, // one big spoon is 125ml (founder, 2026-10-08)
-  "white-soup": 125, // one big spoon is 125ml (founder, 2026-10-08)
+  gbegiri: 250, // two big spoons, 250ml (co-founder dietitian, 2026-10-12)
+  "groundnut-soup": 250, // two big spoons, 250ml (co-founder dietitian, 2026-10-12)
+  "white-soup": 250, // two big spoons, 250ml (co-founder dietitian, 2026-10-12)
   "pepper-soup": 500, // four big spoons, the "good start" (founder, 2026-10-08)
-  "miyan-kuka": 125, // one big spoon is 125ml (founder, 2026-10-08)
+  "miyan-kuka": 250, // two big spoons, 250ml (co-founder dietitian, 2026-10-12)
   eggs: 100,
   ugba: 65,
   orange: 130,
@@ -140,10 +140,10 @@ export const DEFAULT_SERVING_G = {
   mayonnaise: 5,
   "table-sugar": 5,
   honey: 5,
-  "miyan-taushe": 125, // one big spoon is 125ml (founder, 2026-10-08)
-  "ora-soup": 125, // one big spoon is 125ml (founder, 2026-10-08)
-  "owho-soup": 125, // one big spoon is 125ml (founder, 2026-10-08)
-  "native-soup": 125, // one big spoon is 125ml (founder, 2026-10-08)
+  "miyan-taushe": 250, // two big spoons, 250ml (co-founder dietitian, 2026-10-12)
+  "ora-soup": 250, // two big spoons, 250ml (co-founder dietitian, 2026-10-12)
+  "owho-soup": 250, // two big spoons, 250ml (co-founder dietitian, 2026-10-12)
+  "native-soup": 250, // two big spoons, 250ml (co-founder dietitian, 2026-10-12)
   grapefruit: 120,
   "lime-lemon": 10,
   sugarcane: 30,
@@ -157,11 +157,11 @@ export const DEFAULT_SERVING_G = {
   "egg-roll": 70,
   "scotch-egg": 120,
   "beans-and-plantain": 180,
-  "ofe-owerri": 125, // one big spoon is 125ml (founder, 2026-10-08)
+  "ofe-owerri": 250, // two big spoons, 250ml (co-founder dietitian, 2026-10-12)
   "okazi-soup": 250,
-  "editan-soup": 125, // one big spoon is 125ml (founder, 2026-10-08)
-  "atama-soup": 125, // one big spoon is 125ml (founder, 2026-10-08)
-  "ofe-akwu": 125, // one big spoon is 125ml (founder, 2026-10-08)
+  "editan-soup": 250, // two big spoons, 250ml (co-founder dietitian, 2026-10-12)
+  "atama-soup": 250, // two big spoons, 250ml (co-founder dietitian, 2026-10-12)
+  "ofe-akwu": 250, // two big spoons, 250ml (co-founder dietitian, 2026-10-12)
   "miyan-kubewa": 250,
   sardine: 60,
   "corned-beef": 50,
