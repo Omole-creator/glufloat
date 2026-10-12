@@ -48,12 +48,18 @@ export default async function PatientPage({
   }
 
   const uid = row.user_id as string;
-  const [profile, hba1cs, weights, readings] = await Promise.all([
+  const [profile, hba1cs, weights, readings, { data: staffRows }] = await Promise.all([
     patientProfile(ctx.admin, uid),
     patientHba1cs(ctx.admin, uid),
     patientWeights(ctx.admin, uid),
     patientReadings(ctx.admin, uid, 90),
+    ctx.admin.from("hospital_staff").select("user_id,role,name,phone").eq("hospital_id", ctx.hospital.id).order("created_at"),
   ]);
+  // Everyone else on the team with a WhatsApp number: a doctor can pass a
+  // patient to the dietitian, and the other way round (founder, 2026-10-12).
+  const colleagues = ((staffRows ?? []) as { user_id: string; role: string; name: string; phone: string | null }[])
+    .filter((s) => s.user_id !== ctx.user.id && s.role !== "admin" && whatsappNumber(s.phone))
+    .map((s) => ({ name: s.name, role: s.role, whatsapp: whatsappNumber(s.phone) as string }));
 
   return (
     <HospitalShell ctx={ctx} title={profile.name || (row.name as string)} subtitle={`Joined ${new Date(row.joined_at as string).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}`}>
@@ -71,6 +77,7 @@ export default async function PatientPage({
         weights={weights}
         weightLine={weightLineFor(profile, weights)}
         readings={readings}
+        colleagues={colleagues}
       />
     </HospitalShell>
   );

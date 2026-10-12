@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { newToken, staffContext, type StaffRole } from "@/lib/hospitalServer";
+import { readableToken, staffContext, type StaffRole } from "@/lib/hospitalServer";
 import { normalizePhone } from "@/lib/phone";
 
 export const dynamic = "force-dynamic";
@@ -19,7 +19,8 @@ export async function POST(request: Request) {
   if (!name) return NextResponse.json({ error: "Put their name." }, { status: 400 });
   const phone = normalizePhone(String(body.phone ?? ""));
 
-  const token = newToken();
+  // e.g. /hospital/join/chidi42-r8t2wx (founder's choice): their first name.
+  const token = readableToken(name, true);
   const { error } = await ctx.admin.from("hospital_invites").insert({
     token,
     hospital_id: ctx.hospital.id,
@@ -32,23 +33,30 @@ export async function POST(request: Request) {
   return NextResponse.json({ ok: true, token });
 }
 
-/** Choose who the patients' Chat button reaches. */
+/**
+ * Choose who patients chat with: one dietitian and one doctor (founder,
+ * 2026-10-12). Each must really be that kind of staff at this hospital.
+ * Needs hospital-chat-schema.sql (#23).
+ */
 export async function PATCH(request: Request) {
   const body = await request.json().catch(() => ({}));
   const ctx = await staffContext(String(body.hid ?? "") || null);
   if (!ctx) return NextResponse.json({ error: "Please log in again." }, { status: 401 });
   if (ctx.staff.role !== "admin") return NextResponse.json({ error: "Only the hospital admin can change this." }, { status: 403 });
-  const chatUserId = String(body.chatUserId ?? "") || null;
-  if (chatUserId) {
-    const { data } = await ctx.admin
-      .from("hospital_staff")
-      .select("user_id")
-      .eq("hospital_id", ctx.hospital.id)
-      .eq("user_id", chatUserId)
-      .maybeSingle();
-    if (!data) return NextResponse.json({ error: "That person is not on your staff." }, { status: 400 });
+  const { data: staff } = await ctx.admin.from("hospital_staff").select("user_id,role").eq("hospital_id", ctx.hospital.id);
+  const patch: Record<string, string | null> = {};
+  for (const [field, key, role] of [
+    ["chat_dietitian_id", "dietitianId", "dietitian"],
+    ["chat_doctor_id", "doctorId", "doctor"],
+  ] as const) {
+    if (!(key in body)) continue;
+    const id = String(body[key] ?? "") || null;
+    if (id && !(staff ?? []).some((s) => s.user_id === id && s.role === role))
+      return NextResponse.json({ error: `That person is not one of your ${role}s.` }, { status: 400 });
+    patch[field] = id;
   }
-  await ctx.admin.from("hospitals").update({ chat_user_id: chatUserId, updated_at: new Date().toISOString() }).eq("id", ctx.hospital.id);
+  const { error } = await ctx.admin.from("hospitals").update({ ...patch, updated_at: new Date().toISOString() }).eq("id", ctx.hospital.id);
+  if (error) return NextResponse.json({ error: "This needs a GluFloat update. Please contact GluFloat." }, { status: 503 });
   return NextResponse.json({ ok: true });
 }
 
@@ -73,7 +81,12 @@ export async function DELETE(request: Request) {
   if (target.role === "admin" && admins.length <= 1)
     return NextResponse.json({ error: "Your hospital needs at least one admin. Invite another admin first." }, { status: 400 });
   await ctx.admin.from("hospital_staff").delete().eq("hospital_id", ctx.hospital.id).eq("user_id", userId);
-  if (ctx.hospital.chat_user_id === userId)
-    await ctx.admin.from("hospitals").update({ chat_user_id: null }).eq("id", ctx.hospital.id);
+  // A removed person's chat choice falls back to the first of that kind
+  // automatically (chatContacts), and the column clears itself on delete only
+  // if the account goes, so clear it here too.
+  if (ctx.hospital.chat_dietitian_id === userId)
+    await ctx.admin.from("hospitals").update({ chat_dietitian_id: null }).eq("id", ctx.hospital.id);
+  if (ctx.hospital.chat_doctor_id === userId)
+    await ctx.admin.from("hospitals").update({ chat_doctor_id: null }).eq("id", ctx.hospital.id);
   return NextResponse.json({ ok: true });
 }

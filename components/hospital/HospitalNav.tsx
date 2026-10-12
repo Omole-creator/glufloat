@@ -12,7 +12,7 @@ function tabs(role: Role) {
     { href: "/hospital", label: "Patients", icon: Users, exact: true, adminOnly: false },
     { href: "/hospital/add", label: "Add patients", icon: UserPlus, exact: false, adminOnly: true },
     { href: "/hospital/staff", label: "Doctors and dietitians", short: "Staff", icon: Stethoscope, exact: false, adminOnly: false },
-    { href: "/hospital/plan", label: "Plan and poster", short: "Plan", icon: CreditCard, exact: false, adminOnly: true },
+    { href: "/hospital/plan", label: "Plan and QR code", short: "Plan", icon: CreditCard, exact: false, adminOnly: true },
   ];
   return all.filter((t) => !t.adminOnly || role === "admin");
 }

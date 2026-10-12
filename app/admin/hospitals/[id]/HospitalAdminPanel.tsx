@@ -119,7 +119,7 @@ export default function HospitalAdminPanel({
   return (
     <div className="space-y-6">
       <section className="rounded-2xl border border-[#e3e9f1] bg-white p-5 sm:p-6">
-        <h2 className="font-display text-lg font-bold text-ink">Quotes and invoices</h2>
+        <h2 className="font-display text-lg font-bold text-ink">Make a quote or invoice</h2>
         {!bank.accountNumber && (
           <p className="mt-1 text-sm text-verdict-red">Add your bank details under Invoice settings first, or the PDF will have no way to pay.</p>
         )}
@@ -227,10 +227,10 @@ export default function HospitalAdminPanel({
         <h2 className="font-display text-lg font-bold text-ink">Tools</h2>
         <div className="mt-3 flex flex-wrap gap-2">
           <button
-            onClick={async () => (await buildPosterPdf(hospital)).save(`glufloat-poster-${hospital.code}.pdf`)}
+            onClick={async () => (await buildPosterPdf(hospital)).save(`glufloat-qr-code-${hospital.code}.pdf`)}
             className="inline-flex items-center gap-1.5 rounded-full border border-line px-4 py-2 text-sm font-bold text-ink hover:border-brand"
           >
-            <QrCode className="h-4 w-4" /> Download poster
+            <QrCode className="h-4 w-4" /> Download QR code
           </button>
           <button
             disabled={busy}

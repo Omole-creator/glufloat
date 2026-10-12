@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Check } from "lucide-react";
+import { openPilot } from "./PilotSheet";
 import {
   ANNUAL_MONTHS_PAID,
   CUSTOM_PLAN_NAME,
@@ -32,7 +33,7 @@ export default function HospitalPricing() {
     "Everything in GluFloat Premium for each patient",
     "Dashboard for all your doctors and dietitians",
     "Patients chat with your own team on WhatsApp",
-    "Your own QR poster for the waiting room",
+    "Your own QR code for patients to join",
   ];
 
   return (
@@ -107,14 +108,16 @@ export default function HospitalPricing() {
                 </p>
               )}
 
-              <a
-                href="#pilot"
+              <button
+                type="button"
+                onClick={() => openPilot("pilot")}
+                aria-label={`Start with a free pilot, ${p.name}`}
                 className={`mt-6 inline-flex h-12 items-center justify-center rounded-full text-sm font-bold transition-colors ${
                   pick ? "bg-leaf text-white hover:bg-leaf-deep" : "bg-brand text-white hover:bg-brand-deep"
                 }`}
               >
                 Start with a free pilot
-              </a>
+              </button>
             </div>
           );
         })}
@@ -127,12 +130,13 @@ export default function HospitalPricing() {
           <p className="mt-4 text-sm leading-relaxed text-ink-soft">
             Tell us how many patients you have, and we send a quote with a lower price for each patient.
           </p>
-          <a
-            href="#pilot"
+          <button
+            type="button"
+            onClick={() => openPilot("quote")}
             className="mt-auto inline-flex h-12 items-center justify-center rounded-full border-2 border-brand text-sm font-bold text-brand transition-colors hover:bg-brand/5"
           >
             Ask for a quote
-          </a>
+          </button>
         </div>
       </div>
 

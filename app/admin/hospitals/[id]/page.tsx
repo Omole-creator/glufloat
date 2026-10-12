@@ -12,6 +12,8 @@ import { ROLE_LABEL, type HospitalRow, type StaffRow } from "@/lib/hospitalServe
 import { readInvoiceSettings } from "@/lib/invoiceSettings";
 import type { DocumentForPdf } from "@/lib/hospitalPdf";
 import HospitalAdminPanel from "./HospitalAdminPanel";
+import HospitalEditCard from "./HospitalEditCard";
+import RequestActions from "../RequestActions";
 
 export const dynamic = "force-dynamic";
 
@@ -46,6 +48,15 @@ export default async function HospitalAdminDetail({ params }: { params: Promise<
       <Link href="/admin/hospitals" className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:underline">
         <ArrowLeft className="h-4 w-4" /> All hospitals
       </Link>
+
+      {h.status === "requested" && (
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-verdict-yellow/15 p-4 ring-1 ring-inset ring-verdict-yellow/40">
+          <p className="text-sm text-ink">
+            <span className="font-bold">Not started yet.</span> Start a free pilot, or make an invoice below and mark it paid.
+          </p>
+          <RequestActions id={h.id} hospitalName={h.name} contactName={h.contact_name} contactPhone={h.contact_phone} />
+        </div>
+      )}
 
       <div className="mt-4">
         <AdminHero
@@ -96,6 +107,9 @@ export default async function HospitalAdminDetail({ params }: { params: Promise<
           documents={(docs ?? []) as (DocumentForPdf & { id: string })[]}
           bank={settings}
         />
+      </div>
+      <div className="mt-6">
+        <HospitalEditCard hospital={h} />
       </div>
     </AdminShell>
   );

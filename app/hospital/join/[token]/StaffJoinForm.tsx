@@ -14,13 +14,18 @@ export default function StaffJoinForm({
   phone: givenPhone,
   email: givenEmail,
   hospital,
+  role,
 }: {
   token: string;
   name: string | null;
   phone: string | null;
   email: string | null;
   hospital: string;
+  role: "admin" | "doctor" | "dietitian";
 }) {
+  // Founder's wording: the person setting the hospital up "adds" it; a doctor
+  // or dietitian "joins" it.
+  const verb = role === "admin" ? "Add" : "Join";
   const router = useRouter();
   const [me, setMe] = useState<string | null | undefined>(undefined);
   const [name, setName] = useState(givenName ?? "");
@@ -81,7 +86,7 @@ export default function StaffJoinForm({
           disabled={busy}
           className="flex h-14 w-full items-center justify-center rounded-full bg-leaf text-base font-bold text-white hover:bg-leaf-deep disabled:opacity-60"
         >
-          {busy ? "Joining..." : `Join ${hospital}`}
+          {busy ? "Setting you up..." : `${verb} ${hospital}`}
         </button>
         <button
           onClick={async () => {
@@ -148,7 +153,7 @@ export default function StaffJoinForm({
       )}
       <div className="pt-1">
         <SubmitButton busy={busy} busyText="Setting you up..." tone="leaf">
-          Join {hospital}
+          {verb} {hospital}
         </SubmitButton>
       </div>
       <p className="text-center text-sm text-ink-soft">

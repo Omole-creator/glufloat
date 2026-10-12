@@ -11,6 +11,7 @@ import { hospitalsReady, type HospitalRow } from "@/lib/hospitalServer";
 import { readInvoiceSettings } from "@/lib/invoiceSettings";
 import RequestActions from "./RequestActions";
 import InvoiceSettingsForm from "./InvoiceSettingsForm";
+import AddHospital from "./AddHospital";
 
 export const dynamic = "force-dynamic";
 
@@ -64,7 +65,8 @@ export default async function HospitalsAdminPage() {
   }
 
   const requests = hospitals.filter((h) => h.status === "requested");
-  const rest = hospitals.filter((h) => h.status !== "requested" && h.status !== "declined");
+  // Declined ones stay listed so they can be opened and deleted.
+  const rest = hospitals.filter((h) => h.status !== "requested");
   const live = rest.filter((h) => hospitalLive(h));
   const paying = live.filter((h) => h.status === "active");
   const covered = live.reduce((n, h) => n + (counts.get(h.id)?.active ?? 0), 0);
@@ -77,7 +79,7 @@ export default async function HospitalsAdminPage() {
   }, 0);
 
   return (
-    <AdminShell title="Hospitals" subtitle="GluFloat for hospitals" icon={<Hospital className="h-5 w-5" />}>
+    <AdminShell title="Hospitals" subtitle="GluFloat for hospitals" icon={<Hospital className="h-5 w-5" />} actions={<AddHospital />}>
       <div className="mt-6">
         <AdminHero
           items={[
@@ -97,7 +99,9 @@ export default async function HospitalsAdminPage() {
                 <div key={h.id} className="rounded-xl border border-[#e3e9f1] p-4">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="font-display text-base font-bold text-ink">{h.name}</p>
+                      <Link href={`/admin/hospitals/${h.id}`} className="font-display text-base font-bold text-ink hover:text-brand hover:underline">
+                        {h.name}
+                      </Link>
                       <p className="mt-0.5 text-sm text-ink-soft">
                         {[h.contact_name, h.contact_role].filter(Boolean).join(", ")}
                         {h.city || h.state ? ` · ${[h.city, h.state].filter(Boolean).join(", ")}` : ""}
@@ -119,9 +123,12 @@ export default async function HospitalsAdminPage() {
       )}
 
       <div className="mt-6">
-        <AdminCard title="All hospitals" flush>
+        <AdminCard title="All hospitals" sub="Open a hospital to make its quote or invoice, get its QR code, or edit it." flush>
           {rest.length === 0 ? (
-            <p className="px-6 pb-6 text-sm text-ink-soft">No hospitals yet. Approved requests show up here.</p>
+            <p className="px-6 pb-6 text-sm text-ink-soft">
+              No hospitals yet. Use &ldquo;Add a hospital&rdquo; at the top, or approve a request. Then open it to make its
+              quote or invoice.
+            </p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[640px] text-sm">

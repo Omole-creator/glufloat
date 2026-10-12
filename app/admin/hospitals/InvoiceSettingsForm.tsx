@@ -1,11 +1,20 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { CheckCircle2, Pencil } from "lucide-react";
 import type { InvoiceSettings } from "@/lib/invoiceSettings";
 
-/** The bank details and VAT switch printed on hospital quotes and invoices. */
+/**
+ * The bank details, signature and VAT switch printed on hospital quotes and
+ * invoices. Once saved it folds into a one-line summary (founder, 2026-10-12:
+ * it said "Saved" but stayed open, so it looked like nothing had happened).
+ */
 export default function InvoiceSettingsForm({ initial }: { initial: InvoiceSettings }) {
+  const router = useRouter();
   const [s, setS] = useState(initial);
+  const [saved, setSaved] = useState(initial);
+  const [editing, setEditing] = useState(!initial.accountNumber);
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -20,8 +29,44 @@ export default function InvoiceSettingsForm({ initial }: { initial: InvoiceSetti
     });
     const j = await res.json().catch(() => ({}));
     setBusy(false);
-    setMsg(res.ok ? "Saved." : j.error ?? "Could not save.");
+    if (!res.ok) return setMsg(j.error ?? "Could not save.");
+    setSaved(s);
+    setEditing(false);
+    router.refresh();
   };
+
+  if (!editing)
+    return (
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-leaf/10 px-3 py-1 text-sm font-bold text-leaf-deep">
+          <CheckCircle2 className="h-4 w-4" /> Saved
+        </span>
+        <dl className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
+          <div><dt className="inline text-ink-soft">Bank: </dt><dd className="inline font-semibold text-ink">{saved.bankName || "-"}</dd></div>
+          <div><dt className="inline text-ink-soft">Account: </dt><dd className="inline font-semibold text-ink">{saved.accountName || "-"} {saved.accountNumber ? `····${saved.accountNumber.slice(-4)}` : ""}</dd></div>
+          <div><dt className="inline text-ink-soft">Signed by: </dt><dd className="inline font-semibold text-ink">{saved.signName || "-"}</dd></div>
+          <div className="flex items-center gap-2">
+            <dt className="text-ink-soft">Signature: </dt>
+            <dd>
+              {saved.signature ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={saved.signature} alt="Signature on invoices" className="h-7 rounded bg-white ring-1 ring-[#e3e9f1]" />
+              ) : (
+                <span className="font-semibold text-verdict-red">not added</span>
+              )}
+            </dd>
+          </div>
+          <div><dt className="inline text-ink-soft">VAT: </dt><dd className="inline font-semibold text-ink">{saved.vatOn ? "7.5% added" : "off"}</dd></div>
+        </dl>
+        <button
+          type="button"
+          onClick={() => setEditing(true)}
+          className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-line px-4 py-2 text-sm font-bold text-ink hover:border-brand"
+        >
+          <Pencil className="h-4 w-4" /> Edit
+        </button>
+      </div>
+    );
 
   const field = "mt-1 w-full rounded-xl border border-[#e3e9f1] px-3.5 py-2.5 text-sm text-ink outline-none focus:border-brand";
   return (
@@ -36,12 +81,7 @@ export default function InvoiceSettingsForm({ initial }: { initial: InvoiceSetti
       </label>
       <label className="text-xs font-bold text-ink-soft">
         Account number
-        <input
-          className={field}
-          inputMode="numeric"
-          value={s.accountNumber}
-          onChange={(e) => setS({ ...s, accountNumber: e.target.value })}
-        />
+        <input className={field} inputMode="numeric" value={s.accountNumber} onChange={(e) => setS({ ...s, accountNumber: e.target.value })} />
       </label>
       <label className="text-xs font-bold text-ink-soft">
         Signed by
@@ -83,9 +123,14 @@ export default function InvoiceSettingsForm({ initial }: { initial: InvoiceSetti
         Add 7.5% VAT to new quotes and invoices (only once GluFloat is VAT-registered)
       </label>
       <div className="flex items-center justify-end gap-3">
-        {msg && <span className="text-sm text-ink-soft">{msg}</span>}
+        {msg && <span className="text-sm text-verdict-red">{msg}</span>}
+        {saved.accountNumber && (
+          <button type="button" onClick={() => { setS(saved); setEditing(false); }} className="text-sm font-semibold text-ink-soft hover:text-ink">
+            Cancel
+          </button>
+        )}
         <button disabled={busy} className="rounded-full bg-leaf px-5 py-2.5 text-sm font-bold text-white hover:bg-leaf-deep disabled:opacity-50">
-          Save
+          {busy ? "Saving..." : "Save"}
         </button>
       </div>
     </form>

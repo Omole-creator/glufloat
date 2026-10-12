@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { newCode } from "@/lib/hospitalServer";
 import { normalizePhone } from "@/lib/phone";
+import { notifyFounder } from "@/lib/notify";
+import { SITE_URL } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +27,11 @@ export async function POST(request: Request) {
   const city = clip(body.city, 80);
   const state = clip(body.state, 80);
   const est = Number.parseInt(String(body.patients ?? ""), 10);
-  const message = clip(body.message, 1000);
+  // A quote (Care Custom) or a pilot. A quote is marked at the start of the
+  // message, so it stands out in /admin/hospitals with no new column.
+  const isQuote = body.kind === "quote";
+  const typed = clip(body.message, 1000);
+  const message = isQuote ? `QUOTE REQUEST. ${typed}`.trim() : typed;
 
   if (!name) return NextResponse.json({ error: "Please add the name of your hospital or clinic." }, { status: 400 });
   if (!contactName) return NextResponse.json({ error: "Please add your name." }, { status: 400 });
@@ -48,7 +54,22 @@ export async function POST(request: Request) {
       message: message || null,
       status: "requested",
     });
-    if (!error) return NextResponse.json({ ok: true });
+    if (!error) {
+      await notifyFounder(
+        isQuote ? `Quote request: ${name}` : `New free pilot request: ${name}`,
+        [
+          ["Hospital", name],
+          ["Where", [city, state].filter(Boolean).join(", ")],
+          ["Patients with diabetes", Number.isFinite(est) && est > 0 ? String(est) : null],
+          ["Contact", [contactName, contactRole].filter(Boolean).join(", ")],
+          ["WhatsApp", phone],
+          ["Email", email],
+          ["Message", typed],
+        ],
+        `${SITE_URL}/admin/hospitals`,
+      );
+      return NextResponse.json({ ok: true });
+    }
     // A code clash is the only error worth another try.
     if (!/duplicate|unique/i.test(error.message)) {
       return NextResponse.json(

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ChevronDown, Hospital, Lock, Mail, Phone, UserRound } from "lucide-react";
+import { Check, ChevronDown, Hospital, Lock, Mail, Phone, UserRound } from "lucide-react";
 import AuthShell from "@/components/auth/AuthShell";
 import { Field, FormError, SubmitButton } from "@/components/auth/Field";
 import { createClient } from "@/lib/supabase/client";
@@ -28,6 +28,9 @@ export default function SignUpPage() {
   const [userType, setUserType] = useState<UserType | "">("");
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
+  // The two doors (founder, 2026-10-12): a person, or a hospital. The hospital
+  // door is a choice at the very top, not a small link under the form.
+  const [path, setPath] = useState<"me" | "hospital">("me");
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,9 +90,62 @@ export default function SignUpPage() {
 
   return (
     <AuthShell
-      title="Start your free trial"
-      subtitle="Make a quick account so your 7 days, and your food, stay yours on any phone. No card needed."
+      title={path === "me" ? "Start your free trial" : "GluFloat for your hospital"}
+      subtitle={
+        path === "me"
+          ? "Make a quick account so your 7 days, and your food, stay yours on any phone. No card needed."
+          : "Give your diabetes patients GluFloat, and see their meals and sugar tests from one place."
+      }
     >
+      <div role="tablist" aria-label="Who is this account for?" className="mb-6 grid grid-cols-2 gap-1 rounded-2xl bg-mist p-1">
+        {[
+          { id: "me" as const, label: "For me or my family", icon: UserRound },
+          { id: "hospital" as const, label: "For a hospital or clinic", icon: Hospital },
+        ].map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            role="tab"
+            aria-selected={path === t.id}
+            onClick={() => setPath(t.id)}
+            className={`flex items-center justify-center gap-1.5 rounded-xl px-2 py-2.5 text-[13px] font-bold leading-tight transition-all sm:text-sm ${
+              path === t.id ? "bg-white text-ink shadow-[0_4px_14px_-6px_rgba(12,42,71,0.35)]" : "text-ink-soft hover:text-ink"
+            }`}
+          >
+            <t.icon className="h-4 w-4 shrink-0" />
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {path === "hospital" ? (
+        <div className="space-y-4">
+          <ul className="space-y-2.5 text-[15px] text-ink">
+            {[
+              "Your patients get everything in GluFloat Premium",
+              "Your doctors and dietitians see their meals and sugar tests",
+              "Free for 30 days, for 20 patients",
+            ].map((t) => (
+              <li key={t} className="flex items-start gap-2.5">
+                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-leaf text-white">
+                  <Check className="h-3 w-3" strokeWidth={3} />
+                </span>
+                {t}
+              </li>
+            ))}
+          </ul>
+          <Link
+            href="/hospitals?pilot=1"
+            className="flex h-14 w-full items-center justify-center rounded-full bg-leaf text-base font-bold text-white shadow-[0_14px_30px_-14px_rgba(62,155,79,0.9)] transition-transform hover:-translate-y-0.5"
+          >
+            Start my free pilot
+          </Link>
+          <Link href="/hospitals" className="block text-center text-sm font-semibold text-brand hover:underline">
+            See plans and prices
+          </Link>
+        </div>
+      ) : (
+      <>
       <form onSubmit={submit} className="space-y-4">
         <Field
           label="Your name"
@@ -172,19 +228,8 @@ export default function SignUpPage() {
         </Link>
       </p>
 
-      {/* The second door (founder, 2026-10-12): a hospital does not sign up here. */}
-      <Link
-        href="/hospitals"
-        className="mt-6 flex items-center gap-3 rounded-2xl bg-mist/70 px-4 py-3.5 text-sm text-ink ring-1 ring-inset ring-brand/10 transition-colors hover:bg-mist"
-      >
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-brand ring-1 ring-inset ring-brand/10">
-          <Hospital className="h-4.5 w-4.5" />
-        </span>
-        <span>
-          <span className="block font-semibold">Signing up a hospital or clinic?</span>
-          <span className="text-ink-soft">See GluFloat for hospitals</span>
-        </span>
-      </Link>
+      </>
+      )}
     </AuthShell>
   );
 }

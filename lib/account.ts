@@ -35,10 +35,12 @@ export type Access =
   // subscriber to Basic pricing.
   | { status: "expired"; lapsed: boolean; previousTier: Tier | null; previousYearly: boolean };
 
+export type HospitalChat = { name: string; role: "admin" | "doctor" | "dietitian"; whatsapp: string };
+
 export type HospitalCover = {
   name: string;
-  /** Who the Chat button reaches. Null while the hospital has no dietitian or doctor with a phone number. */
-  chat: { name: string; role: "admin" | "doctor" | "dietitian"; whatsapp: string } | null;
+  /** Who the patient can chat with: their hospital's dietitian and doctor (either may be missing). */
+  chats: HospitalChat[];
 };
 
 type HospitalMe = {
@@ -46,7 +48,7 @@ type HospitalMe = {
     hospitalName: string;
     until: string;
     status: "active" | "waiting";
-    chat: HospitalCover["chat"];
+    chats: HospitalChat[];
   };
   staff: { id: string; name: string; role: string }[];
 };
@@ -160,7 +162,7 @@ export async function getAccess(): Promise<{
           daysLeft,
           tier: "dietitian",
           yearly: false,
-          hospital: { name: hosp.patient.hospitalName, chat: hosp.patient.chat },
+          hospital: { name: hosp.patient.hospitalName, chats: Array.isArray(hosp.patient.chats) ? hosp.patient.chats : [] },
         },
       };
   }

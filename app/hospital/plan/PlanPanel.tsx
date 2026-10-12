@@ -108,11 +108,11 @@ export default function PlanPanel({
           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-leaf/10 text-leaf-deep">
             <QrCode className="h-5 w-5" />
           </span>
-          <h2 className="font-display text-lg font-bold text-ink">Your poster</h2>
+          <h2 className="font-display text-lg font-bold text-ink">Your QR code</h2>
         </div>
         <p className="mt-2 text-sm text-ink-soft">
-          Print it for your waiting room. Patients point their phone camera at the code, or type the address, and join in a
-          minute. Anyone who joins this way is added to your list.
+          Print it and put it where your patients wait. They scan it with their phone camera to join. Everyone who joins
+          shows up on your patient list.
         </p>
         <div className="mt-4 rounded-2xl bg-mist/70 px-4 py-5 text-center">
           <p className="text-xs font-semibold text-ink-soft">Your join address</p>
@@ -124,14 +124,14 @@ export default function PlanPanel({
           onClick={async () => {
             setBusy(true);
             try {
-              (await buildPosterPdf(hospital)).save(`glufloat-poster-${hospital.code}.pdf`);
+              (await buildPosterPdf(hospital)).save(`glufloat-qr-code-${hospital.code}.pdf`);
             } finally {
               setBusy(false);
             }
           }}
           className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-leaf px-5 py-3 text-sm font-bold text-white hover:bg-leaf-deep disabled:opacity-50"
         >
-          <Download className="h-4 w-4" /> {busy ? "Making your poster..." : "Download poster (A4 PDF)"}
+          <Download className="h-4 w-4" /> {busy ? "Getting it ready..." : "Download QR code"}
         </button>
       </section>
     </div>

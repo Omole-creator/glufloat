@@ -369,6 +369,6 @@ export async function buildPosterPdf(hospital: { name: string; code: string }): 
   });
   pdf.setTextColor(...SOFT);
   pdf.setFontSize(9.5);
-  pdf.text("Need help? Ask a nurse at the desk.", W / 2, H - 10, { align: "center" });
+  pdf.text("Need help? Call customer care on 08132097317.", W / 2, H - 10, { align: "center" });
   return pdf;
 }

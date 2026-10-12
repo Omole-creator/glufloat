@@ -3,7 +3,7 @@ import {
   ArrowRight,
   ClipboardList,
   FileText,
-  Landmark,
+  Hospital,
   MessageCircle,
   QrCode,
   Search,
@@ -16,7 +16,7 @@ import {
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import HospitalPricing from "@/components/hospital/HospitalPricing";
-import PilotForm from "@/components/hospital/PilotForm";
+import PilotSheet, { PilotButton } from "@/components/hospital/PilotSheet";
 import { PILOT_DAYS, PILOT_SEATS } from "@/lib/hospitalPlans";
 
 export const metadata: Metadata = {
@@ -112,7 +112,7 @@ export default function HospitalsPage() {
     {
       icon: UserPlus,
       title: "Add your patients",
-      text: "Type them in, paste a list from Excel, or put our poster in your waiting room. Patients join with their phone number. No email needed.",
+      text: "Type them in, paste a list from Excel, or let them scan your QR code. Patients join with their phone number. No email needed.",
     },
     {
       icon: Utensils,
@@ -135,7 +135,7 @@ export default function HospitalsPage() {
     { icon: Users, text: "Every patient on one list, with when they last used it" },
     { icon: FileText, text: "A month report for each patient, as a PDF" },
     { icon: Stethoscope, text: "Logins for all your doctors and dietitians, free" },
-    { icon: QrCode, text: "A poster with your own QR code for the waiting room" },
+    { icon: QrCode, text: "Your own QR code for patients to join" },
   ];
   const faqs = [
     {
@@ -183,12 +183,9 @@ export default function HospitalsPage() {
                 test they save, from one dashboard.
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <a
-                  href="#pilot"
-                  className="inline-flex h-14 items-center justify-center gap-2 rounded-full bg-leaf px-7 text-base font-bold text-white shadow-[0_16px_34px_-14px_rgba(62,155,79,0.9)] transition-transform hover:-translate-y-0.5"
-                >
+                <PilotButton className="inline-flex h-14 items-center justify-center gap-2 rounded-full bg-leaf px-7 text-base font-bold text-white shadow-[0_16px_34px_-14px_rgba(62,155,79,0.9)] transition-transform hover:-translate-y-0.5">
                   Start a free 30-day pilot <ArrowRight className="h-4 w-4" />
-                </a>
+                </PilotButton>
                 <a
                   href="#plans"
                   className="inline-flex h-14 items-center justify-center rounded-full bg-white/10 px-7 text-base font-bold text-white ring-1 ring-inset ring-white/25 hover:bg-white/15"
@@ -271,34 +268,45 @@ export default function HospitalsPage() {
           <HospitalPricing />
         </section>
 
-        {/* Pilot */}
+        {/* Pilot: one panel, three steps, one button that opens the 3-step form. */}
         <section id="pilot" className="scroll-mt-24 px-4 py-20 sm:px-6">
-          <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[1fr_1.15fr] lg:items-start">
-            <div>
-              <Label>Free pilot</Label>
-              <h2 className="mt-4 text-balance font-display text-3xl font-bold leading-tight tracking-tight text-ink sm:text-[2.5rem]">
-                Try It With {PILOT_SEATS} Patients For {PILOT_DAYS} Days
-              </h2>
-              <p className="mt-4 text-lg leading-relaxed text-ink-soft">
-                Tell us about your hospital. We will call you, set up your dashboard, and send you your poster. No payment until
-                you choose a plan.
-              </p>
-              <ul className="mt-6 space-y-3">
+          <div className={PANEL}>
+            <Glow />
+            <div className="relative grid items-center gap-10 lg:grid-cols-[1.1fr_1fr]">
+              <div>
+                <Label dark>Free pilot</Label>
+                <h2 className="mt-4 text-balance font-display text-3xl font-bold leading-tight tracking-tight text-white sm:text-[2.5rem]">
+                  Try It With {PILOT_SEATS} Patients For {PILOT_DAYS} Days
+                </h2>
+                <p className="mt-4 max-w-lg text-lg leading-relaxed text-white/80">
+                  No payment to start. If you like it, choose a plan. If not, your patients keep their own GluFloat account.
+                </p>
+                <PilotButton className="mt-8 inline-flex h-14 items-center justify-center gap-2 rounded-full bg-leaf px-8 text-base font-bold text-white shadow-[0_16px_34px_-14px_rgba(62,155,79,0.9)] transition-transform hover:-translate-y-0.5">
+                  Start my free pilot <ArrowRight className="h-4 w-4" />
+                </PilotButton>
+                <p className="mt-4 flex items-center gap-2 text-sm text-white/70">
+                  <ShieldCheck className="h-4 w-4" /> Only your own staff see your patients&apos; records
+                </p>
+              </div>
+              <ol className="space-y-3">
                 {[
-                  { icon: ShieldCheck, text: "Only your own staff see your patients' records" },
-                  { icon: Landmark, text: "Pay by bank transfer, against a GluFloat invoice" },
-                  { icon: Stethoscope, text: "Checked by registered dietitians" },
-                ].map((p) => (
-                  <li key={p.text} className="flex items-center gap-3 text-ink">
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-leaf/10 text-leaf-deep">
-                      <p.icon className="h-4.5 w-4.5" />
+                  { icon: Hospital, title: "Tell us about your hospital", text: "Three short steps. It takes about 2 minutes." },
+                  { icon: MessageCircle, title: "We chat with you on WhatsApp", text: "We set up your dashboard and send your login." },
+                  { icon: QrCode, title: "Add your patients", text: "Type them in, or let them scan your QR code." },
+                ].map((st, i) => (
+                  <li key={st.title} className="flex items-start gap-4 rounded-3xl bg-white/[0.08] p-5 ring-1 ring-inset ring-white/15">
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white text-brand">
+                      <st.icon className="h-5 w-5" strokeWidth={2.2} />
                     </span>
-                    {p.text}
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-[0.14em] text-white/55">Step {i + 1}</p>
+                      <p className="font-display text-lg font-bold text-white">{st.title}</p>
+                      <p className="mt-0.5 text-sm text-white/75">{st.text}</p>
+                    </div>
                   </li>
                 ))}
-              </ul>
+              </ol>
             </div>
-            <PilotForm />
           </div>
         </section>
 
@@ -325,6 +333,7 @@ export default function HospitalsPage() {
           </div>
         </section>
       </main>
+      <PilotSheet />
       <Footer />
     </>
   );

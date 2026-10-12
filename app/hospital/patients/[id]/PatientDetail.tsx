@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, Phone, Pill, Scale, UserRound, Droplet } from "lucide-react";
+import { ChevronLeft, ChevronRight, Phone, Pill, Scale, Send, UserRound, Droplet } from "lucide-react";
+import { SITE_URL } from "@/lib/site";
 import MonthReport, { type ReportViewer } from "@/components/MonthReport";
 import SugarTrend from "@/components/SugarTrend";
 import { watMonth, type PatientProfile } from "@/lib/patientRecord";
@@ -49,6 +50,7 @@ export default function PatientDetail({
   weights,
   weightLine,
   readings,
+  colleagues,
 }: {
   patientId: string;
   hid: string | null;
@@ -60,6 +62,7 @@ export default function PatientDetail({
   weights: { kg: number; at: string }[];
   weightLine: string | null;
   readings: Reading[];
+  colleagues: { name: string; role: string; whatsapp: string }[];
 }) {
   const thisMonth = monthKey(new Date());
   const [ym, setYm] = useState(thisMonth);
@@ -138,6 +141,33 @@ export default function PatientDetail({
           </a>
         )}
       </div>
+
+      {colleagues.length > 0 && (
+        <section className="rounded-2xl border border-[#e3e9f1] bg-white p-5">
+          <h2 className="font-display text-base font-bold text-ink">Pass this patient to a colleague</h2>
+          <p className="mt-1 text-sm text-ink-soft">
+            Think a dietitian or doctor should see {name.split(/\s+/)[0]}? Send them this record on WhatsApp.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {colleagues.map((c) => (
+              <a
+                key={c.whatsapp + c.name}
+                href={`https://wa.me/${c.whatsapp}?text=${encodeURIComponent(
+                  `Hello ${c.name}, please look at ${name}'s record on GluFloat. I think you can help them.
+${SITE_URL}/hospital/patients/${patientId}`,
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-4 py-2 text-sm font-bold text-ink hover:border-[#25D366]"
+              >
+                <Send className="h-4 w-4 text-[#1DA851]" />
+                {c.name}
+                <span className="font-normal text-ink-soft">({c.role === "doctor" ? "doctor" : "dietitian"})</span>
+              </a>
+            ))}
+          </div>
+        </section>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-3">
         <Card title="About" icon={<UserRound className="h-4 w-4" />}>

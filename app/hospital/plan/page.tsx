@@ -9,7 +9,7 @@ import type { DocumentForPdf } from "@/lib/hospitalPdf";
 import PlanPanel from "./PlanPanel";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Plan and poster", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Plan and QR code", robots: { index: false, follow: false } };
 
 export default async function PlanPage({ searchParams }: { searchParams: Promise<{ h?: string }> }) {
   const sp = await searchParams;
@@ -17,7 +17,7 @@ export default async function PlanPage({ searchParams }: { searchParams: Promise
   if (!ctx) return <NotStaff />;
   if (ctx.staff.role !== "admin")
     return (
-      <HospitalShell ctx={ctx} title="Plan and poster">
+      <HospitalShell ctx={ctx} title="Plan and QR code">
         <p className="mt-6 rounded-2xl border border-[#e3e9f1] bg-white p-6 text-sm text-ink-soft">Only your hospital admin can see this page.</p>
       </HospitalShell>
     );
@@ -28,7 +28,7 @@ export default async function PlanPage({ searchParams }: { searchParams: Promise
     readInvoiceSettings(ctx.admin),
   ]);
   return (
-    <HospitalShell ctx={ctx} title="Plan and poster" subtitle={`${planName(h.plan)}${h.billing === "annual" ? ", paid yearly" : ""}`}>
+    <HospitalShell ctx={ctx} title="Plan and QR code" subtitle={`${planName(h.plan)}${h.billing === "annual" ? ", paid yearly" : ""}`}>
       <PlanPanel
         hospital={h}
         live={hospitalLive(h)}

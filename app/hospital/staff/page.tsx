@@ -22,28 +22,24 @@ export default async function StaffPage({ searchParams }: { searchParams: Promis
       .gt("expires_at", new Date().toISOString())
       .order("created_at", { ascending: false }),
   ]);
-  // The same choice chatContact() makes for the patient's app.
-  const reachable = ((staff ?? []) as StaffRow[]).filter((s) => whatsappNumber(s.phone));
-  const chat =
-    reachable.find((s) => s.user_id === ctx.hospital.chat_user_id) ??
-    reachable.find((s) => s.role === "dietitian") ??
-    reachable.find((s) => s.role === "doctor");
+  const all = (staff ?? []) as StaffRow[];
+  // The same choice chatContacts() makes for the patient's app.
+  const reachable = all.filter((s) => whatsappNumber(s.phone));
+  const pick = (role: "dietitian" | "doctor", chosen: string | null | undefined) =>
+    reachable.find((s) => s.role === role && s.user_id === chosen) ?? reachable.find((s) => s.role === role);
+  const dietitian = pick("dietitian", ctx.hospital.chat_dietitian_id);
+  const doctor = pick("doctor", ctx.hospital.chat_doctor_id);
   return (
-    <HospitalShell
-      ctx={ctx}
-      title="Doctors and dietitians"
-      subtitle="Everyone here can see every patient's record. Adding staff is free."
-    >
+    <HospitalShell ctx={ctx} title="Doctors and dietitians" subtitle="Everyone here can see every patient's record. Adding staff is free.">
       <StaffPanel
         hid={ctx.all.length > 1 ? ctx.hospital.id : null}
         me={ctx.user.id}
         isAdmin={ctx.staff.role === "admin"}
         hospitalName={ctx.hospital.name}
-        staff={(staff ?? []) as StaffRow[]}
+        staff={all.map((s) => ({ ...s, whatsapp: whatsappNumber(s.phone) }))}
         invites={(invites ?? []) as { token: string; role: "admin" | "doctor" | "dietitian"; name: string | null; phone: string | null; expires_at: string }[]}
-        chatUserId={ctx.hospital.chat_user_id}
-        chatId={chat?.user_id ?? null}
-        chatName={chat?.name ?? null}
+        chatDietitianId={dietitian?.user_id ?? null}
+        chatDoctorId={doctor?.user_id ?? null}
       />
     </HospitalShell>
   );

@@ -7,6 +7,13 @@ import InviteLinkBox from "@/components/hospital/InviteLinkBox";
 
 type Role = "admin" | "doctor" | "dietitian";
 const ROLE_LABEL: Record<Role, string> = { admin: "Hospital admin", doctor: "Doctor", dietitian: "Dietitian" };
+const ROLE_HELP: Record<Role, string> = {
+  doctor: "Can see every patient's record.",
+  dietitian: "Can see every patient's record.",
+  admin: "Can see every record, and can also add patients and staff. You can have more than one admin.",
+};
+
+type Staff = { user_id: string; role: Role; name: string; phone: string | null; whatsapp: string | null };
 
 export default function StaffPanel({
   hid,
@@ -15,19 +22,17 @@ export default function StaffPanel({
   hospitalName,
   staff,
   invites,
-  chatUserId,
-  chatId,
-  chatName,
+  chatDietitianId,
+  chatDoctorId,
 }: {
   hid: string | null;
   me: string;
   isAdmin: boolean;
   hospitalName: string;
-  staff: { user_id: string; role: Role; name: string; phone: string | null }[];
+  staff: Staff[];
   invites: { token: string; role: Role; name: string | null; phone: string | null; expires_at: string }[];
-  chatUserId: string | null;
-  chatId: string | null;
-  chatName: string | null;
+  chatDietitianId: string | null;
+  chatDoctorId: string | null;
 }) {
   const router = useRouter();
   const [role, setRole] = useState<Role>("doctor");
@@ -66,10 +71,14 @@ export default function StaffPanel({
   };
 
   const field = "mt-1.5 w-full rounded-xl border-2 border-line bg-white px-4 py-3 text-base text-ink outline-none focus:border-brand";
+  const withPhone = (r: Role) => staff.filter((s) => s.role === r && s.whatsapp);
+  const first = (n: string) => n.replace(/^(dr|dtn|mr|mrs|ms|prof|pharm)\.?\s+/i, "").split(/\s+/)[0];
 
   return (
     <div className="mt-6 grid gap-6 lg:grid-cols-[1.3fr_1fr]">
       <div className="space-y-6">
+        {/* Everybody sees everybody's WhatsApp: a doctor can hand a patient to
+            the dietitian, and the other way round (founder, 2026-10-12). */}
         <section className="rounded-2xl border border-[#e3e9f1] bg-white">
           <ul className="divide-y divide-[#eef2f7]">
             {staff.map((s) => (
@@ -91,11 +100,21 @@ export default function StaffPanel({
                     {ROLE_LABEL[s.role]}
                     {s.phone ? ` · ${s.phone}` : ""}
                   </p>
+                  {(s.user_id === chatDietitianId || s.user_id === chatDoctorId) && (
+                    <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-leaf/10 px-2 py-0.5 text-[11px] font-bold text-leaf-deep">
+                      <MessageCircle className="h-3 w-3" /> Patients can message them
+                    </span>
+                  )}
                 </div>
-                {chatId === s.user_id && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-leaf/10 px-2.5 py-1 text-xs font-bold text-leaf-deep">
-                    <MessageCircle className="h-3.5 w-3.5" /> Patients chat with them
-                  </span>
+                {s.whatsapp && s.user_id !== me && (
+                  <a
+                    href={`https://wa.me/${s.whatsapp}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="rounded-full bg-[#25D366] px-3.5 py-1.5 text-xs font-bold text-white hover:brightness-95"
+                  >
+                    WhatsApp {first(s.name)}
+                  </a>
                 )}
                 {isAdmin && s.user_id !== me && (
                   <button
@@ -114,27 +133,41 @@ export default function StaffPanel({
 
         {isAdmin && (
           <section className="rounded-2xl border border-[#e3e9f1] bg-white p-5">
-            <h2 className="font-display text-base font-bold text-ink">Who do patients chat with?</h2>
+            <h2 className="font-display text-base font-bold text-ink">Who can your patients message?</h2>
             <p className="mt-1 text-sm text-ink-soft">
-              The Chat button in your patients&apos; app opens WhatsApp to this person. With nobody chosen, it goes to your first
-              dietitian, or your first doctor if you have no dietitian. They need a phone number.
+              Your patients see a Chat button in their app. Pick one dietitian for food questions and one doctor for
+              medicine questions. They need a WhatsApp number to show up here.
             </p>
-            <select
-              aria-label="Who patients chat with"
-              value={chatUserId ?? ""}
-              disabled={busy}
-              onChange={(e) => void call("PATCH", { chatUserId: e.target.value || null }).then((j) => j && router.refresh())}
-              className="mt-3 w-full rounded-xl border-2 border-line bg-white px-4 py-3 text-base text-ink outline-none focus:border-brand"
-            >
-              <option value="">Choose for me{chatName ? ` (now: ${chatName})` : ""}</option>
-              {staff
-                .filter((s) => s.phone)
-                .map((s) => (
-                  <option key={s.user_id} value={s.user_id}>
-                    {s.name}, {ROLE_LABEL[s.role]}
-                  </option>
-                ))}
-            </select>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              {(
+                [
+                  ["dietitian", "dietitianId", "Dietitian", chatDietitianId],
+                  ["doctor", "doctorId", "Doctor", chatDoctorId],
+                ] as const
+              ).map(([r, key, label, current]) => (
+                <label key={r} className="text-sm font-semibold text-ink">
+                  {label}
+                  <select
+                    aria-label={`${label} patients can message`}
+                    value={current ?? ""}
+                    disabled={busy || withPhone(r).length === 0}
+                    onChange={(e) => void call("PATCH", { [key]: e.target.value || null }).then((j) => j && router.refresh())}
+                    className="mt-1.5 w-full rounded-xl border-2 border-line bg-white px-4 py-3 text-base text-ink outline-none focus:border-brand disabled:bg-mist"
+                  >
+                    {withPhone(r).length === 0 ? (
+                      <option value="">No {label.toLowerCase()} yet</option>
+                    ) : (
+                      withPhone(r).map((s) => (
+                        <option key={s.user_id} value={s.user_id}>
+                          {s.name}
+                        </option>
+                      ))
+                    )}
+                  </select>
+                </label>
+              ))}
+            </div>
+            {err && <p className="mt-3 text-sm text-verdict-red">{err}</p>}
           </section>
         )}
 
@@ -147,7 +180,7 @@ export default function StaffPanel({
                   <span className="text-ink">
                     <span className="font-semibold">{i.name}</span> · {ROLE_LABEL[i.role]}
                   </span>
-                  <span className="flex items-center gap-2">
+                  <span className="flex items-center gap-3">
                     <button
                       onClick={() => setMade({ token: i.token, name: i.name ?? "", phone: i.phone ?? "", role: i.role })}
                       className="font-bold text-brand hover:underline"
@@ -170,7 +203,7 @@ export default function StaffPanel({
 
       {isAdmin ? (
         <form onSubmit={invite} className="h-fit rounded-2xl border border-[#e3e9f1] bg-white p-5 sm:p-6">
-          <h2 className="font-display text-lg font-bold text-ink">Invite staff</h2>
+          <h2 className="font-display text-lg font-bold text-ink">Add a doctor, dietitian or admin</h2>
           <div className="mt-4 grid grid-cols-3 gap-1 rounded-full bg-[#f2f5f9] p-1" role="radiogroup" aria-label="Their job">
             {(["doctor", "dietitian", "admin"] as Role[]).map((r) => (
               <button
@@ -185,6 +218,7 @@ export default function StaffPanel({
               </button>
             ))}
           </div>
+          <p className="mt-2 text-xs text-ink-soft">{ROLE_HELP[role]}</p>
           <label className="mt-4 block text-sm font-semibold text-ink">
             Their name
             <input className={field} value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Dr Chidi Eze" required />
@@ -193,9 +227,8 @@ export default function StaffPanel({
             Their WhatsApp number
             <input className={field} type="tel" inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value)} />
           </label>
-          {err && <p className="mt-3 text-sm text-verdict-red">{err}</p>}
           <button disabled={busy} className="mt-5 w-full rounded-full bg-leaf px-6 py-3.5 text-sm font-bold text-white hover:bg-leaf-deep disabled:opacity-50">
-            Make invite link
+            Make their link
           </button>
           {made && (
             <div className="mt-5">
@@ -204,7 +237,7 @@ export default function StaffPanel({
           )}
         </form>
       ) : (
-        <p className="h-fit rounded-2xl bg-mist/70 p-5 text-sm text-ink-soft">Your hospital admin invites doctors and dietitians.</p>
+        <p className="h-fit rounded-2xl bg-mist/70 p-5 text-sm text-ink-soft">Your hospital admin adds doctors and dietitians.</p>
       )}
     </div>
   );

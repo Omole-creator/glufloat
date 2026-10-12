@@ -204,7 +204,7 @@ export default function PatientTable({
           <p className="font-display text-lg font-bold text-ink">No patients yet</p>
           <p className="mx-auto mt-1.5 max-w-sm text-sm text-ink-soft">
             {isAdmin
-              ? "Add your patients, or print your poster from Plan and poster so patients can join from the waiting room."
+              ? "Add your patients, or print your QR code from Plan and QR code so patients can join on their own."
               : "Your hospital admin adds patients. They will show up here."}
           </p>
         </div>

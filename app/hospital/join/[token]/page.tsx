@@ -48,10 +48,10 @@ export default async function StaffJoinPage({ params }: { params: Promise<{ toke
     <AuthShell
       side="hospital"
       sideTitle={invite.hospital}
-      title={`Join as ${invite.role === "admin" ? "the" : "a"} ${ROLE_WORD[invite.role]}`}
+      title={`Join as ${invite.role === "admin" ? "an admin" : `a ${ROLE_WORD[invite.role]}`}`}
       subtitle={`${invite.hospital} uses GluFloat. Make your login to see your patients' meals, sugar tests and reports.`}
     >
-      <StaffJoinForm token={token} name={invite.name} phone={invite.phone} email={invite.email} hospital={invite.hospital} />
+      <StaffJoinForm token={token} name={invite.name} phone={invite.phone} email={invite.email} hospital={invite.hospital} role={invite.role} />
     </AuthShell>
   );
 }

@@ -31,6 +31,9 @@ export type HospitalRow = {
   access_until: string | null;
   billing: string | null;
   chat_user_id: string | null;
+  /** hospital-chat-schema.sql (#23). Missing until it runs. */
+  chat_dietitian_id?: string | null;
+  chat_doctor_id?: string | null;
   created_at: string;
   approved_at: string | null;
 };
@@ -79,6 +82,25 @@ export function newCode(len = 6): string {
 
 export function newToken(): string {
   return randomBytes(18).toString("base64url");
+}
+
+/**
+ * A staff invite link a person can read, that nobody can guess (founder's
+ * choice, 2026-10-12): the hospital's name for its admin, or the person's
+ * first name for a doctor or dietitian, then 2 digits, then 6 secret letters.
+ * "lagoonhospital42-k7m3qp", "chidi42-r8t2wx". The name and digits are for
+ * people; the 6 letters (31^6, about 900 million) are what keeps it safe,
+ * because the link makes someone able to see patients' health records.
+ */
+export function readableToken(name: string | null | undefined, firstWordOnly: boolean): string {
+  const words = String(name ?? "")
+    .toLowerCase()
+    .replace(/^(dr|dtn|mr|mrs|ms|prof|pharm|nurse)\.?\s+/i, "")
+    .split(/\s+/)
+    .filter(Boolean);
+  const base = (firstWordOnly ? words.slice(0, 1) : words).join("").replace(/[^a-z0-9]/g, "").slice(0, 24) || "glufloat";
+  const digits = String(10 + (randomBytes(1)[0] % 90));
+  return `${base}${digits}-${newCode(6).toLowerCase()}`;
 }
 
 /** `wa.me` wants 2348132097317, not 08132097317. */
@@ -156,27 +178,30 @@ export async function seatsUsed(admin: SupabaseClient, hospitalId: string): Prom
   return count ?? 0;
 }
 
+export type ChatPerson = { name: string; role: StaffRole; whatsapp: string };
+
 /**
- * Who the patient's "Chat" button reaches (founder, 2026-10-12): the person the
- * hospital admin picked, else the hospital's first dietitian, else its first
- * doctor. Only someone with a phone number can be chatted with.
+ * Who a patient can chat with (founder, 2026-10-12): ONE dietitian and ONE
+ * doctor, so a patient whose hospital has both sees both. The hospital admin
+ * picks them; with nobody picked (or before hospital-chat-schema.sql runs) it
+ * is the first dietitian and the first doctor. Only someone with a phone
+ * number can be chatted with. Dietitian first: most questions are about food.
  */
-export async function chatContact(
+export async function chatContacts(
   admin: SupabaseClient,
-  hospital: Pick<HospitalRow, "id" | "chat_user_id">,
-): Promise<{ name: string; role: StaffRole; whatsapp: string } | null> {
+  hospital: Pick<HospitalRow, "id" | "chat_dietitian_id" | "chat_doctor_id">,
+): Promise<ChatPerson[]> {
   const { data } = await admin
     .from("hospital_staff")
     .select("user_id,role,name,phone,created_at")
     .eq("hospital_id", hospital.id)
     .order("created_at", { ascending: true });
   const staff = ((data ?? []) as StaffRow[]).filter((s) => whatsappNumber(s.phone));
-  const pick =
-    staff.find((s) => s.user_id === hospital.chat_user_id) ??
-    staff.find((s) => s.role === "dietitian") ??
-    staff.find((s) => s.role === "doctor");
-  if (!pick) return null;
-  return { name: pick.name, role: pick.role, whatsapp: whatsappNumber(pick.phone)! };
+  const pick = (role: StaffRole, chosen: string | null | undefined) =>
+    staff.find((s) => s.role === role && s.user_id === chosen) ?? staff.find((s) => s.role === role);
+  return [pick("dietitian", hospital.chat_dietitian_id), pick("doctor", hospital.chat_doctor_id)]
+    .filter((s): s is StaffRow => !!s)
+    .map((s) => ({ name: s.name, role: s.role, whatsapp: whatsappNumber(s.phone)! }));
 }
 
 /**
@@ -234,7 +259,7 @@ export async function hospitalStatusFor(admin: SupabaseClient, uid: string): Pro
     hospitalName: string;
     until: string;
     status: "active" | "waiting";
-    chat: { name: string; role: StaffRole; whatsapp: string } | null;
+    chats: ChatPerson[];
   };
   staff: { id: string; name: string; role: StaffRole }[];
 }> {
@@ -242,7 +267,7 @@ export async function hospitalStatusFor(admin: SupabaseClient, uid: string): Pro
   const [{ data: pats, error }, { data: staff }] = await Promise.all([
     admin
       .from("hospital_patients")
-      .select("id,user_id,status,carried_ms,carried_restored_at,joined_at,hospitals(id,name,status,access_until,chat_user_id)")
+      .select("id,user_id,status,carried_ms,carried_restored_at,joined_at,hospitals(*)")
       .eq("user_id", uid),
     admin.from("hospital_staff").select("role,hospitals(id,name,status)").eq("user_id", uid),
   ]);
@@ -253,7 +278,7 @@ export async function hospitalStatusFor(admin: SupabaseClient, uid: string): Pro
       out.staff.push({ id: s.hospitals.id, name: s.hospitals.name, role: s.role });
   }
 
-  type Joined = PatientRow & { hospitals: Pick<HospitalRow, "id" | "name" | "status" | "access_until" | "chat_user_id"> | null };
+  type Joined = PatientRow & { hospitals: HospitalRow | null };
   const rows = (pats ?? []) as unknown as Joined[];
   for (const r of rows) {
     const h = r.hospitals;
@@ -270,7 +295,7 @@ export async function hospitalStatusFor(admin: SupabaseClient, uid: string): Pro
       hospitalName: pick.hospitals.name,
       until: pick.hospitals.access_until as string,
       status: pick.status as "active" | "waiting",
-      chat: pick.status === "active" ? await chatContact(admin, pick.hospitals) : null,
+      chats: pick.status === "active" ? await chatContacts(admin, pick.hospitals) : [],
     };
   }
   return out;

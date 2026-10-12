@@ -181,7 +181,7 @@ export default function AddPatients({ hid, open, backHref }: { hid: string | nul
           ))}
         </ol>
         <p className="mt-5 rounded-xl bg-white/10 px-3.5 py-3 text-sm text-white/85">
-          Patients can also join from your poster in the waiting room. Print it from Plan and poster.
+          Patients can also join on their own with your QR code. Print it from Plan and QR code.
         </p>
       </aside>
     </div>

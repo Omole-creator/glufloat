@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { LogOut, Menu, X } from "lucide-react";
+import { ChevronRight, LogOut, Menu, X } from "lucide-react";
 import { signOut as signOutOfAccount } from "@/lib/account";
 import { clearAccessCache, useAccess } from "@/lib/useAccess";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -47,7 +47,16 @@ export default function Navbar() {
   // bar sits ON that blue and has to be white to be readable. Once it scrolls
   // away from the hero the normal white bar with dark text takes over.
   // /hospitals opens on the same deep blue, so it gets the same white bar.
-  const onDark = (pathname === "/" || pathname === "/hospitals") && !scrolled;
+  // The sign-in, sign-up and join pages are blue too (components/auth/AuthShell.tsx).
+  const blueTop =
+    pathname === "/" ||
+    pathname === "/hospitals" ||
+    pathname === "/signin" ||
+    pathname === "/signup" ||
+    pathname === "/j" ||
+    pathname.startsWith("/j/") ||
+    pathname.startsWith("/hospital/join/");
+  const onDark = blueTop && !scrolled;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -76,17 +85,17 @@ export default function Navbar() {
     <>
       <Link
         href="/signin"
-        className={`rounded-full px-4 py-2 text-sm font-semibold text-white shadow-[0_8px_20px_-8px_rgba(27,95,170,0.7)] transition-all hover:-translate-y-0.5 md:rounded-none md:px-0 md:py-0 md:shadow-none md:hover:translate-y-0 ${
+        className={`rounded-full px-4 py-2 text-sm font-semibold text-white transition-colors lg:px-3 ${
           onDark
-            ? "bg-leaf hover:bg-leaf-deep md:bg-transparent md:text-white/80 md:hover:bg-transparent md:hover:text-white"
-            : "bg-brand hover:bg-brand-deep md:bg-transparent md:text-ink-soft md:hover:bg-transparent md:hover:text-brand"
+            ? "bg-leaf hover:bg-leaf-deep lg:bg-transparent lg:text-white/85 lg:hover:bg-white/10 lg:hover:text-white"
+            : "bg-brand hover:bg-brand-deep lg:bg-transparent lg:text-ink lg:hover:bg-mist"
         }`}
       >
         Log in
       </Link>
       <Link
         href="/signup"
-        className={`hidden rounded-full px-4 py-2 text-sm font-semibold text-white shadow-[0_8px_20px_-8px_rgba(27,95,170,0.7)] transition-all hover:-translate-y-0.5 sm:px-5 md:block ${
+        className={`hidden rounded-full px-5 py-2 text-sm font-bold text-white transition-colors lg:block ${
           onDark ? "bg-leaf hover:bg-leaf-deep" : "bg-brand hover:bg-brand-deep"
         }`}
       >
@@ -104,23 +113,24 @@ export default function Navbar() {
         : { label: "Start my 7-day free trial", href: "/trial" };
 
   return (
-    <header
-      className={`fixed inset-x-0 ${offsetTop} z-50 transition-all duration-300 ${
-        scrolled
-          ? "bg-white/85 shadow-[0_8px_30px_-16px_rgba(12,45,77,0.35)] backdrop-blur-md"
-          : "bg-transparent"
-      }`}
-    >
-      <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-        <Link href="/" className="flex items-center gap-2.5">
-          <Image
-            src="/logo-mark.png"
-            alt="Glufloat"
-            width={38}
-            height={38}
-            priority
-          />
-          <span className="font-display text-xl font-bold tracking-tight">
+    <header className={`fixed inset-x-0 ${offsetTop} z-50 px-3 pt-2 sm:px-5`}>
+      {/* Redesigned 2026-10-12 (founder: the old bar "looks archaic"): one
+          floating, rounded bar. Frosted white on light pages; on the deep-blue
+          hero it is see-through glass until the page scrolls. Same 64px of
+          height as before (8px gap + 48px bar), so every page offset holds. */}
+      <nav
+        className={`mx-auto flex h-12 max-w-6xl items-center justify-between rounded-full pl-3 pr-1.5 transition-all duration-300 sm:pl-4 ${
+          onDark
+            ? "bg-white/10 ring-1 ring-inset ring-white/20 backdrop-blur-md"
+            : "bg-white/90 shadow-[0_10px_30px_-14px_rgba(12,45,77,0.35)] ring-1 ring-ink/[0.06] backdrop-blur-md"
+        }`}
+      >
+        <Link href="/" className="flex shrink-0 items-center gap-2">
+          {/* On blue, the blue mark needs a white tile or it vanishes. */}
+          <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${onDark ? "bg-white" : ""}`}>
+            <Image src="/logo-mark.png" alt="Glufloat" width={onDark ? 24 : 30} height={onDark ? 24 : 30} priority />
+          </span>
+          <span className="font-display text-lg font-bold tracking-tight">
             {onDark ? (
               <span className="text-white">GLUFLOAT</span>
             ) : (
@@ -132,41 +142,43 @@ export default function Navbar() {
           </span>
         </Link>
 
-        <div
-          className={`hidden items-center gap-7 text-sm font-medium ${
-            menuOnly ? "" : "md:flex"
-          } ${onDark ? "text-white/80" : "text-ink-soft"}`}
-        >
-          {LINKS.map((l) => (
-            <Link
-              key={l.href}
-              href={l.href}
-              className={`transition-colors ${
-                onDark ? "hover:text-white" : "hover:text-brand"
-              }`}
-            >
-              {l.label}
-            </Link>
-          ))}
+        <div className={`hidden items-center gap-0.5 text-sm font-semibold ${menuOnly ? "" : "lg:flex"}`}>
+          {LINKS.map((l) => {
+            const here = !l.href.includes("#") && pathname === l.href;
+            return (
+              <Link
+                key={l.href}
+                href={l.href}
+                aria-current={here ? "page" : undefined}
+                className={`rounded-full px-3 py-1.5 transition-colors ${
+                  onDark
+                    ? here
+                      ? "bg-white/15 text-white"
+                      : "text-white/80 hover:bg-white/10 hover:text-white"
+                    : here
+                      ? "bg-brand/10 text-brand"
+                      : "text-ink-soft hover:bg-mist hover:text-ink"
+                }`}
+              >
+                {l.label}
+              </Link>
+            );
+          })}
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
           {actionButtons}
-          {/* Below md this is the only navigation there is. Signed in, it is the only
-              navigation at every width. */}
+          {/* Below lg this is the only navigation there is. Signed in, it is the
+              only navigation at every width. */}
           <button
             type="button"
             onClick={() => setMenuOpen(true)}
             aria-label="Open menu"
-            className={`-mr-1 rounded-lg p-2 transition-colors ${
-              menuOnly ? "" : "md:hidden"
-            } ${
-              onDark
-                ? "text-white/80 hover:text-white"
-                : "text-ink-soft hover:text-ink"
+            className={`flex h-9 w-9 items-center justify-center rounded-full transition-colors ${menuOnly ? "" : "lg:hidden"} ${
+              onDark ? "text-white hover:bg-white/10" : "text-ink hover:bg-mist"
             }`}
           >
-            <Menu className="h-6 w-6" />
+            <Menu className="h-5 w-5" />
           </button>
         </div>
       </nav>
@@ -174,40 +186,43 @@ export default function Navbar() {
       <Dialog open={menuOpen} onOpenChange={setMenuOpen}>
         <DialogContent
           hideClose
-          className={`inset-y-0 left-auto right-0 top-0 h-full max-h-none w-full max-w-sm translate-x-0 translate-y-0 grid-rows-[auto_1fr] gap-0 overflow-y-auto rounded-none border-0 bg-white p-5 shadow-2xl sm:rounded-none ${
-            menuOnly ? "" : "md:hidden"
+          className={`inset-y-0 left-auto right-0 top-0 flex h-full max-h-none w-full max-w-sm translate-x-0 translate-y-0 flex-col gap-0 overflow-y-auto rounded-none border-0 bg-white p-0 shadow-2xl sm:rounded-none ${
+            menuOnly ? "" : "lg:hidden"
           }`}
         >
           <DialogTitle className="sr-only">Menu</DialogTitle>
-          <div className="flex items-center justify-between">
-            <span className="font-display text-xl font-bold tracking-tight">
-              <span className="text-brand">GLU</span>
-              <span className="text-leaf">FLOAT</span>
+          <div className="flex items-center justify-between bg-gradient-to-br from-[#0b2e59] to-brand px-5 py-4">
+            <span className="flex items-center gap-2 font-display text-lg font-bold tracking-tight text-white">
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white">
+                <Image src="/logo-mark.png" alt="" width={22} height={22} />
+              </span>
+              GLUFLOAT
             </span>
             <button
               type="button"
               onClick={() => setMenuOpen(false)}
               aria-label="Close menu"
-              className="rounded-lg p-2 text-ink-soft transition-colors hover:text-ink"
+              className="flex h-9 w-9 items-center justify-center rounded-full text-white/85 transition-colors hover:bg-white/10 hover:text-white"
             >
-              <X className="h-6 w-6" />
+              <X className="h-5 w-5" />
             </button>
           </div>
 
-          <div className="mt-6 divide-y divide-line">
-            <div className="space-y-1 pb-6">
+          <div className="flex flex-1 flex-col px-4 py-4">
+            <div className="space-y-0.5">
               {LINKS.map((l) => (
                 <Link
                   key={l.href}
                   href={l.href}
                   onClick={() => setMenuOpen(false)}
-                  className="-mx-3 block rounded-xl px-3 py-3 text-base font-semibold text-ink transition-colors hover:bg-mist"
+                  className="flex items-center justify-between rounded-2xl px-4 py-3.5 text-base font-semibold text-ink transition-colors hover:bg-mist"
                 >
                   {l.label}
+                  <ChevronRight className="h-4 w-4 text-ink-soft/50" />
                 </Link>
               ))}
             </div>
-            <div className="space-y-3 pt-6">
+            <div className="mt-auto space-y-3 border-t border-line pt-5">
               {/* Log in is not repeated here: it already sits in the bar at every
                   width, and two controls with one name break strict mode. */}
               {/* "Open app" is pointless when the app is already open. The expired
@@ -216,7 +231,7 @@ export default function Navbar() {
                 <Link
                   href={sheetAction.href}
                   onClick={() => setMenuOpen(false)}
-                  className="block rounded-full bg-leaf px-5 py-3.5 text-center text-base font-bold text-white"
+                  className="block rounded-full bg-leaf px-5 py-3.5 text-center text-base font-bold text-white shadow-[0_12px_26px_-12px_rgba(62,155,79,0.9)]"
                 >
                   {sheetAction.label}
                 </Link>
