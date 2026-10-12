@@ -110,9 +110,25 @@ export default function InvoiceSettingsForm({ initial }: { initial: InvoiceSetti
                 const file = e.target.files?.[0];
                 if (!file) return;
                 if (file.size > 300_000) return setMsg("Please use a PNG under 300KB.");
-                const r = new FileReader();
-                r.onload = () => setS((cur) => ({ ...cur, signature: String(r.result) }));
-                r.readAsDataURL(file);
+                // Put it on solid white: a see-through background is drawn
+                // BLACK by some PDF readers and screens, and an invoice is
+                // white paper anyway.
+                const url = URL.createObjectURL(file);
+                const img = new Image();
+                img.onload = () => {
+                  const c = document.createElement("canvas");
+                  const scale = Math.min(1, 600 / img.width);
+                  c.width = Math.round(img.width * scale);
+                  c.height = Math.round(img.height * scale);
+                  const g = c.getContext("2d");
+                  if (!g) return;
+                  g.fillStyle = "#ffffff";
+                  g.fillRect(0, 0, c.width, c.height);
+                  g.drawImage(img, 0, 0, c.width, c.height);
+                  URL.revokeObjectURL(url);
+                  setS((cur) => ({ ...cur, signature: c.toDataURL("image/png") }));
+                };
+                img.src = url;
               }}
             />
           </label>
