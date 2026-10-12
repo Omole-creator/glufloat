@@ -1,0 +1,127 @@
+import { NextResponse } from "next/server";
+import { newToken, restoreCarried, seatsUsed, staffContext, type PatientRow } from "@/lib/hospitalServer";
+import { normalizePhone } from "@/lib/phone";
+import { isPhoneLoginEmail } from "@/lib/phoneLogin";
+
+export const dynamic = "force-dynamic";
+
+const MAX_AT_ONCE = 500;
+
+/**
+ * Add patients (one, or many pasted at once). Hospital admins only.
+ *
+ * A patient added here has no account yet: they are 'invited', with their own
+ * link, until they join on their phone. The admin must tick "These patients
+ * agreed to join" (founder's decision: the hospital tells its patients; the
+ * tick records that it did).
+ */
+export async function POST(request: Request) {
+  const body = await request.json().catch(() => ({}));
+  const ctx = await staffContext(String(body.hid ?? "") || null);
+  if (!ctx) return NextResponse.json({ error: "Please log in again." }, { status: 401 });
+  if (ctx.staff.role !== "admin") return NextResponse.json({ error: "Only the hospital admin can add patients." }, { status: 403 });
+  if (body.confirmed !== true)
+    return NextResponse.json({ error: "Please tick the box to say these patients agreed to join." }, { status: 400 });
+
+  const list = (Array.isArray(body.patients) ? body.patients : []).slice(0, MAX_AT_ONCE) as {
+    name?: string;
+    phone?: string;
+    email?: string;
+  }[];
+  if (list.length === 0) return NextResponse.json({ error: "Add at least one patient." }, { status: 400 });
+
+  const added: string[] = [];
+  const skipped: { name: string; reason: string }[] = [];
+  const seen = new Set<string>();
+  for (const p of list) {
+    const name = String(p.name ?? "").trim().slice(0, 120);
+    const phone = normalizePhone(String(p.phone ?? ""));
+    const emailRaw = String(p.email ?? "").trim().toLowerCase();
+    const email = emailRaw && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailRaw) && !isPhoneLoginEmail(emailRaw) ? emailRaw : null;
+    if (!name) {
+      skipped.push({ name: phone || "(no name)", reason: "No name" });
+      continue;
+    }
+    if (phone.length < 10) {
+      skipped.push({ name, reason: "Phone number is not complete" });
+      continue;
+    }
+    if (seen.has(phone)) {
+      skipped.push({ name, reason: "Same phone number twice in this list" });
+      continue;
+    }
+    seen.add(phone);
+    const { error } = await ctx.admin.from("hospital_patients").insert({
+      hospital_id: ctx.hospital.id,
+      name,
+      phone,
+      email,
+      status: "invited",
+      invite_token: newToken(),
+      confirmed: true,
+      added_by: ctx.user.id,
+    });
+    if (error) {
+      skipped.push({
+        name,
+        reason: /duplicate|unique/i.test(error.message) ? "Already on your list" : "Could not be added",
+      });
+    } else added.push(name);
+  }
+  return NextResponse.json({ ok: true, added: added.length, skipped });
+}
+
+/**
+ * Change one patient: remove them, move them in from the waiting list, or set
+ * a new password for a patient who logs in with their phone and forgot it.
+ */
+export async function PATCH(request: Request) {
+  const body = await request.json().catch(() => ({}));
+  const ctx = await staffContext(String(body.hid ?? "") || null);
+  if (!ctx) return NextResponse.json({ error: "Please log in again." }, { status: 401 });
+  if (ctx.staff.role !== "admin") return NextResponse.json({ error: "Only the hospital admin can do this." }, { status: 403 });
+
+  const id = String(body.id ?? "");
+  const { data } = await ctx.admin
+    .from("hospital_patients")
+    .select("*")
+    .eq("id", id)
+    .eq("hospital_id", ctx.hospital.id)
+    .maybeSingle();
+  if (!data) return NextResponse.json({ error: "We could not find this patient." }, { status: 404 });
+  const p = data as PatientRow;
+  const action = String(body.action ?? "");
+
+  if (action === "remove") {
+    await ctx.admin
+      .from("hospital_patients")
+      .update({ status: "removed", removed_at: new Date().toISOString(), invite_token: null })
+      .eq("id", p.id);
+    await restoreCarried(ctx.admin, p);
+    return NextResponse.json({ ok: true });
+  }
+
+  if (action === "activate") {
+    if (p.status !== "waiting") return NextResponse.json({ error: "This patient is not waiting." }, { status: 400 });
+    if ((await seatsUsed(ctx.admin, ctx.hospital.id)) >= ctx.hospital.seats)
+      return NextResponse.json({ error: "Every place on your plan is in use. Remove a patient, or ask GluFloat for a bigger plan." }, { status: 409 });
+    await ctx.admin.from("hospital_patients").update({ status: "active" }).eq("id", p.id);
+    return NextResponse.json({ ok: true });
+  }
+
+  if (action === "reset_password") {
+    const password = String(body.password ?? "");
+    if (password.length < 6) return NextResponse.json({ error: "The new password needs 6 or more letters or numbers." }, { status: 400 });
+    if (!p.user_id || p.status === "removed") return NextResponse.json({ error: "This patient has not joined yet." }, { status: 400 });
+    const { data: u } = await ctx.admin.auth.admin.getUserById(p.user_id);
+    // Only phone-login accounts. A patient with their own email resets it
+    // themselves; a hospital must never be able to take over a personal account.
+    if (!isPhoneLoginEmail(u.user?.email))
+      return NextResponse.json({ error: "This patient logs in with their email. They can use “Forgot your password?” on the login page." }, { status: 400 });
+    const { error } = await ctx.admin.auth.admin.updateUserById(p.user_id, { password });
+    if (error) return NextResponse.json({ error: "We could not change it just now. Please try again." }, { status: 503 });
+    return NextResponse.json({ ok: true });
+  }
+
+  return NextResponse.json({ error: "Unknown action." }, { status: 400 });
+}

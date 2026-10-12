@@ -3,14 +3,22 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Eye, EyeOff } from "lucide-react";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import { ChevronDown, Hospital, Lock, Mail, Phone, UserRound } from "lucide-react";
+import AuthShell from "@/components/auth/AuthShell";
+import { Field, FormError, SubmitButton } from "@/components/auth/Field";
 import { createClient } from "@/lib/supabase/client";
 import { partnerCode, sourcePost } from "@/lib/attribution";
 import { SIGNUP_CHOICES, type UserType } from "@/lib/userType";
 import { normalizePhone } from "@/lib/phone";
+import { isPhoneLoginEmail } from "@/lib/phoneLogin";
 
+/**
+ * Redesigned 2026-10-12 (founder: the old page "looks archaic"). The look
+ * changed; what it asks and what it saves did NOT: name, email, phone,
+ * password, then the "What are you?" drop-down LAST (founder's call, twice),
+ * carried into the account exactly as before so the sign-up trigger
+ * (handle_new_user) gets the same six things.
+ */
 export default function SignUpPage() {
   const router = useRouter();
   const [name, setName] = useState("");
@@ -18,7 +26,6 @@ export default function SignUpPage() {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [userType, setUserType] = useState<UserType | "">("");
-  const [showPw, setShowPw] = useState(false);
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -37,6 +44,12 @@ export default function SignUpPage() {
     const digits = phone.replace(/\D/g, "");
     if (digits.length < 10) {
       setErr("Please put a phone number we can reach you on.");
+      return;
+    }
+    // The stand-in addresses for phone-only hospital patients are made on the
+    // server only (lib/phoneLogin.ts). Nobody may claim one from here.
+    if (isPhoneLoginEmail(email)) {
+      setErr("Please use your own email address.");
       return;
     }
     setBusy(true);
@@ -73,108 +86,105 @@ export default function SignUpPage() {
   };
 
   return (
-    <>
-      <Navbar />
-      <main className="flex flex-1 items-center justify-center bg-mist px-4 pb-24 pt-28">
-        <div className="w-full max-w-md rounded-2xl border border-line bg-white p-8 shadow-[0_16px_40px_-18px_rgba(12,45,77,0.35)]">
-          <h1 className="text-center font-display text-2xl font-bold text-ink">
-            Start your free trial
-          </h1>
-          <p className="mt-2 text-center text-sm leading-relaxed text-ink-soft">
-            Make a quick account so your 7 days, and your food, stay yours on any
-            phone. No card needed.
-          </p>
-
-          <form onSubmit={submit} className="mt-6 space-y-3">
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              placeholder="Your name"
-              autoComplete="name"
-              className="w-full rounded-xl border-2 border-line px-4 py-3 text-base text-ink outline-none transition-colors focus:border-brand"
-              aria-label="Your name"
-            />
-            <input
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              type="email"
-              placeholder="Your email"
-              autoComplete="email"
-              className="w-full rounded-xl border-2 border-line px-4 py-3 text-base text-ink outline-none transition-colors focus:border-brand"
-              aria-label="Your email"
-            />
-            <input
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              required
-              type="tel"
-              inputMode="tel"
-              placeholder="Your phone number"
-              autoComplete="tel"
-              className="w-full rounded-xl border-2 border-line px-4 py-3 text-base text-ink outline-none transition-colors focus:border-brand"
-              aria-label="Your phone number"
-            />
-            <div className="relative">
-              <input
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-                type={showPw ? "text" : "password"}
-                placeholder="Choose a password (6+ letters)"
-                autoComplete="new-password"
-                className="w-full rounded-xl border-2 border-line px-4 py-3 pr-12 text-base text-ink outline-none transition-colors focus:border-brand"
-                aria-label="Choose a password"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPw((v) => !v)}
-                aria-label={showPw ? "Hide password" : "Show password"}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-soft/60 transition-colors hover:text-ink"
-              >
-                {showPw ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-              </button>
-            </div>
-
+    <AuthShell
+      title="Start your free trial"
+      subtitle="Make a quick account so your 7 days, and your food, stay yours on any phone. No card needed."
+    >
+      <form onSubmit={submit} className="space-y-4">
+        <Field
+          label="Your name"
+          icon={UserRound}
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          required
+          autoComplete="name"
+        />
+        <Field
+          label="Email"
+          ariaLabel="Your email"
+          icon={Mail}
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          autoComplete="email"
+          autoCapitalize="none"
+          spellCheck={false}
+        />
+        <Field
+          label="Phone number"
+          ariaLabel="Your phone number"
+          icon={Phone}
+          type="tel"
+          inputMode="tel"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          required
+          autoComplete="tel"
+        />
+        <Field
+          label="Choose a password"
+          icon={Lock}
+          password
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          minLength={6}
+          autoComplete="new-password"
+          hint="6 or more letters or numbers."
+        />
+        <label className="block">
+          <span className="text-sm font-semibold text-ink">What are you?</span>
+          <span className="relative mt-1.5 block">
             <select
               value={userType}
               onChange={(e) => setUserType(e.target.value as UserType | "")}
               required
               aria-label="What are you?"
-              className={`w-full rounded-xl border-2 border-line bg-white px-4 py-3 text-base outline-none transition-colors focus:border-brand ${
-                userType ? "text-ink" : "text-ink-soft"
+              className={`h-14 w-full appearance-none rounded-2xl border-2 border-line bg-[#fbfcfe] pl-4 pr-12 text-base outline-none transition-colors focus:border-brand focus:bg-white ${
+                userType ? "text-ink" : "text-ink-soft/70"
               }`}
             >
-              <option value="">What are you?</option>
+              <option value="">Tap to choose</option>
               {SIGNUP_CHOICES.map((c) => (
                 <option key={c.value} value={c.value}>
                   {c.label}
                 </option>
               ))}
             </select>
-            {err && (
-              <p className="text-sm font-medium text-verdict-red">{err}</p>
-            )}
-            <button
-              type="submit"
-              disabled={busy}
-              className="w-full rounded-full bg-leaf px-6 py-3.5 text-sm font-bold text-white shadow-[0_10px_24px_-10px_rgba(62,155,79,0.7)] hover:bg-leaf-deep transition-all hover:-translate-y-0.5 disabled:opacity-60"
-            >
-              {busy ? "Creating your account..." : "Create account and start"}
-            </button>
-          </form>
+            <ChevronDown aria-hidden className="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-ink-soft/60" />
+          </span>
+        </label>
 
-          <p className="mt-5 text-center text-sm text-ink-soft">
-            Already have an account?{" "}
-            <Link href="/signin" className="font-semibold text-brand hover:underline">
-              Sign in
-            </Link>
-          </p>
+        <FormError>{err}</FormError>
+        <div className="pt-1">
+          <SubmitButton busy={busy} busyText="Creating your account..." tone="leaf">
+            Create account and start
+          </SubmitButton>
         </div>
-      </main>
-      <Footer />
-    </>
+        <p className="text-center text-xs text-ink-soft">No card needed · 7 days free · Stop any time</p>
+      </form>
+
+      <p className="mt-6 text-center text-sm text-ink-soft">
+        Already have an account?{" "}
+        <Link href="/signin" className="font-semibold text-brand hover:underline">
+          Sign in
+        </Link>
+      </p>
+
+      {/* The second door (founder, 2026-10-12): a hospital does not sign up here. */}
+      <Link
+        href="/hospitals"
+        className="mt-6 flex items-center gap-3 rounded-2xl bg-mist/70 px-4 py-3.5 text-sm text-ink ring-1 ring-inset ring-brand/10 transition-colors hover:bg-mist"
+      >
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-brand ring-1 ring-inset ring-brand/10">
+          <Hospital className="h-4.5 w-4.5" />
+        </span>
+        <span>
+          <span className="block font-semibold">Signing up a hospital or clinic?</span>
+          <span className="text-ink-soft">See GluFloat for hospitals</span>
+        </span>
+      </Link>
+    </AuthShell>
   );
 }

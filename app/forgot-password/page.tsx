@@ -65,6 +65,11 @@ export default function ForgotPasswordPage() {
                 Type the email you signed up with. We will send you a link to
                 choose a new password.
               </p>
+              {/* Hospital patients with no email log in with their phone
+                  (lib/phoneLogin.ts); their hospital sets a new password. */}
+              <p className="mt-3 rounded-xl bg-mist/70 px-3.5 py-2.5 text-center text-sm text-ink">
+                You log in with your phone number? Ask your hospital to set a new password for you.
+              </p>
 
               <form onSubmit={submit} className="mt-6 space-y-3">
                 <input

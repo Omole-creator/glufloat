@@ -37,6 +37,7 @@ import CollapsibleCard from "@/components/CollapsibleCard";
 import DashboardBottomNav, { type DashboardTabDef } from "@/components/DashboardBottomNav";
 import DashboardLeftNav from "@/components/DashboardLeftNav";
 import ChatWithDietitian from "@/components/ChatWithDietitian";
+import ChatWithHospital from "@/components/ChatWithHospital";
 import PersonalizationSettings from "@/components/PersonalizationSettings";
 import { PAYSTACK_URLS, PAYSTACK_YEARLY_URLS, YEARLY_ENABLED, pendingReference, clearPendingReference } from "@/lib/access";
 import BillingToggle from "@/components/BillingToggle";
@@ -399,8 +400,12 @@ export default function AppPage() {
   // "Chat with dietitian" only ever shows for someone actually entitled to it
   // — never during trial (canUseDietitianChat is false for every trial Access
   // value by construction), same gate the old inline card used.
+  const hospital = access.status === "subscribed" ? access.hospital : undefined;
   const dashboardTabs = ALL_DASHBOARD_TABS.filter(
     (t) => t.id !== "dietitian" || canUseDietitianChat(access),
+  ).map((t) =>
+    // A hospital patient chats with their hospital's own dietitian or doctor.
+    t.id === "dietitian" && hospital ? { ...t, label: "Chat with your hospital" } : t,
   );
 
   // The badge names the actual plan a subscriber is on, not just "Membership"
@@ -411,12 +416,13 @@ export default function AppPage() {
       ? { label: `Free trial: ${access.daysLeft} ${access.daysLeft === 1 ? "day" : "days"} left`, tone: "bg-verdict-green/15 text-leaf-deep" }
       : {
           label:
-            access.daysLeft > 366
+            access.daysLeft > 366 || access.hospital
               ? `${TIER_LABEL[access.tier]}: active`
               : `${TIER_LABEL[access.tier]}: ${access.daysLeft} ${access.daysLeft === 1 ? "day" : "days"} left`,
           tone: "bg-brand/10 text-brand-deep",
         };
-  const renewSoon = access.status === "subscribed" && access.daysLeft <= 5;
+  // A hospital patient never pays GluFloat, so they are never asked to renew.
+  const renewSoon = access.status === "subscribed" && !access.hospital && access.daysLeft <= 5;
   // A trial used to run out with no warning at all: a green day count, then a locked
   // door the next morning. daysLeft is TRIAL_DAYS on the start day, so 1 is the last
   // day whatever the length.
@@ -525,6 +531,17 @@ export default function AppPage() {
             text="Eat the food you love, the right way."
             className="mt-1 font-display text-base font-semibold leading-tight text-ink-soft sm:text-lg"
           />
+          {/* Said plainly, once (founder agreed, 2026-10-12): the hospital pays,
+              and the hospital's doctors and dietitians can see the record. */}
+          {hospital && (
+            <p className="mt-2 flex items-start gap-2 rounded-2xl bg-brand/[0.06] px-3.5 py-2.5 text-sm text-ink ring-1 ring-inset ring-brand/10">
+              <Stethoscope className="mt-0.5 h-4 w-4 shrink-0 text-brand" strokeWidth={2.2} />
+              <span>
+                <span className="font-semibold">{hospital.name}</span> pays for your GluFloat. Your hospital can see your
+                meals and sugar tests.
+              </span>
+            </p>
+          )}
 
           {/* ONE panel container, ONE tab visible at a time — no more
               always-visible zone (founder instruction, 2026-08-30: clicking
@@ -680,7 +697,7 @@ export default function AppPage() {
                 (same belt-and-suspenders pattern as the rest of the app). */}
             {canUseDietitianChat(access) && (
               <div className={activeTab === "dietitian" ? "" : "hidden"}>
-                <ChatWithDietitian />
+                {hospital ? <ChatWithHospital hospital={hospital} /> : <ChatWithDietitian />}
               </div>
             )}
           </div>

@@ -1,18 +1,25 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Eye, EyeOff } from "lucide-react";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import { Lock, UserRound } from "lucide-react";
+import AuthShell from "@/components/auth/AuthShell";
+import { Field, FormError, SubmitButton } from "@/components/auth/Field";
 import { createClient } from "@/lib/supabase/client";
+import { looksLikePhone, phoneLoginEmail } from "@/lib/phoneLogin";
 
-export default function SignInPage() {
+/** Only ever a path on this site, never somewhere else (`//evil.com` included). */
+function safeNext(raw: string | null): string | null {
+  if (!raw || !raw.startsWith("/") || raw.startsWith("//") || raw.startsWith("/\\")) return null;
+  return raw;
+}
+
+function SignInForm() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const next = safeNext(useSearchParams().get("next"));
+  const [who, setWho] = useState("");
   const [password, setPassword] = useState("");
-  const [showPw, setShowPw] = useState(false);
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -21,89 +28,91 @@ export default function SignInPage() {
     if (busy) return;
     setBusy(true);
     setErr("");
+    // A hospital patient with no email logs in with their phone number
+    // (lib/phoneLogin.ts). Everybody else types their email, as before.
+    const byPhone = looksLikePhone(who);
+    const email = byPhone ? phoneLoginEmail(who) : who.trim();
     const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
-      password,
-    });
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
-      setErr("That email or password did not work. Please try again.");
+      setErr(
+        byPhone
+          ? "That phone number or password did not work. If you made your account with an email, use your email."
+          : "That email or password did not work. Please try again.",
+      );
       setBusy(false);
       return;
     }
-    router.push("/app");
+    let to = next ?? "/app";
+    if (!next) {
+      // Hospital doctors, dietitians and admins go to their dashboard.
+      try {
+        const res = await fetch("/api/hospital/me", { cache: "no-store" });
+        const j = (await res.json()) as { staff?: unknown[] };
+        if (Array.isArray(j.staff) && j.staff.length > 0) to = "/hospital";
+      } catch {
+        /* fall through to the app */
+      }
+    }
+    router.push(to);
     router.refresh();
   };
 
   return (
-    <>
-      <Navbar />
-      <main className="flex flex-1 items-center justify-center bg-mist px-4 pb-24 pt-28">
-        <div className="w-full max-w-md rounded-2xl border border-line bg-white p-8 shadow-[0_16px_40px_-18px_rgba(12,45,77,0.35)]">
-          <h1 className="text-center font-display text-2xl font-bold text-ink">
-            Welcome back
-          </h1>
-          <p className="mt-2 text-center text-sm leading-relaxed text-ink-soft">
-            Sign in to open your food checks and your meal builder.
-          </p>
+    <form onSubmit={submit} className="space-y-5">
+      <Field
+        label="Email or phone number"
+        ariaLabel="Your email or phone number"
+        icon={UserRound}
+        value={who}
+        onChange={(e) => setWho(e.target.value)}
+        required
+        autoComplete="username"
+        autoCapitalize="none"
+        spellCheck={false}
+      />
+      <div>
+        <Field
+          label="Password"
+          ariaLabel="Your password"
+          icon={Lock}
+          password
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          autoComplete="current-password"
+        />
+        <p className="mt-2 text-right text-sm">
+          <Link href="/forgot-password" className="font-semibold text-brand hover:underline">
+            Forgot your password?
+          </Link>
+        </p>
+      </div>
+      <FormError>{err}</FormError>
+      <SubmitButton busy={busy} busyText="Signing you in...">
+        Sign in
+      </SubmitButton>
+      <div className="relative py-1 text-center">
+        <span className="absolute inset-x-0 top-1/2 h-px bg-line" aria-hidden />
+        <span className="relative bg-white px-3 text-xs font-semibold uppercase tracking-[0.12em] text-ink-soft/70">New here?</span>
+      </div>
+      <Link
+        href="/signup"
+        className="flex h-14 w-full items-center justify-center rounded-full border-2 border-line text-base font-bold text-ink transition-colors hover:border-brand hover:text-brand"
+      >
+        Start your free trial
+      </Link>
+    </form>
+  );
+}
 
-          <form onSubmit={submit} className="mt-6 space-y-3">
-            <input
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              type="email"
-              placeholder="Your email"
-              autoComplete="email"
-              className="w-full rounded-xl border-2 border-line px-4 py-3 text-base text-ink outline-none transition-colors focus:border-brand"
-              aria-label="Your email"
-            />
-            <div className="relative">
-              <input
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                type={showPw ? "text" : "password"}
-                placeholder="Your password"
-                autoComplete="current-password"
-                className="w-full rounded-xl border-2 border-line px-4 py-3 pr-12 text-base text-ink outline-none transition-colors focus:border-brand"
-                aria-label="Your password"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPw((v) => !v)}
-                aria-label={showPw ? "Hide password" : "Show password"}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-soft/60 transition-colors hover:text-ink"
-              >
-                {showPw ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-              </button>
-            </div>
-            <p className="text-right text-sm">
-              <Link href="/forgot-password" className="font-semibold text-brand hover:underline">
-                Forgot your password?
-              </Link>
-            </p>
-            {err && (
-              <p className="text-sm font-medium text-verdict-red">{err}</p>
-            )}
-            <button
-              type="submit"
-              disabled={busy}
-              className="w-full rounded-full bg-brand px-6 py-3.5 text-sm font-bold text-white transition-colors hover:bg-brand-deep disabled:opacity-60"
-            >
-              {busy ? "Signing you in..." : "Sign in"}
-            </button>
-          </form>
-
-          <p className="mt-5 text-center text-sm text-ink-soft">
-            New here?{" "}
-            <Link href="/signup" className="font-semibold text-brand hover:underline">
-              Start your free trial
-            </Link>
-          </p>
-        </div>
-      </main>
-      <Footer />
-    </>
+export default function SignInPage() {
+  return (
+    <AuthShell title="Welcome back" subtitle="Sign in to open your food checks and your meal builder.">
+      {/* useSearchParams needs a Suspense boundary to prerender. */}
+      <Suspense fallback={<div className="h-80" />}>
+        <SignInForm />
+      </Suspense>
+    </AuthShell>
   );
 }

@@ -12,7 +12,16 @@ import { dayLabel, timeLabel } from "@/lib/mealResponse";
  * the person's blood sugar, which the app never does (lib/glucose.ts). The
  * numbers are shown; the doctor reads them. Tap or hover a point for its value.
  */
-export default function SugarTrend({ points }: { points: Reading[] }) {
+export default function SugarTrend({
+  points,
+  title = "Your sugar tests this month",
+  span = "this month",
+}: {
+  points: Reading[];
+  /** The hospital doctor view shows 90 days, so it names its own heading. */
+  title?: string;
+  span?: string;
+}) {
   const [hover, setHover] = useState<number | null>(null);
   // Drawn at the real pixel width, so the labels stay one size on a phone and
   // on a laptop instead of growing with the box.
@@ -43,7 +52,7 @@ export default function SugarTrend({ points }: { points: Reading[] }) {
 
   return (
     <div ref={box}>
-      <p className="font-display text-sm font-bold text-brand">Your sugar tests this month</p>
+      <p className="font-display text-sm font-bold text-brand">{title}</p>
       <p className="min-h-[1.25rem] text-xs text-ink-soft" aria-live="polite">
         {shown
           ? `${dayLabel(shown.takenAt)}, ${timeLabel(shown.takenAt)}: ${formatBoth(shown.mgdl)}`
@@ -55,7 +64,7 @@ export default function SugarTrend({ points }: { points: Reading[] }) {
         height={H}
         className="mt-1 block max-w-full"
         role="img"
-        aria-label={`Line of your ${points.length} sugar tests this month, from ${Math.round(Math.min(...vals))} to ${Math.round(Math.max(...vals))} mg/dL`}
+        aria-label={`Line of your ${points.length} sugar tests ${span}, from ${Math.round(Math.min(...vals))} to ${Math.round(Math.max(...vals))} mg/dL`}
         onMouseLeave={() => setHover(null)}
       >
         {ticks.map((v) => (

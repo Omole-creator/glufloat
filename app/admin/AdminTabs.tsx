@@ -14,6 +14,7 @@ import {
   LineChart,
   Receipt,
   Landmark,
+  Hospital,
 } from "lucide-react";
 
 /**
@@ -40,6 +41,7 @@ const GROUPS = [
     title: "People",
     tabs: [
       { href: "/admin/users", label: "Users", icon: Users },
+      { href: "/admin/hospitals", label: "Hospitals", icon: Hospital },
       { href: "/admin/partners", label: "Partners", icon: Handshake },
       { href: "/admin/email", label: "Email", icon: Mail },
     ],

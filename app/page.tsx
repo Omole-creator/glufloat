@@ -1,5 +1,6 @@
 import Image from "next/image";
-import { Check, ShieldCheck, X } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, Check, Hospital, ShieldCheck, X } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import SocialProofTicker from "@/components/SocialProofTicker";
 import Footer from "@/components/Footer";
@@ -355,6 +356,34 @@ export default function Home() {
             <p className="text-sm text-ink-soft">
               One visit to the clinic costs more than a whole year of GluFloat.
             </p>
+          </Reveal>
+          {/* GluFloat for hospitals (founder, 2026-10-12): right under the
+              personal plans, where a clinic owner reading prices for one
+              person asks "and for my clinic?". */}
+          <Reveal delay={200} className="mt-12">
+            <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#0B2E5C] via-[#124A8C] to-[#1B5FAA] px-6 py-9 text-white sm:px-10">
+              <div aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-leaf/25 blur-3xl" />
+              <div className="relative flex flex-col items-start gap-6 md:flex-row md:items-center md:justify-between">
+                <div className="max-w-xl">
+                  <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1 text-xs font-bold uppercase tracking-[0.14em] ring-1 ring-inset ring-white/20">
+                    <Hospital className="h-3.5 w-3.5" /> For hospitals and clinics
+                  </span>
+                  <h3 className="mt-4 font-display text-2xl font-bold leading-tight tracking-tight sm:text-3xl">
+                    Run A Hospital Or Clinic?
+                  </h3>
+                  <p className="mt-2 leading-relaxed text-white/85">
+                    Give your diabetes patients GluFloat Premium, and let your doctors and dietitians see every meal and sugar
+                    test they save. Start with a free 30-day pilot.
+                  </p>
+                </div>
+                <Link
+                  href="/hospitals"
+                  className="inline-flex h-13 shrink-0 items-center justify-center gap-2 rounded-full bg-leaf px-7 py-3.5 text-base font-bold text-white shadow-[0_14px_30px_-14px_rgba(62,155,79,0.9)] transition-transform hover:-translate-y-0.5"
+                >
+                  See GluFloat for hospitals <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
+            </div>
           </Reveal>
         </div>
       </section>

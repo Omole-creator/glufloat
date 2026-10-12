@@ -1,4 +1,5 @@
 import { isUserType, type UserType } from "./userType";
+import { isPhoneLoginEmail } from "@/lib/phoneLogin";
 
 /**
  * Sending GluFloat's marketing emails through Mailyte (mailyte.com). Server only.
@@ -136,7 +137,11 @@ export async function syncContacts(contacts: Contact[]): Promise<SyncResult> {
   const ours = new Set(Object.values(lists));
   const out: SyncResult = { sent: 0, failed: 0, byGroup: {} };
 
-  await eachLimited(contacts, async (c) => {
+  // A hospital patient who joined with only a phone number has a stand-in
+  // address (lib/phoneLogin.ts) that no mailbox will ever receive. Mailing it
+  // would only bounce and hurt our sending name.
+  const real = contacts.filter((c) => !isPhoneLoginEmail(c.email));
+  await eachLimited(real, async (c) => {
     const key = listKey(c.userType);
     const name = GROUP_NAME[key];
     const target = lists[name];

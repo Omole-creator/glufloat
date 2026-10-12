@@ -22,7 +22,11 @@ export type Access =
   // deliberately carries no `tier`, because the ONE thing trial never grants is
   // the dietitian tier. See canUseDietitianChat below.
   | { status: "trial"; daysLeft: number }
-  | { status: "subscribed"; daysLeft: number; tier: Tier; yearly: boolean }
+  // `hospital` is set when a hospital pays for this person (GluFloat for
+  // hospitals). They get everything in Premium; the renew banner and every
+  // "pay" link are hidden, because the patient never pays GluFloat; and the
+  // Chat tab reaches their hospital's own dietitian or doctor, not GluFloat's.
+  | { status: "subscribed"; daysLeft: number; tier: Tier; yearly: boolean; hospital?: HospitalCover }
   // Trial ended, no active subscription. `lapsed` means they have paid before, so
   // this is a renewal and not a first sale. The screen has to say "your month is
   // over", never "your free trial is over", to somebody who paid us last month.
@@ -30,6 +34,38 @@ export type Access =
   // offers the SAME tier back rather than silently downgrading a Plus/Dietitian
   // subscriber to Basic pricing.
   | { status: "expired"; lapsed: boolean; previousTier: Tier | null; previousYearly: boolean };
+
+export type HospitalCover = {
+  name: string;
+  /** Who the Chat button reaches. Null while the hospital has no dietitian or doctor with a phone number. */
+  chat: { name: string; role: "admin" | "doctor" | "dietitian"; whatsapp: string } | null;
+};
+
+type HospitalMe = {
+  patient: null | {
+    hospitalName: string;
+    until: string;
+    status: "active" | "waiting";
+    chat: HospitalCover["chat"];
+  };
+  staff: { id: string; name: string; role: string }[];
+};
+
+/**
+ * Ask the server whether a hospital covers this person. Any failure at all
+ * (tables not made yet, a dropped connection) reads as "no hospital", so the
+ * person's own trial or plan decides their access exactly as before.
+ */
+async function hospitalMe(): Promise<HospitalMe> {
+  try {
+    const res = await fetch("/api/hospital/me", { cache: "no-store", credentials: "same-origin" });
+    if (!res.ok) return { patient: null, staff: [] };
+    const j = (await res.json()) as HospitalMe;
+    return { patient: j.patient ?? null, staff: Array.isArray(j.staff) ? j.staff : [] };
+  } catch {
+    return { patient: null, staff: [] };
+  }
+}
 
 /**
  * Can this person use goal/activity/meal-pattern personalization right now?
@@ -66,6 +102,8 @@ export async function getAccess(): Promise<{
   email: string | null;
   name: string | null;
   access: Access;
+  /** Hospitals this person works for (doctor, dietitian, admin). Empty for almost everyone. */
+  hospitalStaff?: { id: string; name: string; role: string }[];
 }> {
   const supabase = createClient();
   const {
@@ -73,7 +111,7 @@ export async function getAccess(): Promise<{
   } = await supabase.auth.getUser();
   if (!user) return { email: null, name: null, access: { status: "anon" } };
 
-  const [{ data: profile }, subResult] = await Promise.all([
+  const [{ data: profile }, subResult, hosp] = await Promise.all([
     supabase
       .from("profiles")
       .select("name,trial_start")
@@ -84,6 +122,7 @@ export async function getAccess(): Promise<{
       .select("status,current_period_end,tier,amount")
       .eq("user_id", user.id)
       .maybeSingle(),
+    hospitalMe(),
   ]);
 
   // `tier` does not exist until personalization-schema.sql has been run. A
@@ -104,6 +143,27 @@ export async function getAccess(): Promise<{
   }
 
   const name = (profile?.name ?? "").trim() || null;
+  const hospitalStaff = hosp.staff;
+
+  // A hospital paying for this person wins over everything: they get Premium
+  // for as long as the hospital's plan runs.
+  if (hosp.patient && hosp.patient.status === "active") {
+    const end = new Date(hosp.patient.until).getTime();
+    const daysLeft = Math.max(0, Math.ceil((end - Date.now()) / DAY_MS));
+    if (daysLeft > 0)
+      return {
+        email: user.email ?? null,
+        name,
+        hospitalStaff,
+        access: {
+          status: "subscribed",
+          daysLeft,
+          tier: "dietitian",
+          yearly: false,
+          hospital: { name: hosp.patient.hospitalName, chat: hosp.patient.chat },
+        },
+      };
+  }
 
   // Active subscription wins.
   if (
@@ -118,6 +178,7 @@ export async function getAccess(): Promise<{
       return {
         email: user.email ?? null,
         name,
+        hospitalStaff,
         access: { status: "subscribed", daysLeft, tier, yearly: isYearlyAmount(sub.amount) },
       };
   }
@@ -128,7 +189,7 @@ export async function getAccess(): Promise<{
       TRIAL_DAYS -
       calendarDaysBetween(new Date(profile.trial_start).getTime(), Date.now());
     if (daysLeft > 0)
-      return { email: user.email ?? null, name, access: { status: "trial", daysLeft } };
+      return { email: user.email ?? null, name, hospitalStaff, access: { status: "trial", daysLeft } };
     // A subscriptions row at all means they have paid us before. It is already
     // fetched above, so knowing this costs no extra query.
     const previousTier: Tier | null =
@@ -136,12 +197,13 @@ export async function getAccess(): Promise<{
     return {
       email: user.email ?? null,
       name,
+      hospitalStaff,
       access: { status: "expired", lapsed: !!sub, previousTier, previousYearly: isYearlyAmount(sub?.amount) },
     };
   }
 
   // Signed in but no trial yet and no subscription.
-  return { email: user.email ?? null, name, access: { status: "new" } };
+  return { email: user.email ?? null, name, hospitalStaff, access: { status: "new" } };
 }
 
 /** Stamp the trial start on the user's profile, only if it is not already set. */

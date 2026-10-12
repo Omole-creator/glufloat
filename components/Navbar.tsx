@@ -14,6 +14,7 @@ const LINKS = [
   { href: "/#demo", label: "Try it" },
   { href: "/#pricing", label: "Pricing" },
   { href: "/#faq", label: "FAQ" },
+  { href: "/hospitals", label: "For hospitals" },
   { href: "/blog", label: "Blog" },
   { href: "/about", label: "About" },
   { href: "/app", label: "The app" },
@@ -22,7 +23,9 @@ const LINKS = [
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const { access } = useAccess();
+  const { access, hospitalStaff } = useAccess();
+  // A hospital's doctor, dietitian or admin gets their dashboard in the menu.
+  const isHospitalStaff = (hospitalStaff?.length ?? 0) > 0;
   const pathname = usePathname();
   const router = useRouter();
   // The app is already open on /app, so the menu offers Sign out there rather than
@@ -43,7 +46,8 @@ export default function Navbar() {
   // The landing hero is a solid deep blue, so at the top of the home page the
   // bar sits ON that blue and has to be white to be readable. Once it scrolls
   // away from the hero the normal white bar with dark text takes over.
-  const onDark = pathname === "/" && !scrolled;
+  // /hospitals opens on the same deep blue, so it gets the same white bar.
+  const onDark = (pathname === "/" || pathname === "/hospitals") && !scrolled;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -215,6 +219,15 @@ export default function Navbar() {
                   className="block rounded-full bg-leaf px-5 py-3.5 text-center text-base font-bold text-white"
                 >
                   {sheetAction.label}
+                </Link>
+              )}
+              {isHospitalStaff && (
+                <Link
+                  href="/hospital"
+                  onClick={() => setMenuOpen(false)}
+                  className="block rounded-full bg-brand px-5 py-3.5 text-center text-base font-bold text-white"
+                >
+                  Hospital dashboard
                 </Link>
               )}
               {/* Signing out lives here on EVERY page, not only /app: signed in,

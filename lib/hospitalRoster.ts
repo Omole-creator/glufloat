@@ -1,0 +1,116 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { fetchAll } from "@/lib/adminFetch";
+import type { PatientRow } from "@/lib/hospitalServer";
+import { isPhoneLoginEmail } from "@/lib/phoneLogin";
+
+/**
+ * The hospital's patient list with what a doctor scans for first: when the
+ * patient last used GluFloat, how much they logged in the last 30 days, and
+ * their latest sugar test and HbA1c, as plain numbers.
+ *
+ * No colour and no "high" or "low" on any number (the house rule that keeps
+ * GluFloat a food app): the doctor judges. "Not opened in 7 days" is about USE,
+ * not health, so it is the one thing the list does flag.
+ */
+
+const DAY_MS = 86400000;
+
+export type RosterRow = {
+  id: string;
+  name: string;
+  phone: string;
+  email: string | null;
+  status: PatientRow["status"];
+  userId: string | null;
+  inviteToken: string | null;
+  createdAt: string;
+  joinedAt: string | null;
+  /** Logs in with phone + password (the hospital can reset it). */
+  phoneLogin: boolean;
+  lastActive: string | null;
+  meals30: number;
+  tests30: number;
+  latestReading: { mgdl: number; takenAt: string } | null;
+  latestHba1c: { percent: number; testedOn: string } | null;
+};
+
+export async function hospitalRoster(admin: SupabaseClient, hospitalId: string): Promise<RosterRow[]> {
+  const { data } = await admin
+    .from("hospital_patients")
+    .select("*")
+    .eq("hospital_id", hospitalId)
+    .neq("status", "removed")
+    .order("created_at", { ascending: false });
+  const pats = (data ?? []) as PatientRow[];
+  const ids = pats.map((p) => p.user_id).filter((x): x is string => !!x);
+
+  const since30 = new Date(Date.now() - 30 * DAY_MS).toISOString();
+  const since90 = new Date(Date.now() - 90 * DAY_MS).toISOString();
+  const last = new Map<string, string>();
+  const bump = (uid: string, at: string) => {
+    if (!last.has(uid) || (last.get(uid) as string) < at) last.set(uid, at);
+  };
+  const meals = new Map<string, number>();
+  const tests = new Map<string, number>();
+  const latest = new Map<string, { mgdl: number; takenAt: string }>();
+  const hba1c = new Map<string, { percent: number; testedOn: string }>();
+  const emails = new Map<string, string | null>();
+
+  // In slices, so a 200-patient hospital never builds one enormous URL.
+  for (let i = 0; i < ids.length; i += 100) {
+    const slice = ids.slice(i, i + 100);
+    const [usage, mc, gr, hb, pr] = await Promise.all([
+      fetchAll<{ user_id: string; created_at: string }>(() =>
+        admin.from("usage_events").select("user_id,created_at").in("user_id", slice).gte("created_at", since90),
+      ),
+      fetchAll<{ user_id: string; checked_at: string }>(() =>
+        admin.from("meal_checks").select("user_id,checked_at").in("user_id", slice).gte("checked_at", since90),
+      ),
+      fetchAll<{ user_id: string; taken_at: string; mgdl: number }>(() =>
+        admin.from("glucose_readings").select("user_id,taken_at,mgdl").in("user_id", slice).gte("taken_at", since90),
+      ),
+      fetchAll<{ user_id: string; percent: number; tested_on: string }>(() =>
+        admin.from("hba1c_results").select("user_id,percent,tested_on").in("user_id", slice),
+      ),
+      admin.from("profiles").select("id,email").in("id", slice),
+    ]);
+    for (const r of usage.rows) bump(r.user_id, r.created_at);
+    for (const r of mc.rows) {
+      bump(r.user_id, r.checked_at);
+      if (r.checked_at >= since30) meals.set(r.user_id, (meals.get(r.user_id) ?? 0) + 1);
+    }
+    for (const r of gr.rows) {
+      bump(r.user_id, r.taken_at);
+      if (r.taken_at >= since30) tests.set(r.user_id, (tests.get(r.user_id) ?? 0) + 1);
+      const cur = latest.get(r.user_id);
+      if (!cur || cur.takenAt < r.taken_at) latest.set(r.user_id, { mgdl: Number(r.mgdl), takenAt: r.taken_at });
+    }
+    for (const r of hb.rows) {
+      const cur = hba1c.get(r.user_id);
+      if (!cur || cur.testedOn < r.tested_on) hba1c.set(r.user_id, { percent: Number(r.percent), testedOn: r.tested_on });
+    }
+    for (const p of (pr.data ?? []) as { id: string; email: string | null }[]) emails.set(p.id, p.email);
+  }
+
+  return pats.map((p) => {
+    const uid = p.user_id;
+    const accountEmail = uid ? emails.get(uid) ?? null : null;
+    return {
+      id: p.id,
+      name: p.name,
+      phone: p.phone,
+      email: p.email ?? (accountEmail && !isPhoneLoginEmail(accountEmail) ? accountEmail : null),
+      status: p.status,
+      userId: uid,
+      inviteToken: p.invite_token,
+      createdAt: p.created_at,
+      joinedAt: p.joined_at,
+      phoneLogin: isPhoneLoginEmail(accountEmail),
+      lastActive: uid ? last.get(uid) ?? null : null,
+      meals30: uid ? meals.get(uid) ?? 0 : 0,
+      tests30: uid ? tests.get(uid) ?? 0 : 0,
+      latestReading: uid ? latest.get(uid) ?? null : null,
+      latestHba1c: uid ? hba1c.get(uid) ?? null : null,
+    };
+  });
+}

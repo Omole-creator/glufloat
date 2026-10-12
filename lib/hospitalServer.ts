@@ -1,0 +1,277 @@
+import { randomBytes } from "node:crypto";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { createAdminClient, createClient } from "@/lib/supabase/server";
+import { hospitalLive } from "@/lib/hospitalPlans";
+import { normalizePhone } from "@/lib/phone";
+
+/**
+ * Server-only helpers for GluFloat for hospitals. Every hospital table has RLS
+ * on with NO policies (supabase/hospitals-schema.sql), so everything goes
+ * through here: first work out WHO is asking from their session cookie, then
+ * read with the service role, never the other way round.
+ */
+
+export type StaffRole = "admin" | "doctor" | "dietitian";
+
+export type HospitalRow = {
+  id: string;
+  code: string;
+  name: string;
+  contact_name: string | null;
+  contact_role: string | null;
+  contact_phone: string | null;
+  contact_email: string | null;
+  city: string | null;
+  state: string | null;
+  est_patients: number | null;
+  message: string | null;
+  status: "requested" | "pilot" | "active" | "ended" | "declined";
+  plan: string | null;
+  seats: number;
+  access_until: string | null;
+  billing: string | null;
+  chat_user_id: string | null;
+  created_at: string;
+  approved_at: string | null;
+};
+
+export type StaffRow = {
+  hospital_id: string;
+  user_id: string;
+  role: StaffRole;
+  name: string;
+  phone: string | null;
+  created_at: string;
+};
+
+export type PatientRow = {
+  id: string;
+  hospital_id: string;
+  user_id: string | null;
+  name: string;
+  phone: string;
+  email: string | null;
+  status: "invited" | "active" | "waiting" | "removed";
+  invite_token: string | null;
+  confirmed: boolean;
+  created_at: string;
+  joined_at: string | null;
+  removed_at: string | null;
+  carried_ms: number | null;
+  carried_restored_at: string | null;
+};
+
+export const ROLE_LABEL: Record<StaffRole, string> = {
+  admin: "Hospital admin",
+  doctor: "Doctor",
+  dietitian: "Dietitian",
+};
+
+/** No 0/O or 1/I/L, so a code read off a poster is typed right the first time. */
+const CODE_ALPHABET = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
+
+export function newCode(len = 6): string {
+  const bytes = randomBytes(len);
+  let s = "";
+  for (let i = 0; i < len; i++) s += CODE_ALPHABET[bytes[i] % CODE_ALPHABET.length];
+  return s;
+}
+
+export function newToken(): string {
+  return randomBytes(18).toString("base64url");
+}
+
+/** `wa.me` wants 2348132097317, not 08132097317. */
+export function whatsappNumber(phone: string | null | undefined): string | null {
+  const local = normalizePhone(phone);
+  if (!local) return null;
+  if (local.startsWith("0") && local.length === 11) return "234" + local.slice(1);
+  return local;
+}
+
+/** The signed-in user from the session cookie, or null. */
+export async function sessionUser(): Promise<{ id: string; email: string | null } | null> {
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase.auth.getUser();
+    return data.user ? { id: data.user.id, email: data.user.email ?? null } : null;
+  } catch {
+    return null;
+  }
+}
+
+/** True when the hospital tables exist (the SQL has been pasted in). */
+export async function hospitalsReady(admin: SupabaseClient): Promise<boolean> {
+  const { error } = await admin.from("hospitals").select("id").limit(1);
+  return !error;
+}
+
+export type StaffContext = {
+  user: { id: string; email: string | null };
+  admin: SupabaseClient;
+  staff: StaffRow;
+  hospital: HospitalRow;
+  /** Every hospital this person works for, for the switcher. */
+  all: { hospital: HospitalRow; staff: StaffRow }[];
+};
+
+/**
+ * Who is this staff member, and which hospital are they looking at? `hid` picks
+ * one when somebody works for more than one; otherwise the first. Null when the
+ * person is not signed in or is nobody's staff.
+ */
+export async function staffContext(hid?: string | null): Promise<StaffContext | null> {
+  const user = await sessionUser();
+  if (!user) return null;
+  const admin = createAdminClient();
+  const { data: rows, error } = await admin
+    .from("hospital_staff")
+    .select("hospital_id,user_id,role,name,phone,created_at,hospitals(*)")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: true });
+  if (error || !rows || rows.length === 0) return null;
+  const all = rows
+    .map((r) => {
+      const h = (r as unknown as { hospitals: HospitalRow | null }).hospitals;
+      const { hospitals: _drop, ...staff } = r as unknown as StaffRow & { hospitals: unknown };
+      void _drop;
+      return h ? { hospital: h, staff: staff as StaffRow } : null;
+    })
+    .filter((x): x is { hospital: HospitalRow; staff: StaffRow } => !!x)
+    // A declined request never had staff; an ended hospital stays readable so
+    // its people can still see their records and the "renew" note.
+    .filter((x) => x.hospital.status !== "declined" && x.hospital.status !== "requested");
+  if (all.length === 0) return null;
+  const pick = all.find((x) => x.hospital.id === hid) ?? all[0];
+  return { user, admin, staff: pick.staff, hospital: pick.hospital, all };
+}
+
+/** Patients using a place right now. Waiting and invited do not. */
+export async function seatsUsed(admin: SupabaseClient, hospitalId: string): Promise<number> {
+  const { count } = await admin
+    .from("hospital_patients")
+    .select("id", { count: "exact", head: true })
+    .eq("hospital_id", hospitalId)
+    .eq("status", "active");
+  return count ?? 0;
+}
+
+/**
+ * Who the patient's "Chat" button reaches (founder, 2026-10-12): the person the
+ * hospital admin picked, else the hospital's first dietitian, else its first
+ * doctor. Only someone with a phone number can be chatted with.
+ */
+export async function chatContact(
+  admin: SupabaseClient,
+  hospital: Pick<HospitalRow, "id" | "chat_user_id">,
+): Promise<{ name: string; role: StaffRole; whatsapp: string } | null> {
+  const { data } = await admin
+    .from("hospital_staff")
+    .select("user_id,role,name,phone,created_at")
+    .eq("hospital_id", hospital.id)
+    .order("created_at", { ascending: true });
+  const staff = ((data ?? []) as StaffRow[]).filter((s) => whatsappNumber(s.phone));
+  const pick =
+    staff.find((s) => s.user_id === hospital.chat_user_id) ??
+    staff.find((s) => s.role === "dietitian") ??
+    staff.find((s) => s.role === "doctor");
+  if (!pick) return null;
+  return { name: pick.name, role: pick.role, whatsapp: whatsappNumber(pick.phone)! };
+}
+
+/**
+ * Give back the paid personal days a patient brought with them, once they are
+ * no longer covered by the hospital (removed, or the hospital's access ended).
+ *
+ * When a paying member joins a hospital, the days left on their own plan are
+ * written to `carried_ms`. Their own plan keeps its end date while the hospital
+ * covers them, so on the way out their end becomes the later of what it is and
+ * "now + the days they brought". `carried_restored_at` makes it happen once.
+ */
+export async function restoreCarried(admin: SupabaseClient, row: Pick<PatientRow, "id" | "user_id" | "carried_ms" | "carried_restored_at">): Promise<void> {
+  if (!row.user_id || !row.carried_ms || row.carried_ms <= 0 || row.carried_restored_at) return;
+  // Claim it first, so two calls at once cannot both give the days.
+  const { data: claimed } = await admin
+    .from("hospital_patients")
+    .update({ carried_restored_at: new Date().toISOString() })
+    .eq("id", row.id)
+    .is("carried_restored_at", null)
+    .select("id");
+  if (!claimed || claimed.length === 0) return;
+  const { data: sub } = await admin
+    .from("subscriptions")
+    .select("current_period_end")
+    .eq("user_id", row.user_id)
+    .maybeSingle();
+  if (!sub) return;
+  const target = Date.now() + row.carried_ms;
+  const current = sub.current_period_end ? new Date(sub.current_period_end as string).getTime() : 0;
+  if (target <= current) return;
+  await admin
+    .from("subscriptions")
+    .update({ current_period_end: new Date(target).toISOString(), status: "active", updated_at: new Date().toISOString() })
+    .eq("user_id", row.user_id);
+}
+
+/** Days left on a person's own paid plan right now, in ms (0 when none). */
+export async function ownPaidMsLeft(admin: SupabaseClient, uid: string): Promise<number> {
+  const { data: sub } = await admin
+    .from("subscriptions")
+    .select("status,current_period_end")
+    .eq("user_id", uid)
+    .maybeSingle();
+  if (!sub || !(sub.status === "active" || sub.status === "non-renewing") || !sub.current_period_end) return 0;
+  return Math.max(0, new Date(sub.current_period_end as string).getTime() - Date.now());
+}
+
+/**
+ * What the patient app needs to know about a person's hospital: covered or not,
+ * by whom, until when, and who their Chat button reaches. Also returns the
+ * hospitals they are staff at, so login can send a doctor to their dashboard.
+ */
+export async function hospitalStatusFor(admin: SupabaseClient, uid: string): Promise<{
+  patient: null | {
+    hospitalName: string;
+    until: string;
+    status: "active" | "waiting";
+    chat: { name: string; role: StaffRole; whatsapp: string } | null;
+  };
+  staff: { id: string; name: string; role: StaffRole }[];
+}> {
+  const out: Awaited<ReturnType<typeof hospitalStatusFor>> = { patient: null, staff: [] };
+  const [{ data: pats, error }, { data: staff }] = await Promise.all([
+    admin
+      .from("hospital_patients")
+      .select("id,user_id,status,carried_ms,carried_restored_at,joined_at,hospitals(id,name,status,access_until,chat_user_id)")
+      .eq("user_id", uid),
+    admin.from("hospital_staff").select("role,hospitals(id,name,status)").eq("user_id", uid),
+  ]);
+  if (error) return out;
+
+  for (const s of (staff ?? []) as unknown as { role: StaffRole; hospitals: { id: string; name: string; status: string } | null }[]) {
+    if (s.hospitals && (s.hospitals.status === "pilot" || s.hospitals.status === "active" || s.hospitals.status === "ended"))
+      out.staff.push({ id: s.hospitals.id, name: s.hospitals.name, role: s.role });
+  }
+
+  type Joined = PatientRow & { hospitals: Pick<HospitalRow, "id" | "name" | "status" | "access_until" | "chat_user_id"> | null };
+  const rows = (pats ?? []) as unknown as Joined[];
+  for (const r of rows) {
+    const h = r.hospitals;
+    const covered = r.status === "active" && h && hospitalLive(h);
+    if (!covered) await restoreCarried(admin, r);
+  }
+  const live = rows
+    .filter((r) => r.hospitals && hospitalLive(r.hospitals) && (r.status === "active" || r.status === "waiting"))
+    // Covered first, then the newest.
+    .sort((a, b) => (a.status === b.status ? (b.joined_at ?? "").localeCompare(a.joined_at ?? "") : a.status === "active" ? -1 : 1));
+  const pick = live[0];
+  if (pick && pick.hospitals) {
+    out.patient = {
+      hospitalName: pick.hospitals.name,
+      until: pick.hospitals.access_until as string,
+      status: pick.status as "active" | "waiting",
+      chat: pick.status === "active" ? await chatContact(admin, pick.hospitals) : null,
+    };
+  }
+  return out;
+}

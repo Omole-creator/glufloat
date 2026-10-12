@@ -61,12 +61,36 @@ const DOT = {
  */
 type ReportView = "tests" | "meals" | "sugar";
 
+/**
+ * Read-only "doctor view" of somebody else's report (GluFloat for hospitals,
+ * 2026-10-12). The hospital's doctors and dietitians open THIS component, fed
+ * by /api/hospital/patients/[id]/report, so they see the patient's own report
+ * exactly as the patient does. Nothing can be deleted or added from here.
+ */
+export type ReportViewer = {
+  name: string;
+  /** "1 to 12 October 2026" */
+  period: string;
+  /** "October 2026" */
+  monthLabel: string;
+  /** Changes when the month on screen changes, so the data is read again. */
+  key: string;
+  load: () => Promise<{
+    items: CheckedMeal[];
+    loose: Reading[];
+    hba1c: Hba1c | null;
+    weightLine: string | null;
+  }>;
+};
+
 export default function MonthReport({
   open,
   onToggle,
+  viewer,
 }: {
   open: boolean;
   onToggle: () => void;
+  viewer?: ReportViewer;
 }) {
   const [items, setItems] = useState<CheckedMeal[] | null>(null);
   const [loose, setLoose] = useState<Reading[]>([]);
@@ -87,10 +111,14 @@ export default function MonthReport({
   // to their own doctor, who needs to know whose numbers these are.
   const [patient, setPatient] = useState<string | null>(null);
   useEffect(() => {
+    if (viewer) {
+      setPatient(viewer.name);
+      return;
+    }
     void accessOnce()
       .then((a) => setPatient(a.name))
       .catch(() => setPatient(null));
-  }, []);
+  }, [viewer?.name]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /**
    * Re-read whenever the record changes, not only on mount.
@@ -105,6 +133,20 @@ export default function MonthReport({
    * saveReading and deleteReading.
    */
   useEffect(() => {
+    if (viewer) {
+      let alive = true;
+      setItems(null);
+      void viewer.load().then((d) => {
+        if (!alive) return;
+        setItems(d.items);
+        setLoose(d.loose);
+        setHba1c(d.hba1c);
+        setWeightLine(d.weightLine);
+      });
+      return () => {
+        alive = false;
+      };
+    }
     const load = () => {
       void monthChecks().then(setItems);
       void looseMonthReadings().then(setLoose);
@@ -118,7 +160,7 @@ export default function MonthReport({
       window.removeEventListener(READINGS_CHANGED, load);
       window.removeEventListener(INTAKE_CHANGED, load);
     };
-  }, []);
+  }, [viewer?.key]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // The card ALWAYS shows (so people can always find it); an empty state stands
   // in until they have logged a meal.
@@ -133,7 +175,8 @@ export default function MonthReport({
   // The dietitian's Meal–Glucose Report: one builder for screen, PDF and text.
   const report = mealTestReport(list);
   const points = trendPoints(list, loose);
-  const period = periodLabel();
+  const period = viewer?.period ?? periodLabel();
+  const readOnly = !!viewer;
   const tally = (items: CheckedMeal[]) => ({
     total: items.length,
     green: items.filter((i) => i.verdict === "green").length,
@@ -173,7 +216,7 @@ export default function MonthReport({
   };
 
   /** One bin, used on an attached reading and on a loose one. */
-  const ReadingBin = ({ r }: { r: Reading }) => (
+  const ReadingBin = ({ r }: { r: Reading }) => readOnly ? null : (
     <button
       onClick={() => setPending({ title: "Delete this sugar test?", run: () => removeReading(r.id) })}
       // Named by its own value and moment, so no two bins on the page share an
@@ -186,7 +229,9 @@ export default function MonthReport({
     </button>
   );
 
-  const fileName = `glufloat-food-record-${new Date().toISOString().slice(0, 10)}.pdf`;
+  const fileName = viewer
+    ? `glufloat-report-${viewer.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${new Date().toISOString().slice(0, 10)}.pdf`
+    : `glufloat-food-record-${new Date().toISOString().slice(0, 10)}.pdf`;
 
   // Build the branded PDF. Returns the jsPDF doc so it can be shared or saved.
   const buildDoc = () => {
@@ -589,7 +634,7 @@ export default function MonthReport({
   const sendToDoctor = async () => {
     if (busy) return;
     setBusy(true);
-    void trackUsage("doctor_report");
+    if (!readOnly) void trackUsage("doctor_report");
     try {
       const doc = buildDoc();
       const blob = doc.output("blob");
@@ -602,8 +647,8 @@ export default function MonthReport({
       if (nav.canShare?.(payload) && nav.share) {
         await nav.share({
           files: [file],
-          title: "My Glufloat food record",
-          text: "My food this month, from Glufloat.",
+          title: readOnly ? `${patient ?? "Patient"}: GluFloat report` : "My Glufloat food record",
+          text: readOnly ? `${patient ?? "Patient"}'s food and sugar tests, from GluFloat.` : "My food this month, from Glufloat.",
         } as ShareData);
         return;
       }
@@ -636,7 +681,7 @@ export default function MonthReport({
     }
   };
 
-  const monthName = new Date().toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+  const monthName = viewer?.monthLabel ?? new Date().toLocaleDateString("en-GB", { month: "long", year: "numeric" });
   const allTests = points.length;
   const view: ReportView = tab ?? (report.rows.length > 0 ? "tests" : "meals");
 
@@ -663,7 +708,7 @@ export default function MonthReport({
     // Its own clean card. It used to sit inside a collapsible card, which made
     // no sense once the report got a tab of its own: there was nothing to fold.
     <section
-      aria-label="Your report"
+      aria-label={readOnly ? "Report" : "Your report"}
       className="rounded-3xl bg-white p-5 shadow-[0_4px_24px_-12px_rgba(12,42,71,0.22)] ring-1 ring-ink/[0.04] sm:p-6"
     >
       <div className="flex items-start gap-3">
@@ -671,22 +716,30 @@ export default function MonthReport({
           <ClipboardList className="h-5 w-5" strokeWidth={2.2} />
         </span>
         <div className="min-w-0">
-          <h2 className="font-display text-lg font-bold leading-tight text-ink">Your report for {monthName}</h2>
+          <h2 className="font-display text-lg font-bold leading-tight text-ink">
+            {readOnly ? `Report for ${monthName}` : `Your report for ${monthName}`}
+          </h2>
           <p className="mt-0.5 text-sm text-ink-soft">
-            {hasData
-              ? "Your meals and sugar tests, ready for your doctor."
-              : "Your meals and sugar tests will show up here."}
+            {readOnly
+              ? items === null
+                ? "Loading..."
+                : "Meals and sugar tests saved in GluFloat."
+              : hasData
+                ? "Your meals and sugar tests, ready for your doctor."
+                : "Your meals and sugar tests will show up here."}
           </p>
         </div>
       </div>
 
       {!hasData ? (
         <div className="mt-5 rounded-2xl bg-mist/70 px-4 py-8 text-center">
-          <p className="font-display text-base font-bold text-ink">Nothing saved yet</p>
-          <p className="mx-auto mt-1.5 max-w-xs text-sm leading-relaxed text-ink-soft">
-            When you eat, open a food or your plate and tap{" "}
-            <span className="font-semibold text-leaf-deep">&ldquo;I ate this&rdquo;</span>. It will show up here.
-          </p>
+          <p className="font-display text-base font-bold text-ink">{readOnly ? (items === null ? "Loading..." : "Nothing saved this month") : "Nothing saved yet"}</p>
+          {!readOnly && (
+            <p className="mx-auto mt-1.5 max-w-xs text-sm leading-relaxed text-ink-soft">
+              When you eat, open a food or your plate and tap{" "}
+              <span className="font-semibold text-leaf-deep">&ldquo;I ate this&rdquo;</span>. It will show up here.
+            </p>
+          )}
         </div>
       ) : (
         <>
@@ -698,11 +751,11 @@ export default function MonthReport({
               className="flex items-center justify-center gap-2 rounded-full bg-[#25D366] px-5 py-3 text-sm font-bold text-white shadow-[0_8px_20px_-8px_rgba(37,211,102,0.8)] transition-transform hover:-translate-y-0.5 disabled:opacity-60"
             >
               <WhatsAppIcon />
-              {busy ? "Getting it ready..." : "Send to my doctor on WhatsApp"}
+              {busy ? "Getting it ready..." : readOnly ? "Send on WhatsApp" : "Send to my doctor on WhatsApp"}
             </button>
             <button
               onClick={() => {
-                void trackUsage("doctor_report");
+                if (!readOnly) void trackUsage("doctor_report");
                 buildDoc().save(fileName);
               }}
               className="flex items-center justify-center gap-2 rounded-full border-2 border-line bg-white px-5 py-3 text-sm font-bold text-ink transition-colors hover:border-brand"
@@ -842,13 +895,13 @@ export default function MonthReport({
                                 <div className="flex items-center gap-2.5">
                                   <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${DOT[i.verdict]}`} />
                                   <span className="min-w-0 flex-1 truncate text-sm text-ink">{displayLabel(i.label)}</span>
-                                  <button
+                                  {!readOnly && <button
                                     onClick={() => setPending({ title: "Delete this meal?", run: () => remove(i.id) })}
                                     aria-label={`Remove ${i.label}`}
                                     className="shrink-0 rounded-full p-1 text-ink-soft/50 transition-colors hover:bg-verdict-red/10 hover:text-verdict-red"
                                   >
                                     <Trash2 className="h-4 w-4" />
-                                  </button>
+                                  </button>}
                                 </div>
                                 {i.beforeReadings.map((r) => (
                                   <p key={r.id} className="ml-5 mt-0.5 flex items-center gap-1.5 text-xs font-semibold text-brand">
@@ -870,7 +923,7 @@ export default function MonthReport({
                                     </p>
                                   );
                                 })}
-                                {i.readings.length === 0 && (
+                                {i.readings.length === 0 && !readOnly && (
                                   <button
                                     onClick={() => askForReading({ id: i.id, label: i.label, checkedAt: i.checkedAt })}
                                     // One per meal, so the name says WHICH meal: two
@@ -913,7 +966,7 @@ export default function MonthReport({
                       <p className="text-xs font-semibold text-ink-soft">3-month sugar test (HbA1c)</p>
                       <p className="text-sm font-bold text-ink">{formatHba1c(hba1c)}</p>
                     </div>
-                    <button
+                    {!readOnly && <button
                       onClick={() =>
                         setPending({
                           title: "Delete this 3-month sugar test?",
@@ -927,7 +980,7 @@ export default function MonthReport({
                       className="shrink-0 rounded-full p-1 text-ink-soft/50 transition-colors hover:bg-verdict-red/10 hover:text-verdict-red"
                     >
                       <Trash2 className="h-4 w-4" />
-                    </button>
+                    </button>}
                   </div>
                 )}
 

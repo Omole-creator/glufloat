@@ -36,6 +36,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: abs("/"), lastModified: new Date(), changeFrequency: "weekly", priority: 1 },
     { url: abs("/blog"), lastModified: new Date(), changeFrequency: "daily", priority: 0.9 },
     { url: abs("/about"), lastModified: new Date(), changeFrequency: "monthly", priority: 0.6 },
+    // A real date, not new Date(): the day the hospitals page last changed.
+    { url: abs("/hospitals"), lastModified: new Date("2026-10-12"), changeFrequency: "monthly", priority: 0.7 },
     { url: abs("/disclaimer"), lastModified: LEGAL_UPDATED.disclaimer, changeFrequency: "yearly", priority: 0.2 },
     { url: abs("/terms"), lastModified: LEGAL_UPDATED.terms, changeFrequency: "yearly", priority: 0.2 },
     { url: abs("/privacy"), lastModified: LEGAL_UPDATED.privacy, changeFrequency: "yearly", priority: 0.2 },

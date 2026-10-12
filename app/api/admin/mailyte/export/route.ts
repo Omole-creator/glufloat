@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { isAdmin } from "@/lib/adminSession";
 import { createAdminClient } from "@/lib/supabase/server";
 import { isInternalEmail } from "@/lib/internalAccounts";
+import { isPhoneLoginEmail } from "@/lib/phoneLogin";
 import { isUserType, typeLabel } from "@/lib/userType";
 import { firstName } from "@/lib/mailyte";
 
@@ -24,7 +25,7 @@ export async function GET(request: Request) {
   const lines = [["Name", "First name", "Email", "Who"].map(cell).join(",")];
   for (const p of data ?? []) {
     const email = p.email as string | null;
-    if (!email || isInternalEmail(email)) continue;
+    if (!email || isInternalEmail(email) || isPhoneLoginEmail(email)) continue;
     const t = p.user_type as string | null;
     const key = t && isUserType(t) ? t : "unset";
     if (group !== "all" && key !== group) continue;
