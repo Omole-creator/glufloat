@@ -18,12 +18,13 @@ import {
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { nairaText, PRACTICE_PLANS, PRACTICE_TRIAL_DAYS, PRACTICE_TRIAL_SEATS } from "@/lib/hospitalPlans";
+import { PRACTICE_TRIAL_DAYS, PRACTICE_TRIAL_SEATS } from "@/lib/hospitalPlans";
+import PracticePricing from "@/components/dietitian/PracticePricing";
 
 export const metadata: Metadata = {
   title: "GluFloat for Dietitians | Support Your Diabetes Patients Between Visits",
   description:
-    "Give your patients GluFloat Premium and see every meal and sugar test they save, from your own dashboard. You set your own price. 14 free days for 5 patients.",
+    "Give your patients GluFloat Premium and see every meal and sugar test they save, from your own dashboard. 14 free days for 5 patients.",
   alternates: { canonical: "/dietitians" },
 };
 
@@ -119,8 +120,8 @@ export default function DietitiansPage() {
     },
     {
       icon: Wallet,
-      title: "You set your own price",
-      text: "Charge your patients what you like, for a programme, a package or every month. GluFloat charges you one plan price.",
+      title: "Run it your way",
+      text: "Add GluFloat to the care you already give, in the way that suits your practice. GluFloat charges you one plan price.",
     },
     {
       icon: Stethoscope,
@@ -145,12 +146,10 @@ export default function DietitiansPage() {
     { icon: QrCode, text: "Your own QR code and invite links" },
     { icon: ShieldCheck, text: "Only you see your patients' records" },
   ];
-  const example = PRACTICE_PLANS[1];
-  const exampleCharge = 5_000;
   const faqs = [
     {
       q: "Who pays GluFloat?",
-      a: "You do, one plan price a month. Your patients do not pay GluFloat anything while you cover them. What you charge your patients is up to you, and GluFloat never sees it.",
+      a: "You do, one plan price a month or a year. Your patients do not pay GluFloat anything while you cover them.",
     },
     {
       q: `What happens after the ${PRACTICE_TRIAL_DAYS} free days?`,
@@ -178,7 +177,7 @@ export default function DietitiansPage() {
     },
     {
       q: "I have more than 20 patients.",
-      a: "Then a hospital plan fits you better. See GluFloat for hospitals, or message us on WhatsApp.",
+      a: "Ask us for a custom plan on WhatsApp. Tell us how many patients you have, and we will send you a price. You pay by bank transfer.",
     },
   ];
 
@@ -303,67 +302,18 @@ export default function DietitiansPage() {
             <Label>Plans</Label>
             <h2 className={H2}>Pick The Number Of Patients</h2>
             <p className={LEAD}>
-              Every plan includes everything. Start with {PRACTICE_TRIAL_DAYS} free days for {PRACTICE_TRIAL_SEATS} patients.
+              Every plan includes everything. Start with {PRACTICE_TRIAL_DAYS} free days for {PRACTICE_TRIAL_SEATS} patients. Pay for a year and get 2 months free.
             </p>
           </div>
-          <div className="mx-auto mt-12 grid max-w-5xl gap-5 md:grid-cols-3">
-            {PRACTICE_PLANS.map((p, i) => (
-              <div
-                key={p.id}
-                className={`relative flex flex-col rounded-[28px] p-7 ring-1 ${
-                  i === 1 ? "bg-gradient-to-br from-[#0B2E5C] to-brand text-white ring-white/20" : "bg-[#F4F7FB] text-ink ring-ink/[0.05]"
-                }`}
-              >
-                <p className="font-display text-xl font-bold">{p.name}</p>
-                <p className="mt-4 font-display text-4xl font-bold">{nairaText(p.monthly)}</p>
-                <p className={`mt-1 text-sm ${i === 1 ? "text-white/75" : "text-ink-soft"}`}>a month</p>
-                <p className={`mt-4 text-sm ${i === 1 ? "text-white/85" : "text-ink-soft"}`}>
-                  {nairaText(p.monthly / p.seats)} a patient. Each patient gets GluFloat Premium.
-                </p>
-                <Link
-                  href={START}
-                  className={`mt-6 inline-flex h-12 items-center justify-center rounded-full px-5 text-sm font-bold ${
-                    i === 1 ? "bg-leaf text-white hover:bg-leaf-deep" : "bg-brand text-white hover:bg-brand-deep"
-                  }`}
-                >
-                  Start {PRACTICE_TRIAL_DAYS} free days
-                </Link>
-              </div>
-            ))}
-          </div>
+          <PracticePricing />
           <p className="mx-auto mt-8 max-w-2xl text-center text-sm text-ink-soft">
-            Pay by card, bank transfer or USSD. Each payment adds one month. More than 20 patients?{" "}
-            <Link href="/hospitals" className="font-semibold text-brand hover:underline">
-              See the hospital plans
-            </Link>
+            Pay by card, bank transfer or USSD. More than 20 patients?{" "}
+            <a href="https://wa.me/2348132097317?text=Hello%20GluFloat%2C%20I%20am%20a%20dietitian%20with%20more%20than%2020%20patients.%20I%20would%20like%20a%20custom%20plan." target="_blank" rel="noopener noreferrer" className="font-semibold text-brand hover:underline">
+              Ask us for a custom plan
+            </a>
             .
           </p>
 
-          {/* What it can mean for her. An example, clearly marked: she sets the price. */}
-          <div className="mx-auto mt-12 max-w-3xl rounded-[28px] bg-[#F4F7FB] p-6 ring-1 ring-ink/[0.05] sm:p-8">
-            <p className="text-xs font-bold uppercase tracking-[0.14em] text-brand">Example only. You choose your price.</p>
-            <p className="mt-2 font-display text-xl font-bold text-ink">
-              If you charge {nairaText(exampleCharge)} a month for your GluFloat programme
-            </p>
-            <dl className="mt-5 space-y-2.5 text-base">
-              <div className="flex justify-between gap-4">
-                <dt className="text-ink-soft">{example.seats} patients pay you</dt>
-                <dd className="font-semibold text-ink">{nairaText(example.seats * exampleCharge)}</dd>
-              </div>
-              <div className="flex justify-between gap-4">
-                <dt className="text-ink-soft">You pay GluFloat ({example.name})</dt>
-                <dd className="font-semibold text-ink">{nairaText(example.monthly)}</dd>
-              </div>
-              <div className="flex justify-between gap-4 border-t border-line pt-2.5">
-                <dt className="font-bold text-ink">You keep</dt>
-                <dd className="font-display text-xl font-bold text-leaf-deep">{nairaText(example.seats * exampleCharge - example.monthly)}</dd>
-              </div>
-            </dl>
-            <p className="mt-4 text-sm text-ink-soft">
-              You can also put GluFloat into a bigger package, like a 30-day food programme with a first visit and a follow-up
-              visit.
-            </p>
-          </div>
         </section>
 
         {/* FAQ */}

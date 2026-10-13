@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { BadgeCheck, Lock, Mail, MapPin, Phone, UserRound } from "lucide-react";
+import { BadgeCheck, Lock, Mail, Phone, UserRound } from "lucide-react";
 import { Field, FormError, SubmitButton } from "@/components/auth/Field";
 import { createClient } from "@/lib/supabase/client";
 import { currentUser } from "@/lib/authUser";
@@ -20,7 +20,6 @@ export default function StartForm() {
   const [name, setName] = useState("");
   const [dcn, setDcn] = useState("");
   const [phone, setPhone] = useState("");
-  const [place, setPlace] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [website, setWebsite] = useState("");
@@ -39,7 +38,7 @@ export default function StartForm() {
     const res = await fetch("/api/practice/start", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, dcn, phone, place, website, ...(useSession ? { useSession: true } : { email, password }) }),
+      body: JSON.stringify({ name, dcn, phone, website, ...(useSession ? { useSession: true } : { email, password }) }),
     });
     const j = await res.json().catch(() => ({}));
     if (!res.ok) {
@@ -71,7 +70,7 @@ export default function StartForm() {
         onChange={(e) => setName(e.target.value)}
         required
         autoComplete="name"
-        hint="For example: Dtn Favour Chiamaka. Your patients see this name."
+        hint="For example: Dtn. Mary Adeleke. Your patients see this name."
       />
       <Field
         label="Your DCN registration number"
@@ -94,7 +93,6 @@ export default function StartForm() {
         autoComplete="tel"
         hint="Your patients chat with you on it."
       />
-      <Field label="Town or state (optional)" icon={MapPin} value={place} onChange={(e) => setPlace(e.target.value)} autoComplete="address-level2" />
       {/* A box people never see. A bot fills every box it finds. */}
       <input
         type="text"

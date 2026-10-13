@@ -9,6 +9,8 @@ import {
   orgWords,
   planName,
   practicePlanForAmount,
+  practiceMonthsForAmount,
+  practiceYearly,
   waitingForFirstPatient,
   addMonths,
   annualPrice,
@@ -94,6 +96,14 @@ check("switched-off dietitian takes nobody", !acceptsPatients({ kind: "dietitian
 check("started dietitian is live", acceptsPatients({ kind: "dietitian", status: "pilot", access_until: "2026-11-01T00:00:00Z" }, now.getTime()) && !waitingForFirstPatient({ kind: "dietitian", status: "pilot", access_until: "2026-11-01T00:00:00Z" }));
 check("words: dietitian", orgWords(fresh).yours === "your dietitian" && orgWords({ kind: "hospital" }).yours === "your hospital");
 check("words: old row is a hospital", orgWords({}).yours === "your hospital");
+check("yearly is 12 for 10: 120,000 / 220,000 / 400,000", PRACTICE_PLANS.map(practiceYearly).join() === "120000,220000,400000");
+check("yearly amount finds the plan and buys 12 months", practicePlanForAmount(22_000_000)?.id === "diet10" && practiceMonthsForAmount(22_000_000) === 12);
+check("monthly amount buys 1 month", practiceMonthsForAmount(2_200_000) === 1);
+check(
+  "no yearly dietitian plan is cheaper per patient than a hospital yearly plan",
+  PRACTICE_PLANS.every((d) => HOSPITAL_PLANS.every((h) => practiceYearly(d) / d.seats >= annualPrice(h) / h.seats)),
+);
+check("no patient amount is a yearly dietitian amount", patientAmounts.every((a) => practiceMonthsForAmount(a) === 1));
 
 console.log(fails ? `\n${fails} FAILED` : "\nall passed");
 process.exit(fails ? 1 : 0);

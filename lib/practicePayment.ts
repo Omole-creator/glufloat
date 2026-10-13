@@ -18,7 +18,7 @@
  * pays early (lib/hospitalPlans.ts extendAccess).
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { extendAccess, practicePlanForAmount } from "@/lib/hospitalPlans";
+import { extendAccess, practiceMonthsForAmount, practicePlanForAmount } from "@/lib/hospitalPlans";
 
 export type PracticeGrantResult = "granted" | "already" | "conflict" | "no_practice" | "not_practice_amount";
 
@@ -65,14 +65,16 @@ export async function grantPracticePayment(
   // Kept with no practice, so GluFloat can see a payment that found nobody.
   if (!practice) return "no_practice";
 
-  const until = extendAccess(practice.access_until, 1);
+  // 1 month, or 12 for a yearly amount (12 months for the price of 10).
+  const months = practiceMonthsForAmount(p.amount);
+  const until = extendAccess(practice.access_until, months);
   await admin
     .from("hospitals")
     .update({
       plan: plan.id,
       seats: plan.seats,
       status: "active",
-      billing: "monthly",
+      billing: months === 12 ? "annual" : "monthly",
       access_until: until.toISOString(),
       updated_at: new Date().toISOString(),
     })
@@ -84,7 +86,7 @@ export async function grantPracticePayment(
     amount: p.amount,
     kind: "other_revenue",
     source: `Dietitian: ${practice.name}`,
-    note: `${plan.name}, 1 month, Paystack ${p.reference}`,
+    note: `${plan.name}, ${months === 12 ? "12 months" : "1 month"}, Paystack ${p.reference}`,
   });
 
   return "granted";

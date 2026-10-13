@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Check, ChevronDown, Hospital, Lock, Mail, Phone, UserRound } from "lucide-react";
+import { Check, ChevronDown, Hospital, Lock, Mail, Phone, Stethoscope, UserRound } from "lucide-react";
 import AuthShell from "@/components/auth/AuthShell";
 import { Field, FormError, SubmitButton } from "@/components/auth/Field";
 import { createClient } from "@/lib/supabase/client";
@@ -33,7 +33,7 @@ export default function SignUpPage() {
   // account" covers someone with diabetes, a family member AND a health worker
   // signing up alone (founder caught that "me or my family" left them out). The hospital
   // door is a choice at the very top, not a small link under the form.
-  const [path, setPath] = useState<"me" | "hospital">("me");
+  const [path, setPath] = useState<"me" | "hospital" | "dietitian">("me");
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,17 +94,20 @@ export default function SignUpPage() {
 
   return (
     <AuthShell
-      title={path === "me" ? "Start your free trial" : "GluFloat for your hospital"}
+      title={path === "me" ? "Start your free trial" : path === "hospital" ? "GluFloat for your hospital" : "GluFloat for dietitians"}
       subtitle={
         path === "me"
           ? "Make a quick account so your 7 days, and your food, stay yours on any phone. No card needed."
-          : "Give your diabetes patients GluFloat, and see their meals and sugar tests from one place."
+          : path === "hospital"
+            ? "Give your diabetes patients GluFloat, and see their meals and sugar tests from one place."
+            : "Support your patients between visits, and see their meals and sugar tests from your own dashboard."
       }
     >
-      <div role="tablist" aria-label="Who is this account for?" className="mb-6 grid grid-cols-2 gap-1 rounded-2xl bg-mist p-1">
+      <div role="tablist" aria-label="Who is this account for?" className="mb-6 grid grid-cols-3 gap-1 rounded-2xl bg-mist p-1">
         {[
           { id: "me" as const, label: "Personal account", icon: UserRound },
           { id: "hospital" as const, label: "Hospital or clinic", icon: Hospital },
+          { id: "dietitian" as const, label: "Dietitian", icon: Stethoscope },
         ].map((t) => (
           <button
             key={t.id}
@@ -122,7 +125,33 @@ export default function SignUpPage() {
         ))}
       </div>
 
-      {path === "hospital" ? (
+      {path === "dietitian" ? (
+        <div className="space-y-4">
+          <ul className="space-y-2.5 text-[15px] text-ink">
+            {[
+              "Your patients get everything in GluFloat Premium",
+              "You see their meals and sugar tests",
+              "Free for 14 days, for 5 patients",
+            ].map((t) => (
+              <li key={t} className="flex items-start gap-2.5">
+                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-leaf text-white">
+                  <Check className="h-3 w-3" strokeWidth={3} />
+                </span>
+                {t}
+              </li>
+            ))}
+          </ul>
+          <Link
+            href="/dietitians/start"
+            className="flex h-14 w-full items-center justify-center rounded-full bg-leaf text-base font-bold text-white shadow-[0_14px_30px_-14px_rgba(62,155,79,0.9)] transition-transform hover:-translate-y-0.5"
+          >
+            Start my 14 free days
+          </Link>
+          <Link href="/dietitians" className="block text-center text-sm font-semibold text-brand hover:underline">
+            See plans and prices
+          </Link>
+        </div>
+      ) : path === "hospital" ? (
         <div className="space-y-4">
           <ul className="space-y-2.5 text-[15px] text-ink">
             {[

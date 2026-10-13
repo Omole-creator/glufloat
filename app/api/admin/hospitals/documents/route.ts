@@ -151,7 +151,7 @@ export async function PATCH(request: Request) {
       received_on: paidOn,
       amount: doc.amount,
       kind: "other_revenue",
-      source: `Hospital: ${h.name}`,
+      source: `${h.kind === "dietitian" ? "Dietitian" : "Hospital"}: ${h.name}`,
       note: `${doc.number}, ${planName(doc.plan as string)}, ${doc.billing === "annual" ? "12 months" : "1 month"}`,
     });
     return NextResponse.json({ ok: true, until: until.toISOString(), financeSaved: !fErr });

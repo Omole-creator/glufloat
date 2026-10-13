@@ -2,7 +2,7 @@
 
 import { jsPDF } from "jspdf";
 import QRCode from "qrcode";
-import { ANNUAL_MONTHS_PAID, planName } from "@/lib/hospitalPlans";
+import { ANNUAL_MONTHS_PAID, planName, practicePlanName } from "@/lib/hospitalPlans";
 import type { InvoiceSettings } from "@/lib/invoiceSettings";
 import { SITE_URL } from "@/lib/site";
 
@@ -24,6 +24,8 @@ const LEAF: [number, number, number] = [62, 155, 79];
 
 export type HospitalForPdf = {
   name: string;
+  /** 'dietitian' for a dietitian's practice: the invoice then says so. */
+  kind?: string | null;
   code: string;
   contact_name: string | null;
   contact_phone: string | null;
@@ -107,7 +109,7 @@ export async function buildDocumentPdf(
   pdf.text("GluFloat", M + 21, 17);
   pdf.setFont("helvetica", "normal");
   pdf.setFontSize(9.5);
-  pdf.text("GluFloat for hospitals", M + 21, 23);
+  pdf.text(hospital.kind === "dietitian" ? "GluFloat for dietitians" : "GluFloat for hospitals", M + 21, 23);
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(20);
   pdf.text(isInvoice ? "INVOICE" : "QUOTE", W - M, 18, { align: "right" });
@@ -163,7 +165,7 @@ export async function buildDocumentPdf(
   y += 16;
   pdf.setTextColor(...INK);
   pdf.setFontSize(11);
-  pdf.text(`GluFloat ${planName(doc.plan)}`, M + 3, y);
+  pdf.text(`GluFloat ${hospital.kind === "dietitian" ? practicePlanName(doc.plan) : planName(doc.plan)}`, M + 3, y);
   pdf.text(ngn(subtotal), W - M - 3, y, { align: "right" });
   pdf.setFont("helvetica", "normal");
   pdf.setFontSize(9);

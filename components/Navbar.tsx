@@ -255,7 +255,8 @@ export default function Navbar() {
 
           <div className="flex-1 overflow-y-auto px-4 pb-4 pt-4">
             <div className="overflow-hidden rounded-3xl bg-white ring-1 ring-ink/[0.05]">
-              {LINKS.filter((l) => l.href !== "/hospitals" && l.href !== "/dietitians").map((l, i) => {
+              {/* Try it and FAQ are left out of the menu (founder, 2026-10-13). */}
+              {LINKS.filter((l) => !["/hospitals", "/dietitians", "/#demo", "/#faq"].includes(l.href)).map((l, i) => {
                 const Icon = LINK_ICON[l.href] ?? ChevronRight;
                 const here = !l.href.includes("#") && pathname === l.href;
                 return (

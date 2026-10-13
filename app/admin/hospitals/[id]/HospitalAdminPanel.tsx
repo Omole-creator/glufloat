@@ -6,6 +6,8 @@ import { Download, FileText, QrCode } from "lucide-react";
 import {
   CUSTOM_DEFAULT_PER_PATIENT,
   HOSPITAL_PLANS,
+  isPractice,
+  PRACTICE_CUSTOM_PER_PATIENT,
   documentAmountKobo,
   planName,
   type HospitalBilling,
@@ -35,10 +37,12 @@ export default function HospitalAdminPanel({
 }) {
   const router = useRouter();
   const [kind, setKind] = useState<"quote" | "invoice">("quote");
-  const [plan, setPlan] = useState<HospitalPlanId | "custom">("care50");
+  // A dietitian's practice only ever gets a custom invoice, at N1,600 a patient.
+  const practice = isPractice(hospital);
+  const [plan, setPlan] = useState<HospitalPlanId | "custom">(practice ? "custom" : "care50");
   const [billing, setBilling] = useState<HospitalBilling>("monthly");
-  const [seats, setSeats] = useState("300");
-  const [perPatient, setPerPatient] = useState(String(CUSTOM_DEFAULT_PER_PATIENT));
+  const [seats, setSeats] = useState(practice ? "30" : "300");
+  const [perPatient, setPerPatient] = useState(String(practice ? PRACTICE_CUSTOM_PER_PATIENT : CUSTOM_DEFAULT_PER_PATIENT));
   const [notes, setNotes] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
@@ -134,12 +138,13 @@ export default function HospitalAdminPanel({
           <label className="text-xs font-bold text-ink-soft">
             Plan
             <select className={field} value={plan} onChange={(e) => setPlan(e.target.value as HospitalPlanId | "custom")}>
-              {HOSPITAL_PLANS.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name} ({p.seats} patients)
-                </option>
-              ))}
-              <option value="custom">Care Custom</option>
+              {!practice &&
+                HOSPITAL_PLANS.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name} ({p.seats} patients)
+                  </option>
+                ))}
+              <option value="custom">{practice ? "Custom plan (dietitian)" : "Care Custom"}</option>
             </select>
           </label>
           <label className="text-xs font-bold text-ink-soft">

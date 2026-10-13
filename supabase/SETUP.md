@@ -97,6 +97,11 @@ keys are in Vercel, the app code (which I'm building) takes over.
    to `lib/practicePayment.ts`, never to a patient subscription, so they must
    never equal a patient amount (scripts/hospital-plans-test.ts checks this).
    Not `glufloat-dietitian`: that slug is the patients' Premium page.
+   **Yearly, 12 months for the price of 10:** `glufloat-practice-5-yearly` at
+   ₦120,000, `glufloat-practice-10-yearly` at ₦220,000,
+   `glufloat-practice-20-yearly` at ₦400,000, same redirect
+   (`https://www.glufloat.com/dietitians/paid`). A yearly amount buys 12 months
+   (`PRACTICE_PAYSTACK_YEARLY_URLS`, `practiceMonthsForAmount`).
 
 ## 3. Vercel environment variables
 

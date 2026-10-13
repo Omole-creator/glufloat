@@ -5,7 +5,16 @@ import AdminLogin from "../AdminLogin";
 import AdminShell from "../AdminShell";
 import AdminHero from "../AdminHero";
 import AdminCard from "../AdminCard";
-import { hospitalLive, nairaText, planName, practicePlanById, waitingForFirstPatient } from "@/lib/hospitalPlans";
+import Link from "next/link";
+import {
+  hospitalLive,
+  nairaText,
+  practicePlanById,
+  practicePlanName,
+  practiceYearly,
+  PRACTICE_CUSTOM_PER_PATIENT,
+  waitingForFirstPatient,
+} from "@/lib/hospitalPlans";
 import { whatsappNumber, type HospitalRow } from "@/lib/hospitalServer";
 import { isInternalEmail } from "@/lib/internalAccounts";
 import DietitianSwitch from "./DietitianSwitch";
@@ -67,7 +76,14 @@ export default async function DietitiansAdminPage() {
   const live = on.filter((p) => hospitalLive(p));
   const paying = live.filter((p) => p.status === "active");
   const covered = live.reduce((n, p) => n + (counts.get(p.id) ?? 0), 0);
-  const monthlyValue = paying.reduce((n, p) => n + (practicePlanById(p.plan)?.monthly ?? 0), 0);
+  // A yearly plan counts as a twelfth of its yearly price, like hospitals.
+  const monthlyValue = paying.reduce((n, p) => {
+    const plan = practicePlanById(p.plan);
+    // A custom plan is counted at its places times N1,600 (the invoice may differ).
+    const monthly = plan ? plan.monthly : p.plan === "custom" ? p.seats * PRACTICE_CUSTOM_PER_PATIENT : 0;
+    const yearlyPrice = plan ? practiceYearly(plan) : monthly * 10;
+    return n + (p.billing === "annual" ? yearlyPrice / 12 : monthly);
+  }, 0);
 
   return (
     <AdminShell title="Dietitians" subtitle="GluFloat for dietitians" icon={<Stethoscope className="h-5 w-5" />}>
@@ -116,7 +132,9 @@ export default async function DietitiansAdminPage() {
                         <td className="px-3 py-3">
                           <span className={`inline-block rounded-full px-2.5 py-1 text-xs font-bold ${st.tone}`}>{st.label}</span>
                         </td>
-                        <td className="px-3 py-3 text-ink">{p.plan && p.plan !== "pilot" ? planName(p.plan) : "Free days"}</td>
+                        <td className="px-3 py-3 text-ink">
+                          {p.plan && p.plan !== "pilot" ? `${practicePlanName(p.plan)}${p.billing === "annual" ? ", yearly" : ""}` : "Free days"}
+                        </td>
                         <td className="px-3 py-3 text-right text-ink">
                           {counts.get(p.id) ?? 0} of {p.seats}
                         </td>
@@ -134,6 +152,13 @@ export default async function DietitiansAdminPage() {
                                 WhatsApp
                               </a>
                             )}
+                            <Link
+                              href={`/admin/hospitals/${p.id}`}
+                              aria-label={`Custom plan invoice for ${p.name}`}
+                              className="rounded-full border border-line px-3 py-1.5 text-xs font-bold text-ink hover:border-brand"
+                            >
+                              Invoice
+                            </Link>
                             <DietitianSwitch id={p.id} name={p.name} off={p.status === "declined"} />
                           </div>
                         </td>

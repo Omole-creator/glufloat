@@ -38,12 +38,51 @@ const socials = [
   },
 ];
 
+const COLUMNS: { title: string; links: { href: string; label: string }[] }[] = [
+  {
+    title: "Product",
+    links: [
+      { href: "/#how", label: "How it works" },
+      { href: "/#demo", label: "Try it free" },
+      { href: "/#pricing", label: "Pricing" },
+      { href: "/app", label: "Open the app" },
+    ],
+  },
+  {
+    title: "For professionals",
+    links: [
+      { href: "/hospitals", label: "For hospitals and clinics" },
+      { href: "/dietitians", label: "For dietitians" },
+    ],
+  },
+  {
+    title: "Company",
+    links: [
+      { href: "/about", label: "About us" },
+      { href: "/blog", label: "Blog" },
+    ],
+  },
+  {
+    title: "The serious part",
+    links: [
+      { href: "/disclaimer", label: "Medical disclaimer" },
+      { href: "/terms", label: "Terms of use" },
+      { href: "/privacy", label: "Privacy policy" },
+    ],
+  },
+];
+
+/**
+ * Laid out the way thrivhe.com lays out its footer (founder, 2026-10-13): the
+ * logo and social links on the left, then one column per group, each with
+ * its heading, then a line and the small print. Same links, same colours and
+ * the same legal line as before; only the arrangement changed.
+ */
 export default function Footer() {
   return (
     <footer className="border-t border-line bg-mist">
-      {/* links */}
       <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
-        <div className="grid gap-10 md:grid-cols-3">
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.4fr_repeat(4,1fr)] lg:gap-8">
           <div>
             <div className="flex items-center gap-2.5">
               <Image src="/logo-mark.png" alt="Glufloat" width={34} height={34} />
@@ -52,12 +91,6 @@ export default function Footer() {
                 <span className="text-leaf">FLOAT</span>
               </span>
             </div>
-            <p className="mt-4 max-w-xs text-sm leading-relaxed text-ink-soft">
-              Clear answers on Nigerian foods for people living with diabetes.
-              Every meal gets a green, yellow, or red rating, plus simple ways
-              to improve it.
-            </p>
-
             <div className="mt-5 flex flex-wrap gap-2">
               {socials.map((s) => (
                 <a
@@ -76,28 +109,20 @@ export default function Footer() {
             </div>
           </div>
 
-          <div className="text-sm">
-            <p className="font-display font-semibold text-ink">Explore</p>
-            <ul className="mt-3 space-y-2 text-ink-soft">
-              <li><Link className="hover:text-brand" href="/#how">How it works</Link></li>
-              <li><Link className="hover:text-brand" href="/#demo">Try it free</Link></li>
-              <li><Link className="hover:text-brand" href="/#pricing">Price</Link></li>
-              <li><Link className="hover:text-brand" href="/hospitals">For hospitals and clinics</Link></li>
-              <li><Link className="hover:text-brand" href="/dietitians">For dietitians</Link></li>
-              <li><Link className="hover:text-brand" href="/blog">Blog</Link></li>
-              <li><Link className="hover:text-brand" href="/about">About us</Link></li>
-              <li><Link className="hover:text-brand" href="/app">Open the app</Link></li>
-            </ul>
-          </div>
-
-          <div className="text-sm">
-            <p className="font-display font-semibold text-ink">The serious part</p>
-            <ul className="mt-3 space-y-2 text-ink-soft">
-              <li><Link className="hover:text-brand" href="/disclaimer">Medical disclaimer</Link></li>
-              <li><Link className="hover:text-brand" href="/terms">Terms of use</Link></li>
-              <li><Link className="hover:text-brand" href="/privacy">Privacy policy</Link></li>
-            </ul>
-          </div>
+          {COLUMNS.map((c) => (
+            <div key={c.title} className="text-sm">
+              <p className="font-display font-semibold text-ink">{c.title}</p>
+              <ul className="mt-3 space-y-2 text-ink-soft">
+                {c.links.map((l) => (
+                  <li key={l.href}>
+                    <Link className="hover:text-brand" href={l.href}>
+                      {l.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
 
         <div className="mt-10 border-t border-line pt-6">

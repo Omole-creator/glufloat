@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import HospitalShell from "@/components/hospital/HospitalShell";
 import NotStaff from "@/components/hospital/NotStaff";
 import { requireStaffPage } from "@/components/hospital/requireStaff";
-import { hospitalLive, isPractice, planName, waitingForFirstPatient } from "@/lib/hospitalPlans";
+import { hospitalLive, isPractice, planName, practicePlanName, waitingForFirstPatient } from "@/lib/hospitalPlans";
 import { seatsUsed } from "@/lib/hospitalServer";
 import { readInvoiceSettings } from "@/lib/invoiceSettings";
 import type { DocumentForPdf } from "@/lib/hospitalPdf";
@@ -26,7 +26,7 @@ export default async function PlanPage({ searchParams }: { searchParams: Promise
 
   // GluFloat for dietitians: she pays by Paystack, not by invoice.
   if (isPractice(h)) {
-    const [used, paid] = await Promise.all([
+    const [used, paid, { data: pdocs }, pbank] = await Promise.all([
       seatsUsed(ctx.admin, h.id),
       ctx.admin
         .from("practice_payments")
@@ -34,9 +34,11 @@ export default async function PlanPage({ searchParams }: { searchParams: Promise
         .eq("hospital_id", h.id)
         .order("paid_at", { ascending: false })
         .limit(24),
+      ctx.admin.from("hospital_documents").select("*").eq("hospital_id", h.id).neq("status", "void").order("created_at", { ascending: false }),
+      readInvoiceSettings(ctx.admin),
     ]);
     return (
-      <HospitalShell ctx={ctx} title="Plan and QR code" subtitle={h.plan && h.plan !== "pilot" ? planName(h.plan) : "Free days"}>
+      <HospitalShell ctx={ctx} title="Plan and QR code" subtitle={h.plan && h.plan !== "pilot" ? practicePlanName(h.plan) : "Free days"}>
         <PracticePlanPanel
           practice={h}
           used={used}
@@ -45,6 +47,8 @@ export default async function PlanPage({ searchParams }: { searchParams: Promise
           email={ctx.user.email}
           payments={(paid.data ?? []) as PracticePayment[]}
           justPaid={sp.paid === "1"}
+          documents={(pdocs ?? []) as (DocumentForPdf & { id: string })[]}
+          bank={pbank}
         />
       </HospitalShell>
     );

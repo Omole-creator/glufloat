@@ -96,13 +96,50 @@ export const PRACTICE_PAYSTACK_URLS: Record<PracticePlanId, string> = {
   diet20: "https://paystack.shop/pay/glufloat-practice-20",
 };
 
+/**
+ * Yearly (founder, 2026-10-13): 12 months for the price of 10, the same rule
+ * as hospitals, which keeps 20 Patients level with a hospital's yearly price
+ * per patient. Each has its own fixed-amount Paystack page, same redirect.
+ */
+export const PRACTICE_PAYSTACK_YEARLY_URLS: Record<PracticePlanId, string> = {
+  diet5: "https://paystack.shop/pay/glufloat-practice-5-yearly",
+  diet10: "https://paystack.shop/pay/glufloat-practice-10-yearly",
+  diet20: "https://paystack.shop/pay/glufloat-practice-20-yearly",
+};
+
+/**
+ * A dietitian with more than 20 patients gets a custom plan (founder,
+ * 2026-10-13): she messages GluFloat on WhatsApp, GluFloat sets her places
+ * and sends an invoice from /admin/hospitals/[id], she pays by transfer.
+ * Stored as plan 'custom'. N1,600 a patient a month by default, above a
+ * hospital's custom N1,300, because a hospital cannot tell how many patients
+ * a dietitian's custom plan is for.
+ */
+export const PRACTICE_CUSTOM_PER_PATIENT = 1_600;
+export const PRACTICE_CUSTOM_NAME = "Custom plan";
+
+/** A practice's plan name: "Custom plan", not the hospitals' "Care Custom". */
+export function practicePlanName(id: string | null | undefined): string {
+  return id === "custom" ? PRACTICE_CUSTOM_NAME : planName(id);
+}
+
+/** Naira for a year: 10 months' price, 12 months' access. */
+export function practiceYearly(p: PracticePlan): number {
+  return p.monthly * ANNUAL_MONTHS_PAID;
+}
+
+/** How many months a dietitian payment buys: 12 for a yearly amount, else 1. */
+export function practiceMonthsForAmount(kobo: number | null | undefined): number {
+  return PRACTICE_PLANS.some((p) => practiceYearly(p) * 100 === kobo) ? 12 : 1;
+}
+
 export function practicePlanById(id: string | null | undefined): PracticePlan | undefined {
   return PRACTICE_PLANS.find((p) => p.id === id);
 }
 
-/** The dietitian plan a Paystack amount (kobo) pays for, or undefined. */
+/** The dietitian plan a Paystack amount (kobo) pays for, monthly or yearly, or undefined. */
 export function practicePlanForAmount(kobo: number | null | undefined): PracticePlan | undefined {
-  return PRACTICE_PLANS.find((p) => p.monthly * 100 === kobo);
+  return PRACTICE_PLANS.find((p) => p.monthly * 100 === kobo || practiceYearly(p) * 100 === kobo);
 }
 
 type Kinded = { kind?: string | null };
