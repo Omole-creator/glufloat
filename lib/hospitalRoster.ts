@@ -34,6 +34,8 @@ export type RosterRow = {
   latestHba1c: { percent: number; testedOn: string } | null;
   /** When the patient's payment to their dietitian or hospital runs out (patient-paid-schema.sql), or null. */
   paidUntil: string | null;
+  /** A paused patient's countdown, frozen at the pause (ms left), or null. */
+  pausedLeftMs: number | null;
 };
 
 export async function hospitalRoster(admin: SupabaseClient, hospitalId: string): Promise<RosterRow[]> {
@@ -114,6 +116,7 @@ export async function hospitalRoster(admin: SupabaseClient, hospitalId: string):
       latestReading: uid ? latest.get(uid) ?? null : null,
       latestHba1c: uid ? hba1c.get(uid) ?? null : null,
       paidUntil: p.paid_until ?? null,
+      pausedLeftMs: p.paused_left_ms != null ? Number(p.paused_left_ms) : null,
     };
   });
 }

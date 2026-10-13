@@ -67,6 +67,8 @@ export type PatientRow = {
   carried_restored_at: string | null;
   /** patient-paid-schema.sql (#27): when their payment to the dietitian or hospital runs out. */
   paid_until?: string | null;
+  /** patient-pause-schema.sql (#28): time left on the countdown when paused, frozen until unpaused. */
+  paused_left_ms?: number | null;
 };
 
 export const ROLE_LABEL: Record<StaffRole, string> = {

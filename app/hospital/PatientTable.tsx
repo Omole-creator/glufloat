@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronRight, Droplet, KeyRound, PauseCircle, Search, Send, UserMinus, UserCheck } from "lucide-react";
+import { ChevronRight, Droplet, KeyRound, PauseCircle, PlayCircle, Search, Send, UserMinus, UserCheck } from "lucide-react";
 import type { RosterRow } from "@/lib/hospitalRoster";
 import { formatBoth } from "@/lib/glucose";
 import { SITE_URL } from "@/lib/site";
@@ -17,6 +17,13 @@ type Filter = "all" | "active" | "due" | "quiet" | "waiting" | "invited" | "paus
  * outside GluFloat (patient-paid-schema.sql): the countdown starts at 30 days
  * when they join, and "Record payment" adds months when they pay again.
  */
+/** A paused patient's countdown is frozen: say what they will have when unpaused. */
+function pausedLine(r: { pausedLeftMs: number | null; paidUntil: string | null }): string {
+  const ms = r.pausedLeftMs ?? (r.paidUntil ? Math.max(0, new Date(r.paidUntil).getTime() - Date.now()) : 0);
+  const days = Math.ceil(ms / DAY_MS);
+  return days > 0 ? `Paused · ${days} ${days === 1 ? "day" : "days"} kept` : "Paused · payment due";
+}
+
 function paidLine(paidUntil: string | null): { text: string; due: boolean } {
   if (!paidUntil) return { text: "Not recorded", due: false };
   const days = Math.ceil((new Date(paidUntil).getTime() - Date.now()) / DAY_MS);
@@ -168,21 +175,31 @@ export default function PatientTable({
               const months = Number(e.target.value);
               if (months) void patch(r.id, "paid", { months }).then((ok) => ok && setMsg(`Payment recorded for ${r.name}.`));
             }}
-            aria-label={r.status === "paused" ? `Resume ${r.name} and record a payment` : `Record a payment for ${r.name}`}
+            aria-label={r.status === "paused" ? `Record a payment for ${r.name} and unpause` : `Record a payment for ${r.name}`}
             className="rounded-full border border-leaf/40 bg-leaf/10 px-3 py-1.5 text-xs font-bold text-leaf-deep outline-none hover:border-leaf disabled:opacity-50"
           >
-            <option value="">{r.status === "paused" ? "Resume: record payment" : "Record payment"}</option>
+            <option value="">{r.status === "paused" ? "Paid: record and unpause" : "Record payment"}</option>
             <option value="1">Paid 1 month</option>
             <option value="3">Paid 3 months</option>
             <option value="6">Paid 6 months</option>
             <option value="12">Paid 12 months</option>
           </select>
         )}
+        {r.status === "paused" && (
+          <button
+            disabled={busy === r.id}
+            onClick={() => void patch(r.id, "unpause").then((ok) => ok && setMsg(`${r.name} is back, with the days they had left.`))}
+            aria-label={`Unpause ${r.name}`}
+            className="inline-flex items-center gap-1 rounded-full bg-leaf px-3 py-1.5 text-xs font-bold text-white hover:bg-leaf-deep disabled:opacity-50"
+          >
+            <PlayCircle className="h-3.5 w-3.5" /> Unpause
+          </button>
+        )}
         {r.status === "active" && (
           <button
             disabled={busy === r.id}
             onClick={() => {
-              if (confirm(`Pause ${r.name}? They stay on your list with their notes, but are not covered until you record a payment.`))
+              if (confirm(`Pause ${r.name}? Their days left are kept and their countdown stops. They are not covered until you unpause them.`))
                 void patch(r.id, "pause");
             }}
             aria-label={`Pause ${r.name}`}
@@ -322,7 +339,7 @@ export default function PatientTable({
                       )}
                     </td>
                     <td className={`px-3 py-3 text-xs ${isDue(r) ? "font-semibold text-verdict-red" : "text-ink"}`}>
-                      {r.status === "active" || r.status === "paused" ? paidLine(r.paidUntil).text : "-"}
+                      {r.status === "paused" ? pausedLine(r) : r.status === "active" ? paidLine(r.paidUntil).text : "-"}
                     </td>
                     <td className="px-5 py-3">
                       <div className="flex items-center justify-end gap-2">
@@ -381,7 +398,7 @@ export default function PatientTable({
                 )}
                 {(r.status === "active" || r.status === "paused") && (
                   <p className={`mt-2 text-xs ${isDue(r) ? "font-semibold text-verdict-red" : "text-ink"}`}>
-                    Paid: {paidLine(r.paidUntil).text}
+                    Paid: {r.status === "paused" ? pausedLine(r) : paidLine(r.paidUntil).text}
                   </p>
                 )}
                 {r.latestReading && (

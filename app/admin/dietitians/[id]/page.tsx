@@ -141,7 +141,7 @@ export default async function DietitianAdminPage({ params }: { params: Promise<{
                         <td className="px-3 py-3 text-ink-soft">{r.status === "active" ? shortDate(r.lastActive) : "-"}</td>
                         <td className="px-3 py-3 text-right text-ink">{r.status === "active" ? r.meals30 : "-"}</td>
                         <td className={`px-5 py-3 ${late ? "font-semibold text-verdict-red" : "text-ink"}`}>
-                          {r.paidUntil ? shortDate(r.paidUntil) : "-"}
+                          {r.status === "paused" ? "Paused" : r.paidUntil ? shortDate(r.paidUntil) : "-"}
                         </td>
                       </tr>
                     );

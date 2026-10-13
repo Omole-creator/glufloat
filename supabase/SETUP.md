@@ -37,6 +37,8 @@ keys are in Vercel, the app code (which I'm building) takes over.
    | 24 | `swallow-schema.sql` | `profiles.swallows` (2026-10-12): the traditional swallows a person ticked under "Which swallows do you eat?" in My details. Idempotent. Until it runs, the question shows but its answer is not kept, and every swallow takes its turn on the blue card. |
    | 25 | `dietitian-practice-schema.sql` | GluFloat for dietitians (2026-10-13): `hospitals.kind` ('hospital' / 'dietitian'), `hospitals.dcn_number`, the three dietitian plans in the plan check (diet5 / diet10 / diet20), and `practice_payments` (the lock for a dietitian's Paystack payment). Must run AFTER #22 and #23. Idempotent. Until it runs, /dietitians/start says "not open yet", /admin/dietitians says "waiting for the database update", and every hospital works exactly as before. |
    | 26 | `practice-rules-schema.sql` | A dietitian's note and food rules for one patient (2026-10-13): `hospital_patients.dietitian_note`, `.avoid_food_ids`, `.prefer_food_ids`, `.rules_updated_at`. Must run AFTER #25. Idempotent. Until it runs, the "Your advice" box does not show on a patient's page and patients see no note; everything else works as before. |
+   | 27 | `patient-paid-schema.sql` | Patients' payment countdown and pause (2026-10-13): `hospital_patients.paid_until`, status `paused`. Run. |
+   | 28 | `patient-pause-schema.sql` | `hospital_patients.paused_left_ms` (2026-10-13): a pause freezes the countdown, so pausing and unpausing never adds days. Must run AFTER #27. Until it runs, pausing says it is not ready. |
 
    Two things worth knowing about that order. **Five of these files each contain
    their own `create or replace function public.handle_new_user()`**, and the last

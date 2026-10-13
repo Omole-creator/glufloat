@@ -140,29 +140,58 @@ export async function PATCH(request: Request) {
   // The patient paid their dietitian or hospital (outside GluFloat). Months
   // are added after whatever time is left. A paused patient is resumed, if a
   // place is free.
+  // Founder's rules (2026-10-13), so a pause can never make free days:
+  //  - pause FREEZES the countdown: the time left is saved (paused_left_ms);
+  //  - unpause gives back exactly that saved time, no more, however many
+  //    times it happens;
+  //  - recording a payment adds exactly the months paid, on top of the time
+  //    left (the saved time, for a paused patient), and unpauses them.
+  const freePlace = async () => (await seatsUsed(ctx.admin, ctx.hospital.id)) < ctx.hospital.seats;
+  const FULL = "Every place on your plan is in use. Pause or remove a patient first, or choose a bigger plan.";
+  /** Time left on a paused patient's countdown, frozen at the moment of the pause. */
+  const savedMs = () =>
+    p.paused_left_ms != null ? Math.max(0, Number(p.paused_left_ms)) : p.paid_until ? Math.max(0, new Date(p.paid_until).getTime() - Date.now()) : 0;
+
   if (action === "paid") {
     const months = Number(body.months);
     if (![1, 3, 6, 12].includes(months)) return NextResponse.json({ error: "Choose 1, 3, 6 or 12 months." }, { status: 400 });
     if (p.status !== "active" && p.status !== "paused") return NextResponse.json({ error: "This patient is not using a place." }, { status: 400 });
-    if (p.status === "paused" && (await seatsUsed(ctx.admin, ctx.hospital.id)) >= ctx.hospital.seats)
-      return NextResponse.json({ error: "Every place on your plan is in use. Pause or remove a patient first, or choose a bigger plan." }, { status: 409 });
-    const until = extendAccess(p.paid_until ?? null, months);
+    if (p.status === "paused" && !(await freePlace())) return NextResponse.json({ error: FULL }, { status: 409 });
+    // Active: after the time left (or from today if overdue). Paused: after the saved time.
+    const from = p.status === "paused" ? new Date(Date.now() + savedMs()).toISOString() : (p.paid_until ?? null);
+    const until = extendAccess(from, months);
     const { error } = await ctx.admin
       .from("hospital_patients")
-      .update({ paid_until: until.toISOString(), status: "active" })
+      .update({ paid_until: until.toISOString(), status: "active", paused_left_ms: null })
       .eq("id", p.id);
     if (error) return NextResponse.json({ error: "This is not ready yet. Please try again later." }, { status: 503 });
     return NextResponse.json({ ok: true, paidUntil: until.toISOString() });
   }
 
-  // Could not renew yet: kept on the list (notes, rules, history), not
-  // covered, not using a place. Any paid days of their own come back to them.
+  // Could not renew yet, or paused by mistake: kept on the list (notes,
+  // rules, history), not covered, not using a place, the countdown frozen.
+  // Any paid days of their own come back to them.
   if (action === "pause") {
     if (p.status !== "active") return NextResponse.json({ error: "Only a patient using GluFloat can be paused." }, { status: 400 });
-    const { error } = await ctx.admin.from("hospital_patients").update({ status: "paused" }).eq("id", p.id);
+    const left = p.paid_until ? Math.max(0, new Date(p.paid_until).getTime() - Date.now()) : 0;
+    const { error } = await ctx.admin.from("hospital_patients").update({ status: "paused", paused_left_ms: left }).eq("id", p.id);
     if (error) return NextResponse.json({ error: "This is not ready yet. Please try again later." }, { status: 503 });
     await restoreCarried(ctx.admin, p);
     return NextResponse.json({ ok: true });
+  }
+
+  // Unpause with no payment: exactly the time that was left when paused.
+  // A patient paused because payment was due comes back still due.
+  if (action === "unpause") {
+    if (p.status !== "paused") return NextResponse.json({ error: "This patient is not paused." }, { status: 400 });
+    if (!(await freePlace())) return NextResponse.json({ error: FULL }, { status: 409 });
+    const until = new Date(Date.now() + savedMs());
+    const { error } = await ctx.admin
+      .from("hospital_patients")
+      .update({ status: "active", paid_until: until.toISOString(), paused_left_ms: null })
+      .eq("id", p.id);
+    if (error) return NextResponse.json({ error: "This is not ready yet. Please try again later." }, { status: 503 });
+    return NextResponse.json({ ok: true, paidUntil: until.toISOString() });
   }
 
   if (action === "reset_password") {
