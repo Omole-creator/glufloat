@@ -94,7 +94,7 @@ export default function JoinForm({
             <p className="mt-1 text-sm text-ink">
               {done === "active"
                 ? practice
-                  ? `${hospitalName} now looks after your GluFloat. Your dietitian can see your meals and sugar tests.`
+                  ? `${hospitalName} now looks after your diabetes on GluFloat. Your dietitian can see your meals and sugar tests.`
                   : `${hospitalName} now looks after your GluFloat. Your doctors and dietitians can see your meals and sugar tests.`
                 : practice
                   ? `Every place with ${hospitalName} is in use right now. Your dietitian will give you a place. Until then, you can use GluFloat free for 7 days.`

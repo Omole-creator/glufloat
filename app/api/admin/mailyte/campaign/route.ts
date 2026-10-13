@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { isAdmin } from "@/lib/adminSession";
 import { createAdminClient } from "@/lib/supabase/server";
-import { isInternalEmail } from "@/lib/internalAccounts";
+import { emailAudience } from "@/lib/emailAudience";
 import {
   GROUP_NAME,
   NAME_TAG,
@@ -102,15 +102,13 @@ export async function POST(request: Request) {
     }
 
     // A real send: bring the lists up to date first, so new users get it.
-    const { data, error } = await createAdminClient().from("profiles").select("email,name,user_type");
-    if (error) return NextResponse.json({ error: "Could not read the users." }, { status: 500 });
-    const contacts: Contact[] = (data ?? [])
-      .filter((p) => p.email && !isInternalEmail(p.email as string))
-      .map((p) => ({
-        email: String(p.email).trim().toLowerCase(),
-        name: (p.name as string | null) ?? null,
-        userType: (p.user_type as string | null) ?? null,
-      }));
+    // Who is on which list, the same way the email page counts them.
+    let contacts: Contact[];
+    try {
+      contacts = (await emailAudience(createAdminClient())).map((r) => ({ email: r.email, name: r.name, key: r.key }));
+    } catch {
+      return NextResponse.json({ error: "Could not read the users." }, { status: 500 });
+    }
     await syncContacts(contacts);
 
     const id = await createCampaign({

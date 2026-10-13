@@ -57,20 +57,14 @@ export default async function DietitiansAdminPage() {
     );
   }
 
-  const monthStart = new Date();
-  monthStart.setUTCDate(1);
-  monthStart.setUTCHours(0, 0, 0, 0);
-  const [{ data: ps }, { data: pats }, { data: paid }] = await Promise.all([
+  const [{ data: ps }, { data: pats }] = await Promise.all([
     admin.from("hospitals").select("*").eq("kind", "dietitian").order("created_at", { ascending: false }),
     admin.from("hospital_patients").select("hospital_id,status").in("status", ["active", "waiting", "invited"]),
-    admin.from("practice_payments").select("hospital_id,amount,paid_at").gte("paid_at", monthStart.toISOString()),
   ]);
   // Test accounts (any @glufloat.com email) are left out, like every admin number.
   const practices = ((ps ?? []) as HospitalRow[]).filter((p) => !isInternalEmail(p.contact_email ?? ""));
   const counts = new Map<string, number>();
   for (const p of pats ?? []) if (p.status === "active") counts.set(p.hospital_id as string, (counts.get(p.hospital_id as string) ?? 0) + 1);
-  const shown = new Set(practices.map((p) => p.id));
-  const monthMoney = (paid ?? []).filter((x) => shown.has(x.hospital_id as string)).reduce((n, x) => n + Number(x.amount) / 100, 0);
 
   const on = practices.filter((p) => p.status !== "declined");
   const live = on.filter((p) => hospitalLive(p));
@@ -93,7 +87,7 @@ export default async function DietitiansAdminPage() {
             { label: "Dietitians", value: String(on.length), sub: `${on.filter((p) => waitingForFirstPatient(p)).length} with no patient yet` },
             { label: "Free days running", value: String(live.filter((p) => p.status === "pilot").length), sub: "first patient joined" },
             { label: "Paying", value: String(paying.length), sub: `${nairaText(monthlyValue)} a month` },
-            { label: "Patients covered", value: covered.toLocaleString(), sub: `${nairaText(monthMoney)} paid this month` },
+            { label: "Patients covered", value: covered.toLocaleString(), sub: "using a place now" },
           ]}
         />
       </div>
@@ -123,7 +117,9 @@ export default async function DietitiansAdminPage() {
                     return (
                       <tr key={p.id} className="border-b border-[#eef2f7] align-top">
                         <td className="px-5 py-3">
-                          <p className="font-semibold text-ink">{p.name}</p>
+                          <Link href={`/admin/dietitians/${p.id}`} className="font-semibold text-brand underline decoration-brand/30 underline-offset-2 hover:decoration-brand">
+                            {p.name}
+                          </Link>
                           <p className="text-xs text-ink-soft">
                             {[p.contact_phone, p.contact_email, p.city].filter(Boolean).join(" · ")}
                           </p>

@@ -3,14 +3,28 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronRight, Droplet, KeyRound, Search, Send, UserMinus, UserCheck } from "lucide-react";
+import { ChevronRight, Droplet, KeyRound, PauseCircle, Search, Send, UserMinus, UserCheck } from "lucide-react";
 import type { RosterRow } from "@/lib/hospitalRoster";
 import { formatBoth } from "@/lib/glucose";
 import { SITE_URL } from "@/lib/site";
 
 const DAY_MS = 86400000;
 
-type Filter = "all" | "active" | "quiet" | "waiting" | "invited";
+type Filter = "all" | "active" | "due" | "quiet" | "waiting" | "invited" | "paused";
+
+/**
+ * The patient's own payment to their dietitian or hospital, which happens
+ * outside GluFloat (patient-paid-schema.sql): the countdown starts at 30 days
+ * when they join, and "Record payment" adds months when they pay again.
+ */
+function paidLine(paidUntil: string | null): { text: string; due: boolean } {
+  if (!paidUntil) return { text: "Not recorded", due: false };
+  const days = Math.ceil((new Date(paidUntil).getTime() - Date.now()) / DAY_MS);
+  const when = new Date(paidUntil).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+  if (days > 0) return { text: `Until ${when} · ${days} ${days === 1 ? "day" : "days"} left`, due: false };
+  const over = -days;
+  return { text: over === 0 ? "Due today" : `Due ${over} ${over === 1 ? "day" : "days"} ago`, due: true };
+}
 
 function ago(iso: string | null): string {
   if (!iso) return "Not yet";
@@ -35,6 +49,7 @@ const STATUS = {
   waiting: { label: "Waiting for a place", tone: "bg-verdict-yellow/20 text-ink" },
   invited: { label: "Invited", tone: "bg-brand/10 text-brand" },
   removed: { label: "Removed", tone: "bg-ink/5 text-ink-soft" },
+  paused: { label: "Paused", tone: "bg-ink/5 text-ink-soft" },
 } as const;
 
 export default function PatientTable({
@@ -58,11 +73,14 @@ export default function PatientTable({
 
   const weekAgo = new Date(Date.now() - 7 * DAY_MS).toISOString();
   const isQuiet = (r: RosterRow) => r.status === "active" && (!r.lastActive || r.lastActive < weekAgo);
+  const isDue = (r: RosterRow) => r.status === "active" && paidLine(r.paidUntil).due;
 
   const counts = {
     all: rows.length,
     active: rows.filter((r) => r.status === "active").length,
+    due: rows.filter(isDue).length,
     quiet: rows.filter(isQuiet).length,
+    paused: rows.filter((r) => r.status === "paused").length,
     waiting: rows.filter((r) => r.status === "waiting").length,
     invited: rows.filter((r) => r.status === "invited").length,
   };
@@ -72,7 +90,7 @@ export default function PatientTable({
     const digits = needle.replace(/\D/g, "");
     return rows
       .filter((r) =>
-        filter === "all" ? true : filter === "quiet" ? isQuiet(r) : r.status === filter,
+        filter === "all" ? true : filter === "quiet" ? isQuiet(r) : filter === "due" ? isDue(r) : r.status === filter,
       )
       .filter(
         (r) =>
@@ -104,16 +122,18 @@ export default function PatientTable({
 
   const inviteLink = (r: RosterRow) => `${SITE_URL}/j/${hospitalCode}?t=${r.inviteToken}`;
   const inviteText = (r: RosterRow) =>
-    `Hello ${r.name.split(/\s+/)[0]}, ${hospitalName} has added you to GluFloat. It tells you what to eat for your diabetes and how much, and keeps a report for your doctor.\n\nOpen this link to join. Use this phone number (${r.phone}):\n${inviteLink(r)}`;
+    `Hello ${r.name.split(/\s+/)[0]}, ${hospitalName} has added you to GluFloat. It tells you what to eat for your diabetes and how much, and keeps a report for your doctor and dietitian.\n\nOpen this link to join. Use this phone number (${r.phone}):\n${inviteLink(r)}`;
 
   const detailHref = (r: RosterRow) => `/hospital/patients/${r.id}${hid ? `?h=${hid}` : ""}`;
 
   const FILTERS: { id: Filter; label: string }[] = [
     { id: "all", label: "Everyone" },
     { id: "active", label: "Using GluFloat" },
+    { id: "due", label: "Payment due" },
     { id: "quiet", label: "Not opened in 7 days" },
     { id: "waiting", label: "Waiting" },
     { id: "invited", label: "Invited" },
+    { id: "paused", label: "Paused" },
   ];
 
   const Actions = ({ r }: { r: RosterRow }) =>
@@ -138,6 +158,37 @@ export default function PatientTable({
             className="inline-flex items-center gap-1 rounded-full bg-leaf px-3 py-1.5 text-xs font-bold text-white hover:bg-leaf-deep disabled:opacity-50"
           >
             <UserCheck className="h-3.5 w-3.5" /> Give a place
+          </button>
+        )}
+        {(r.status === "active" || r.status === "paused") && (
+          <select
+            disabled={busy === r.id}
+            value=""
+            onChange={(e) => {
+              const months = Number(e.target.value);
+              if (months) void patch(r.id, "paid", { months }).then((ok) => ok && setMsg(`Payment recorded for ${r.name}.`));
+            }}
+            aria-label={r.status === "paused" ? `Resume ${r.name} and record a payment` : `Record a payment for ${r.name}`}
+            className="rounded-full border border-leaf/40 bg-leaf/10 px-3 py-1.5 text-xs font-bold text-leaf-deep outline-none hover:border-leaf disabled:opacity-50"
+          >
+            <option value="">{r.status === "paused" ? "Resume: record payment" : "Record payment"}</option>
+            <option value="1">Paid 1 month</option>
+            <option value="3">Paid 3 months</option>
+            <option value="6">Paid 6 months</option>
+            <option value="12">Paid 12 months</option>
+          </select>
+        )}
+        {r.status === "active" && (
+          <button
+            disabled={busy === r.id}
+            onClick={() => {
+              if (confirm(`Pause ${r.name}? They stay on your list with their notes, but are not covered until you record a payment.`))
+                void patch(r.id, "pause");
+            }}
+            aria-label={`Pause ${r.name}`}
+            className="inline-flex items-center gap-1 rounded-full border border-line px-3 py-1.5 text-xs font-bold text-ink-soft hover:border-ink/40 hover:text-ink disabled:opacity-50"
+          >
+            <PauseCircle className="h-3.5 w-3.5" /> Pause
           </button>
         )}
         {r.phoneLogin && r.status !== "invited" && (
@@ -223,6 +274,7 @@ export default function PatientTable({
                   <th className="px-3 py-2.5 text-right">Tests</th>
                   <th className="px-3 py-2.5">Latest sugar test</th>
                   <th className="px-3 py-2.5">HbA1c</th>
+                  <th className="px-3 py-2.5">Paid</th>
                   <th className="px-5 py-2.5" />
                 </tr>
               </thead>
@@ -231,7 +283,7 @@ export default function PatientTable({
                   <tr key={r.id} className="border-t border-[#eef2f7] align-middle hover:bg-[#f9fbfd]">
                     <td className="px-5 py-3">
                       {r.status === "active" ? (
-                        <Link href={detailHref(r)} className="font-semibold text-brand hover:underline">
+                        <Link href={detailHref(r)} className="font-semibold text-brand underline decoration-brand/30 underline-offset-2 hover:decoration-brand">
                           {r.name}
                         </Link>
                       ) : (
@@ -269,12 +321,19 @@ export default function PatientTable({
                         "-"
                       )}
                     </td>
+                    <td className={`px-3 py-3 text-xs ${isDue(r) ? "font-semibold text-verdict-red" : "text-ink"}`}>
+                      {r.status === "active" || r.status === "paused" ? paidLine(r.paidUntil).text : "-"}
+                    </td>
                     <td className="px-5 py-3">
                       <div className="flex items-center justify-end gap-2">
                         <Actions r={r} />
                         {r.status === "active" && (
-                          <Link href={detailHref(r)} aria-label={`Open ${r.name}'s record`} className="rounded-full p-1.5 text-ink-soft hover:bg-brand/10 hover:text-brand">
-                            <ChevronRight className="h-4 w-4" />
+                          <Link
+                            href={detailHref(r)}
+                            aria-label={`Open ${r.name}'s record`}
+                            className="inline-flex shrink-0 items-center gap-1 rounded-full bg-brand px-3 py-1.5 text-xs font-bold text-white hover:bg-brand-deep"
+                          >
+                            Open record <ChevronRight className="h-3.5 w-3.5" />
                           </Link>
                         )}
                       </div>
@@ -320,12 +379,26 @@ export default function PatientTable({
                     </div>
                   </div>
                 )}
+                {(r.status === "active" || r.status === "paused") && (
+                  <p className={`mt-2 text-xs ${isDue(r) ? "font-semibold text-verdict-red" : "text-ink"}`}>
+                    Paid: {paidLine(r.paidUntil).text}
+                  </p>
+                )}
                 {r.latestReading && (
                   <p className="mt-2 flex items-center gap-1.5 text-xs text-ink">
                     <Droplet className="h-3.5 w-3.5 text-brand" />
                     Latest: <span className="font-semibold">{formatBoth(r.latestReading.mgdl)}</span>
                     <span className="text-ink-soft">{shortDate(r.latestReading.takenAt)}</span>
                   </p>
+                )}
+                {r.status === "active" && (
+                  <Link
+                    href={detailHref(r)}
+                    aria-label={`Open ${r.name}'s record`}
+                    className="mt-3 flex w-full items-center justify-center gap-1 rounded-full bg-brand px-4 py-2.5 text-sm font-bold text-white hover:bg-brand-deep"
+                  >
+                    Open record <ChevronRight className="h-4 w-4" />
+                  </Link>
                 )}
                 <div className="mt-3">
                   <Actions r={r} />

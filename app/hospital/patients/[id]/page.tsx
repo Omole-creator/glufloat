@@ -4,10 +4,14 @@ import { ArrowLeft } from "lucide-react";
 import HospitalShell from "@/components/hospital/HospitalShell";
 import NotStaff from "@/components/hospital/NotStaff";
 import { requireStaffPage } from "@/components/hospital/requireStaff";
-import { hospitalLive } from "@/lib/hospitalPlans";
+import { hospitalLive, isPractice } from "@/lib/hospitalPlans";
+import { practiceRuleFoodIds } from "@/lib/nextMeal";
+import { getFood } from "@/lib/search";
+import { cleanFoodName } from "@/lib/foodName";
 import { whatsappNumber } from "@/lib/hospitalServer";
 import { patientHba1cs, patientProfile, patientReadings, patientWeights, weightLineFor } from "@/lib/patientRecord";
 import PatientDetail from "./PatientDetail";
+import PracticeRulesEditor from "./PracticeRulesEditor";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Patient", robots: { index: false, follow: false } };
@@ -48,6 +52,17 @@ export default async function PatientPage({
   }
 
   const uid = row.user_id as string;
+  // GluFloat for dietitians: her note and food rules for this patient. Its own
+  // read, so a database without practice-rules-schema.sql (#26) only hides the editor.
+  const practice = isPractice(ctx.hospital) && ctx.staff.role === "admin";
+  const rulesRead = practice
+    ? await ctx.admin.from("hospital_patients").select("dietitian_note,avoid_food_ids,prefer_food_ids").eq("id", row.id).maybeSingle()
+    : null;
+  const ruleFoods = practice
+    ? practiceRuleFoodIds()
+        .map((fid) => ({ id: fid, name: cleanFoodName(getFood(fid)?.name ?? fid) }))
+        .sort((a, b) => a.name.localeCompare(b.name))
+    : [];
   const [profile, hba1cs, weights, readings, { data: staffRows }] = await Promise.all([
     patientProfile(ctx.admin, uid),
     patientHba1cs(ctx.admin, uid),
@@ -66,6 +81,20 @@ export default async function PatientPage({
       <Link href={back} className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:underline">
         <ArrowLeft className="h-4 w-4" /> All patients
       </Link>
+      {rulesRead && !rulesRead.error && (
+        <PracticeRulesEditor
+          patientId={id}
+          hid={ctx.all.length > 1 ? ctx.hospital.id : null}
+          firstName={(profile.name || (row.name as string)).split(/\s+/)[0]}
+          dietitianName={ctx.hospital.name}
+          foods={ruleFoods}
+          initial={{
+            note: (rulesRead.data?.dietitian_note as string | null) ?? "",
+            avoid: (rulesRead.data?.avoid_food_ids as string[] | null) ?? [],
+            prefer: (rulesRead.data?.prefer_food_ids as string[] | null) ?? [],
+          }}
+        />
+      )}
       <PatientDetail
         patientId={id}
         hid={ctx.all.length > 1 ? ctx.hospital.id : null}

@@ -57,7 +57,7 @@ export type PatientRow = {
   name: string;
   phone: string;
   email: string | null;
-  status: "invited" | "active" | "waiting" | "removed";
+  status: "invited" | "active" | "waiting" | "removed" | "paused";
   invite_token: string | null;
   confirmed: boolean;
   created_at: string;
@@ -65,6 +65,8 @@ export type PatientRow = {
   removed_at: string | null;
   carried_ms: number | null;
   carried_restored_at: string | null;
+  /** patient-paid-schema.sql (#27): when their payment to the dietitian or hospital runs out. */
+  paid_until?: string | null;
 };
 
 export const ROLE_LABEL: Record<StaffRole, string> = {
@@ -247,6 +249,41 @@ export async function restoreCarried(admin: SupabaseClient, row: Pick<PatientRow
     .eq("user_id", row.user_id);
 }
 
+export type PracticeRulesOut = { note: string | null; avoid: string[]; prefer: string[] };
+
+/**
+ * A dietitian's note and food rules for one patient row. Its own read, and
+ * any failure (the columns not added yet) reads as "no rules", so coverage
+ * itself never depends on this.
+ */
+export async function practiceRulesFor(admin: SupabaseClient, patientRowId: string): Promise<PracticeRulesOut | null> {
+  try {
+    const { data, error } = await admin
+      .from("hospital_patients")
+      .select("dietitian_note,avoid_food_ids,prefer_food_ids")
+      .eq("id", patientRowId)
+      .maybeSingle();
+    if (error || !data) return null;
+    const note = typeof data.dietitian_note === "string" && data.dietitian_note.trim() ? data.dietitian_note.trim() : null;
+    const avoid = Array.isArray(data.avoid_food_ids) ? (data.avoid_food_ids as string[]) : [];
+    const prefer = Array.isArray(data.prefer_food_ids) ? (data.prefer_food_ids as string[]) : [];
+    return note || avoid.length || prefer.length ? { note, avoid, prefer } : null;
+  } catch {
+    return null;
+  }
+}
+
+/** The patient's payment countdown (patient-paid-schema.sql). Any failure reads as none. */
+export async function paidUntilFor(admin: SupabaseClient, patientRowId: string): Promise<string | null> {
+  try {
+    const { data, error } = await admin.from("hospital_patients").select("paid_until").eq("id", patientRowId).maybeSingle();
+    if (error || !data) return null;
+    return (data.paid_until as string | null) ?? null;
+  } catch {
+    return null;
+  }
+}
+
 /** Days left on a person's own paid plan right now, in ms (0 when none). */
 export async function ownPaidMsLeft(admin: SupabaseClient, uid: string): Promise<number> {
   const { data: sub } = await admin
@@ -271,6 +308,10 @@ export async function hospitalStatusFor(admin: SupabaseClient, uid: string): Pro
     chats: ChatPerson[];
     /** "dietitian" when a dietitian's practice covers them, so the app says "your dietitian". */
     kind: "hospital" | "dietitian";
+    /** Her note and food rules for this patient (practice-rules-schema.sql), or null. */
+    rules: PracticeRulesOut | null;
+    /** When their payment to the dietitian or hospital runs out (patient-paid-schema.sql), or null. */
+    paidUntil: string | null;
   };
   staff: { id: string; name: string; role: StaffRole; kind: "hospital" | "dietitian" }[];
 }> {
@@ -308,6 +349,8 @@ export async function hospitalStatusFor(admin: SupabaseClient, uid: string): Pro
       status: pick.status as "active" | "waiting",
       chats: pick.status === "active" ? await chatContacts(admin, pick.hospitals) : [],
       kind: pick.hospitals.kind === "dietitian" ? "dietitian" : "hospital",
+      rules: pick.status === "active" && pick.hospitals.kind === "dietitian" ? await practiceRulesFor(admin, pick.id) : null,
+      paidUntil: pick.status === "active" ? await paidUntilFor(admin, pick.id) : null,
     };
   }
   return out;

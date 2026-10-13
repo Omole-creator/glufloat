@@ -32,6 +32,8 @@ export type RosterRow = {
   tests30: number;
   latestReading: { mgdl: number; takenAt: string } | null;
   latestHba1c: { percent: number; testedOn: string } | null;
+  /** When the patient's payment to their dietitian or hospital runs out (patient-paid-schema.sql), or null. */
+  paidUntil: string | null;
 };
 
 export async function hospitalRoster(admin: SupabaseClient, hospitalId: string): Promise<RosterRow[]> {
@@ -111,6 +113,7 @@ export async function hospitalRoster(admin: SupabaseClient, hospitalId: string):
       tests30: uid ? tests.get(uid) ?? 0 : 0,
       latestReading: uid ? latest.get(uid) ?? null : null,
       latestHba1c: uid ? hba1c.get(uid) ?? null : null,
+      paidUntil: p.paid_until ?? null,
     };
   });
 }

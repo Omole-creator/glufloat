@@ -38,6 +38,7 @@ import DashboardBottomNav, { type DashboardTabDef } from "@/components/Dashboard
 import DashboardLeftNav from "@/components/DashboardLeftNav";
 import ChatWithDietitian from "@/components/ChatWithDietitian";
 import ChatWithHospital from "@/components/ChatWithHospital";
+import DietitianNote from "@/components/DietitianNote";
 import PersonalizationSettings from "@/components/PersonalizationSettings";
 import { PAYSTACK_URLS, PAYSTACK_YEARLY_URLS, YEARLY_ENABLED, pendingReference, clearPendingReference } from "@/lib/access";
 import BillingToggle from "@/components/BillingToggle";
@@ -129,6 +130,18 @@ const ALL_DASHBOARD_TABS: (DashboardTabDef & { id: DashboardTabId })[] = [
     icon: <Stethoscope className="h-4.5 w-4.5" strokeWidth={2.2} />,
   },
 ];
+
+/**
+ * The patient's own programme with their dietitian or hospital, counting down
+ * from the day they joined or last paid (patient-paid-schema.sql). Shown only
+ * when there is a date. Never says money: the patient pays them, not GluFloat.
+ */
+function programmeLine(h: { name: string; paidUntil: string | null }): string | null {
+  if (!h.paidUntil) return null;
+  const days = Math.ceil((new Date(h.paidUntil).getTime() - Date.now()) / 86400000);
+  if (days > 0) return `Your programme: ${days} ${days === 1 ? "day" : "days"} left.`;
+  return `Your programme time is up. Please speak to ${h.name} to keep going.`;
+}
 
 export default function AppPage() {
   const router = useRouter();
@@ -545,17 +558,21 @@ export default function AppPage() {
           {hospital && (
             <p className="mt-2 flex items-start gap-2 rounded-2xl bg-brand/[0.06] px-3.5 py-2.5 text-sm text-ink ring-1 ring-inset ring-brand/10">
               <Stethoscope className="mt-0.5 h-4 w-4 shrink-0 text-brand" strokeWidth={2.2} />
-              {hospital.kind === "dietitian" ? (
-                <span>
-                  Your GluFloat comes from <span className="font-semibold">{hospital.name}</span>. Your dietitian can see
-                  your meals and sugar tests.
-                </span>
-              ) : (
-                <span>
-                  <span className="font-semibold">{hospital.name}</span> pays for your GluFloat. Your hospital can see your
-                  meals and sugar tests.
-                </span>
-              )}
+              <span>
+                {hospital.kind === "dietitian" ? (
+                  <>
+                    Your diabetes care on GluFloat comes from <span className="font-semibold">{hospital.name}</span>. Your
+                    dietitian can see your meals and sugar tests.
+                  </>
+                ) : (
+                  <>
+                    <span className="font-semibold">{hospital.name}</span> pays for your GluFloat. Your hospital can see your
+                    meals and sugar tests.
+                  </>
+                )}
+                {/* Their own payment to the dietitian or hospital, counting down (patient-paid-schema.sql). */}
+                {programmeLine(hospital) && <span className="mt-1 block font-semibold">{programmeLine(hospital)}</span>}
+              </span>
             </p>
           )}
 
@@ -586,6 +603,10 @@ export default function AppPage() {
                   2026-10-07): the answer a person opened the app for. The
                   calorie tile, the first-steps card and the extras now sit
                   under it instead of in front of it. */}
+              {/* Her note for this patient (GluFloat for dietitians), right above the meal. */}
+              {hospital?.kind === "dietitian" && hospital.rules?.note && (
+                <DietitianNote name={hospital.name} note={hospital.rules.note} />
+              )}
               <div id="todays-meal" className="scroll-mt-24">
                 <TodaysMeal onBuild={buildMeal} personalize={canUseGoalPersonalization(access)} />
               </div>

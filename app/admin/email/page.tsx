@@ -1,8 +1,7 @@
 import { Users, Stethoscope, HeartHandshake, HeartPulse } from "lucide-react";
 import { isAdmin } from "@/lib/adminSession";
 import { createAdminClient } from "@/lib/supabase/server";
-import { isInternalEmail } from "@/lib/internalAccounts";
-import { isUserType } from "@/lib/userType";
+import { AUDIENCES, emailAudience } from "@/lib/emailAudience";
 import { NAME_TOKEN, mailyteConfigured, listSenders, recentCampaigns, type Sender, type SentEmail } from "@/lib/mailyte";
 import AdminLogin from "../AdminLogin";
 import AdminShell from "../AdminShell";
@@ -14,26 +13,19 @@ import SentEmails from "./SentEmails";
 
 export const dynamic = "force-dynamic";
 
-const ROWS = [
-  { key: "diabetic", label: "Diabetic" },
-  { key: "health_pro", label: "Health professional" },
-  { key: "caregiver", label: "Caregiver" },
-  { key: "unset", label: "Not set" },
-] as const;
+const ROWS = AUDIENCES;
 
 
 /** Write and send emails to users, through Mailyte. */
 export default async function EmailPage() {
   if (!(await isAdmin())) return <AdminLogin />;
 
-  const { data } = await createAdminClient().from("profiles").select("email,user_type");
-  const people = (data ?? []).filter((p) => p.email && !isInternalEmail(p.email as string));
+  // The same lists the send uses (lib/emailAudience.ts): direct users, and
+  // dietitians, hospital staff and covered patients each on their own.
+  const people = await emailAudience(createAdminClient()).catch(() => []);
   const table: Record<string, number> = {};
   for (const r of ROWS) table[r.key] = 0;
-  for (const p of people) {
-    const k = p.user_type && isUserType(p.user_type) ? p.user_type : "unset";
-    table[k] += 1;
-  }
+  for (const p of people) table[p.key] += 1;
 
   const keyOn = mailyteConfigured();
   let senders: Sender[] = [];

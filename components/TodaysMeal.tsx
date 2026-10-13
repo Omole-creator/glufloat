@@ -8,6 +8,7 @@ import {
   type NamedMeal,
 } from "@/lib/mealtime";
 import { planForDay, mealShareFor, mealIdeaCalories, mealIdeaCarbs, mealIdeaFoodsForBuilder, type MealIdea } from "@/lib/nextMeal";
+import { practiceRules } from "@/lib/practiceRules";
 import { loggedFoodCounts, likedFoodCounts, caloriesEatenToday, foodCountsThisWeek } from "@/lib/history";
 import { trackUsage } from "@/lib/usage";
 import type { Food } from "@/lib/types";
@@ -201,6 +202,8 @@ export default function TodaysMeal({
         personalRotationKey(profileRef.current),
         await foodCountsThisWeek(),
         profileRef.current.swallows,
+        // Her dietitian's food rules (GluFloat for dietitians); null for everyone else.
+        await practiceRules(),
       );
       setIdea(next);
       setOffset(0);
@@ -307,7 +310,7 @@ export default function TodaysMeal({
     writeSkipped(meal, idea.index);
     const n = offset + 1;
     setOffset(n);
-    Promise.all([calorieTargetFor(meal), foodCountsThisWeek()]).then(([calTarget, week]) => {
+    Promise.all([calorieTargetFor(meal), foodCountsThisWeek(), practiceRules()]).then(([calTarget, week, rules]) => {
       calTargetRef.current = calTarget;
       const next = planForDay(
         meal,
@@ -322,6 +325,7 @@ export default function TodaysMeal({
         personalRotationKey(profileRef.current),
         week,
         profileRef.current.swallows,
+        rules,
       );
       setIdea(next);
       writeShown(meal, dayKey, next.index);

@@ -71,7 +71,7 @@ export default async function JoinPage({
   return (
     <AuthShell
       title={first ? `Welcome, ${first}` : `Join ${hospital.name}`}
-      subtitle={`${hospital.name} gives you GluFloat. It tells you what to eat for your diabetes and how much, and keeps a report for ${hospital.practice ? "your dietitian" : "your doctor"}.`}
+      subtitle={`${hospital.name} gives you GluFloat. It tells you what to eat for your diabetes and how much, and keeps a report for your doctor and dietitian.`}
       sideTitle={hospital.name}
     >
       <JoinForm

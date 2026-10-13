@@ -2,6 +2,12 @@ import { NextResponse } from "next/server";
 import { newToken, restoreCarried, seatsUsed, staffContext, type PatientRow } from "@/lib/hospitalServer";
 import { normalizePhone } from "@/lib/phone";
 import { isPhoneLoginEmail } from "@/lib/phoneLogin";
+import { extendAccess, isPractice } from "@/lib/hospitalPlans";
+import { practiceRuleFoodIds } from "@/lib/nextMeal";
+
+const RULE_FOODS = new Set(practiceRuleFoodIds());
+const NOTE_MAX = 300;
+const RULES_MAX = 30;
 
 export const dynamic = "force-dynamic";
 
@@ -92,6 +98,25 @@ export async function PATCH(request: Request) {
   const p = data as PatientRow;
   const action = String(body.action ?? "");
 
+  // A dietitian's note and food rules for this patient (GluFloat for
+  // dietitians, supabase/practice-rules-schema.sql). Only real foods the
+  // blue card or the extras can serve are kept; a food cannot be both left
+  // out and eaten more (left out wins).
+  if (action === "rules") {
+    if (!isPractice(ctx.hospital)) return NextResponse.json({ error: "This is for dietitians." }, { status: 403 });
+    const clean = (v: unknown) =>
+      [...new Set((Array.isArray(v) ? v : []).map(String).filter((id) => RULE_FOODS.has(id)))].slice(0, RULES_MAX);
+    const avoid = clean(body.avoid);
+    const prefer = clean(body.prefer).filter((id) => !avoid.includes(id));
+    const note = String(body.note ?? "").trim().slice(0, NOTE_MAX) || null;
+    const { error } = await ctx.admin
+      .from("hospital_patients")
+      .update({ dietitian_note: note, avoid_food_ids: avoid, prefer_food_ids: prefer, rules_updated_at: new Date().toISOString() })
+      .eq("id", p.id);
+    if (error) return NextResponse.json({ error: "This is not ready yet. Please try again later." }, { status: 503 });
+    return NextResponse.json({ ok: true, note, avoid, prefer });
+  }
+
   if (action === "remove") {
     await ctx.admin
       .from("hospital_patients")
@@ -106,6 +131,37 @@ export async function PATCH(request: Request) {
     if ((await seatsUsed(ctx.admin, ctx.hospital.id)) >= ctx.hospital.seats)
       return NextResponse.json({ error: "Every place on your plan is in use. Remove a patient, or ask GluFloat for a bigger plan." }, { status: 409 });
     await ctx.admin.from("hospital_patients").update({ status: "active" }).eq("id", p.id);
+    // Their 30 days start now (patient-paid-schema.sql); its own write, so a
+    // database without the column still gives the place.
+    if (!p.paid_until) await ctx.admin.from("hospital_patients").update({ paid_until: new Date(Date.now() + 30 * 86400000).toISOString() }).eq("id", p.id);
+    return NextResponse.json({ ok: true });
+  }
+
+  // The patient paid their dietitian or hospital (outside GluFloat). Months
+  // are added after whatever time is left. A paused patient is resumed, if a
+  // place is free.
+  if (action === "paid") {
+    const months = Number(body.months);
+    if (![1, 3, 6, 12].includes(months)) return NextResponse.json({ error: "Choose 1, 3, 6 or 12 months." }, { status: 400 });
+    if (p.status !== "active" && p.status !== "paused") return NextResponse.json({ error: "This patient is not using a place." }, { status: 400 });
+    if (p.status === "paused" && (await seatsUsed(ctx.admin, ctx.hospital.id)) >= ctx.hospital.seats)
+      return NextResponse.json({ error: "Every place on your plan is in use. Pause or remove a patient first, or choose a bigger plan." }, { status: 409 });
+    const until = extendAccess(p.paid_until ?? null, months);
+    const { error } = await ctx.admin
+      .from("hospital_patients")
+      .update({ paid_until: until.toISOString(), status: "active" })
+      .eq("id", p.id);
+    if (error) return NextResponse.json({ error: "This is not ready yet. Please try again later." }, { status: 503 });
+    return NextResponse.json({ ok: true, paidUntil: until.toISOString() });
+  }
+
+  // Could not renew yet: kept on the list (notes, rules, history), not
+  // covered, not using a place. Any paid days of their own come back to them.
+  if (action === "pause") {
+    if (p.status !== "active") return NextResponse.json({ error: "Only a patient using GluFloat can be paused." }, { status: 400 });
+    const { error } = await ctx.admin.from("hospital_patients").update({ status: "paused" }).eq("id", p.id);
+    if (error) return NextResponse.json({ error: "This is not ready yet. Please try again later." }, { status: 503 });
+    await restoreCarried(ctx.admin, p);
     return NextResponse.json({ ok: true });
   }
 

@@ -696,6 +696,56 @@ function overWeeklyLimit(ids: string[], weekCounts: Map<string, number>): boolea
 }
 
 /** Drops plates holding a traditional swallow the person did not tick. Never empties the list. */
+/**
+ * A dietitian's own rules for one patient (founder, 2026-10-13; stored on
+ * hospital_patients, supabase/practice-rules-schema.sql). Only the app's own
+ * suggestions follow them (the blue card and the extras); search and "Check
+ * a meal" still show every food, like the condition filter above.
+ */
+export type PracticeRules = { avoid: string[]; prefer: string[] };
+
+/** How many plates with her eat-more foods there must be before a day keeps to them. */
+export const PREFER_MIN_PLATES = 3;
+
+/**
+ * Leave out: a plate holding any food she ticked leaves the rotation (never
+ * emptied: if every plate has one, the list stays as it was).
+ * Eat more: on about every other day (a fixed hash of the day, meal and
+ * person, so it is stable while the day lasts), only plates holding one of
+ * her eat-more foods are served, when at least PREFER_MIN_PLATES exist. A
+ * nudge to the order alone would not do it: the day-stride walks every plate
+ * over time whatever its score (see the calorie-target note in planForDay).
+ * Everything else still applies: green only, My details, weekly limits.
+ */
+function applyPracticeRules<T extends { idea: { index: number } }>(
+  rows: T[],
+  list: string[][],
+  rules: PracticeRules | null,
+  dayKey: string,
+): T[] {
+  if (!rules) return rows;
+  let out = rows;
+  if (rules.avoid.length > 0) {
+    const no = new Set(rules.avoid);
+    const kept = out.filter((r) => !list[r.idea.index].some((id) => no.has(id)));
+    if (kept.length > 0) out = kept;
+  }
+  if (rules.prefer.length > 0 && hash(`${dayKey}#prefer`) % 2 === 0) {
+    const want = new Set(rules.prefer);
+    const hits = out.filter((r) => list[r.idea.index].some((id) => want.has(id)));
+    if (hits.length >= PREFER_MIN_PLATES) out = hits;
+  }
+  return out;
+}
+
+/** Every food a dietitian can pick for her rules: what the blue card and the extras ever serve. */
+export function practiceRuleFoodIds(): string[] {
+  const ids = new Set<string>();
+  for (const m of ["breakfast", "lunch", "dinner"] as NamedMeal[]) for (const plate of IDEAS[m]) for (const id of plate) ids.add(id);
+  for (const c of READY_TO_EAT_EXTRAS) ids.add(c.id);
+  return [...ids];
+}
+
 function filterBySwallows<T extends { idea: { index: number } }>(
   rows: T[],
   list: string[][],
@@ -1055,6 +1105,7 @@ export function planForDay(
   personalKey = "",
   weekCounts: Map<string, number> = new Map(),
   swallows: string[] = [],
+  rules: PracticeRules | null = null,
 ): MealIdea {
   const list = IDEAS[meal];
   const n = list.length;
@@ -1121,6 +1172,8 @@ export function planForDay(
     const within = base.filter((s) => !overWeeklyLimit(list[s.idea.index], weekCounts));
     if (within.length > 0) base = within;
   }
+  // The patient's dietitian (GluFloat for dietitians, applyPracticeRules).
+  base = applyPracticeRules(base, list, rules, `${dayKey}#${meal}#${personalKey}`);
 
   // A calorie target (Plus/Dietitian tier) is NOT a minor tiebreak added on
   // top of the full list — a tiebreak this small was getting lost entirely,
@@ -2205,6 +2258,8 @@ export function suggestExtras(
   snack?: SnackTime,
   excludeIds: ReadonlySet<string> = new Set(),
   usedToday: ReadonlyMap<string, number> = new Map(),
+  /** Foods the patient's dietitian left out (PracticeRules.avoid). A hard rule: no fallback brings them back. */
+  leftOut: ReadonlySet<string> = new Set(),
 ): ExtraSuggestionSet | null {
   // Dinner is the last chance of the day (its bedtime snack only exists for
   // very high targets), so a smaller gap still gets a card there instead of
@@ -2216,8 +2271,9 @@ export function suggestExtras(
   // A snack leaves out the foods already on that meal's extras card, so the
   // person is not handed walnuts twice in one morning. If that would leave
   // fewer than 2 foods, the full list is used instead.
-  const excluded = EXTRA_CANDIDATES[meal].filter((c) => !excludeIds.has(c.id));
-  const source = excluded.length >= 2 ? excluded : EXTRA_CANDIDATES[meal];
+  const allowed = EXTRA_CANDIDATES[meal].filter((c) => !leftOut.has(c.id));
+  const excluded = allowed.filter((c) => !excludeIds.has(c.id));
+  const source = excluded.length >= 2 ? excluded : allowed;
   const pool = source
     .filter((candidate) => !EXCLUDED_FROM_EXTRAS.has(candidate.id))
     // A food with a weekly limit already reached is left out (weeklyLimit).
@@ -2394,6 +2450,8 @@ export function suggestSnack(
   personalKey = "",
   weekCounts: Map<string, number> = new Map(),
   usedToday: ReadonlyMap<string, number> = new Map(),
+  /** Foods the patient's dietitian left out (PracticeRules.avoid). */
+  alsoExclude: ReadonlySet<string> = new Set(),
 ): ExtraSuggestionSet | null {
   const snack = SNACK_AFTER[meal];
   const covered = extras ? extras.variants[0].totalCalories : 0;
@@ -2415,5 +2473,6 @@ export function suggestSnack(
     for (const v of extras.variants) for (const o of v.items) most.set(o.food.id, Math.max(most.get(o.food.id) ?? 0, o.grams));
     for (const [id, g] of most) used.set(id, (used.get(id) ?? 0) + g);
   }
-  return suggestExtras(left, dayKey, meal, conditions, personalKey, weekCounts, snack, onCard, used);
+  // Her left-out foods never come back as the snack either.
+  return suggestExtras(left, dayKey, meal, conditions, personalKey, weekCounts, snack, onCard, used, alsoExclude);
 }

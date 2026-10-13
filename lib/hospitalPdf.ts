@@ -319,7 +319,7 @@ export async function buildPosterPdf(hospital: { name: string; code: string }): 
   pdf.setFontSize(13);
   const sub = pdf.splitTextToSize(
     // Never "free": the hospital may charge its patients for the programme.
-    `${hospital.name} gives you GluFloat. It tells you what to eat and how much, and keeps a report for your doctor.`,
+    `${hospital.name} gives you GluFloat. It tells you what to eat and how much, and keeps a report for your doctor and dietitian.`,
     W - 36,
   );
   pdf.text(sub, 18, 56 + title.length * 12 + 4);

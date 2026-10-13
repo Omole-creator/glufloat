@@ -169,6 +169,16 @@ export async function POST(request: Request) {
     finalStatus = "waiting";
   }
 
+  // The patient's own payment countdown starts at 30 days (patient-paid-schema.sql).
+  // Its own write: a database without the column still lets them join.
+  if (finalStatus === "active") {
+    await admin
+      .from("hospital_patients")
+      .update({ paid_until: new Date(Date.now() + 30 * 86400000).toISOString() })
+      .eq("id", rowId)
+      .is("paid_until", null);
+  }
+
   // A dietitian's first patient starts her 14 free days. Only the row whose
   // end is still empty is touched, so two first patients at once start it once.
   if (finalStatus === "active" && waitingForFirstPatient(h)) {

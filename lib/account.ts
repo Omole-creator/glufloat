@@ -42,6 +42,10 @@ export type HospitalCover = {
   name: string;
   /** "dietitian" when a dietitian's practice pays (GluFloat for dietitians): every screen then says "your dietitian". */
   kind: "hospital" | "dietitian";
+  /** Her note and food rules for this patient (lib/practiceRules.ts), or null. */
+  rules: { note: string | null; avoid: string[]; prefer: string[] } | null;
+  /** When the patient's own payment to the dietitian or hospital runs out, or null. */
+  paidUntil: string | null;
   /** Who the patient can chat with: their hospital's dietitian and doctor (either may be missing). */
   chats: HospitalChat[];
 };
@@ -53,6 +57,8 @@ type HospitalMe = {
     status: "active" | "waiting";
     chats: HospitalChat[];
     kind?: "hospital" | "dietitian";
+    rules?: { note: string | null; avoid: string[]; prefer: string[] } | null;
+    paidUntil?: string | null;
   };
   staff: { id: string; name: string; role: string; kind?: "hospital" | "dietitian" }[];
 };
@@ -167,6 +173,8 @@ export async function getAccess(): Promise<{
           hospital: {
             name: hosp.patient.hospitalName,
             kind: hosp.patient.kind === "dietitian" ? "dietitian" : "hospital",
+            rules: hosp.patient.rules ?? null,
+            paidUntil: hosp.patient.paidUntil ?? null,
             chats: Array.isArray(hosp.patient.chats) ? hosp.patient.chats : [],
           },
         },

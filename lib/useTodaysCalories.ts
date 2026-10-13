@@ -14,6 +14,7 @@ import {
   NUT_GROUP,
   type ExtraSuggestionSet,
 } from "@/lib/nextMeal";
+import { practiceRules } from "@/lib/practiceRules";
 import { currentMeal, localDayKey } from "@/lib/mealtime";
 import { biasVector } from "@/lib/personalization";
 import { toAvoid } from "@/lib/mealRotationMemory";
@@ -188,12 +189,16 @@ export function useTodaysCalories(show: boolean): TodaysCalories {
     // mealShareFor, the SAME function components/TodaysMeal.tsx uses to pick
     // the plate, so the plate and the extras are sized against one number.
     const mealShare = mealShareFor(dailyTarget, eatenToday, p.mealPattern, meal, p.conditions);
-    const [counts, liked, weekCounts, todayRows] = await Promise.all([
+    const [counts, liked, weekCounts, todayRows, rules] = await Promise.all([
       loggedFoodCounts(),
       likedFoodCounts(),
       foodCountsThisWeek(),
       todaysFoodSizes(),
+      // Her dietitian's food rules, the SAME read TodaysMeal passes, so both
+      // land on the same plate.
+      practiceRules(),
     ]);
+    const leftOut = new Set(rules?.avoid ?? []);
     const bias = biasVector({ goals: p.goals, activityLevel: p.activityLevel, conditions: p.conditions });
     const personalKey = personalRotationKey(p);
     const idea = planForDay(
@@ -209,6 +214,7 @@ export function useTodaysCalories(show: boolean): TodaysCalories {
       personalKey,
       weekCounts,
       p.swallows,
+      rules,
     );
     // mealIdeaCalories() already folds in scaledProtein/scaledSide's own
     // contribution (a bigger, still-safe serving closes part of the gap
@@ -227,14 +233,14 @@ export function useTodaysCalories(show: boolean): TodaysCalories {
       const grams = idea.scaledSide?.food.id === plateNut.id ? idea.scaledSide.grams : gramsEatenToday([{ foodIds: [plateNut.id], sizes: ["normal"] }]).get(plateNut.id) ?? 0;
       usedToday.set(plateNut.id, (usedToday.get(plateNut.id) ?? 0) + grams);
     }
-    const extras = suggestExtras(extrasGap, dayKey, meal, p.conditions, personalKey, weekCounts, undefined, undefined, usedToday);
+    const extras = suggestExtras(extrasGap, dayKey, meal, p.conditions, personalKey, weekCounts, undefined, undefined, usedToday, leftOut);
     // The best any variant reaches — usually variants[0] (sized closest to
     // the gap), but take the max in case a later variant ever does better,
     // so this never overstates a shortfall that a variant already covers.
     const bestVariantKcal = extras
       ? Math.max(...extras.variants.map((v) => v.totalCalories))
       : 0;
-    const snackSet = suggestSnack(meal, extrasGap, extras, dayKey, p.conditions, personalKey, weekCounts, usedToday);
+    const snackSet = suggestSnack(meal, extrasGap, extras, dayKey, p.conditions, personalKey, weekCounts, usedToday, leftOut);
     const snackKcal = snackSet ? snackSet.variants[0].totalCalories : 0;
     setTarget(dailyTarget);
     setSnack(snackSet);

@@ -1,4 +1,4 @@
-import { isUserType, type UserType } from "./userType";
+import type { AudienceKey } from "./emailAudience";
 import { isPhoneLoginEmail } from "@/lib/phoneLogin";
 
 /**
@@ -22,12 +22,20 @@ import { isPhoneLoginEmail } from "@/lib/phoneLogin";
 
 const API = "https://app.mailyte.com/api/v1";
 
-/** One Mailyte list per kind of person. Changing a name makes a new list. */
-export const GROUP_NAME: Record<UserType | "unset", string> = {
+/**
+ * One Mailyte list per kind of person. Changing a name makes a new list.
+ * The last four (2026-10-13) hold dietitians, hospital staff and the patients
+ * a practice or hospital covers, kept OFF the first four (lib/emailAudience.ts).
+ */
+export const GROUP_NAME: Record<AudienceKey, string> = {
   diabetic: "GluFloat: Diabetic",
   health_pro: "GluFloat: Health professional",
   caregiver: "GluFloat: Caregiver",
   unset: "GluFloat: Not set",
+  dietitians: "GluFloat: Dietitians",
+  hospital_staff: "GluFloat: Hospital staff",
+  dietitian_patients: "GluFloat: Dietitian patients",
+  hospital_patients: "GluFloat: Hospital patients",
 };
 
 export function mailyteConfigured(): boolean {
@@ -89,7 +97,8 @@ type ContactRow = { id: string; lists?: { id: string; name: string }[] | null };
 export interface Contact {
   email: string;
   name: string | null;
-  userType: string | null;
+  /** Which list (lib/emailAudience.ts). */
+  key: AudienceKey;
 }
 
 export interface SyncResult {
@@ -98,7 +107,6 @@ export interface SyncResult {
   byGroup: Record<string, number>;
 }
 
-const listKey = (t: string | null) => (t && isUserType(t) ? t : "unset");
 
 /** The first word of a name, for "Hello Ada". Empty when there is no name. */
 export function firstName(name: string | null | undefined): string {
@@ -142,7 +150,7 @@ export async function syncContacts(contacts: Contact[]): Promise<SyncResult> {
   // would only bounce and hurt our sending name.
   const real = contacts.filter((c) => !isPhoneLoginEmail(c.email));
   await eachLimited(real, async (c) => {
-    const key = listKey(c.userType);
+    const key = c.key;
     const name = GROUP_NAME[key];
     const target = lists[name];
     const r = await my<ContactRow>("/contacts", {
