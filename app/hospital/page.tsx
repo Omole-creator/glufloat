@@ -5,6 +5,7 @@ import HospitalShell from "@/components/hospital/HospitalShell";
 import NotStaff from "@/components/hospital/NotStaff";
 import { requireStaffPage } from "@/components/hospital/requireStaff";
 import { hospitalRoster } from "@/lib/hospitalRoster";
+import { isPractice } from "@/lib/hospitalPlans";
 import PatientTable from "./PatientTable";
 
 export const dynamic = "force-dynamic";
@@ -37,7 +38,7 @@ export default async function HospitalHome({ searchParams }: { searchParams: Pro
     <HospitalShell
       ctx={ctx}
       title="Patients"
-      subtitle={`${ctx.hospital.name} · ${ROLE_GREETING[ctx.staff.role]}`}
+      subtitle={`${ctx.hospital.name} · ${isPractice(ctx.hospital) ? "Your practice" : ROLE_GREETING[ctx.staff.role]}`}
       actions={
         isAdmin ? (
           <Link

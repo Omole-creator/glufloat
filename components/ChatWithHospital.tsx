@@ -32,6 +32,8 @@ export default function ChatWithHospital({ hospital }: { hospital: HospitalCover
   }, []);
 
   const message = weightLine ? `${GREETING}\n\n${weightLine}` : GREETING;
+  // A dietitian's practice (GluFloat for dietitians): she is the one person to chat with.
+  const practice = hospital.kind === "dietitian";
 
   return (
     <div className="rounded-2xl bg-white p-4 shadow-[0_6px_28px_-14px_rgba(12,42,71,0.2)] ring-1 ring-brand/10 sm:p-5">
@@ -40,11 +42,17 @@ export default function ChatWithHospital({ hospital }: { hospital: HospitalCover
           <Stethoscope className="h-5 w-5" strokeWidth={2.2} />
         </span>
         <div className="min-w-0">
-          <p className="font-display text-sm font-bold text-ink">Chat with your hospital</p>
+          <p className="font-display text-sm font-bold text-ink">
+            {practice ? "Chat with your dietitian" : "Chat with your hospital"}
+          </p>
           <p className="mt-0.5 text-sm text-ink-soft">
-            {hospital.chats.length > 0
-              ? `Open WhatsApp and chat with your care team at ${hospital.name}.`
-              : `${hospital.name} has not added a dietitian or doctor here yet. Please ask your hospital.`}
+            {practice
+              ? hospital.chats.length > 0
+                ? `Open WhatsApp and chat with ${hospital.name}.`
+                : `${hospital.name} has not added a WhatsApp number yet.`
+              : hospital.chats.length > 0
+                ? `Open WhatsApp and chat with your care team at ${hospital.name}.`
+                : `${hospital.name} has not added a dietitian or doctor here yet. Please ask your hospital.`}
           </p>
         </div>
       </div>

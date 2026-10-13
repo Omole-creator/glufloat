@@ -86,6 +86,15 @@ function UnlockInner() {
           body: JSON.stringify({ reference }),
         }).catch(() => null);
 
+        // A dietitian's practice payment that came back here instead of
+        // /dietitians/paid: it is linked now, so send her to her plan.
+        const j = res ? await res.clone().json().catch(() => null) : null;
+        if (j?.practice) {
+          if (res?.ok) clearPendingReference();
+          router.replace(res?.ok ? "/hospital/plan?paid=1" : "/hospital/plan");
+          return;
+        }
+
         if (res?.ok) {
           clearPendingReference();
         } else if (res?.status === 402) {

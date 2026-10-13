@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import { AlertTriangle } from "lucide-react";
-import { hospitalLive, planName } from "@/lib/hospitalPlans";
+import { AlertTriangle, Sparkles } from "lucide-react";
+import { hospitalLive, isPractice, orgWords, planName, PRACTICE_TRIAL_DAYS, waitingForFirstPatient } from "@/lib/hospitalPlans";
 import { ROLE_LABEL, type StaffContext } from "@/lib/hospitalServer";
 import { HospitalLogOut, HospitalMobileNav, HospitalSidebarNav, HospitalSwitcher } from "./HospitalNav";
 
@@ -26,6 +26,12 @@ export default function HospitalShell({
   const h = ctx.hospital;
   const hid = ctx.all.length > 1 ? h.id : null;
   const live = hospitalLive(h);
+  // GluFloat for dietitians: same dashboard, her own words.
+  const practice = isPractice(h);
+  const words = orgWords(h);
+  const roleLabel = practice ? words.adminLabel : ROLE_LABEL[ctx.staff.role];
+  // A dietitian with no patient yet: nothing has ended, her 14 days have not begun.
+  const notStarted = waitingForFirstPatient(h);
   const options = ctx.all.map((x) => ({ id: x.hospital.id, name: x.hospital.name }));
   const daysLeft = h.access_until ? Math.ceil((new Date(h.access_until).getTime() - Date.now()) / 86400000) : 0;
 
@@ -38,7 +44,7 @@ export default function HospitalShell({
           </span>
           <span className="font-display text-lg font-bold tracking-tight text-white">
             GluFloat
-            <span className="block text-[10px] font-bold uppercase tracking-[0.18em] text-white/55">for hospitals</span>
+            <span className="block text-[10px] font-bold uppercase tracking-[0.18em] text-white/55">{words.product}</span>
           </span>
         </Link>
         <div className="mt-6 rounded-2xl bg-white/[0.07] p-3.5 ring-1 ring-inset ring-white/10">
@@ -47,11 +53,11 @@ export default function HospitalShell({
           <HospitalSwitcher options={options} current={h.id} />
         </div>
         <div className="-mx-1 mt-6 min-h-0 flex-1 overflow-y-auto px-1">
-          <HospitalSidebarNav role={ctx.staff.role} hid={hid} />
+          <HospitalSidebarNav role={ctx.staff.role} hid={hid} practice={practice} />
         </div>
         <div className="border-t border-white/10 pt-4">
           <p className="truncate px-1 text-sm font-semibold text-white">{ctx.staff.name}</p>
-          <p className="mb-3 px-1 text-xs text-white/55">{ROLE_LABEL[ctx.staff.role]}</p>
+          <p className="mb-3 px-1 text-xs text-white/55">{roleLabel}</p>
           <HospitalLogOut />
         </div>
       </aside>
@@ -66,18 +72,37 @@ export default function HospitalShell({
           </Link>
           <HospitalLogOut compact />
         </div>
-        <HospitalMobileNav role={ctx.staff.role} hid={hid} />
+        <HospitalMobileNav role={ctx.staff.role} hid={hid} practice={practice} />
       </header>
 
       <main className="lg:pl-64">
         <div className="mx-auto max-w-6xl px-4 pb-16 pt-6 sm:px-6 lg:px-8 lg:pt-9">
-          {!live && (
+          {notStarted && (
+            <div className="mb-6 flex items-start gap-3 rounded-2xl bg-brand/[0.07] px-4 py-3.5 text-sm text-ink ring-1 ring-inset ring-brand/15">
+              <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
+              <p>
+                <span className="font-bold">Your {PRACTICE_TRIAL_DAYS} free days start when your first patient joins.</span>{" "}
+                Add your patients, or share your QR code with them.
+              </p>
+            </div>
+          )}
+          {!live && !notStarted && (
             <div className="mb-6 flex items-start gap-3 rounded-2xl bg-verdict-red/10 px-4 py-3.5 text-sm text-ink ring-1 ring-inset ring-verdict-red/20">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-verdict-red" />
-              <p>
-                <span className="font-bold">Your GluFloat plan has ended.</span> Your patients are no longer covered and their
-                records are closed to your staff. Please contact GluFloat to continue.
-              </p>
+              {practice ? (
+                <p>
+                  <span className="font-bold">Your GluFloat plan has ended.</span> Your patients are no longer covered and
+                  their records are closed.{" "}
+                  <Link href="/hospital/plan" className="font-bold text-brand underline">
+                    Choose a plan to continue
+                  </Link>
+                </p>
+              ) : (
+                <p>
+                  <span className="font-bold">Your GluFloat plan has ended.</span> Your patients are no longer covered and their
+                  records are closed to your staff. Please contact GluFloat to continue.
+                </p>
+              )}
             </div>
           )}
           {live && daysLeft <= 7 && (
@@ -85,9 +110,18 @@ export default function HospitalShell({
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
               <p>
                 <span className="font-bold">
-                  {h.status === "pilot" ? "Your free pilot" : "Your plan"} ends in {daysLeft} {daysLeft === 1 ? "day" : "days"}.
+                  {h.status === "pilot" ? (practice ? "Your free days" : "Your free pilot") : "Your plan"} ends in {daysLeft}{" "}
+                  {daysLeft === 1 ? "day" : "days"}.
                 </span>{" "}
-                {ctx.staff.role === "admin" ? "Contact GluFloat to keep your patients covered." : "Please tell your hospital admin."}
+                {practice ? (
+                  <Link href="/hospital/plan" className="font-bold text-brand underline">
+                    Choose a plan to keep your patients covered
+                  </Link>
+                ) : ctx.staff.role === "admin" ? (
+                  "Contact GluFloat to keep your patients covered."
+                ) : (
+                  "Please tell your hospital admin."
+                )}
               </p>
             </div>
           )}

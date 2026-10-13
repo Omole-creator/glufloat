@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { Download, FileText, QrCode } from "lucide-react";
+import { Download, FileText } from "lucide-react";
+import QrCodeCard from "@/components/hospital/QrCodeCard";
 import { planName } from "@/lib/hospitalPlans";
-import { buildDocumentPdf, buildPosterPdf, joinShort, ngn, type DocumentForPdf } from "@/lib/hospitalPdf";
+import { buildDocumentPdf, ngn, type DocumentForPdf } from "@/lib/hospitalPdf";
 import type { InvoiceSettings } from "@/lib/invoiceSettings";
 import type { HospitalRow } from "@/lib/hospitalServer";
 
@@ -28,7 +28,6 @@ export default function PlanPanel({
   documents: (DocumentForPdf & { id: string })[];
   bank: InvoiceSettings;
 }) {
-  const [busy, setBusy] = useState(false);
   const pct = hospital.seats ? Math.min(100, Math.round((used / hospital.seats) * 100)) : 0;
   const ask = encodeURIComponent(`Hello GluFloat, this is ${hospital.name}. We would like to talk about our plan.`);
 
@@ -103,37 +102,7 @@ export default function PlanPanel({
         </section>
       </div>
 
-      <section className="h-fit rounded-2xl border border-[#e3e9f1] bg-white p-5 sm:p-6">
-        <div className="flex items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-leaf/10 text-leaf-deep">
-            <QrCode className="h-5 w-5" />
-          </span>
-          <h2 className="font-display text-lg font-bold text-ink">Your QR code</h2>
-        </div>
-        <p className="mt-2 text-sm text-ink-soft">
-          Print it and put it where your patients wait. They scan it with their phone camera to join. Everyone who joins
-          shows up on your patient list.
-        </p>
-        <div className="mt-4 rounded-2xl bg-mist/70 px-4 py-5 text-center">
-          <p className="text-xs font-semibold text-ink-soft">Your join address</p>
-          <p className="mt-1 font-display text-xl font-bold text-brand">{joinShort(hospital.code)}</p>
-          <p className="mt-1 text-xs text-ink-soft">Your hospital code: {hospital.code}</p>
-        </div>
-        <button
-          disabled={busy || !live}
-          onClick={async () => {
-            setBusy(true);
-            try {
-              (await buildPosterPdf(hospital)).save(`glufloat-qr-code-${hospital.code}.pdf`);
-            } finally {
-              setBusy(false);
-            }
-          }}
-          className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-leaf px-5 py-3 text-sm font-bold text-white hover:bg-leaf-deep disabled:opacity-50"
-        >
-          <Download className="h-4 w-4" /> {busy ? "Getting it ready..." : "Download QR code"}
-        </button>
-      </section>
+      <QrCodeCard name={hospital.name} code={hospital.code} open={live} />
     </div>
   );
 }

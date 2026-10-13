@@ -1,0 +1,414 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import {
+  ArrowRight,
+  BadgeCheck,
+  ClipboardList,
+  FileText,
+  HeartHandshake,
+  MessageCircle,
+  QrCode,
+  Search,
+  ShieldCheck,
+  Stethoscope,
+  UserPlus,
+  Users,
+  Utensils,
+  Wallet,
+} from "lucide-react";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import { nairaText, PRACTICE_PLANS, PRACTICE_TRIAL_DAYS, PRACTICE_TRIAL_SEATS } from "@/lib/hospitalPlans";
+
+export const metadata: Metadata = {
+  title: "GluFloat for Dietitians | Support Your Diabetes Patients Between Visits",
+  description:
+    "Give your patients GluFloat Premium and see every meal and sugar test they save, from your own dashboard. You set your own price. 14 free days for 5 patients.",
+  alternates: { canonical: "/dietitians" },
+};
+
+/**
+ * GluFloat for dietitians, the page a dietitian lands on (2026-10-13). Same
+ * design language as /hospitals. Static: no client island, every button is a
+ * link to /dietitians/start or down the page.
+ *
+ * The promise this page makes and the product keeps: her patients chat only
+ * with her (lib/hospitalServer.ts chatContacts), see no GluFloat payment
+ * links while she covers them (lib/account.ts, the "hospital" Access), and
+ * she sets her own price (GluFloat never sees it).
+ */
+
+const H2 = "mx-auto mt-4 max-w-3xl text-balance text-center font-display text-3xl font-bold leading-tight tracking-tight text-ink sm:text-[2.5rem]";
+const LEAD = "mx-auto mt-4 max-w-2xl text-center text-lg leading-relaxed text-ink-soft";
+const PANEL =
+  "relative mx-auto max-w-6xl overflow-hidden rounded-[32px] bg-gradient-to-br from-[#0B2E5C] via-[#124A8C] to-[#1B5FAA] px-6 py-14 sm:px-12 sm:py-16";
+const START = "/dietitians/start";
+
+function Label({ children, dark = false }: { children: React.ReactNode; dark?: boolean }) {
+  return (
+    <span
+      className={`inline-flex items-center rounded-full px-3.5 py-1 text-xs font-bold uppercase tracking-[0.14em] ${
+        dark ? "bg-white/10 text-white ring-1 ring-inset ring-white/20" : "bg-white text-brand ring-1 ring-brand/15 shadow-sm"
+      }`}
+    >
+      {children}
+    </span>
+  );
+}
+
+function Glow() {
+  return (
+    <>
+      <div aria-hidden className="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-[#2C7BE5]/40 blur-3xl" />
+      <div aria-hidden className="pointer-events-none absolute -bottom-28 -right-20 h-72 w-72 rounded-full bg-leaf/30 blur-3xl" />
+    </>
+  );
+}
+
+/** A picture of her dashboard, drawn in HTML and marked as an example. */
+function DashboardPreview() {
+  const rows = [
+    { name: "Mrs Ngozi A.", used: "Today", meals: 34, last: "128 mg/dL" },
+    { name: "Mr Tunde O.", used: "Yesterday", meals: 29, last: "171 mg/dL" },
+    { name: "Mrs Halima S.", used: "Today", meals: 40, last: "119 mg/dL" },
+    { name: "Mr Emeka N.", used: "8 days ago", meals: 5, last: "196 mg/dL", quiet: true },
+  ];
+  return (
+    <div className="relative rounded-3xl bg-white p-4 text-ink shadow-[0_40px_90px_-40px_rgba(0,0,0,0.6)] ring-1 ring-white/30 sm:p-5">
+      <div className="flex items-center justify-between">
+        <p className="font-display text-sm font-bold">My patients</p>
+        <span className="rounded-full bg-mist px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-ink-soft">Example</span>
+      </div>
+      <div className="mt-3 grid grid-cols-3 gap-2">
+        {[
+          ["Places used", "8 of 10"],
+          ["Used this week", "7"],
+          ["Meals saved", "312"],
+        ].map(([k, v]) => (
+          <div key={k} className="rounded-xl bg-[#f3f6fa] px-2.5 py-2">
+            <p className="text-[10px] font-semibold text-ink-soft">{k}</p>
+            <p className="font-display text-base font-bold">{v}</p>
+          </div>
+        ))}
+      </div>
+      <ul className="mt-3 divide-y divide-[#eef2f7] text-xs">
+        {rows.map((r) => (
+          <li key={r.name} className="flex items-center gap-2 py-2">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand/10 text-[10px] font-bold text-brand">
+              {r.name.split(" ")[1][0]}
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate font-semibold">{r.name}</span>
+              <span className={r.quiet ? "font-semibold text-verdict-red" : "text-ink-soft"}>{r.used}</span>
+            </span>
+            <span className="hidden w-14 text-right text-ink-soft sm:block">{r.meals} meals</span>
+            <span className="w-16 text-right font-semibold">{r.last}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+export default function DietitiansPage() {
+  const promises = [
+    {
+      icon: HeartHandshake,
+      title: "Your patients stay yours",
+      text: "They chat with you on WhatsApp, and only you. While they are with you, GluFloat never offers them another dietitian.",
+    },
+    {
+      icon: Wallet,
+      title: "You set your own price",
+      text: "Charge your patients what you like, for a programme, a package or every month. GluFloat charges you one plan price.",
+    },
+    {
+      icon: Stethoscope,
+      title: "You see between visits",
+      text: "Before each visit, open a patient and see what they ate, their sugar tests and their month report.",
+    },
+  ];
+  const steps = [
+    { icon: BadgeCheck, title: "Start free", text: "Give your name, your DCN registration number and your WhatsApp number. It takes 2 minutes." },
+    { icon: UserPlus, title: "Invite your patients", text: "Send each patient their own link on WhatsApp, or share your QR code. They join with their phone number." },
+    { icon: ClipboardList, title: "Review before each visit", text: "Open any patient and see every meal and sugar test since you last saw them." },
+  ];
+  const patientGets = [
+    { icon: Utensils, text: "A meal picked for them for breakfast, lunch and dinner" },
+    { icon: Search, text: "Check any of over 1,500 Nigerian foods and meals" },
+    { icon: ClipboardList, text: "Their sugar tests saved next to what they ate" },
+    { icon: MessageCircle, text: "Chat with you on WhatsApp" },
+  ];
+  const youGet = [
+    { icon: Users, text: "All your patients on one list, with when they last used it" },
+    { icon: FileText, text: "A month report for each patient, as a PDF" },
+    { icon: QrCode, text: "Your own QR code and invite links" },
+    { icon: ShieldCheck, text: "Only you see your patients' records" },
+  ];
+  const example = PRACTICE_PLANS[1];
+  const exampleCharge = 5_000;
+  const faqs = [
+    {
+      q: "Who pays GluFloat?",
+      a: "You do, one plan price a month. Your patients do not pay GluFloat anything while you cover them. What you charge your patients is up to you, and GluFloat never sees it.",
+    },
+    {
+      q: `What happens after the ${PRACTICE_TRIAL_DAYS} free days?`,
+      a: `You choose a plan and pay by card, bank transfer or USSD. Your ${PRACTICE_TRIAL_DAYS} days only start when your first patient joins, so you never spend them waiting.`,
+    },
+    {
+      q: "Do my patients need an email address?",
+      a: "No. A patient can join with only their phone number and a password.",
+    },
+    {
+      q: "Who can see my patients' records?",
+      a: "Only you. Your patients are told, when they join, that you can see their meals and sugar tests.",
+    },
+    {
+      q: "Does GluFloat tell my patient if a sugar test is good or bad?",
+      a: "No. GluFloat shows the number as it is and leaves the judgement to you. If a number is very low or very high, it tells the patient to contact their doctor.",
+    },
+    {
+      q: "What if I stop?",
+      a: "Your patients keep their own GluFloat account. Anyone who was paying GluFloat before they joined you gets their unused days back.",
+    },
+    {
+      q: "Why do you ask for my DCN number?",
+      a: "Your patients trust you with their health records. We check that every dietitian on GluFloat is registered with the Dietitians Council of Nigeria.",
+    },
+    {
+      q: "I have more than 20 patients.",
+      a: "Then a hospital plan fits you better. See GluFloat for hospitals, or message us on WhatsApp.",
+    },
+  ];
+
+  return (
+    <>
+      <Navbar />
+      <main className="bg-[#F4F7FB]">
+        {/* Hero */}
+        <section className="relative overflow-hidden bg-gradient-to-br from-[#0d3568] via-[#14538f] to-[#1b5faa] pb-20 pt-32 text-white sm:pt-36">
+          <div aria-hidden className="pointer-events-none absolute -right-32 -top-20 h-96 w-96 rounded-full bg-white/10 blur-3xl" />
+          <div aria-hidden className="pointer-events-none absolute -bottom-40 left-10 h-96 w-96 rounded-full bg-leaf/20 blur-3xl" />
+          <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-[1.1fr_1fr]">
+            <div>
+              <Label dark>GluFloat for dietitians</Label>
+              <h1 className="mt-5 text-balance font-display text-4xl font-bold leading-[1.08] tracking-tight sm:text-5xl lg:text-[3.4rem]">
+                Support Your Patients Beyond The Consultation Room
+              </h1>
+              <p className="mt-5 max-w-xl text-lg leading-relaxed text-white/85">
+                Give your patients a simple way to follow your food advice every day. You see their meals and sugar tests
+                from your own dashboard.
+              </p>
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                <Link
+                  href={START}
+                  className="inline-flex h-14 items-center justify-center gap-2 rounded-full bg-leaf px-7 text-base font-bold text-white shadow-[0_16px_34px_-14px_rgba(62,155,79,0.9)] transition-transform hover:-translate-y-0.5"
+                >
+                  Start {PRACTICE_TRIAL_DAYS} free days <ArrowRight className="h-4 w-4" />
+                </Link>
+                <a
+                  href="#plans"
+                  className="inline-flex h-14 items-center justify-center rounded-full bg-white/10 px-7 text-base font-bold text-white ring-1 ring-inset ring-white/25 hover:bg-white/15"
+                >
+                  See the plans
+                </a>
+              </div>
+              <p className="mt-5 text-sm text-white/70">
+                {PRACTICE_TRIAL_SEATS} patients free for {PRACTICE_TRIAL_DAYS} days · The days start when your first patient
+                joins · No payment to start
+              </p>
+            </div>
+            <DashboardPreview />
+          </div>
+        </section>
+
+        {/* The promise */}
+        <section className="px-4 py-20 sm:px-6">
+          <div className="mx-auto max-w-6xl text-center">
+            <Label>Your practice</Label>
+            <h2 className={H2}>Your Patients. Your Practice. Better Support Between Visits.</h2>
+            <p className={LEAD}>GluFloat does the daily work with your patients. You stay in charge of their care.</p>
+          </div>
+          <div className="mx-auto mt-12 grid max-w-6xl gap-5 md:grid-cols-3">
+            {promises.map((s) => (
+              <div key={s.title} className="rounded-[28px] bg-white p-7 shadow-[0_24px_60px_-36px_rgba(12,42,71,0.35)] ring-1 ring-ink/[0.04]">
+                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand/10 text-brand">
+                  <s.icon className="h-6 w-6" strokeWidth={2.1} />
+                </span>
+                <h3 className="mt-5 font-display text-xl font-bold text-ink">{s.title}</h3>
+                <p className="mt-2 leading-relaxed text-ink-soft">{s.text}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* How it works */}
+        <section className="bg-white px-4 py-20 sm:px-6">
+          <div className="mx-auto max-w-6xl text-center">
+            <Label>How it works</Label>
+            <h2 className={H2}>Three Steps To Get Started</h2>
+          </div>
+          <div className="mx-auto mt-12 grid max-w-6xl gap-5 md:grid-cols-3">
+            {steps.map((s, i) => (
+              <div key={s.title} className="relative rounded-[28px] bg-[#F4F7FB] p-7 ring-1 ring-ink/[0.04]">
+                <span className="absolute right-6 top-6 font-display text-5xl font-bold text-brand/10">{i + 1}</span>
+                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-brand shadow-sm">
+                  <s.icon className="h-6 w-6" strokeWidth={2.1} />
+                </span>
+                <h3 className="mt-5 font-display text-xl font-bold text-ink">{s.title}</h3>
+                <p className="mt-2 leading-relaxed text-ink-soft">{s.text}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* What each side gets */}
+        <section className="px-4 py-20 sm:px-6">
+          <div className={PANEL}>
+            <Glow />
+            <div className="relative text-center">
+              <Label dark>What you get</Label>
+              <h2 className="mx-auto mt-4 max-w-3xl text-balance font-display text-3xl font-bold leading-tight tracking-tight text-white sm:text-[2.5rem]">
+                Premium For Every Patient, A Dashboard For You
+              </h2>
+            </div>
+            <div className="relative mt-10 grid gap-5 lg:grid-cols-2">
+              {[
+                { title: "Each patient gets", sub: "Everything in GluFloat Premium (N4,500 a month on its own)", items: patientGets },
+                { title: "You get", sub: "Your own dashboard", items: youGet },
+              ].map((col) => (
+                <div key={col.title} className="rounded-3xl bg-white/[0.07] p-6 ring-1 ring-inset ring-white/15 sm:p-7">
+                  <p className="font-display text-xl font-bold text-white">{col.title}</p>
+                  <p className="mt-1 text-sm text-white/65">{col.sub}</p>
+                  <ul className="mt-5 space-y-3.5">
+                    {col.items.map((it) => (
+                      <li key={it.text} className="flex items-center gap-3 text-white/90">
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/12 ring-1 ring-inset ring-white/20">
+                          <it.icon className="h-4.5 w-4.5" strokeWidth={2.2} />
+                        </span>
+                        {it.text}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Plans */}
+        <section id="plans" className="scroll-mt-24 bg-white px-4 py-20 sm:px-6">
+          <div className="mx-auto max-w-6xl text-center">
+            <Label>Plans</Label>
+            <h2 className={H2}>Pick The Number Of Patients</h2>
+            <p className={LEAD}>
+              Every plan includes everything. Start with {PRACTICE_TRIAL_DAYS} free days for {PRACTICE_TRIAL_SEATS} patients.
+            </p>
+          </div>
+          <div className="mx-auto mt-12 grid max-w-5xl gap-5 md:grid-cols-3">
+            {PRACTICE_PLANS.map((p, i) => (
+              <div
+                key={p.id}
+                className={`relative flex flex-col rounded-[28px] p-7 ring-1 ${
+                  i === 1 ? "bg-gradient-to-br from-[#0B2E5C] to-brand text-white ring-white/20" : "bg-[#F4F7FB] text-ink ring-ink/[0.05]"
+                }`}
+              >
+                <p className="font-display text-xl font-bold">{p.name}</p>
+                <p className="mt-4 font-display text-4xl font-bold">{nairaText(p.monthly)}</p>
+                <p className={`mt-1 text-sm ${i === 1 ? "text-white/75" : "text-ink-soft"}`}>a month</p>
+                <p className={`mt-4 text-sm ${i === 1 ? "text-white/85" : "text-ink-soft"}`}>
+                  {nairaText(p.monthly / p.seats)} a patient. Each patient gets GluFloat Premium.
+                </p>
+                <Link
+                  href={START}
+                  className={`mt-6 inline-flex h-12 items-center justify-center rounded-full px-5 text-sm font-bold ${
+                    i === 1 ? "bg-leaf text-white hover:bg-leaf-deep" : "bg-brand text-white hover:bg-brand-deep"
+                  }`}
+                >
+                  Start {PRACTICE_TRIAL_DAYS} free days
+                </Link>
+              </div>
+            ))}
+          </div>
+          <p className="mx-auto mt-8 max-w-2xl text-center text-sm text-ink-soft">
+            Pay by card, bank transfer or USSD. Each payment adds one month. More than 20 patients?{" "}
+            <Link href="/hospitals" className="font-semibold text-brand hover:underline">
+              See the hospital plans
+            </Link>
+            .
+          </p>
+
+          {/* What it can mean for her. An example, clearly marked: she sets the price. */}
+          <div className="mx-auto mt-12 max-w-3xl rounded-[28px] bg-[#F4F7FB] p-6 ring-1 ring-ink/[0.05] sm:p-8">
+            <p className="text-xs font-bold uppercase tracking-[0.14em] text-brand">Example only. You choose your price.</p>
+            <p className="mt-2 font-display text-xl font-bold text-ink">
+              If you charge {nairaText(exampleCharge)} a month for your GluFloat programme
+            </p>
+            <dl className="mt-5 space-y-2.5 text-base">
+              <div className="flex justify-between gap-4">
+                <dt className="text-ink-soft">{example.seats} patients pay you</dt>
+                <dd className="font-semibold text-ink">{nairaText(example.seats * exampleCharge)}</dd>
+              </div>
+              <div className="flex justify-between gap-4">
+                <dt className="text-ink-soft">You pay GluFloat ({example.name})</dt>
+                <dd className="font-semibold text-ink">{nairaText(example.monthly)}</dd>
+              </div>
+              <div className="flex justify-between gap-4 border-t border-line pt-2.5">
+                <dt className="font-bold text-ink">You keep</dt>
+                <dd className="font-display text-xl font-bold text-leaf-deep">{nairaText(example.seats * exampleCharge - example.monthly)}</dd>
+              </div>
+            </dl>
+            <p className="mt-4 text-sm text-ink-soft">
+              You can also put GluFloat into a bigger package, like a 30-day food programme with a first visit and a follow-up
+              visit.
+            </p>
+          </div>
+        </section>
+
+        {/* FAQ */}
+        <section className="px-4 py-20 sm:px-6">
+          <div className="mx-auto max-w-3xl">
+            <div className="text-center">
+              <Label>Questions</Label>
+              <h2 className={H2}>Things Dietitians Ask Us</h2>
+            </div>
+            <div className="mt-10 space-y-3">
+              {faqs.map((f) => (
+                <details key={f.q} className="group rounded-2xl bg-white px-5 py-4 open:shadow-[0_18px_40px_-28px_rgba(12,42,71,0.4)] open:ring-1 open:ring-ink/[0.05]">
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-display text-base font-bold text-ink">
+                    {f.q}
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F4F7FB] text-brand ring-1 ring-brand/15 transition-transform group-open:rotate-45">
+                      +
+                    </span>
+                  </summary>
+                  <p className="mt-3 leading-relaxed text-ink-soft">{f.a}</p>
+                </details>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Closing */}
+        <section className="px-4 pb-20 sm:px-6">
+          <div className={PANEL}>
+            <Glow />
+            <div className="relative text-center">
+              <h2 className="mx-auto max-w-3xl text-balance font-display text-3xl font-bold leading-tight tracking-tight text-white sm:text-[2.5rem]">
+                GluFloat Provides The Technology. You Provide The Care.
+              </h2>
+              <Link
+                href={START}
+                className="mt-8 inline-flex h-14 items-center justify-center gap-2 rounded-full bg-leaf px-8 text-base font-bold text-white shadow-[0_16px_34px_-14px_rgba(62,155,79,0.9)] transition-transform hover:-translate-y-0.5"
+              >
+                Start {PRACTICE_TRIAL_DAYS} free days <ArrowRight className="h-4 w-4" />
+              </Link>
+              <p className="mt-4 text-sm text-white/70">No payment to start</p>
+            </div>
+          </div>
+        </section>
+      </main>
+      <Footer />
+    </>
+  );
+}

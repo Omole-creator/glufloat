@@ -6,13 +6,13 @@ import { Hash } from "lucide-react";
 import AuthShell from "@/components/auth/AuthShell";
 import { Field, SubmitButton } from "@/components/auth/Field";
 
-/** glufloat.com/j with no code: type the code printed on the hospital poster. */
+/** glufloat.com/j with no code: type the code printed under a hospital or dietitian QR code. */
 export default function TypeCodePage() {
   const router = useRouter();
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   return (
-    <AuthShell title="Join your hospital" subtitle="Type the code printed under your hospital's GluFloat QR code.">
+    <AuthShell title="Join with your code" subtitle="Type the code printed under your hospital or dietitian's GluFloat QR code.">
       <form
         onSubmit={(e) => {
           e.preventDefault();

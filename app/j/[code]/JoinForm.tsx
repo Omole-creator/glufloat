@@ -20,12 +20,15 @@ export default function JoinForm({
   hospitalName,
   knownName,
   tokenWasBad,
+  practice = false,
 }: {
   code: string;
   token: string | null;
   hospitalName: string;
   knownName: string | null;
   tokenWasBad: boolean;
+  /** A dietitian's practice (GluFloat for dietitians): say "your dietitian", not "your hospital". */
+  practice?: boolean;
 }) {
   const router = useRouter();
   const [me, setMe] = useState<{ label: string } | null | undefined>(undefined);
@@ -90,8 +93,12 @@ export default function JoinForm({
             <p className="font-display text-lg font-bold text-ink">{done === "active" ? "You are in" : "You are on the waiting list"}</p>
             <p className="mt-1 text-sm text-ink">
               {done === "active"
-                ? `${hospitalName} now looks after your GluFloat. Your doctors and dietitians can see your meals and sugar tests.`
-                : `Every place at ${hospitalName} is in use right now. Your hospital will give you a place. Until then, you can use GluFloat free for 7 days.`}
+                ? practice
+                  ? `${hospitalName} now looks after your GluFloat. Your dietitian can see your meals and sugar tests.`
+                  : `${hospitalName} now looks after your GluFloat. Your doctors and dietitians can see your meals and sugar tests.`
+                : practice
+                  ? `Every place with ${hospitalName} is in use right now. Your dietitian will give you a place. Until then, you can use GluFloat free for 7 days.`
+                  : `Every place at ${hospitalName} is in use right now. Your hospital will give you a place. Until then, you can use GluFloat free for 7 days.`}
             </p>
           </div>
         </div>
@@ -160,7 +167,7 @@ export default function JoinForm({
         onChange={(e) => setPhone(e.target.value)}
         required
         autoComplete="tel"
-        hint={knownName ? "The number you gave your hospital. You will log in with it." : "You will log in with this number."}
+        hint={knownName ? `The number you gave ${practice ? "your dietitian" : "your hospital"}. You will log in with it.` : "You will log in with this number."}
       />
       <Field
         label="Email (only if you have one)"

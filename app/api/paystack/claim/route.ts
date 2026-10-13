@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { grantPayment } from "@/lib/paymentGrant";
+import { practicePlanForAmount } from "@/lib/hospitalPlans";
+import { grantPracticePayment } from "@/lib/practicePayment";
 
 export const dynamic = "force-dynamic";
 
@@ -70,6 +72,20 @@ export async function POST(request: Request) {
   const tx = body.data;
 
   const admin = createAdminClient();
+
+  // A dietitian paying for her practice (GluFloat for dietitians). Never
+  // treated as a patient's own subscription (lib/practicePayment.ts).
+  if (practicePlanForAmount(tx.amount)) {
+    const r = await grantPracticePayment(admin, {
+      uid: user.id,
+      reference,
+      amount: tx.amount,
+      paidAt: tx.paid_at || new Date().toISOString(),
+    });
+    if (r === "conflict") return NextResponse.json({ ok: false, error: "already_claimed" }, { status: 409 });
+    if (r === "no_practice") return NextResponse.json({ ok: false, error: "no_practice", practice: true }, { status: 409 });
+    return NextResponse.json({ ok: true, practice: true });
+  }
 
   // A reference already linked to a different account must not be re-used.
   const { data: existing } = await admin

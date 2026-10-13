@@ -3,6 +3,8 @@ import crypto from "crypto";
 import { createAdminClient } from "@/lib/supabase/server";
 import { tierForAmount } from "@/lib/pricing";
 import { grantPayment } from "@/lib/paymentGrant";
+import { practicePlanForAmount } from "@/lib/hospitalPlans";
+import { grantPracticePayment } from "@/lib/practicePayment";
 import { upsertSubscription } from "@/lib/subscriptionWrite";
 
 export const dynamic = "force-dynamic";
@@ -53,7 +55,15 @@ export async function POST(request: Request) {
     return p?.id ?? null;
   }
 
-  if (type === "charge.success") {
+  if (type === "charge.success" && practicePlanForAmount(data.amount)) {
+    // A dietitian paying for her practice: never a patient subscription.
+    await grantPracticePayment(admin, {
+      uid: await payerUserId(),
+      reference: data.reference,
+      amount: data.amount,
+      paidAt: data.paid_at || new Date().toISOString(),
+    });
+  } else if (type === "charge.success") {
     // One grant per payment, with paid days adding up (lib/paymentGrant.ts).
     // If the payer cannot be matched yet, the payment is still saved and the
     // /unlock claim attaches it to the signed-in buyer.

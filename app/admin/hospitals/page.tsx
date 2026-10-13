@@ -57,7 +57,8 @@ export default async function HospitalsAdminPage() {
     admin.from("hospital_patients").select("hospital_id,status").in("status", ["active", "waiting", "invited"]),
     readInvoiceSettings(admin),
   ]);
-  const hospitals = (hs ?? []) as HospitalRow[];
+  // Dietitians' practices live in /admin/dietitians, not here.
+  const hospitals = ((hs ?? []) as HospitalRow[]).filter((h) => h.kind !== "dietitian");
   const counts = new Map<string, { active: number; waiting: number; invited: number }>();
   for (const p of pats ?? []) {
     const c = counts.get(p.hospital_id as string) ?? { active: 0, waiting: 0, invited: 0 };

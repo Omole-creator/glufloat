@@ -410,8 +410,11 @@ export default function AppPage() {
   const dashboardTabs = ALL_DASHBOARD_TABS.filter(
     (t) => t.id !== "dietitian" || canUseDietitianChat(access),
   ).map((t) =>
-    // A hospital patient chats with their hospital's own dietitian or doctor.
-    t.id === "dietitian" && hospital ? { ...t, label: "Chat with your hospital" } : t,
+    // A hospital patient chats with their hospital's own dietitian or doctor;
+    // a dietitian's patient chats with her.
+    t.id === "dietitian" && hospital
+      ? { ...t, label: hospital.kind === "dietitian" ? "Chat with your dietitian" : "Chat with your hospital" }
+      : t,
   );
 
   // The badge names the actual plan a subscriber is on, not just "Membership"
@@ -542,10 +545,17 @@ export default function AppPage() {
           {hospital && (
             <p className="mt-2 flex items-start gap-2 rounded-2xl bg-brand/[0.06] px-3.5 py-2.5 text-sm text-ink ring-1 ring-inset ring-brand/10">
               <Stethoscope className="mt-0.5 h-4 w-4 shrink-0 text-brand" strokeWidth={2.2} />
-              <span>
-                <span className="font-semibold">{hospital.name}</span> pays for your GluFloat. Your hospital can see your
-                meals and sugar tests.
-              </span>
+              {hospital.kind === "dietitian" ? (
+                <span>
+                  Your GluFloat comes from <span className="font-semibold">{hospital.name}</span>. Your dietitian can see
+                  your meals and sugar tests.
+                </span>
+              ) : (
+                <span>
+                  <span className="font-semibold">{hospital.name}</span> pays for your GluFloat. Your hospital can see your
+                  meals and sugar tests.
+                </span>
+              )}
             </p>
           )}
 

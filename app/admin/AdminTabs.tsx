@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   BarChart3,
   Users,
-  Handshake,
+  Stethoscope,
   PenLine,
   Mail,
   ExternalLink,
@@ -42,7 +42,7 @@ const GROUPS = [
     tabs: [
       { href: "/admin/users", label: "Users", icon: Users },
       { href: "/admin/hospitals", label: "Hospitals", icon: Hospital },
-      { href: "/admin/partners", label: "Partners", icon: Handshake },
+      { href: "/admin/dietitians", label: "Dietitians", icon: Stethoscope },
       { href: "/admin/email", label: "Email", icon: Mail },
     ],
   },

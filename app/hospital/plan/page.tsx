@@ -2,16 +2,17 @@ import type { Metadata } from "next";
 import HospitalShell from "@/components/hospital/HospitalShell";
 import NotStaff from "@/components/hospital/NotStaff";
 import { requireStaffPage } from "@/components/hospital/requireStaff";
-import { hospitalLive, planName } from "@/lib/hospitalPlans";
+import { hospitalLive, isPractice, planName, waitingForFirstPatient } from "@/lib/hospitalPlans";
 import { seatsUsed } from "@/lib/hospitalServer";
 import { readInvoiceSettings } from "@/lib/invoiceSettings";
 import type { DocumentForPdf } from "@/lib/hospitalPdf";
 import PlanPanel from "./PlanPanel";
+import PracticePlanPanel, { type PracticePayment } from "./PracticePlanPanel";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Plan and QR code", robots: { index: false, follow: false } };
 
-export default async function PlanPage({ searchParams }: { searchParams: Promise<{ h?: string }> }) {
+export default async function PlanPage({ searchParams }: { searchParams: Promise<{ h?: string; paid?: string }> }) {
   const sp = await searchParams;
   const ctx = await requireStaffPage(sp.h, "/hospital/plan");
   if (!ctx) return <NotStaff />;
@@ -22,6 +23,33 @@ export default async function PlanPage({ searchParams }: { searchParams: Promise
       </HospitalShell>
     );
   const h = ctx.hospital;
+
+  // GluFloat for dietitians: she pays by Paystack, not by invoice.
+  if (isPractice(h)) {
+    const [used, paid] = await Promise.all([
+      seatsUsed(ctx.admin, h.id),
+      ctx.admin
+        .from("practice_payments")
+        .select("reference,plan,amount,paid_at")
+        .eq("hospital_id", h.id)
+        .order("paid_at", { ascending: false })
+        .limit(24),
+    ]);
+    return (
+      <HospitalShell ctx={ctx} title="Plan and QR code" subtitle={h.plan && h.plan !== "pilot" ? planName(h.plan) : "Free days"}>
+        <PracticePlanPanel
+          practice={h}
+          used={used}
+          live={hospitalLive(h)}
+          notStarted={waitingForFirstPatient(h)}
+          email={ctx.user.email}
+          payments={(paid.data ?? []) as PracticePayment[]}
+          justPaid={sp.paid === "1"}
+        />
+      </HospitalShell>
+    );
+  }
+
   const [used, { data: docs }, bank] = await Promise.all([
     seatsUsed(ctx.admin, h.id),
     ctx.admin.from("hospital_documents").select("*").eq("hospital_id", h.id).neq("status", "void").order("created_at", { ascending: false }),

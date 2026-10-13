@@ -7,14 +7,15 @@ import { createClient } from "@/lib/supabase/client";
 
 type Role = "admin" | "doctor" | "dietitian";
 
-function tabs(role: Role) {
+function tabs(role: Role, practice: boolean) {
   const all = [
-    { href: "/hospital", label: "Patients", icon: Users, exact: true, adminOnly: false },
-    { href: "/hospital/add", label: "Add patients", icon: UserPlus, exact: false, adminOnly: true },
-    { href: "/hospital/staff", label: "Doctors and dietitians", short: "Staff", icon: Stethoscope, exact: false, adminOnly: false },
-    { href: "/hospital/plan", label: "Plan and QR code", short: "Plan", icon: CreditCard, exact: false, adminOnly: true },
+    { href: "/hospital", label: "Patients", icon: Users, exact: true, adminOnly: false, hospitalOnly: false },
+    { href: "/hospital/add", label: "Add patients", icon: UserPlus, exact: false, adminOnly: true, hospitalOnly: false },
+    // A dietitian's practice is one person: she has no staff to manage.
+    { href: "/hospital/staff", label: "Doctors and dietitians", short: "Staff", icon: Stethoscope, exact: false, adminOnly: false, hospitalOnly: true },
+    { href: "/hospital/plan", label: "Plan and QR code", short: "Plan", icon: CreditCard, exact: false, adminOnly: true, hospitalOnly: false },
   ];
-  return all.filter((t) => !t.adminOnly || role === "admin");
+  return all.filter((t) => (!t.adminOnly || role === "admin") && (!t.hospitalOnly || !practice));
 }
 
 function useHere() {
@@ -33,11 +34,11 @@ async function logOut(router: ReturnType<typeof useRouter>) {
   router.refresh();
 }
 
-export function HospitalSidebarNav({ role, hid }: { role: Role; hid: string | null }) {
+export function HospitalSidebarNav({ role, hid, practice = false }: { role: Role; hid: string | null; practice?: boolean }) {
   const here = useHere();
   return (
     <nav className="flex flex-col gap-0.5">
-      {tabs(role).map(({ href, label, icon: Icon, exact }) => {
+      {tabs(role, practice).map(({ href, label, icon: Icon, exact }) => {
         const on = here(href, exact);
         return (
           <Link
@@ -58,11 +59,11 @@ export function HospitalSidebarNav({ role, hid }: { role: Role; hid: string | nu
   );
 }
 
-export function HospitalMobileNav({ role, hid }: { role: Role; hid: string | null }) {
+export function HospitalMobileNav({ role, hid, practice = false }: { role: Role; hid: string | null; practice?: boolean }) {
   const here = useHere();
   return (
     <nav className="flex items-center gap-1 overflow-x-auto px-4 pb-2.5">
-      {tabs(role).map((t) => {
+      {tabs(role, practice).map((t) => {
         const on = here(t.href, t.exact);
         const Icon = t.icon;
         return (

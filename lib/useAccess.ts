@@ -15,7 +15,7 @@ type Result = {
   name: string | null;
   access: Access;
   /** Hospitals this person works for (GluFloat for hospitals). */
-  hospitalStaff?: { id: string; name: string; role: string }[];
+  hospitalStaff?: { id: string; name: string; role: string; kind?: "hospital" | "dietitian" }[];
 };
 
 let cached: Promise<Result> | null = null;

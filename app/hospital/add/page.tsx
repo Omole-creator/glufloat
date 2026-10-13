@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import HospitalShell from "@/components/hospital/HospitalShell";
 import NotStaff from "@/components/hospital/NotStaff";
 import { requireStaffPage } from "@/components/hospital/requireStaff";
-import { hospitalLive } from "@/lib/hospitalPlans";
+import { acceptsPatients } from "@/lib/hospitalPlans";
 import { seatsUsed } from "@/lib/hospitalServer";
 import AddPatients from "./AddPatients";
 
@@ -30,7 +30,7 @@ export default async function AddPage({ searchParams }: { searchParams: Promise<
     >
       <AddPatients
         hid={ctx.all.length > 1 ? ctx.hospital.id : null}
-        open={hospitalLive(ctx.hospital)}
+        open={acceptsPatients(ctx.hospital)}
         backHref={ctx.all.length > 1 ? `/hospital?h=${ctx.hospital.id}` : "/hospital"}
       />
     </HospitalShell>

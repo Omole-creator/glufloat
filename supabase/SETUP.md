@@ -35,6 +35,7 @@ keys are in Vercel, the app code (which I'm building) takes over.
    | 22 | `hospitals-schema.sql` | **GluFloat for hospitals** (2026-10-12): `hospitals`, `hospital_staff`, `hospital_invites`, `hospital_patients`, `hospital_documents` (quotes/invoices) and `app_settings` (the bank details on an invoice). RLS on with NO policies: only the server routes (service role, after checking the session) touch them. Hospital money never goes into `payments`, so the partner commission trigger and the invite reward cannot fire on it; a paid invoice is copied into `finance_income`. Idempotent. Until it runs, `/api/hospital/me` answers "no hospital", every patient's access works exactly as before, and `/admin/hospitals` says it is waiting. |
    | 23 | `hospital-chat-schema.sql` | `hospitals.chat_dietitian_id` and `.chat_doctor_id` (2026-10-12): a hospital patient chats with BOTH a dietitian and a doctor, and the hospital admin picks one of each. Must run AFTER #22. Idempotent. Until it runs, patients still see the first dietitian and the first doctor; only the admin's "who can patients message" choice says it needs an update. |
    | 24 | `swallow-schema.sql` | `profiles.swallows` (2026-10-12): the traditional swallows a person ticked under "Which swallows do you eat?" in My details. Idempotent. Until it runs, the question shows but its answer is not kept, and every swallow takes its turn on the blue card. |
+   | 25 | `dietitian-practice-schema.sql` | GluFloat for dietitians (2026-10-13): `hospitals.kind` ('hospital' / 'dietitian'), `hospitals.dcn_number`, the three dietitian plans in the plan check (diet5 / diet10 / diet20), and `practice_payments` (the lock for a dietitian's Paystack payment). Must run AFTER #22 and #23. Idempotent. Until it runs, /dietitians/start says "not open yet", /admin/dietitians says "waiting for the database update", and every hospital works exactly as before. |
 
    Two things worth knowing about that order. **Five of these files each contain
    their own `create or replace function public.handle_new_user()`**, and the last
@@ -86,6 +87,16 @@ keys are in Vercel, the app code (which I'm building) takes over.
    `PAYSTACK_YEARLY_URLS` in `lib/access.ts` and amounts `TIER_YEARLY_AMOUNTS`
    in `lib/pricing.ts`. A yearly amount buys 365 days, any other 30. The
    Monthly/Yearly switch is controlled by `YEARLY_ENABLED` in `lib/access.ts`.
+6. **Three dietitian pages** (GluFloat for dietitians, 2026-10-13), one-time,
+   fixed amount, same setup as the others: `glufloat-practice-5` at ₦12,000,
+   `glufloat-practice-10` at ₦22,000, `glufloat-practice-20` at ₦40,000. On
+   each, set **Redirect after payment** to
+   `https://www.glufloat.com/dietitians/paid` (NOT /unlock). Slugs must match
+   `PRACTICE_PAYSTACK_URLS` and amounts `PRACTICE_PLANS` in
+   `lib/hospitalPlans.ts`. The claim and the webhook send these three amounts
+   to `lib/practicePayment.ts`, never to a patient subscription, so they must
+   never equal a patient amount (scripts/hospital-plans-test.ts checks this).
+   Not `glufloat-dietitian`: that slug is the patients' Premium page.
 
 ## 3. Vercel environment variables
 

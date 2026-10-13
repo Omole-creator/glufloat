@@ -40,6 +40,8 @@ export type HospitalChat = { name: string; role: "admin" | "doctor" | "dietitian
 
 export type HospitalCover = {
   name: string;
+  /** "dietitian" when a dietitian's practice pays (GluFloat for dietitians): every screen then says "your dietitian". */
+  kind: "hospital" | "dietitian";
   /** Who the patient can chat with: their hospital's dietitian and doctor (either may be missing). */
   chats: HospitalChat[];
 };
@@ -50,8 +52,9 @@ type HospitalMe = {
     until: string;
     status: "active" | "waiting";
     chats: HospitalChat[];
+    kind?: "hospital" | "dietitian";
   };
-  staff: { id: string; name: string; role: string }[];
+  staff: { id: string; name: string; role: string; kind?: "hospital" | "dietitian" }[];
 };
 
 /**
@@ -106,7 +109,7 @@ export async function getAccess(): Promise<{
   name: string | null;
   access: Access;
   /** Hospitals this person works for (doctor, dietitian, admin). Empty for almost everyone. */
-  hospitalStaff?: { id: string; name: string; role: string }[];
+  hospitalStaff?: { id: string; name: string; role: string; kind?: "hospital" | "dietitian" }[];
 }> {
   const supabase = createClient();
   const user = await currentUser();
@@ -161,7 +164,11 @@ export async function getAccess(): Promise<{
           daysLeft,
           tier: "dietitian",
           yearly: false,
-          hospital: { name: hosp.patient.hospitalName, chats: Array.isArray(hosp.patient.chats) ? hosp.patient.chats : [] },
+          hospital: {
+            name: hosp.patient.hospitalName,
+            kind: hosp.patient.kind === "dietitian" ? "dietitian" : "hospital",
+            chats: Array.isArray(hosp.patient.chats) ? hosp.patient.chats : [],
+          },
         },
       };
   }

@@ -41,7 +41,7 @@ export default async function PatientPage({
         <p className="mt-6 rounded-2xl border border-[#e3e9f1] bg-white p-6 text-sm text-ink-soft">
           {closed
             ? "Your GluFloat plan has ended, so patient records are closed."
-            : "This patient is not using a place at your hospital right now."}
+            : "This patient is not using one of your places right now."}
         </p>
       </HospitalShell>
     );

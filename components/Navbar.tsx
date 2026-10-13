@@ -10,6 +10,7 @@ import {
   CircleHelp,
   Hospital as HospitalIcon,
   LogOut,
+  Stethoscope,
   Menu,
   PlayCircle,
   Smartphone,
@@ -22,6 +23,7 @@ import {
 import { signOut as signOutOfAccount } from "@/lib/account";
 import { clearAccessCache, useAccess } from "@/lib/useAccess";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import ProfessionalsMenu from "@/components/ProfessionalsMenu";
 
 const LINKS = [
   { href: "/#how", label: "How it works" },
@@ -29,6 +31,7 @@ const LINKS = [
   { href: "/#pricing", label: "Pricing" },
   { href: "/#faq", label: "FAQ" },
   { href: "/hospitals", label: "For hospitals" },
+  { href: "/dietitians", label: "For dietitians" },
   { href: "/blog", label: "Blog" },
   { href: "/about", label: "About" },
   { href: "/app", label: "The app" },
@@ -51,6 +54,8 @@ export default function Navbar() {
   const { access, hospitalStaff } = useAccess();
   // A hospital's doctor, dietitian or admin gets their dashboard in the menu.
   const isHospitalStaff = (hospitalStaff?.length ?? 0) > 0;
+  // A dietitian running her own practice (GluFloat for dietitians) and nothing else.
+  const onlyPractice = isHospitalStaff && hospitalStaff!.every((s) => s.kind === "dietitian");
   const pathname = usePathname();
   const router = useRouter();
   // The app is already open on /app, so the menu offers Sign out there rather than
@@ -76,6 +81,9 @@ export default function Navbar() {
   const blueTop =
     pathname === "/" ||
     pathname === "/hospitals" ||
+    pathname === "/dietitians" ||
+    pathname === "/dietitians/start" ||
+    pathname === "/dietitians/paid" ||
     pathname === "/signin" ||
     pathname === "/signup" ||
     pathname === "/j" ||
@@ -169,13 +177,17 @@ export default function Navbar() {
 
         <div className={`hidden items-center gap-0.5 text-sm font-semibold ${menuOnly ? "" : "lg:flex"}`}>
           {LINKS.map((l) => {
+            // Hospitals and dietitians share one drop-down up here, so the bar
+            // stays on one line at laptop width. The phone menu lists both.
+            if (l.href === "/dietitians") return null;
+            if (l.href === "/hospitals") return <ProfessionalsMenu key="pros" onDark={onDark} pathname={pathname} />;
             const here = !l.href.includes("#") && pathname === l.href;
             return (
               <Link
                 key={l.href}
                 href={l.href}
                 aria-current={here ? "page" : undefined}
-                className={`rounded-full px-3 py-1.5 transition-colors ${
+                className={`whitespace-nowrap rounded-full px-3 py-1.5 transition-colors ${
                   onDark
                     ? here
                       ? "bg-white/15 text-white"
@@ -243,7 +255,7 @@ export default function Navbar() {
 
           <div className="flex-1 overflow-y-auto px-4 pb-4 pt-4">
             <div className="overflow-hidden rounded-3xl bg-white ring-1 ring-ink/[0.05]">
-              {LINKS.filter((l) => l.href !== "/hospitals").map((l, i) => {
+              {LINKS.filter((l) => l.href !== "/hospitals" && l.href !== "/dietitians").map((l, i) => {
                 const Icon = LINK_ICON[l.href] ?? ChevronRight;
                 const here = !l.href.includes("#") && pathname === l.href;
                 return (
@@ -280,6 +292,20 @@ export default function Navbar() {
               </span>
               <ChevronRight className="h-4 w-4 text-ink-soft/40" />
             </Link>
+            <Link
+              href="/dietitians"
+              onClick={() => setMenuOpen(false)}
+              className="mt-3 flex items-center gap-3.5 rounded-3xl bg-white p-4 ring-1 ring-ink/[0.05] transition-colors hover:bg-mist"
+            >
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand/10 text-brand">
+                <Stethoscope className="h-5 w-5" strokeWidth={2.2} />
+              </span>
+              <span className="flex-1">
+                <span className="block text-base font-bold text-ink">For dietitians</span>
+                <span className="block text-sm text-ink-soft">Support your patients beyond the clinic</span>
+              </span>
+              <ChevronRight className="h-4 w-4 text-ink-soft/40" />
+            </Link>
           </div>
 
           <div className="shrink-0 space-y-2.5 border-t border-line bg-white px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4">
@@ -302,7 +328,7 @@ export default function Navbar() {
                 onClick={() => setMenuOpen(false)}
                 className="flex items-center justify-center rounded-full bg-brand px-5 py-3.5 text-center text-base font-bold text-white"
               >
-                Hospital dashboard
+                {onlyPractice ? "My dietitian dashboard" : "Hospital dashboard"}
               </Link>
             )}
             {/* Signing out lives here on EVERY page, not only /app: signed in,

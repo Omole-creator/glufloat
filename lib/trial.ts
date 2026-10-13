@@ -3,7 +3,7 @@
  *
  * This lives in its own tiny module, with no "use client", because both sides
  * of the app need it: the browser (`lib/account.ts`, which decides whether a
- * person gets into `/app`) and the server (`lib/partnerStats.ts` and
+ * person gets into `/app`) and the server (the old partner report and
  * `/admin`, which report who is still on trial). A server component cannot
  * safely read a plain value out of a "use client" module, and the number was
  * previously hardcoded a second and a third time because of that, which is

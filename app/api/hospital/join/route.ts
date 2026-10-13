@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
-import { hospitalLive } from "@/lib/hospitalPlans";
+import { acceptsPatients, orgWords, PRACTICE_TRIAL_DAYS, waitingForFirstPatient } from "@/lib/hospitalPlans";
 import { ownPaidMsLeft, seatsUsed, sessionUser, type HospitalRow, type PatientRow } from "@/lib/hospitalServer";
 import { normalizePhone } from "@/lib/phone";
 import { isPhoneLoginEmail, phoneLoginEmail } from "@/lib/phoneLogin";
@@ -34,8 +34,11 @@ export async function POST(request: Request) {
   if (hErr) return NextResponse.json({ error: "GluFloat could not open this just now. Please try again." }, { status: 503 });
   if (!hospital) return NextResponse.json({ error: "This link is not right. Please ask your hospital for it again." }, { status: 404 });
   const h = hospital as HospitalRow;
-  if (!hospitalLive(h))
-    return NextResponse.json({ error: "Your hospital's GluFloat is not open right now. Please speak to your hospital." }, { status: 410 });
+  const w = orgWords(h);
+  // A dietitian with no patient yet is open too: her 14 free days start with
+  // the first patient who joins (below), not when she signed up.
+  if (!acceptsPatients(h))
+    return NextResponse.json({ error: `${w.Yours}'s GluFloat is not open right now. Please speak to ${w.yours}.` }, { status: 410 });
 
   let invite: PatientRow | null = null;
   if (token) {
@@ -47,7 +50,7 @@ export async function POST(request: Request) {
       .eq("status", "invited")
       .is("user_id", null)
       .maybeSingle();
-    if (!data) return NextResponse.json({ error: "This invite has already been used, or it is not right. Please ask your hospital." }, { status: 404 });
+    if (!data) return NextResponse.json({ error: `This invite has already been used, or it is not right. Please ask ${w.yours}.` }, { status: 404 });
     invite = data as PatientRow;
   }
 
@@ -72,7 +75,7 @@ export async function POST(request: Request) {
     if (email && (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || isPhoneLoginEmail(email)))
       return NextResponse.json({ error: "That email does not look right. You can leave it empty." }, { status: 400 });
     if (invite && normalizePhone(invite.phone) !== phone)
-      return NextResponse.json({ error: "This is not the phone number your hospital has for you. Please check it, or ask your hospital." }, { status: 400 });
+      return NextResponse.json({ error: `This is not the phone number ${w.yours} has for you. Please check it, or ask ${w.yours}.` }, { status: 400 });
 
     const loginEmail = email || phoneLoginEmail(phone);
     const { data: created, error: cErr } = await admin.auth.admin.createUser({
@@ -132,7 +135,7 @@ export async function POST(request: Request) {
   let rowId: string;
   if (row) {
     if (row.user_id && row.user_id !== uid)
-      return NextResponse.json({ error: "This invite has already been used. Please ask your hospital." }, { status: 409 });
+      return NextResponse.json({ error: `This invite has already been used. Please ask ${w.yours}.` }, { status: 409 });
     const { error } = await admin.from("hospital_patients").update(patch).eq("id", row.id);
     if (error) return NextResponse.json({ error: "We could not add you just now. Please try again." }, { status: 503 });
     rowId = row.id;
@@ -152,7 +155,7 @@ export async function POST(request: Request) {
     if (error || !ins) {
       // Their phone is already on another live row here (e.g. a family member's).
       if (/duplicate|unique/i.test(error?.message ?? ""))
-        return NextResponse.json({ error: "This phone number is already with this hospital. Please speak to your hospital." }, { status: 409 });
+        return NextResponse.json({ error: `This phone number is already with ${w.yours}. Please speak to ${w.yours}.` }, { status: 409 });
       return NextResponse.json({ error: "We could not add you just now. Please try again." }, { status: 503 });
     }
     rowId = ins.id as string;
@@ -164,6 +167,19 @@ export async function POST(request: Request) {
   if (status === "active" && (await seatsUsed(admin, h.id)) > h.seats) {
     await admin.from("hospital_patients").update({ status: "waiting", carried_ms: null }).eq("id", rowId);
     finalStatus = "waiting";
+  }
+
+  // A dietitian's first patient starts her 14 free days. Only the row whose
+  // end is still empty is touched, so two first patients at once start it once.
+  if (finalStatus === "active" && waitingForFirstPatient(h)) {
+    await admin
+      .from("hospitals")
+      .update({
+        access_until: new Date(Date.now() + PRACTICE_TRIAL_DAYS * 86400000).toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", h.id)
+      .is("access_until", null);
   }
 
   return NextResponse.json({ ok: true, status: finalStatus, login: createdLogin });

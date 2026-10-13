@@ -52,7 +52,88 @@ export function planById(id: string | null | undefined): HospitalPlan | undefine
 export function planName(id: string | null | undefined): string {
   if (id === "custom") return CUSTOM_PLAN_NAME;
   if (id === "pilot") return "Free pilot";
-  return planById(id)?.name ?? "No plan";
+  return planById(id)?.name ?? practicePlanById(id)?.name ?? "No plan";
+}
+
+/* ---------------------------------------------------------------------------
+ * GluFloat for dietitians (2026-10-13). A dietitian's practice is a hospital
+ * row with kind = 'dietitian' (supabase/dietitian-practice-schema.sql), so it
+ * reuses the patients, the QR code, the dashboard and the report. Founder's
+ * decisions:
+ *  - Plans by size: 5 Patients N12,000, 10 Patients N22,000, 20 Patients
+ *    N40,000 a month. N2,400, N2,200, N2,000 a patient: never cheaper per
+ *    patient than a hospital's Care 50 (N2,000), so a clinic gains nothing by
+ *    buying dietitian plans. More than 20 patients is a hospital plan.
+ *  - She sets her own price for her patients. GluFloat never sees it.
+ *  - 14 free days for 5 patients. The 14 days start when her FIRST patient
+ *    joins, not when she signs up, so she never spends them waiting.
+ *  - Paid by Paystack, monthly. The amount tells the plan, the same way
+ *    lib/pricing.ts tells a patient's tier, and none of these amounts is a
+ *    patient's amount.
+ * ------------------------------------------------------------------------- */
+
+export type PracticePlanId = "diet5" | "diet10" | "diet20";
+
+export type PracticePlan = { id: PracticePlanId; name: string; seats: number; monthly: number };
+
+export const PRACTICE_PLANS: PracticePlan[] = [
+  { id: "diet5", name: "5 Patients", seats: 5, monthly: 12_000 },
+  { id: "diet10", name: "10 Patients", seats: 10, monthly: 22_000 },
+  { id: "diet20", name: "20 Patients", seats: 20, monthly: 40_000 },
+];
+
+export const PRACTICE_TRIAL_DAYS = 14;
+export const PRACTICE_TRIAL_SEATS = 5;
+
+/**
+ * Fixed-amount Paystack pages, one per plan. Each page's "Redirect after
+ * payment" must be https://www.glufloat.com/dietitians/paid (supabase/SETUP.md).
+ * Not "glufloat-dietitian": that slug is already the patients' Premium page.
+ */
+export const PRACTICE_PAYSTACK_URLS: Record<PracticePlanId, string> = {
+  diet5: "https://paystack.shop/pay/glufloat-practice-5",
+  diet10: "https://paystack.shop/pay/glufloat-practice-10",
+  diet20: "https://paystack.shop/pay/glufloat-practice-20",
+};
+
+export function practicePlanById(id: string | null | undefined): PracticePlan | undefined {
+  return PRACTICE_PLANS.find((p) => p.id === id);
+}
+
+/** The dietitian plan a Paystack amount (kobo) pays for, or undefined. */
+export function practicePlanForAmount(kobo: number | null | undefined): PracticePlan | undefined {
+  return PRACTICE_PLANS.find((p) => p.monthly * 100 === kobo);
+}
+
+type Kinded = { kind?: string | null };
+
+/** A dietitian's practice, not a hospital. A row from before the SQL ran is a hospital. */
+export function isPractice(h: Kinded | null | undefined): boolean {
+  return h?.kind === "dietitian";
+}
+
+/** A dietitian who signed up and has no patient yet: her 14 days have not started. */
+export function waitingForFirstPatient(h: Kinded & { status: string; access_until: string | null }): boolean {
+  return isPractice(h) && h.status === "pilot" && !h.access_until;
+}
+
+/** Can patients join right now (the QR code and invite links work)? */
+export function acceptsPatients(h: Kinded & { status: string; access_until: string | null }, now = Date.now()): boolean {
+  return hospitalLive(h, now) || waitingForFirstPatient(h);
+}
+
+/** The words a patient or the dashboard reads, so a dietitian is never called a hospital. */
+export function orgWords(h: Kinded | null | undefined) {
+  const p = isPractice(h);
+  return {
+    /** "your hospital" / "your dietitian" */
+    yours: p ? "your dietitian" : "your hospital",
+    Yours: p ? "Your dietitian" : "Your hospital",
+    /** The product line under the logo. */
+    product: p ? "for dietitians" : "for hospitals",
+    /** Who adds patients and manages the plan. */
+    adminLabel: p ? "Dietitian" : "Hospital admin",
+  };
 }
 
 /** Naira for a year on this plan: 10 months' price, 12 months' access. */

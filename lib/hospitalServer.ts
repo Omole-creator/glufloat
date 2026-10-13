@@ -34,6 +34,9 @@ export type HospitalRow = {
   /** hospital-chat-schema.sql (#23). Missing until it runs. */
   chat_dietitian_id?: string | null;
   chat_doctor_id?: string | null;
+  /** dietitian-practice-schema.sql (#25): 'dietitian' for a dietitian's practice. Missing until it runs (a hospital). */
+  kind?: "hospital" | "dietitian" | null;
+  dcn_number?: string | null;
   created_at: string;
   approved_at: string | null;
 };
@@ -189,7 +192,7 @@ export type ChatPerson = { name: string; role: StaffRole; whatsapp: string };
  */
 export async function chatContacts(
   admin: SupabaseClient,
-  hospital: Pick<HospitalRow, "id" | "chat_dietitian_id" | "chat_doctor_id">,
+  hospital: Pick<HospitalRow, "id" | "chat_dietitian_id" | "chat_doctor_id" | "kind">,
 ): Promise<ChatPerson[]> {
   const { data } = await admin
     .from("hospital_staff")
@@ -197,6 +200,12 @@ export async function chatContacts(
     .eq("hospital_id", hospital.id)
     .order("created_at", { ascending: true });
   const staff = ((data ?? []) as StaffRow[]).filter((s) => whatsappNumber(s.phone));
+  // A dietitian's practice: she runs it (role "admin") and she IS the
+  // dietitian her patients chat with. Never anybody else's dietitian.
+  if (hospital.kind === "dietitian") {
+    const owner = staff[0];
+    return owner ? [{ name: owner.name, role: "dietitian", whatsapp: whatsappNumber(owner.phone)! }] : [];
+  }
   const pick = (role: StaffRole, chosen: string | null | undefined) =>
     staff.find((s) => s.role === role && s.user_id === chosen) ?? staff.find((s) => s.role === role);
   return [pick("dietitian", hospital.chat_dietitian_id), pick("doctor", hospital.chat_doctor_id)]
@@ -260,8 +269,10 @@ export async function hospitalStatusFor(admin: SupabaseClient, uid: string): Pro
     until: string;
     status: "active" | "waiting";
     chats: ChatPerson[];
+    /** "dietitian" when a dietitian's practice covers them, so the app says "your dietitian". */
+    kind: "hospital" | "dietitian";
   };
-  staff: { id: string; name: string; role: StaffRole }[];
+  staff: { id: string; name: string; role: StaffRole; kind: "hospital" | "dietitian" }[];
 }> {
   const out: Awaited<ReturnType<typeof hospitalStatusFor>> = { patient: null, staff: [] };
   const [{ data: pats, error }, { data: staff }] = await Promise.all([
@@ -269,13 +280,13 @@ export async function hospitalStatusFor(admin: SupabaseClient, uid: string): Pro
       .from("hospital_patients")
       .select("id,user_id,status,carried_ms,carried_restored_at,joined_at,hospitals(*)")
       .eq("user_id", uid),
-    admin.from("hospital_staff").select("role,hospitals(id,name,status)").eq("user_id", uid),
+    admin.from("hospital_staff").select("role,hospitals(*)").eq("user_id", uid),
   ]);
   if (error) return out;
 
-  for (const s of (staff ?? []) as unknown as { role: StaffRole; hospitals: { id: string; name: string; status: string } | null }[]) {
+  for (const s of (staff ?? []) as unknown as { role: StaffRole; hospitals: { id: string; name: string; status: string; kind?: string | null } | null }[]) {
     if (s.hospitals && (s.hospitals.status === "pilot" || s.hospitals.status === "active" || s.hospitals.status === "ended"))
-      out.staff.push({ id: s.hospitals.id, name: s.hospitals.name, role: s.role });
+      out.staff.push({ id: s.hospitals.id, name: s.hospitals.name, role: s.role, kind: s.hospitals.kind === "dietitian" ? "dietitian" : "hospital" });
   }
 
   type Joined = PatientRow & { hospitals: HospitalRow | null };
@@ -296,6 +307,7 @@ export async function hospitalStatusFor(admin: SupabaseClient, uid: string): Pro
       until: pick.hospitals.access_until as string,
       status: pick.status as "active" | "waiting",
       chats: pick.status === "active" ? await chatContacts(admin, pick.hospitals) : [],
+      kind: pick.hospitals.kind === "dietitian" ? "dietitian" : "hospital",
     };
   }
   return out;
