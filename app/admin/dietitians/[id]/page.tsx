@@ -11,6 +11,7 @@ import { hospitalLive, practicePlanName, waitingForFirstPatient } from "@/lib/ho
 import { whatsappNumber, type HospitalRow } from "@/lib/hospitalServer";
 import { hospitalRoster } from "@/lib/hospitalRoster";
 import DietitianSwitch from "../DietitianSwitch";
+import DeleteDietitian from "./DeleteDietitian";
 
 export const dynamic = "force-dynamic";
 
@@ -106,6 +107,7 @@ export default async function DietitianAdminPage({ params }: { params: Promise<{
               Custom plan invoice
             </Link>
             <DietitianSwitch id={p.id} name={p.name} off={p.status === "declined"} />
+            <DeleteDietitian id={p.id} name={p.name} />
           </div>
         </AdminCard>
       </div>
