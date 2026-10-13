@@ -7,6 +7,7 @@ import { Check, ChevronDown, Hospital, Lock, Mail, Phone, UserRound } from "luci
 import AuthShell from "@/components/auth/AuthShell";
 import { Field, FormError, SubmitButton } from "@/components/auth/Field";
 import { createClient } from "@/lib/supabase/client";
+import { clearAccessCache } from "@/lib/useAccess";
 import { partnerCode, sourcePost } from "@/lib/attribution";
 import { SIGNUP_CHOICES, type UserType } from "@/lib/userType";
 import { normalizePhone } from "@/lib/phone";
@@ -86,6 +87,7 @@ export default function SignUpPage() {
       return;
     }
     // Email confirmation is off, so we are signed in now. Go start the trial.
+    clearAccessCache();
     router.push("/trial");
     router.refresh();
   };

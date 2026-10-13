@@ -1,6 +1,7 @@
 "use client";
 
 import { createClient } from "@/lib/supabase/client";
+import { MEALS, shared } from "@/lib/readCache";
 import type { Verdict } from "./types";
 
 /**
@@ -48,7 +49,12 @@ function dayKey(d: Date): string {
 
 /** Count what the person has eaten, by colour, for today / this week / this
  *  month (all in Nigerian time). Empty on any failure. */
-export async function getIntake(): Promise<Intake> {
+export function getIntake(): Promise<Intake> {
+  // Shared and cleared with the rest of the meal log (lib/readCache.ts).
+  return shared(`${MEALS}intake`, getIntakeFresh);
+}
+
+async function getIntakeFresh(): Promise<Intake> {
   try {
     const sb = createClient();
     const since = new Date(Date.now() - 35 * 24 * 60 * 60 * 1000).toISOString();

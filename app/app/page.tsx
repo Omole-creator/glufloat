@@ -44,12 +44,12 @@ import BillingToggle from "@/components/BillingToggle";
 import { nairaLabel, TIER_AMOUNTS, TIER_YEARLY_AMOUNTS } from "@/lib/pricing";
 import { TIER_LABEL } from "@/lib/pricing";
 import {
-  getAccess,
   canUseGoalPersonalization,
   canUseDietitianChat,
   type Access,
 } from "@/lib/account";
 import { trackAppOpen } from "@/lib/usage";
+import { accessOnce, clearAccessCache } from "@/lib/useAccess";
 import { personalGreeting, checkBackMessage } from "@/lib/mealtime";
 import { ADD_READING_FOR } from "@/lib/glucoseLog";
 import { readPersonalizationProfile } from "@/lib/personalizationProfile";
@@ -265,7 +265,13 @@ export default function AppPage() {
 
     (async () => {
       await settlePendingPayment();
-      const { access, email, name } = await getAccess();
+      // Always a fresh read here: somebody may arrive straight from starting a
+      // trial (/trial), paying (/unlock) or joining a hospital, and an answer
+      // cached on the page before would send them back. The menu bar on this
+      // page only mounts once this answers, and reuses it (lib/useAccess.ts),
+      // so opening the app still asks the account once, not twice.
+      clearAccessCache();
+      const { access, email, name } = await accessOnce();
       setEmail(email);
       setName(name);
       if (access.status === "anon") {

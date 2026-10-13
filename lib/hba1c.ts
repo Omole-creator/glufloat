@@ -1,7 +1,9 @@
 "use client";
 
 import { createClient } from "@/lib/supabase/client";
+import { currentUser } from "@/lib/authUser";
 import { notifyReadingsChanged } from "./glucoseLog";
+import { HBA1C, shared } from "@/lib/readCache";
 
 /**
  * The 3-month sugar test a doctor orders (HbA1c), hba1c_results in
@@ -42,9 +44,7 @@ export function formatHba1c(h: Hba1c): string {
 export async function saveHba1c(percent: number, testedOn: string): Promise<boolean> {
   try {
     const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const user = await currentUser();
     if (!user) return false;
     const { error } = await supabase
       .from("hba1c_results")
@@ -58,7 +58,11 @@ export async function saveHba1c(percent: number, testedOn: string): Promise<bool
 }
 
 /** The newest result, or null (none yet, or the migration has not run). */
-export async function latestHba1c(): Promise<Hba1c | null> {
+export function latestHba1c(): Promise<Hba1c | null> {
+  return shared(`${HBA1C}latest`, latestHba1cFresh);
+}
+
+async function latestHba1cFresh(): Promise<Hba1c | null> {
   try {
     const { data } = await createClient()
       .from("hba1c_results")

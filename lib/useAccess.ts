@@ -93,7 +93,18 @@ export function useAccess(): AccessState {
 
     // Without this the bar keeps saying "Log in" after somebody signs in, until they
     // reload the page.
-    const { data } = createClient().auth.onAuthStateChange(() => {
+    //
+    // Only a change of PERSON re-reads. Supabase also fires this on every page
+    // load (INITIAL_SESSION), on every hourly token refresh, and on returning to
+    // the tab. Re-reading on each of those threw away the shared answer and sent
+    // the whole access check again, 3 to 4 times per app open (2026-10-13).
+    let lastUid: string | null | undefined;
+    const { data } = createClient().auth.onAuthStateChange((_event, session) => {
+      const uid = session?.user?.id ?? null;
+      const first = lastUid === undefined;
+      const changed = uid !== lastUid;
+      lastUid = uid;
+      if (first || !changed) return;
       clearAccessCache();
       load();
     });

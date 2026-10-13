@@ -1,6 +1,8 @@
 "use client";
 
 import { createClient } from "@/lib/supabase/client";
+import { currentUser } from "@/lib/authUser";
+import { forget, HBA1C, MEALS, PROFILE, READINGS, shared } from "@/lib/readCache";
 import type { Reading } from "./glucose";
 
 /**
@@ -22,6 +24,9 @@ import type { Reading } from "./glucose";
 export const READINGS_CHANGED = "glufloat:readings-changed";
 
 export function notifyReadingsChanged(): void {
+  // The meal log carries its readings (monthChecks joins them), so it is
+  // cleared too, before the page is told to re-read.
+  forget(READINGS, MEALS, HBA1C);
   try {
     window.dispatchEvent(new Event(READINGS_CHANGED));
   } catch {
@@ -83,9 +88,7 @@ export async function saveReading(
 ): Promise<Reading | null> {
   try {
     const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const user = await currentUser();
     if (!user) return null; // signed out; nothing to save against
     const base: Record<string, unknown> = {
       value_raw: valueRaw,
@@ -149,7 +152,11 @@ export async function deleteReading(id: number): Promise<void> {
  * the pattern line compares against, and the recall line on a food card, both
  * want more history than one month. The report does its own month filtering.
  */
-export async function recentReadings(): Promise<Reading[]> {
+export function recentReadings(): Promise<Reading[]> {
+  return shared(`${READINGS}recent`, recentReadingsFresh);
+}
+
+async function recentReadingsFresh(): Promise<Reading[]> {
   try {
     const since = new Date();
     since.setDate(since.getDate() - 90);
@@ -182,7 +189,12 @@ export async function recentReadings(): Promise<Reading[]> {
  * particular time, and has nothing to attach it to. Their numbers go on the
  * report too, in a block of their own.
  */
-export async function looseMonthReadings(): Promise<Reading[]> {
+export function looseMonthReadings(): Promise<Reading[]> {
+  const now = new Date();
+  return shared(`${READINGS}loose:${now.getFullYear()}-${now.getMonth()}`, looseMonthReadingsFresh);
+}
+
+async function looseMonthReadingsFresh(): Promise<Reading[]> {
   try {
     const now = new Date();
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -219,12 +231,14 @@ export async function looseMonthReadings(): Promise<Reading[]> {
  * asked twice because of a dropped connection. Nothing is stored until they
  * agree the first time, so the only way to reach here is to have agreed.
  */
-export async function hasHealthConsent(): Promise<boolean> {
+export function hasHealthConsent(): Promise<boolean> {
+  return shared(`${PROFILE}consent`, hasHealthConsentFresh);
+}
+
+async function hasHealthConsentFresh(): Promise<boolean> {
   try {
     const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const user = await currentUser();
     if (!user) return false;
     const { data, error } = await supabase
       .from("profiles")
@@ -242,14 +256,13 @@ export async function hasHealthConsent(): Promise<boolean> {
 export async function giveHealthConsent(): Promise<void> {
   try {
     const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const user = await currentUser();
     if (!user) return;
     await supabase
       .from("profiles")
       .update({ health_data_consent_at: new Date().toISOString() })
       .eq("id", user.id);
+    forget(`${PROFILE}consent`);
   } catch {
     /* best effort */
   }

@@ -1,6 +1,7 @@
 "use client";
 
 import { createClient } from "@/lib/supabase/client";
+import { currentUser } from "@/lib/authUser";
 import { TRIAL_DAYS } from "@/lib/trial";
 import { isYearlyAmount, type Tier } from "@/lib/pricing";
 export type { Tier };
@@ -108,9 +109,7 @@ export async function getAccess(): Promise<{
   hospitalStaff?: { id: string; name: string; role: string }[];
 }> {
   const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await currentUser();
   if (!user) return { email: null, name: null, access: { status: "anon" } };
 
   const [{ data: profile }, subResult, hosp] = await Promise.all([
@@ -211,9 +210,7 @@ export async function getAccess(): Promise<{
 /** Stamp the trial start on the user's profile, only if it is not already set. */
 export async function startTrial(): Promise<void> {
   const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await currentUser();
   if (!user) return;
   const { data: profile } = await supabase
     .from("profiles")

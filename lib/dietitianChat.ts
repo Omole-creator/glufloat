@@ -1,6 +1,7 @@
 "use client";
 
 import { createClient } from "@/lib/supabase/client";
+import { currentUser } from "@/lib/authUser";
 
 /**
  * The in-house dietitian a person is assigned to, via the sticky, atomic
@@ -16,9 +17,7 @@ export interface AssignedDietitian {
 export async function getAssignedDietitian(): Promise<AssignedDietitian | null> {
   try {
     const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const user = await currentUser();
     if (!user) return null;
     const { data, error } = await supabase.rpc("assign_dietitian", { p_user_id: user.id });
     if (error || !data || data.length === 0) return null;

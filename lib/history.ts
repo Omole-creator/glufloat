@@ -1,6 +1,8 @@
 "use client";
 
 import { createClient } from "@/lib/supabase/client";
+import { currentUser } from "@/lib/authUser";
+import { forget, MEALS, shared } from "@/lib/readCache";
 import type { Reading } from "./glucose";
 import type { Verdict } from "./types";
 import { FOODS } from "./search";
@@ -24,6 +26,7 @@ export type CheckKind = "single" | "meal";
 export const INTAKE_CHANGED = "glufloat:intake-changed";
 
 export function notifyIntakeChanged(): void {
+  forget(MEALS);
   try {
     window.dispatchEvent(new Event(INTAKE_CHANGED));
   } catch {
@@ -93,9 +96,7 @@ export async function saveCheck(
 ): Promise<number | null> {
   try {
     const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const user = await currentUser();
     if (!user) return null; // signed out; nothing to save against
     const base: { kind: CheckKind; label: string; verdict: Verdict } = { kind, label, verdict };
     const withCalories = calories != null ? { ...base, calories: Math.round(calories) } : base;
@@ -138,13 +139,14 @@ export async function saveCheck(
 export async function deleteCheck(id: number): Promise<void> {
   try {
     await createClient().from("meal_checks").delete().eq("id", id);
+    forget(MEALS);
   } catch {
     /* best effort */
   }
 }
 
 /** The most recent checks, newest first. Empty on any failure. */
-export async function recentChecks(limit = 8): Promise<MealCheck[]> {
+async function recentChecksFresh(limit = 8): Promise<MealCheck[]> {
   try {
     const supabase = createClient();
     const { data } = await supabase
@@ -174,7 +176,7 @@ export async function recentChecks(limit = 8): Promise<MealCheck[]> {
  * below keep their narrow column lists, because a streak and a food count do not
  * care about a number and should not pay to fetch it.
  */
-export async function monthChecks(): Promise<CheckedMeal[]> {
+async function monthChecksFresh(): Promise<CheckedMeal[]> {
   const now = new Date();
   return checkedSince(new Date(now.getFullYear(), now.getMonth(), 1));
 }
@@ -185,7 +187,7 @@ export async function monthChecks(): Promise<CheckedMeal[]> {
  * of history is two days, and the card would go quiet for everybody at the start
  * of every month.
  */
-export async function checkedMeals(days = 90): Promise<CheckedMeal[]> {
+async function checkedMealsFresh(days = 90): Promise<CheckedMeal[]> {
   const since = new Date();
   since.setDate(since.getDate() - days);
   return checkedSince(since);
@@ -288,7 +290,7 @@ function splitReadings(all: Reading[]): { readings: Reading[]; beforeReadings: R
  * from what someone already eats a lot, so the suggestion brings variety instead
  * of handing back their usual plate.
  */
-export async function loggedFoodCounts(): Promise<Map<string, number>> {
+async function loggedFoodCountsFresh(): Promise<Map<string, number>> {
   return foodCounts();
 }
 
@@ -299,7 +301,7 @@ export async function loggedFoodCounts(): Promise<Map<string, number>> {
  * meal can lean gently towards them. It is a small nudge on top of the variety
  * rule, never a replacement for it: the plate must still change every day.
  */
-export async function likedFoodCounts(): Promise<Map<string, number>> {
+async function likedFoodCountsFresh(): Promise<Map<string, number>> {
   return foodCounts("green");
 }
 
@@ -341,7 +343,7 @@ const foodIdByName = new Map(FOODS.map((f) => [f.name, f.id]));
  * `food_ids` when the row has them, else the names in the label. Empty on
  * any failure, so the worst case is the old behaviour.
  */
-export async function foodCountsThisWeek(): Promise<Map<string, number>> {
+async function foodCountsThisWeekFresh(): Promise<Map<string, number>> {
   const counts = new Map<string, number>();
   try {
     const supabase = createClient();
@@ -381,7 +383,7 @@ function watDayKey(d: Date): string {
  * data-collection-schema.sql have no ids and are skipped; an empty list on
  * any failure, which only means no cap is reduced.
  */
-export async function todaysFoodSizes(): Promise<{ foodIds: string[]; sizes: string[] }[]> {
+async function todaysFoodSizesFresh(): Promise<{ foodIds: string[]; sizes: string[] }[]> {
   try {
     const supabase = createClient();
     const todayK = watDayKey(wat(Date.now()));
@@ -426,7 +428,7 @@ const foodCalories = new Map(FOODS.map((f) => [f.name, f.calories ?? 0]));
  * graceful-degradation shape as checkedSince() above, so a database that has
  * not yet run the migration is unaffected rather than broken.
  */
-export async function caloriesEatenToday(): Promise<number> {
+async function caloriesEatenTodayFresh(): Promise<number> {
   try {
     const supabase = createClient();
     const todayK = watDayKey(wat(Date.now()));
@@ -503,7 +505,7 @@ function dayKey(d: Date): string {
  * before it is 61 days back, and last month has to be WHOLE for the comparison
  * line to be honest.
  */
-export async function monthStats(): Promise<MonthStats> {
+async function monthStatsFresh(): Promise<MonthStats> {
   const empty: MonthStats = {
     total: 0,
     green: 0,
@@ -586,4 +588,49 @@ export async function monthStats(): Promise<MonthStats> {
   } catch {
     return empty;
   }
+}
+
+// The reads above, shared by every card on the page (lib/readCache.ts). Each
+// key carries whatever makes the answer different (the limit, the window, the
+// month), and notifyIntakeChanged() / deleteCheck() clear them all, so a meal
+// just saved or removed is always read fresh.
+
+/** The most recent checks, newest first. Empty on any failure. */
+export function recentChecks(limit = 8): Promise<MealCheck[]> {
+  return shared(`${MEALS}recent:${limit}`, () => recentChecksFresh(limit));
+}
+
+/** Every check from the current calendar month (see monthChecksFresh). */
+export function monthChecks(): Promise<CheckedMeal[]> {
+  const now = new Date();
+  return shared(`${MEALS}month:${now.getFullYear()}-${now.getMonth()}`, () => monthChecksFresh());
+}
+
+/** The same rows over a wider window (see checkedMealsFresh). */
+export function checkedMeals(days = 90): Promise<CheckedMeal[]> {
+  return shared(`${MEALS}checked:${days}`, () => checkedMealsFresh(days));
+}
+
+export function loggedFoodCounts(): Promise<Map<string, number>> {
+  return shared(`${MEALS}counts`, () => loggedFoodCountsFresh());
+}
+
+export function likedFoodCounts(): Promise<Map<string, number>> {
+  return shared(`${MEALS}liked`, () => likedFoodCountsFresh());
+}
+
+export function foodCountsThisWeek(): Promise<Map<string, number>> {
+  return shared(`${MEALS}week`, () => foodCountsThisWeekFresh());
+}
+
+export function todaysFoodSizes(): Promise<{ foodIds: string[]; sizes: string[] }[]> {
+  return shared(`${MEALS}todaySizes`, () => todaysFoodSizesFresh());
+}
+
+export function caloriesEatenToday(): Promise<number> {
+  return shared(`${MEALS}todayKcal`, () => caloriesEatenTodayFresh());
+}
+
+export function monthStats(): Promise<MonthStats> {
+  return shared(`${MEALS}stats`, () => monthStatsFresh());
 }

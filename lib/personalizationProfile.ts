@@ -1,6 +1,8 @@
 "use client";
 
 import { createClient } from "@/lib/supabase/client";
+import { currentUser } from "@/lib/authUser";
+import { forget, PROFILE, shared, WEIGHT } from "@/lib/readCache";
 import type { Goal } from "./personalization";
 import type { ActivityLevel, Sex, Condition } from "./tdee";
 import { normalizeMealPattern } from "./mealPattern";
@@ -105,6 +107,8 @@ const VALID_MED_TIMES = new Set<string>(["morning", "afternoon", "evening"]);
 export const PERSONALIZATION_CHANGED = "glufloat:personalization-changed";
 
 function notifyChanged(): void {
+  // Cleared before the page is told, so every card re-reads the new answers.
+  forget(PROFILE, WEIGHT);
   try {
     window.dispatchEvent(new Event(PERSONALIZATION_CHANGED));
   } catch {
@@ -117,14 +121,33 @@ function normalizeActivity(raw: unknown): ActivityLevel | null {
   return raw === "active" ? "very_active" : (raw as ActivityLevel);
 }
 
-export async function readPersonalizationProfile(): Promise<PersonalizationProfile> {
+/**
+ * The person's saved details. Every card on the page asks for this, so the
+ * answer is shared (lib/readCache.ts) and cleared the moment a save lands.
+ */
+export function readPersonalizationProfile(): Promise<PersonalizationProfile> {
+  return shared(`${PROFILE}details`, readPersonalizationProfileFresh);
+}
+
+async function readPersonalizationProfileFresh(): Promise<PersonalizationProfile> {
   try {
     const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const user = await currentUser();
     if (!user) return EMPTY;
-    const fullResult = await supabase
+    // Everything in one read. It used to be three reads (the details, then
+    // med_types, then swallows), each on its own so a database missing one
+    // migration lost only that field. The step-by-step reads below still run,
+    // but only when this one fails.
+    const oneRead = await supabase
+      .from("profiles")
+      .select(
+        "goals,activity_level,meal_pattern,sex,age_years,weight_kg,height_cm,conditions,med_doses_per_day,med_times,med_relation_to_food,med_types,swallows",
+      )
+      .eq("id", user.id)
+      .single();
+    const fullResult = !oneRead.error
+      ? oneRead
+      : await supabase
       .from("profiles")
       .select(
         "goals,activity_level,meal_pattern,sex,age_years,weight_kg,height_cm,conditions,med_doses_per_day,med_times,med_relation_to_food",
@@ -149,8 +172,8 @@ export async function readPersonalizationProfile(): Promise<PersonalizationProfi
     // only this one field, never the rest of the profile.
     let medTypes: MedType[] = [];
     try {
-      const mt = await supabase.from("profiles").select("med_types").eq("id", user.id).single();
-      const raw = (mt.data as { med_types?: unknown } | null)?.med_types;
+      const mt = !oneRead.error ? oneRead : await supabase.from("profiles").select("med_types").eq("id", user.id).single();
+      const raw = (mt.data as unknown as { med_types?: unknown } | null)?.med_types;
       medTypes = (Array.isArray(raw) ? raw : []).filter((t): t is MedType => VALID_MED_TYPES.has(t));
     } catch {
       /* column not there yet */
@@ -158,8 +181,8 @@ export async function readPersonalizationProfile(): Promise<PersonalizationProfi
     // Its own read too (swallow-schema.sql), for the same reason.
     let swallows: string[] = [];
     try {
-      const sw = await supabase.from("profiles").select("swallows").eq("id", user.id).single();
-      const raw = (sw.data as { swallows?: unknown } | null)?.swallows;
+      const sw = !oneRead.error ? oneRead : await supabase.from("profiles").select("swallows").eq("id", user.id).single();
+      const raw = (sw.data as unknown as { swallows?: unknown } | null)?.swallows;
       swallows = (Array.isArray(raw) ? raw : []).filter((t): t is string => VALID_SWALLOWS.has(t));
     } catch {
       /* column not there yet */
@@ -225,9 +248,7 @@ export function personalRotationKey(p: PersonalizationProfile): string {
 export async function savePersonalizationProfile(p: PersonalizationProfile): Promise<boolean> {
   try {
     const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const user = await currentUser();
     if (!user) return false;
     // The weight before this save, so a change can be kept in weight_history
     // (profiles.weight_kg is overwritten, and the old number would be lost).

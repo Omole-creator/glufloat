@@ -7,6 +7,7 @@ import { Lock, UserRound } from "lucide-react";
 import AuthShell from "@/components/auth/AuthShell";
 import { Field, FormError, SubmitButton } from "@/components/auth/Field";
 import { createClient } from "@/lib/supabase/client";
+import { clearAccessCache } from "@/lib/useAccess";
 import { looksLikePhone, phoneLoginEmail } from "@/lib/phoneLogin";
 
 /** Only ever a path on this site, never somewhere else (`//evil.com` included). */
@@ -54,6 +55,8 @@ function SignInForm() {
         /* fall through to the app */
       }
     }
+    // Never let /app read the "signed out" answer the menu bar got before this.
+    clearAccessCache();
     router.push(to);
     router.refresh();
   };

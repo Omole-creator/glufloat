@@ -10,6 +10,7 @@
  * last month" is a real result a doctor wants to see.
  */
 import { createClient } from "@/lib/supabase/client";
+import { forget, shared, WEIGHT } from "@/lib/readCache";
 import { readPersonalizationProfile, savePersonalizationProfile } from "@/lib/personalizationProfile";
 import { bmi } from "@/lib/tdee";
 import { weightFlag, weightGoal, type WeightFlag } from "@/lib/weightTrend";
@@ -18,7 +19,11 @@ export const WEIGH_IN_EVERY_DAYS = 30;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 /** When this person last saved a weight, or null if never (or not readable). */
-export async function lastWeighIn(): Promise<string | null> {
+export function lastWeighIn(): Promise<string | null> {
+  return shared(`${WEIGHT}last`, lastWeighInFresh);
+}
+
+async function lastWeighInFresh(): Promise<string | null> {
   try {
     const { data, error } = await createClient()
       .from("weight_history")
@@ -49,6 +54,7 @@ export async function saveWeighIn(weightKg: number): Promise<boolean> {
   if (same) {
     try {
       await createClient().from("weight_history").insert({ weight_kg: weightKg });
+      forget(WEIGHT);
     } catch {
       /* the profile saved; history is best effort */
     }
@@ -60,7 +66,11 @@ export async function saveWeighIn(weightKg: number): Promise<boolean> {
  * The weight flag for this person, or null (lib/weightTrend.ts). Read for the
  * doctor's report and the Premium dietitian chat. Any failure reads as no flag.
  */
-export async function currentWeightFlag(): Promise<WeightFlag | null> {
+export function currentWeightFlag(): Promise<WeightFlag | null> {
+  return shared(`${WEIGHT}flag`, currentWeightFlagFresh);
+}
+
+async function currentWeightFlagFresh(): Promise<WeightFlag | null> {
   try {
     const since = new Date(Date.now() - 120 * DAY_MS).toISOString();
     const [{ data, error }, p] = await Promise.all([
