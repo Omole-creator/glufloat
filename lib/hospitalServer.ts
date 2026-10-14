@@ -69,6 +69,11 @@ export type PatientRow = {
   paid_until?: string | null;
   /** patient-pause-schema.sql (#28): time left on the countdown when paused, frozen until unpaused. */
   paused_left_ms?: number | null;
+  /** clinician-flags-schema.sql (#29): the before-meal target its clinician set (null = 150). */
+  before_target_mgdl?: number | null;
+  /** clinician-flags-schema.sql (#29): "Mark as seen" on the red sugar flag. */
+  safety_seen_at?: string | null;
+  safety_seen_by?: string | null;
 };
 
 export const ROLE_LABEL: Record<StaffRole, string> = {

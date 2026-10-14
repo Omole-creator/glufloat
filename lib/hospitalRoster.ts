@@ -3,7 +3,7 @@ import { fetchAll } from "@/lib/adminFetch";
 import type { PatientRow } from "@/lib/hospitalServer";
 import { isPhoneLoginEmail } from "@/lib/phoneLogin";
 import type { Reading } from "@/lib/glucose";
-import { safetyEvents, type SafetyEvent } from "@/lib/safetyFlag";
+import { beforeMealFlag, mealPatternFlags, safetyEvents, type BeforeFlag, type PatternMeal, type SafetyEvent } from "@/lib/safetyFlag";
 
 /**
  * The hospital's patient list with what a doctor scans for first: when the
@@ -13,7 +13,9 @@ import { safetyEvents, type SafetyEvent } from "@/lib/safetyFlag";
  * Ordinary numbers carry no colour and no "high" or "low": the doctor judges.
  * Two things ARE flagged: "Not opened in 7 days" (use, not health), and the
  * red safety flag (lib/safetyFlag.ts: under 70, over 300, or a drop after a
- * meal, in the last 14 days), which only clinicians ever see.
+ * meal, in the last 14 days, minus what was marked seen), and the two amber
+ * flags (before-meal sugar mostly above the patient's target; the same meal
+ * high 3 of 3). Only clinicians ever see them.
  */
 
 const DAY_MS = 86400000;
@@ -37,6 +39,10 @@ export type RosterRow = {
   latestHba1c: { percent: number; testedOn: string } | null;
   /** Sugar tests that need a look soon, newest first (lib/safetyFlag.ts). */
   safety: SafetyEvent[];
+  /** Amber: most before-meal tests above the patient's target, or null. */
+  beforeFlag: BeforeFlag | null;
+  /** Amber: plates whose last 3 complete meal tests were all high. */
+  patterns: string[];
   /** When the patient's payment to their dietitian or hospital runs out (patient-paid-schema.sql), or null. */
   paidUntil: string | null;
   /** A paused patient's countdown, frozen at the pause (ms left), or null. */
@@ -65,6 +71,7 @@ export async function hospitalRoster(admin: SupabaseClient, hospitalId: string):
   const hba1c = new Map<string, { percent: number; testedOn: string }>();
   const emails = new Map<string, string | null>();
   const readings = new Map<string, Reading[]>();
+  const mealsBy = new Map<string, PatternMeal[]>();
 
   // In slices, so a 200-patient hospital never builds one enormous URL.
   for (let i = 0; i < ids.length; i += 100) {
@@ -73,8 +80,12 @@ export async function hospitalRoster(admin: SupabaseClient, hospitalId: string):
       fetchAll<{ user_id: string; created_at: string }>(() =>
         admin.from("usage_events").select("user_id,created_at").in("user_id", slice).gte("created_at", since90),
       ),
-      fetchAll<{ user_id: string; checked_at: string }>(() =>
-        admin.from("meal_checks").select("user_id,checked_at").in("user_id", slice).gte("checked_at", since90),
+      fetchAll<{ id: number; user_id: string; kind: "single" | "meal"; label: string; checked_at: string; started_at: string | null; food_ids: string[] | null }>(() =>
+        admin
+          .from("meal_checks")
+          .select("id,user_id,kind,label,checked_at,started_at,food_ids")
+          .in("user_id", slice)
+          .gte("checked_at", since90),
       ),
       fetchAll<{ id: number; user_id: string; taken_at: string; mgdl: number; meal_check_id: number | null; context: Reading["context"] }>(() =>
         admin
@@ -92,6 +103,16 @@ export async function hospitalRoster(admin: SupabaseClient, hospitalId: string):
     for (const r of mc.rows) {
       bump(r.user_id, r.checked_at);
       if (r.checked_at >= since30) meals.set(r.user_id, (meals.get(r.user_id) ?? 0) + 1);
+      const ml = mealsBy.get(r.user_id) ?? [];
+      ml.push({
+        id: r.id,
+        kind: r.kind,
+        label: r.label,
+        checkedAt: r.checked_at,
+        startedAt: r.started_at ?? null,
+        foodIds: Array.isArray(r.food_ids) ? r.food_ids : null,
+      });
+      mealsBy.set(r.user_id, ml);
     }
     for (const r of gr.rows) {
       bump(r.user_id, r.taken_at);
@@ -120,6 +141,8 @@ export async function hospitalRoster(admin: SupabaseClient, hospitalId: string):
   return pats.map((p) => {
     const uid = p.user_id;
     const accountEmail = uid ? emails.get(uid) ?? null : null;
+    const flagged = !!uid && p.status === "active";
+    const rs = uid ? readings.get(uid) ?? [] : [];
     return {
       id: p.id,
       name: p.name,
@@ -136,7 +159,9 @@ export async function hospitalRoster(admin: SupabaseClient, hospitalId: string):
       tests30: uid ? tests.get(uid) ?? 0 : 0,
       latestReading: uid ? latest.get(uid) ?? null : null,
       latestHba1c: uid ? hba1c.get(uid) ?? null : null,
-      safety: uid && p.status === "active" ? safetyEvents(readings.get(uid) ?? []) : [],
+      safety: flagged ? safetyEvents(rs, new Date(), p.safety_seen_at ?? null) : [],
+      beforeFlag: flagged ? beforeMealFlag(rs, p.before_target_mgdl) : null,
+      patterns: flagged ? mealPatternFlags(mealsBy.get(uid as string) ?? [], rs).map((f) => f.label) : [],
       paidUntil: p.paid_until ?? null,
       pausedLeftMs: p.paused_left_ms != null ? Number(p.paused_left_ms) : null,
     };

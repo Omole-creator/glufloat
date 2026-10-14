@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { parseReading } from "@/lib/glucose";
+import { TARGET_MAX, TARGET_MIN, validTarget } from "@/lib/safetyFlag";
 import { newToken, restoreCarried, seatsUsed, staffContext, type PatientRow } from "@/lib/hospitalServer";
 import { normalizePhone } from "@/lib/phone";
 import { isPhoneLoginEmail } from "@/lib/phoneLogin";
@@ -85,7 +87,6 @@ export async function PATCH(request: Request) {
   const body = await request.json().catch(() => ({}));
   const ctx = await staffContext(String(body.hid ?? "") || null);
   if (!ctx) return NextResponse.json({ error: "Please log in again." }, { status: 401 });
-  if (ctx.staff.role !== "admin") return NextResponse.json({ error: "Only the hospital admin can do this." }, { status: 403 });
 
   const id = String(body.id ?? "");
   const { data } = await ctx.admin
@@ -97,6 +98,30 @@ export async function PATCH(request: Request) {
   if (!data) return NextResponse.json({ error: "We could not find this patient." }, { status: 404 });
   const p = data as PatientRow;
   const action = String(body.action ?? "");
+
+  // Clinical actions any doctor, dietitian or admin at the hospital may take
+  // (clinician-flags-schema.sql, #29). Everything below them is admin-only.
+  if (action === "target" || action === "seen") {
+    if (p.status !== "active") return NextResponse.json({ error: "This patient is not using one of your places." }, { status: 409 });
+    let update: Record<string, unknown>;
+    if (action === "target") {
+      // Empty = back to the default. A number may be typed in mg/dL or mmol/L.
+      const raw = String(body.target ?? "").trim();
+      const parsed = raw ? parseReading(raw) : null;
+      const mgdl = parsed ? Math.round(parsed.mgdl) : null;
+      if (raw && (mgdl === null || validTarget(mgdl) === null)) {
+        return NextResponse.json({ error: `Type a number between ${TARGET_MIN} and ${TARGET_MAX} mg/dL (4.4 to 13.9 mmol/L).` }, { status: 400 });
+      }
+      update = { before_target_mgdl: mgdl };
+    } else {
+      update = { safety_seen_at: new Date().toISOString(), safety_seen_by: ctx.staff.name };
+    }
+    const { error } = await ctx.admin.from("hospital_patients").update(update).eq("id", p.id);
+    if (error) return NextResponse.json({ error: "This is not ready yet. Please try again later." }, { status: 503 });
+    return NextResponse.json({ ok: true, ...update });
+  }
+
+  if (ctx.staff.role !== "admin") return NextResponse.json({ error: "Only the hospital admin can do this." }, { status: 403 });
 
   // A dietitian's note and food rules for this patient (GluFloat for
   // dietitians, supabase/practice-rules-schema.sql). Only real foods the

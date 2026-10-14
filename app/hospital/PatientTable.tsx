@@ -50,6 +50,25 @@ function SafetyBadge({ r }: { r: RosterRow }) {
   );
 }
 
+/** The amber flags: worth a look, never blinking. */
+function AmberBadges({ r }: { r: RosterRow }) {
+  if (!r.beforeFlag && r.patterns.length === 0) return null;
+  return (
+    <>
+      {r.beforeFlag && (
+        <span className="inline-flex items-center rounded-full bg-verdict-yellow/30 px-2 py-0.5 text-[11px] font-bold text-ink">
+          Before meals: mostly above {r.beforeFlag.target}
+        </span>
+      )}
+      {r.patterns.length > 0 && (
+        <span className="inline-flex items-center rounded-full bg-verdict-yellow/30 px-2 py-0.5 text-[11px] font-bold text-ink">
+          Same meal high 3 times{r.patterns.length > 1 ? ` (${r.patterns.length} meals)` : ""}
+        </span>
+      )}
+    </>
+  );
+}
+
 function ago(iso: string | null): string {
   if (!iso) return "Not yet";
   const days = Math.floor((Date.now() - new Date(iso).getTime()) / DAY_MS);
@@ -99,7 +118,9 @@ export default function PatientTable({
   const isQuiet = (r: RosterRow) => r.status === "active" && (!r.lastActive || r.lastActive < weekAgo);
   const isDue = (r: RosterRow) => r.status === "active" && paidLine(r.paidUntil).due;
 
-  const isFlagged = (r: RosterRow) => r.status === "active" && r.safety.length > 0;
+  const isRed = (r: RosterRow) => r.status === "active" && r.safety.length > 0;
+  const isAmber = (r: RosterRow) => r.status === "active" && (!!r.beforeFlag || r.patterns.length > 0);
+  const isFlagged = (r: RosterRow) => isRed(r) || isAmber(r);
 
   const counts = {
     all: rows.length,
@@ -126,12 +147,12 @@ export default function PatientTable({
           (digits.length >= 3 && r.phone.replace(/\D/g, "").includes(digits.replace(/^234/, "0"))) ||
           (r.email ?? "").toLowerCase().includes(needle),
       )
-      // Anyone with a red safety flag goes to the top, newest flag first.
+      // Red safety flags go to the top (newest first), then amber ones.
       // The sort is stable, so everyone else keeps the order they had.
       .sort((a, b) => {
-        const fa = isFlagged(a) ? a.safety[0].takenAt : "";
-        const fb = isFlagged(b) ? b.safety[0].takenAt : "";
-        return fb.localeCompare(fa);
+        const rank = (r: RosterRow) => (isRed(r) ? 2 : isAmber(r) ? 1 : 0);
+        if (rank(a) !== rank(b)) return rank(b) - rank(a);
+        return isRed(a) ? b.safety[0].takenAt.localeCompare(a.safety[0].takenAt) : 0;
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rows, q, filter]);
@@ -337,6 +358,7 @@ export default function PatientTable({
                       <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-ink-soft">
                         <span>{r.phone}</span>
                         <SafetyBadge r={r} />
+                        <AmberBadges r={r} />
                         {r.status !== "active" && (
                           <span className={`rounded-full px-2 py-0.5 font-bold ${STATUS[r.status].tone}`}>{STATUS[r.status].label}</span>
                         )}
@@ -405,8 +427,9 @@ export default function PatientTable({
                     )}
                     <p className="text-xs text-ink-soft">{r.phone}</p>
                     {isFlagged(r) && (
-                      <div className="mt-1">
+                      <div className="mt-1 flex flex-wrap gap-1">
                         <SafetyBadge r={r} />
+                        <AmberBadges r={r} />
                       </div>
                     )}
                   </div>

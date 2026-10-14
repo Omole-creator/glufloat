@@ -10,7 +10,22 @@ import { getFood } from "@/lib/search";
 import { cleanFoodName } from "@/lib/foodName";
 import { whatsappNumber } from "@/lib/hospitalServer";
 import { patientHba1cs, patientProfile, patientReadings, patientWeights, weightLineFor } from "@/lib/patientRecord";
-import { FLAG_DAYS, safetyEvents, safetyLine } from "@/lib/safetyFlag";
+import { formatMmol } from "@/lib/glucose";
+import { displayLabel } from "@/lib/foodName";
+import {
+  DEFAULT_BEFORE_TARGET,
+  FLAG_DAYS,
+  PATTERN_DAYS,
+  beforeLine,
+  beforeMealFlag,
+  mealPatternFlags,
+  patternLine,
+  safetyEvents,
+  safetyLine,
+  validTarget,
+  type PatternMeal,
+} from "@/lib/safetyFlag";
+import SugarFlags from "./SugarFlags";
 import PatientDetail from "./PatientDetail";
 import PracticeRulesEditor from "./PracticeRulesEditor";
 
@@ -64,6 +79,27 @@ export default async function PatientPage({
         .map((fid) => ({ id: fid, name: cleanFoodName(getFood(fid)?.name ?? fid) }))
         .sort((a, b) => a.name.localeCompare(b.name))
     : [];
+  // The sugar-flag fields (clinician-flags-schema.sql, #29), in their own read
+  // so a database without them still shows every flag (target 150, nothing seen).
+  const flagRead = await ctx.admin
+    .from("hospital_patients")
+    .select("before_target_mgdl,safety_seen_at,safety_seen_by")
+    .eq("id", row.id)
+    .maybeSingle();
+  const flagCols = flagRead.error ? null : (flagRead.data as { before_target_mgdl: number | null; safety_seen_at: string | null; safety_seen_by: string | null } | null);
+  const { data: mealRows } = await ctx.admin
+    .from("meal_checks")
+    .select("id,kind,label,checked_at,started_at,food_ids")
+    .eq("user_id", uid)
+    .gte("checked_at", new Date(Date.now() - (PATTERN_DAYS + 1) * 86400000).toISOString());
+  const patternMeals: PatternMeal[] = ((mealRows ?? []) as Record<string, unknown>[]).map((m) => ({
+    id: m.id as number,
+    kind: m.kind as PatternMeal["kind"],
+    label: m.label as string,
+    checkedAt: m.checked_at as string,
+    startedAt: (m.started_at as string | null) ?? null,
+    foodIds: Array.isArray(m.food_ids) ? (m.food_ids as string[]) : null,
+  }));
   const [profile, hba1cs, weights, readings, { data: staffRows }] = await Promise.all([
     patientProfile(ctx.admin, uid),
     patientHba1cs(ctx.admin, uid),
@@ -76,6 +112,15 @@ export default async function PatientPage({
   const colleagues = ((staffRows ?? []) as { user_id: string; role: string; name: string; phone: string | null }[])
     .filter((s) => s.user_id !== ctx.user.id && s.role !== "admin" && whatsappNumber(s.phone))
     .map((s) => ({ name: s.name, role: s.role, whatsapp: whatsappNumber(s.phone) as string }));
+
+  const firstName = (profile.name || (row.name as string)).split(/\s+/)[0];
+  const targetSet = validTarget(flagCols?.before_target_mgdl);
+  const targetMgdl = targetSet ?? DEFAULT_BEFORE_TARGET;
+  const before = beforeMealFlag(readings, targetMgdl);
+  const amber = [
+    ...(before ? [beforeLine(before, firstName)] : []),
+    ...mealPatternFlags(patternMeals, readings).map((f) => patternLine(f, displayLabel(f.label))),
+  ];
 
   return (
     <HospitalShell ctx={ctx} title={profile.name || (row.name as string)} subtitle={`Joined ${new Date(row.joined_at as string).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}`}>
@@ -96,6 +141,16 @@ export default async function PatientPage({
           }}
         />
       )}
+      <SugarFlags
+        patientId={id}
+        hid={ctx.all.length > 1 ? ctx.hospital.id : null}
+        firstName={firstName}
+        red={safetyEvents(readings, new Date(), flagCols?.safety_seen_at ?? null).map(safetyLine)}
+        redDays={FLAG_DAYS}
+        seen={flagCols?.safety_seen_at ? { by: flagCols.safety_seen_by, at: flagCols.safety_seen_at } : null}
+        amber={amber}
+        target={{ mgdl: targetMgdl, mmol: formatMmol(targetMgdl).replace(/\s*mmol\/L$/, ""), set: targetSet !== null, ready: !!flagCols }}
+      />
       <PatientDetail
         patientId={id}
         hid={ctx.all.length > 1 ? ctx.hospital.id : null}
@@ -107,7 +162,6 @@ export default async function PatientPage({
         weights={weights}
         weightLine={weightLineFor(profile, weights)}
         readings={readings}
-        safety={{ days: FLAG_DAYS, lines: safetyEvents(readings).map(safetyLine) }}
         colleagues={colleagues}
       />
     </HospitalShell>

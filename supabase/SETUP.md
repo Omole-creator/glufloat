@@ -39,6 +39,7 @@ keys are in Vercel, the app code (which I'm building) takes over.
    | 26 | `practice-rules-schema.sql` | A dietitian's note and food rules for one patient (2026-10-13): `hospital_patients.dietitian_note`, `.avoid_food_ids`, `.prefer_food_ids`, `.rules_updated_at`. Must run AFTER #25. Idempotent. Until it runs, the "Your advice" box does not show on a patient's page and patients see no note; everything else works as before. |
    | 27 | `patient-paid-schema.sql` | Patients' payment countdown and pause (2026-10-13): `hospital_patients.paid_until`, status `paused`. Run. |
    | 28 | `patient-pause-schema.sql` | `hospital_patients.paused_left_ms` (2026-10-13): a pause freezes the countdown, so pausing and unpausing never adds days. Must run AFTER #27. Until it runs, pausing says it is not ready. |
+   | 29 | `clinician-flags-schema.sql` | Clinician sugar flags (2026-10-14): `hospital_patients.before_target_mgdl` (the patient's before-meal target, null = 150), `.safety_seen_at`, `.safety_seen_by` ("Mark as seen" on the red flag). Must run AFTER #22. Idempotent. Until it runs, every flag still shows (target 150, nothing marked seen), and setting a target or marking seen says it is not ready. |
 
    Two things worth knowing about that order. **Five of these files each contain
    their own `create or replace function public.handle_new_user()`**, and the last
