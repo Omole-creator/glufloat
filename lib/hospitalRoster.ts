@@ -2,15 +2,18 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { fetchAll } from "@/lib/adminFetch";
 import type { PatientRow } from "@/lib/hospitalServer";
 import { isPhoneLoginEmail } from "@/lib/phoneLogin";
+import type { Reading } from "@/lib/glucose";
+import { safetyEvents, type SafetyEvent } from "@/lib/safetyFlag";
 
 /**
  * The hospital's patient list with what a doctor scans for first: when the
  * patient last used GluFloat, how much they logged in the last 30 days, and
  * their latest sugar test and HbA1c, as plain numbers.
  *
- * No colour and no "high" or "low" on any number (the house rule that keeps
- * GluFloat a food app): the doctor judges. "Not opened in 7 days" is about USE,
- * not health, so it is the one thing the list does flag.
+ * Ordinary numbers carry no colour and no "high" or "low": the doctor judges.
+ * Two things ARE flagged: "Not opened in 7 days" (use, not health), and the
+ * red safety flag (lib/safetyFlag.ts: under 70, over 300, or a drop after a
+ * meal, in the last 14 days), which only clinicians ever see.
  */
 
 const DAY_MS = 86400000;
@@ -32,6 +35,8 @@ export type RosterRow = {
   tests30: number;
   latestReading: { mgdl: number; takenAt: string } | null;
   latestHba1c: { percent: number; testedOn: string } | null;
+  /** Sugar tests that need a look soon, newest first (lib/safetyFlag.ts). */
+  safety: SafetyEvent[];
   /** When the patient's payment to their dietitian or hospital runs out (patient-paid-schema.sql), or null. */
   paidUntil: string | null;
   /** A paused patient's countdown, frozen at the pause (ms left), or null. */
@@ -59,6 +64,7 @@ export async function hospitalRoster(admin: SupabaseClient, hospitalId: string):
   const latest = new Map<string, { mgdl: number; takenAt: string }>();
   const hba1c = new Map<string, { percent: number; testedOn: string }>();
   const emails = new Map<string, string | null>();
+  const readings = new Map<string, Reading[]>();
 
   // In slices, so a 200-patient hospital never builds one enormous URL.
   for (let i = 0; i < ids.length; i += 100) {
@@ -70,8 +76,12 @@ export async function hospitalRoster(admin: SupabaseClient, hospitalId: string):
       fetchAll<{ user_id: string; checked_at: string }>(() =>
         admin.from("meal_checks").select("user_id,checked_at").in("user_id", slice).gte("checked_at", since90),
       ),
-      fetchAll<{ user_id: string; taken_at: string; mgdl: number }>(() =>
-        admin.from("glucose_readings").select("user_id,taken_at,mgdl").in("user_id", slice).gte("taken_at", since90),
+      fetchAll<{ id: number; user_id: string; taken_at: string; mgdl: number; meal_check_id: number | null; context: Reading["context"] }>(() =>
+        admin
+          .from("glucose_readings")
+          .select("id,user_id,taken_at,mgdl,meal_check_id,context")
+          .in("user_id", slice)
+          .gte("taken_at", since90),
       ),
       fetchAll<{ user_id: string; percent: number; tested_on: string }>(() =>
         admin.from("hba1c_results").select("user_id,percent,tested_on").in("user_id", slice),
@@ -88,6 +98,17 @@ export async function hospitalRoster(admin: SupabaseClient, hospitalId: string):
       if (r.taken_at >= since30) tests.set(r.user_id, (tests.get(r.user_id) ?? 0) + 1);
       const cur = latest.get(r.user_id);
       if (!cur || cur.takenAt < r.taken_at) latest.set(r.user_id, { mgdl: Number(r.mgdl), takenAt: r.taken_at });
+      const list = readings.get(r.user_id) ?? [];
+      list.push({
+        id: r.id,
+        mealCheckId: r.meal_check_id ?? null,
+        valueRaw: Number(r.mgdl),
+        unit: "mgdl",
+        mgdl: Number(r.mgdl),
+        takenAt: r.taken_at,
+        context: r.context ?? null,
+      });
+      readings.set(r.user_id, list);
     }
     for (const r of hb.rows) {
       const cur = hba1c.get(r.user_id);
@@ -115,6 +136,7 @@ export async function hospitalRoster(admin: SupabaseClient, hospitalId: string):
       tests30: uid ? tests.get(uid) ?? 0 : 0,
       latestReading: uid ? latest.get(uid) ?? null : null,
       latestHba1c: uid ? hba1c.get(uid) ?? null : null,
+      safety: uid && p.status === "active" ? safetyEvents(readings.get(uid) ?? []) : [],
       paidUntil: p.paid_until ?? null,
       pausedLeftMs: p.paused_left_ms != null ? Number(p.paused_left_ms) : null,
     };

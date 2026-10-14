@@ -10,6 +10,7 @@ import { getFood } from "@/lib/search";
 import { cleanFoodName } from "@/lib/foodName";
 import { whatsappNumber } from "@/lib/hospitalServer";
 import { patientHba1cs, patientProfile, patientReadings, patientWeights, weightLineFor } from "@/lib/patientRecord";
+import { FLAG_DAYS, safetyEvents, safetyLine } from "@/lib/safetyFlag";
 import PatientDetail from "./PatientDetail";
 import PracticeRulesEditor from "./PracticeRulesEditor";
 
@@ -106,6 +107,7 @@ export default async function PatientPage({
         weights={weights}
         weightLine={weightLineFor(profile, weights)}
         readings={readings}
+        safety={{ days: FLAG_DAYS, lines: safetyEvents(readings).map(safetyLine) }}
         colleagues={colleagues}
       />
     </HospitalShell>

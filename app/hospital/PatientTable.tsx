@@ -7,10 +7,11 @@ import { ChevronRight, Droplet, KeyRound, PauseCircle, PlayCircle, Search, Send,
 import type { RosterRow } from "@/lib/hospitalRoster";
 import { formatBoth } from "@/lib/glucose";
 import { SITE_URL } from "@/lib/site";
+import { safetyBadge } from "@/lib/safetyFlag";
 
 const DAY_MS = 86400000;
 
-type Filter = "all" | "active" | "due" | "quiet" | "waiting" | "invited" | "paused";
+type Filter = "all" | "safety" | "active" | "due" | "quiet" | "waiting" | "invited" | "paused";
 
 /**
  * The patient's own payment to their dietitian or hospital, which happens
@@ -31,6 +32,22 @@ function paidLine(paidUntil: string | null): { text: string; due: boolean } {
   if (days > 0) return { text: `Until ${when} · ${days} ${days === 1 ? "day" : "days"} left`, due: false };
   const over = -days;
   return { text: over === 0 ? "Due today" : `Due ${over} ${over === 1 ? "day" : "days"} ago`, due: true };
+}
+
+/**
+ * The red safety flag (lib/safetyFlag.ts): a test under 70, over 300, or a
+ * drop after a meal, in the last 14 days. Clinicians only. The dot pulses only
+ * for people who allow motion; the words carry the meaning either way.
+ */
+function SafetyBadge({ r }: { r: RosterRow }) {
+  const text = safetyBadge(r.safety);
+  if (!text) return null;
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-verdict-red px-2 py-0.5 text-[11px] font-bold text-white">
+      <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-white motion-safe:animate-pulse" />
+      Sugar: {text}
+    </span>
+  );
 }
 
 function ago(iso: string | null): string {
@@ -82,8 +99,11 @@ export default function PatientTable({
   const isQuiet = (r: RosterRow) => r.status === "active" && (!r.lastActive || r.lastActive < weekAgo);
   const isDue = (r: RosterRow) => r.status === "active" && paidLine(r.paidUntil).due;
 
+  const isFlagged = (r: RosterRow) => r.status === "active" && r.safety.length > 0;
+
   const counts = {
     all: rows.length,
+    safety: rows.filter(isFlagged).length,
     active: rows.filter((r) => r.status === "active").length,
     due: rows.filter(isDue).length,
     quiet: rows.filter(isQuiet).length,
@@ -97,7 +117,7 @@ export default function PatientTable({
     const digits = needle.replace(/\D/g, "");
     return rows
       .filter((r) =>
-        filter === "all" ? true : filter === "quiet" ? isQuiet(r) : filter === "due" ? isDue(r) : r.status === filter,
+        filter === "all" ? true : filter === "safety" ? isFlagged(r) : filter === "quiet" ? isQuiet(r) : filter === "due" ? isDue(r) : r.status === filter,
       )
       .filter(
         (r) =>
@@ -105,7 +125,14 @@ export default function PatientTable({
           r.name.toLowerCase().includes(needle) ||
           (digits.length >= 3 && r.phone.replace(/\D/g, "").includes(digits.replace(/^234/, "0"))) ||
           (r.email ?? "").toLowerCase().includes(needle),
-      );
+      )
+      // Anyone with a red safety flag goes to the top, newest flag first.
+      // The sort is stable, so everyone else keeps the order they had.
+      .sort((a, b) => {
+        const fa = isFlagged(a) ? a.safety[0].takenAt : "";
+        const fb = isFlagged(b) ? b.safety[0].takenAt : "";
+        return fb.localeCompare(fa);
+      });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rows, q, filter]);
 
@@ -135,6 +162,7 @@ export default function PatientTable({
 
   const FILTERS: { id: Filter; label: string }[] = [
     { id: "all", label: "Everyone" },
+    { id: "safety", label: "Sugar needs a look" },
     { id: "active", label: "Using GluFloat" },
     { id: "due", label: "Payment due" },
     { id: "quiet", label: "Not opened in 7 days" },
@@ -308,6 +336,7 @@ export default function PatientTable({
                       )}
                       <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-ink-soft">
                         <span>{r.phone}</span>
+                        <SafetyBadge r={r} />
                         {r.status !== "active" && (
                           <span className={`rounded-full px-2 py-0.5 font-bold ${STATUS[r.status].tone}`}>{STATUS[r.status].label}</span>
                         )}
@@ -375,6 +404,11 @@ export default function PatientTable({
                       <p className="font-semibold text-ink">{r.name}</p>
                     )}
                     <p className="text-xs text-ink-soft">{r.phone}</p>
+                    {isFlagged(r) && (
+                      <div className="mt-1">
+                        <SafetyBadge r={r} />
+                      </div>
+                    )}
                   </div>
                   <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold ${STATUS[r.status].tone}`}>
                     {STATUS[r.status].label}

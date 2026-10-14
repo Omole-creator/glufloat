@@ -50,6 +50,7 @@ export default function PatientDetail({
   weights,
   weightLine,
   readings,
+  safety,
   colleagues,
 }: {
   patientId: string;
@@ -62,6 +63,8 @@ export default function PatientDetail({
   weights: { kg: number; at: string }[];
   weightLine: string | null;
   readings: Reading[];
+  /** The red safety flag (lib/safetyFlag.ts), worked out on the server. */
+  safety: { days: number; lines: string[] };
   colleagues: { name: string; role: string; whatsapp: string }[];
 }) {
   const thisMonth = monthKey(new Date());
@@ -126,6 +129,24 @@ export default function PatientDetail({
 
   return (
     <div className="mt-5 space-y-6">
+      {safety.lines.length > 0 && (
+        <section role="alert" className="rounded-2xl border-2 border-verdict-red bg-verdict-red/5 p-5">
+          <div className="flex items-center gap-2">
+            <span aria-hidden className="h-2.5 w-2.5 rounded-full bg-verdict-red motion-safe:animate-pulse" />
+            <h2 className="font-display text-base font-bold text-verdict-red">Sugar tests to look at</h2>
+          </div>
+          <p className="mt-1 text-xs text-ink-soft">
+            Under 70, over 300, or a drop of 30 or more after a meal ending under 100, in the last {safety.days} days. {name.split(/\s+/)[0]} does not see this flag.
+          </p>
+          <ul className="mt-3 space-y-1.5">
+            {safety.lines.map((l, i) => (
+              <li key={i} className="text-sm font-semibold text-ink">
+                {l}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       <div className="flex flex-wrap gap-2">
         <a href={`tel:${phone}`} className="inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-4 py-2 text-sm font-bold text-ink hover:border-brand">
           <Phone className="h-4 w-4" /> Call {phone}

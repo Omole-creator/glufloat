@@ -87,8 +87,8 @@ export const BAD_NUMBER = "Type the number your meter showed, like 6.5 or 140.";
  * numbers are house cut-offs used to decide whether to speak at all. They are
  * never shown, never named, and never printed in any sentence the user reads.
  */
-const LOW_MGDL = 70;
-const HIGH_MGDL = 300;
+export const LOW_MGDL = 70;
+export const HIGH_MGDL = 300;
 
 /** Which unit a typed number must be. See MMOL_CEILING above for why. */
 export function detectUnit(value: number): GlucoseUnit {
