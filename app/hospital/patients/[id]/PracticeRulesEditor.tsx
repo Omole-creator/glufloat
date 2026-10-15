@@ -57,8 +57,8 @@ export default function PracticeRulesEditor({
     <section className="mt-6 rounded-2xl border border-[#e3e9f1] bg-white p-5 sm:p-6">
       <h2 className="font-display text-lg font-bold text-ink">Your advice for {firstName}</h2>
       <p className="mt-1 text-sm text-ink-soft">
-        {firstName} sees your note on their Today screen, from {dietitianName}. GluFloat&apos;s meal picks follow your food
-        rules, and still fit {firstName}&apos;s own details.
+        {firstName} sees your note at the top of their dashboard. We recommend meals that follow your rules and are right
+        for {firstName}.
       </p>
 
       <label className="mt-5 block">

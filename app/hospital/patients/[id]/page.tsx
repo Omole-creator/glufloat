@@ -201,7 +201,6 @@ export default async function PatientPage({
         hid={ctx.all.length > 1 ? ctx.hospital.id : null}
         name={profile.name || (row.name as string)}
         phone={row.phone as string}
-        whatsapp={whatsappNumber(row.phone as string)}
         profile={profile}
         hba1cs={hba1cs}
         weights={weights}

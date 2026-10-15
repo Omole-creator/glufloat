@@ -36,8 +36,6 @@ import TypewriterHeadline from "@/components/TypewriterHeadline";
 import CollapsibleCard from "@/components/CollapsibleCard";
 import DashboardBottomNav, { type DashboardTabDef } from "@/components/DashboardBottomNav";
 import DashboardLeftNav from "@/components/DashboardLeftNav";
-import ChatWithDietitian from "@/components/ChatWithDietitian";
-import ChatWithHospital from "@/components/ChatWithHospital";
 import DietitianNote from "@/components/DietitianNote";
 import PatientChat from "@/components/chat/PatientChat";
 import { useChatUnread } from "@/lib/useChatUnread";
@@ -771,12 +769,8 @@ export default function AppPage() {
                 (same belt-and-suspenders pattern as the rest of the app). */}
             {canUseDietitianChat(access) && (
               <div className={activeTab === "dietitian" ? "" : "hidden"}>
-                {/* The in-app chat (2026-10-15). The old WhatsApp card shows
-                    only until supabase/chat-schema.sql has been run. */}
-                <PatientChat
-                  active={activeTab === "dietitian"}
-                  fallback={hospital ? <ChatWithHospital hospital={hospital} /> : <ChatWithDietitian />}
-                />
+                {/* The in-app chat (2026-10-15). */}
+                <PatientChat active={activeTab === "dietitian"} />
               </div>
             )}
           </div>

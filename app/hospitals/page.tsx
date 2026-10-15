@@ -135,7 +135,7 @@ export default function HospitalsPage() {
     { icon: Users, text: "Every patient on one list, with when they last used it" },
     { icon: FileText, text: "A month report for each patient, as a PDF" },
     { icon: Stethoscope, text: "Logins for all your doctors and dietitians, free" },
-    { icon: MessageCircle, text: "Every patient's chat in one place. Any of your doctors or dietitians can answer" },
+    { icon: MessageCircle, text: "Every patient's chat in one place. Any of your doctors or dietitians can answer. Only the patient and your own team can read it" },
     { icon: ClipboardList, text: "Each doctor and dietitian can leave a note on top of a patient's meal card" },
     { icon: QrCode, text: "Your own QR code for patients to join" },
   ];

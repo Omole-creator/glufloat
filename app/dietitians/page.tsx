@@ -143,7 +143,7 @@ export default function DietitiansPage() {
   const youGet = [
     { icon: Users, text: "All your patients on one list, with when they last used it" },
     { icon: FileText, text: "A month report for each patient, as a PDF" },
-    { icon: MessageCircle, text: "Every patient's chat in one place, with new messages marked" },
+    { icon: MessageCircle, text: "Every patient's chat in one place, with new messages marked. Only you and your patient can read it" },
     { icon: ClipboardList, text: "A note from you on top of each patient's meal card" },
     { icon: QrCode, text: "Your own QR code and invite links" },
     { icon: ShieldCheck, text: "Only you see your patients' records" },

@@ -44,7 +44,6 @@ export default function PatientDetail({
   hid,
   name,
   phone,
-  whatsapp,
   profile,
   hba1cs,
   weights,
@@ -56,7 +55,6 @@ export default function PatientDetail({
   hid: string | null;
   name: string;
   phone: string;
-  whatsapp: string | null;
   profile: PatientProfile;
   hba1cs: Hba1c[];
   weights: { kg: number; at: string }[];
@@ -130,16 +128,6 @@ export default function PatientDetail({
         <a href={`tel:${phone}`} className="inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-4 py-2 text-sm font-bold text-ink hover:border-brand">
           <Phone className="h-4 w-4" /> Call {phone}
         </a>
-        {whatsapp && (
-          <a
-            href={`https://wa.me/${whatsapp}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-full bg-[#25D366] px-4 py-2 text-sm font-bold text-white hover:brightness-95"
-          >
-            WhatsApp {name.split(/\s+/)[0]}
-          </a>
-        )}
       </div>
 
       {colleagues.length > 0 && (

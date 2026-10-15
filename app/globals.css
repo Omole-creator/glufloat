@@ -320,6 +320,26 @@ body {
   .fake-caret { animation: none; }
   .meter-input:placeholder-shown:not(:focus) { animation: none; }
 }
+/* The chat's message box: a blinking cursor while it is empty and untapped,
+   the same idea as the sugar boxes above. The placeholder moves over to make
+   room for it. Gone once tapped or typed in. */
+.chat-caret {
+  display: none;
+  position: absolute;
+  left: 18px;
+  top: 50%;
+  width: 2px;
+  height: 1.25rem;
+  margin-top: -0.625rem;
+  border-radius: 1px;
+  background: var(--blue);
+  animation: caret-blink 1s step-end infinite;
+  pointer-events: none;
+}
+.chat-input:placeholder-shown:not(:focus) + .chat-caret { display: block; }
+.chat-input:placeholder-shown:not(:focus)::placeholder { text-indent: 8px; }
+@media (prefers-reduced-motion: reduce) { .chat-caret { animation: none; } }
+
 /* The 2-hour clock on the meal test card fills slowly as time passes. */
 .clock-fill { transition: stroke-dashoffset 0.8s ease-out; }
 @media (prefers-reduced-motion: reduce) {

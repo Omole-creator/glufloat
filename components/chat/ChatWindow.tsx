@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { SendHorizontal } from "lucide-react";
+import { MessagesSquare, SendHorizontal } from "lucide-react";
 import { CHAT_MAX, ROLE_WORD, clockLabel, dayLabel, watDay, type ChatMessage } from "@/lib/chat";
 
 /** How often an open chat looks for new messages. Only while it is on screen. */
@@ -33,6 +33,8 @@ export default function ChatWindow({
   heightClass = "h-[min(58vh,520px)]",
   onData,
   seed,
+  className = "",
+  suggestions = [],
 }: {
   getUrl: (after: number) => string;
   postUrl: string;
@@ -48,6 +50,10 @@ export default function ChatWindow({
   onData?: (d: Loaded) => void;
   /** Text to add to the message box (n changes each time it is pressed). */
   seed?: { text: string; n: number } | null;
+  /** Classes on the outer box (e.g. "flex-1" to fill a full-height card). */
+  className?: string;
+  /** Tap-to-fill starters, shown while the chat is empty. */
+  suggestions?: string[];
 }) {
   const [messages, setMessages] = useState<ChatMessage[] | null>(null);
   const [canSend, setCanSend] = useState<boolean>(canSendProp ?? true);
@@ -177,14 +183,14 @@ export default function ChatWindow({
   }
 
   return (
-    <div className="flex flex-col">
+    <div className={`flex min-h-0 flex-col ${className}`}>
       <div
         ref={listRef}
         onScroll={(e) => {
           const el = e.currentTarget;
           stick.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
         }}
-        className={`${heightClass} overflow-y-auto bg-[#f3f6fa] px-3 py-4 sm:px-5`}
+        className={`${heightClass} overflow-y-auto bg-[#eef3f8] px-3 py-4 sm:px-5`}
         aria-live="polite"
         aria-label="Messages"
       >
@@ -193,40 +199,64 @@ export default function ChatWindow({
             <span className="h-6 w-6 animate-spin rounded-full border-2 border-brand/25 border-t-brand" aria-label="Loading" />
           </div>
         ) : messages.length === 0 ? (
-          <div className="flex h-full flex-col items-center justify-center px-6 text-center">
-            <p className="font-display text-base font-bold text-ink">{emptyTitle}</p>
+          <div className="flex h-full flex-col items-center justify-center px-4 text-center">
+            <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-brand shadow-sm ring-1 ring-brand/10">
+              <MessagesSquare className="h-7 w-7" strokeWidth={2} />
+            </span>
+            <p className="mt-4 font-display text-lg font-bold text-ink">{emptyTitle}</p>
             <p className="mt-1.5 max-w-xs text-sm leading-relaxed text-ink-soft">{emptyText}</p>
+            {canSend && suggestions.length > 0 && (
+              <div className="mt-5 flex w-full max-w-sm flex-col gap-2">
+                {suggestions.map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => {
+                      setText(s);
+                      boxRef.current?.focus();
+                    }}
+                    className="rounded-2xl bg-white px-4 py-3 text-left text-sm font-semibold text-ink shadow-sm ring-1 ring-brand/10 transition-colors hover:ring-brand/40"
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         ) : (
           <div className="space-y-5">
             {days.map((g) => (
-              <div key={g.day} className="space-y-2">
-                <p className="flex justify-center">
-                  <span className="rounded-full bg-white px-3 py-1 text-[11px] font-bold text-ink-soft shadow-sm ring-1 ring-ink/[0.05]">
-                    {dayLabel(g.day)}
-                  </span>
+              <div key={g.day} className="space-y-1.5">
+                <p className="flex justify-center pb-1">
+                  <span className="rounded-full bg-white/90 px-3 py-1 text-[11px] font-bold text-ink-soft shadow-sm">{dayLabel(g.day)}</span>
                 </p>
                 {g.items.map((m, i) => {
                   const prev = g.items[i - 1];
-                  // Say who wrote it when the writer changes (several people answer a care-team chat).
-                  const showName = !prev || prev.senderName !== m.senderName || prev.mine !== m.mine;
-                  const named = m.senderRole !== "patient" && !(viewer === "staff" && m.senderName === "You");
+                  const next = g.items[i + 1];
+                  const sameAsPrev = !!prev && prev.senderName === m.senderName && prev.mine === m.mine;
+                  const sameAsNext = !!next && next.senderName === m.senderName && next.mine === m.mine;
+                  // A name only above other people's messages (several people answer
+                  // a care-team chat), never "You" above your own.
+                  const showName = !sameAsPrev && m.senderName !== "You" && !(viewer === "patient" && m.mine);
+                  const role = m.senderRole !== "patient" ? ROLE_WORD[m.senderRole] : null;
                   return (
-                    <div key={m.id} className={`flex ${m.mine ? "justify-end" : "justify-start"}`}>
-                      <div className="max-w-[85%] sm:max-w-[75%]">
+                    <div key={m.id} className={`flex ${m.mine ? "justify-end" : "justify-start"} ${sameAsPrev ? "" : "pt-1.5"}`}>
+                      <div className="max-w-[82%] sm:max-w-[70%]">
                         {showName && (
-                          <p className={`mb-1 px-1 text-[11px] font-bold ${m.mine ? "text-right" : ""} text-ink-soft`}>
+                          <p className={`mb-1 px-2 text-[11px] font-bold text-brand ${m.mine ? "text-right" : ""}`}>
                             {m.senderName}
-                            {named && m.senderName !== "You" && <span className="font-semibold text-ink-soft/70">, {ROLE_WORD[m.senderRole]}</span>}
+                            {role && <span className="font-semibold text-ink-soft">, {role}</span>}
                           </p>
                         )}
                         <div
-                          className={`whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2.5 text-[15px] leading-relaxed shadow-sm ${
-                            m.mine ? "rounded-br-md bg-brand text-white" : "rounded-bl-md bg-white text-ink ring-1 ring-ink/[0.06]"
+                          className={`flow-root whitespace-pre-wrap break-words px-3.5 pb-1.5 pt-2 text-[15px] leading-relaxed ${
+                            m.mine
+                              ? `rounded-2xl bg-brand text-white shadow-[0_6px_16px_-10px_rgba(27,95,170,0.8)] ${sameAsNext ? "" : "rounded-br-md"}`
+                              : `rounded-2xl bg-white text-ink shadow-sm ${sameAsNext ? "" : "rounded-bl-md"}`
                           }`}
                         >
                           {m.body}
-                          <span className={`mt-1 block text-right text-[10px] font-semibold ${m.mine ? "text-white/70" : "text-ink-soft/70"}`}>
+                          <span className={`float-right ml-3 mt-1.5 text-[10px] font-semibold leading-none ${m.mine ? "text-white/70" : "text-ink-soft/70"}`}>
                             {clockLabel(m.createdAt)}
                           </span>
                         </div>
@@ -241,9 +271,9 @@ export default function ChatWindow({
       </div>
 
       {canSend ? (
-        <div className="border-t border-ink/[0.06] bg-white p-3 sm:p-4">
-          {err && <p className="mb-2 text-sm font-semibold text-verdict-red">{err}</p>}
-          <div className="flex items-end gap-2">
+        <div className="border-t border-ink/[0.06] bg-white px-3 py-3 sm:px-4">
+          {err && <p className="mb-2 px-1 text-sm font-semibold text-verdict-red">{err}</p>}
+          <div className="relative">
             <textarea
               ref={boxRef}
               value={text}
@@ -259,19 +289,21 @@ export default function ChatWindow({
               }}
               placeholder={placeholder}
               aria-label="Your message"
-              className="min-h-[48px] flex-1 resize-none rounded-2xl border-2 border-line bg-[#fbfcfe] px-4 py-3 text-base leading-snug text-ink outline-none transition-colors focus:border-brand focus:bg-white"
+              className="chat-input block min-h-[52px] w-full resize-none rounded-[26px] border-2 border-line bg-[#f7f9fc] py-3.5 pl-4 pr-14 text-base leading-snug text-ink outline-none transition-colors focus:border-brand focus:bg-white"
             />
+            {/* A blinking cursor while the box is empty and untapped, so it reads as "type here" (globals.css). */}
+            <span aria-hidden className="chat-caret" />
             <button
               type="button"
               onClick={() => void send()}
               disabled={sending || !text.trim()}
               aria-label="Send message"
-              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-leaf text-white shadow-[0_8px_20px_-10px_rgba(62,155,79,0.9)] transition-all hover:bg-leaf-deep disabled:bg-ink/15 disabled:shadow-none"
+              className="absolute bottom-1.5 right-1.5 flex h-10 w-10 items-center justify-center rounded-full bg-leaf text-white transition-colors hover:bg-leaf-deep disabled:bg-ink/15"
             >
               {sending ? (
-                <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
               ) : (
-                <SendHorizontal className="h-5 w-5" strokeWidth={2.4} />
+                <SendHorizontal className="h-[18px] w-[18px]" strokeWidth={2.4} />
               )}
             </button>
           </div>

@@ -307,6 +307,16 @@ export default async function AdminPage({
 
   // The in-app chat: counts only, never words (founder, 2026-10-15).
   const chats = await chatStats(createAdminClient(), period.from ?? new Date(0), period.to ?? new Date(now + DAY_MS));
+  // Clinicians' advice, for "Data for AI": counts only, all time. Each read on
+  // its own, so a database without a table shows a dash, never an error.
+  const adviceDb = createAdminClient();
+  const [hospNotes, practiceNotes, practiceRules] = await Promise.all([
+    adviceDb.from("patient_notes").select("author_id", { count: "exact", head: true }),
+    adviceDb.from("hospital_patients").select("id", { count: "exact", head: true }).not("dietitian_note", "is", null),
+    adviceDb.from("hospital_patients").select("id", { count: "exact", head: true }).or("avoid_food_ids.neq.{},prefer_food_ids.neq.{}"),
+  ]);
+  const notesCount = hospNotes.error ? null : (hospNotes.count ?? 0) + (practiceNotes.error ? 0 : practiceNotes.count ?? 0);
+  const rulesCount = practiceRules.error ? null : practiceRules.count ?? 0;
 
   const periodQuery = `?${new URLSearchParams(
     Object.entries(sp).filter((e): e is [string, string] => typeof e[1] === "string"),
@@ -513,6 +523,13 @@ export default async function AdminPage({
           <AdminTile label="Weights recorded" value={weights.ok ? realCount(weights.rows).toLocaleString() : "—"} sub={weights.ok ? "each change is kept" : waiting} />
           <AdminTile label="3-month sugar tests" value={hba1c.ok ? realCount(hba1c.rows).toLocaleString() : "—"} sub={hba1c.ok ? "HbA1c results saved" : waiting} />
           <AdminTile label="Named their medicine" value={medTypes.ok ? realCount(medTypes.rows).toLocaleString() : "—"} sub={medTypes.ok ? "people, all time" : waiting} />
+          <AdminTile
+            label="Chat messages"
+            value={chats.ready ? (chats.fromPatients + chats.fromTeams).toLocaleString() : "—"}
+            sub={chats.ready ? `${chats.fromPatients} from patients · ${chats.fromTeams} replies` : waiting}
+          />
+          <AdminTile label="Clinicians' notes" value={notesCount === null ? "—" : notesCount.toLocaleString()} sub={notesCount === null ? waiting : "on patients' meal cards, all time"} />
+          <AdminTile label="Dietitians' food rules" value={rulesCount === null ? "—" : rulesCount.toLocaleString()} sub={rulesCount === null ? waiting : "patients with foods left out or added, all time"} />
         </div>
       </AdminSection>
 
