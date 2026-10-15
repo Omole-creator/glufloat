@@ -280,6 +280,32 @@ export async function practiceRulesFor(admin: SupabaseClient, patientRowId: stri
   }
 }
 
+export type CareNoteOut = { name: string; role: "doctor" | "dietitian"; note: string; updatedAt: string };
+
+/**
+ * Hospital doctors' and dietitians' notes for one patient row, newest first
+ * (chat-schema.sql). One per clinician. Any failure (the table not made yet)
+ * reads as none, so coverage never depends on it.
+ */
+export async function careNotesFor(admin: SupabaseClient, patientRowId: string): Promise<CareNoteOut[]> {
+  try {
+    const { data, error } = await admin
+      .from("patient_notes")
+      .select("author_name,author_role,note,updated_at")
+      .eq("patient_row_id", patientRowId)
+      .order("updated_at", { ascending: false });
+    if (error || !data) return [];
+    return (data as { author_name: string; author_role: "doctor" | "dietitian"; note: string; updated_at: string }[]).map((n) => ({
+      name: n.author_name,
+      role: n.author_role,
+      note: n.note,
+      updatedAt: n.updated_at,
+    }));
+  } catch {
+    return [];
+  }
+}
+
 /** The patient's payment countdown (patient-paid-schema.sql). Any failure reads as none. */
 export async function paidUntilFor(admin: SupabaseClient, patientRowId: string): Promise<string | null> {
   try {
@@ -319,6 +345,8 @@ export async function hospitalStatusFor(admin: SupabaseClient, uid: string): Pro
     rules: PracticeRulesOut | null;
     /** When their payment to the dietitian or hospital runs out (patient-paid-schema.sql), or null. */
     paidUntil: string | null;
+    /** Hospital doctors' and dietitians' notes (chat-schema.sql). A practice uses `rules.note` instead. */
+    notes: CareNoteOut[];
   };
   staff: { id: string; name: string; role: StaffRole; kind: "hospital" | "dietitian" }[];
 }> {
@@ -358,6 +386,7 @@ export async function hospitalStatusFor(admin: SupabaseClient, uid: string): Pro
       kind: pick.hospitals.kind === "dietitian" ? "dietitian" : "hospital",
       rules: pick.status === "active" && pick.hospitals.kind === "dietitian" ? await practiceRulesFor(admin, pick.id) : null,
       paidUntil: pick.status === "active" ? await paidUntilFor(admin, pick.id) : null,
+      notes: pick.status === "active" && pick.hospitals.kind !== "dietitian" ? await careNotesFor(admin, pick.id) : [],
     };
   }
   return out;

@@ -116,7 +116,7 @@ export default function DietitiansPage() {
     {
       icon: HeartHandshake,
       title: "Your patients stay yours",
-      text: "They chat with you on WhatsApp, and only you. While they are with you, GluFloat never offers them another dietitian.",
+      text: "They chat with you inside GluFloat, and only you. While they are with you, GluFloat never offers them another dietitian.",
     },
     {
       icon: Wallet,
@@ -138,11 +138,13 @@ export default function DietitiansPage() {
     { icon: Utensils, text: "A meal picked for them for breakfast, lunch and dinner" },
     { icon: Search, text: "Check any of over 1,500 Nigerian foods and meals" },
     { icon: ClipboardList, text: "Their sugar tests saved next to what they ate" },
-    { icon: MessageCircle, text: "Chat with you on WhatsApp" },
+    { icon: MessageCircle, text: "Chat with you inside GluFloat, and a button to call you if something is urgent" },
   ];
   const youGet = [
     { icon: Users, text: "All your patients on one list, with when they last used it" },
     { icon: FileText, text: "A month report for each patient, as a PDF" },
+    { icon: MessageCircle, text: "Every patient's chat in one place, with new messages marked" },
+    { icon: ClipboardList, text: "A note from you on top of each patient's meal card" },
     { icon: QrCode, text: "Your own QR code and invite links" },
     { icon: ShieldCheck, text: "Only you see your patients' records" },
   ];

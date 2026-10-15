@@ -3,6 +3,7 @@ import { fetchAll } from "@/lib/adminFetch";
 import type { PatientRow } from "@/lib/hospitalServer";
 import { isPhoneLoginEmail } from "@/lib/phoneLogin";
 import type { Reading } from "@/lib/glucose";
+import { waitingSince } from "@/lib/chat";
 import { beforeMealFlag, mealPatternFlags, safetyEvents, type BeforeFlag, type PatternMeal, type SafetyEvent } from "@/lib/safetyFlag";
 
 /**
@@ -47,6 +48,8 @@ export type RosterRow = {
   paidUntil: string | null;
   /** A paused patient's countdown, frozen at the pause (ms left), or null. */
   pausedLeftMs: number | null;
+  /** The patient wrote in the chat and nobody has answered yet: since when (chat-schema.sql), or null. */
+  chatWaitingSince: string | null;
 };
 
 export async function hospitalRoster(admin: SupabaseClient, hospitalId: string): Promise<RosterRow[]> {
@@ -138,6 +141,21 @@ export async function hospitalRoster(admin: SupabaseClient, hospitalId: string):
     for (const p of (pr.data ?? []) as { id: string; email: string | null }[]) emails.set(p.id, p.email);
   }
 
+  // Chats waiting for an answer (chat-schema.sql). Its own read: a database
+  // without the chat tables just shows no message badges.
+  const chatWait = new Map<string, string>();
+  {
+    const { data: threads, error } = await admin
+      .from("chat_threads")
+      .select("patient_id,last_patient_at,last_staff_at,patient_read_at,staff_cleared_at")
+      .eq("hospital_id", hospitalId);
+    if (!error)
+      for (const t of (threads ?? []) as { patient_id: string; last_patient_at: string | null; last_staff_at: string | null; patient_read_at: string | null; staff_cleared_at: string | null }[]) {
+        const since = waitingSince({ lastPatientAt: t.last_patient_at, lastStaffAt: t.last_staff_at, patientReadAt: t.patient_read_at, staffClearedAt: t.staff_cleared_at });
+        if (since) chatWait.set(t.patient_id, since);
+      }
+  }
+
   return pats.map((p) => {
     const uid = p.user_id;
     const accountEmail = uid ? emails.get(uid) ?? null : null;
@@ -164,6 +182,7 @@ export async function hospitalRoster(admin: SupabaseClient, hospitalId: string):
       patterns: flagged ? mealPatternFlags(mealsBy.get(uid as string) ?? [], rs).map((f) => f.label) : [],
       paidUntil: p.paid_until ?? null,
       pausedLeftMs: p.paused_left_ms != null ? Number(p.paused_left_ms) : null,
+      chatWaitingSince: flagged ? chatWait.get(uid as string) ?? null : null,
     };
   });
 }

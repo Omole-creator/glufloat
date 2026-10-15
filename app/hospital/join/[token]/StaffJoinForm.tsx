@@ -79,7 +79,7 @@ export default function StaffJoinForm({
         <p className="rounded-2xl bg-mist/70 px-4 py-3.5 text-sm text-ink">
           You are signed in as <span className="font-semibold">{me}</span>.
         </p>
-        <Field label="Your WhatsApp number" icon={Phone} type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} hint="Patients may chat with you on it." />
+        <Field label="Your WhatsApp number" icon={Phone} type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} hint="Your colleagues can reach you on it." />
         <FormError>{err}</FormError>
         <button
           onClick={() => accept(true)}
@@ -130,7 +130,7 @@ export default function StaffJoinForm({
         onChange={(e) => setPhone(e.target.value)}
         required
         autoComplete="tel"
-        hint="Patients may chat with you on it."
+        hint="Your colleagues can reach you on it."
       />
       <Field
         label="Choose a password"

@@ -44,13 +44,19 @@ export default function DashboardLeftNav({
             }`}
           >
             <span
-              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 ring-inset transition-colors ${
+              className={`relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 ring-inset transition-colors ${
                 isActive ? "bg-brand text-white ring-brand" : "bg-mist text-ink-soft ring-line"
               }`}
             >
               {t.icon}
+              {t.dot && <span aria-hidden className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-verdict-red ring-2 ring-white" />}
             </span>
-            <span className="truncate">{t.label}</span>
+            <span className="min-w-0 leading-snug">{t.label}</span>
+            {t.dot && (
+              <span className="ml-auto shrink-0 rounded-full bg-verdict-red px-2 py-0.5 text-[10px] font-bold text-white">
+                New<span className="sr-only"> message</span>
+              </span>
+            )}
           </button>
         );
       })}

@@ -91,7 +91,7 @@ export default function StartForm() {
         onChange={(e) => setPhone(e.target.value)}
         required
         autoComplete="tel"
-        hint="Your patients chat with you on it."
+        hint="Your patients can call you on it if something is urgent. They chat with you inside GluFloat."
       />
       {/* A box people never see. A bot fills every box it finds. */}
       <input

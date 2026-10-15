@@ -8,8 +8,8 @@ import InviteLinkBox from "@/components/hospital/InviteLinkBox";
 type Role = "admin" | "doctor" | "dietitian";
 const ROLE_LABEL: Record<Role, string> = { admin: "Hospital admin", doctor: "Doctor", dietitian: "Dietitian" };
 const ROLE_HELP: Record<Role, string> = {
-  doctor: "Can see every patient's record.",
-  dietitian: "Can see every patient's record.",
+  doctor: "Can see every patient's record and answer their messages.",
+  dietitian: "Can see every patient's record and answer their messages.",
   admin: "Can see every record, and can also add patients and staff. You can have more than one admin.",
 };
 
@@ -22,8 +22,6 @@ export default function StaffPanel({
   hospitalName,
   staff,
   invites,
-  chatDietitianId,
-  chatDoctorId,
 }: {
   hid: string | null;
   me: string;
@@ -31,8 +29,6 @@ export default function StaffPanel({
   hospitalName: string;
   staff: Staff[];
   invites: { token: string; role: Role; name: string | null; phone: string | null; expires_at: string }[];
-  chatDietitianId: string | null;
-  chatDoctorId: string | null;
 }) {
   const router = useRouter();
   const [role, setRole] = useState<Role>("doctor");
@@ -71,7 +67,6 @@ export default function StaffPanel({
   };
 
   const field = "mt-1.5 w-full rounded-xl border-2 border-line bg-white px-4 py-3 text-base text-ink outline-none focus:border-brand";
-  const withPhone = (r: Role) => staff.filter((s) => s.role === r && s.whatsapp);
   const first = (n: string) => n.replace(/^(dr|dtn|mr|mrs|ms|prof|pharm)\.?\s+/i, "").split(/\s+/)[0];
 
   return (
@@ -100,9 +95,9 @@ export default function StaffPanel({
                     {ROLE_LABEL[s.role]}
                     {s.phone ? ` · ${s.phone}` : ""}
                   </p>
-                  {(s.user_id === chatDietitianId || s.user_id === chatDoctorId) && (
+                  {(s.role === "doctor" || s.role === "dietitian") && (
                     <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-leaf/10 px-2 py-0.5 text-[11px] font-bold text-leaf-deep">
-                      <MessageCircle className="h-3 w-3" /> Patients can message them
+                      <MessageCircle className="h-3 w-3" /> Answers patients' messages
                     </span>
                   )}
                 </div>
@@ -131,45 +126,23 @@ export default function StaffPanel({
           </ul>
         </section>
 
-        {isAdmin && (
-          <section className="rounded-2xl border border-[#e3e9f1] bg-white p-5">
-            <h2 className="font-display text-base font-bold text-ink">Who can your patients message?</h2>
+        {/* Patients chat with the whole care team inside GluFloat (2026-10-15):
+            every doctor and dietitian here reads and answers, so there is no
+            one person to pick any more. */}
+        <section className="flex items-start gap-3 rounded-2xl border border-[#e3e9f1] bg-white p-5">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand/10 text-brand">
+            <MessageCircle className="h-4.5 w-4.5" />
+          </span>
+          <div>
+            <h2 className="font-display text-base font-bold text-ink">How your patients reach you</h2>
             <p className="mt-1 text-sm text-ink-soft">
-              Your patients see a Chat button in their app. Pick one dietitian for food questions and one doctor for
-              medicine questions. They need a WhatsApp number to show up here.
+              Your patients chat with your doctors and dietitians inside GluFloat. Every doctor and dietitian here can read
+              and answer each chat. New messages show under Messages. For anything urgent, patients are asked to call
+              {" "}{hospitalName}.
             </p>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              {(
-                [
-                  ["dietitian", "dietitianId", "Dietitian", chatDietitianId],
-                  ["doctor", "doctorId", "Doctor", chatDoctorId],
-                ] as const
-              ).map(([r, key, label, current]) => (
-                <label key={r} className="text-sm font-semibold text-ink">
-                  {label}
-                  <select
-                    aria-label={`${label} patients can message`}
-                    value={current ?? ""}
-                    disabled={busy || withPhone(r).length === 0}
-                    onChange={(e) => void call("PATCH", { [key]: e.target.value || null }).then((j) => j && router.refresh())}
-                    className="mt-1.5 w-full rounded-xl border-2 border-line bg-white px-4 py-3 text-base text-ink outline-none focus:border-brand disabled:bg-mist"
-                  >
-                    {withPhone(r).length === 0 ? (
-                      <option value="">No {label.toLowerCase()} yet</option>
-                    ) : (
-                      withPhone(r).map((s) => (
-                        <option key={s.user_id} value={s.user_id}>
-                          {s.name}
-                        </option>
-                      ))
-                    )}
-                  </select>
-                </label>
-              ))}
-            </div>
             {err && <p className="mt-3 text-sm text-verdict-red">{err}</p>}
-          </section>
-        )}
+          </div>
+        </section>
 
         {isAdmin && invites.length > 0 && (
           <section className="rounded-2xl border border-[#e3e9f1] bg-white p-5">

@@ -32,7 +32,7 @@ export default function HospitalPricing() {
   const included = [
     "Everything in GluFloat Premium for each patient",
     "Dashboard for all your doctors and dietitians",
-    "Patients chat with your own team on WhatsApp",
+    "Patients chat with your own team inside GluFloat",
     "Your own QR code for patients to join",
   ];
 

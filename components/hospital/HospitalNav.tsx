@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { CreditCard, LogOut, UserPlus, Users, Stethoscope } from "lucide-react";
+import { CreditCard, LogOut, MessageCircle, UserPlus, Users, Stethoscope } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 type Role = "admin" | "doctor" | "dietitian";
@@ -10,6 +10,7 @@ type Role = "admin" | "doctor" | "dietitian";
 function tabs(role: Role, practice: boolean) {
   const all = [
     { href: "/hospital", label: "Patients", icon: Users, exact: true, adminOnly: false, hospitalOnly: false },
+    { href: "/hospital/messages", label: "Messages", icon: MessageCircle, exact: false, adminOnly: false, hospitalOnly: false },
     { href: "/hospital/add", label: "Add patients", icon: UserPlus, exact: false, adminOnly: true, hospitalOnly: false },
     // A dietitian's practice is one person: she has no staff to manage.
     { href: "/hospital/staff", label: "Doctors and dietitians", short: "Staff", icon: Stethoscope, exact: false, adminOnly: false, hospitalOnly: true },
@@ -34,7 +35,18 @@ async function logOut(router: ReturnType<typeof useRouter>) {
   router.refresh();
 }
 
-export function HospitalSidebarNav({ role, hid, practice = false }: { role: Role; hid: string | null; practice?: boolean }) {
+/** How many patients wait for a reply, on the Messages tab. */
+function Count({ n, light }: { n: number; light?: boolean }) {
+  if (n <= 0) return null;
+  return (
+    <span className={`${light ? "ml-1" : "ml-auto"} rounded-full bg-verdict-red px-1.5 text-[11px] font-bold leading-5 text-white`}>
+      {n}
+      <span className="sr-only"> waiting</span>
+    </span>
+  );
+}
+
+export function HospitalSidebarNav({ role, hid, practice = false, waiting = 0 }: { role: Role; hid: string | null; practice?: boolean; waiting?: number }) {
   const here = useHere();
   return (
     <nav className="flex flex-col gap-0.5">
@@ -52,6 +64,7 @@ export function HospitalSidebarNav({ role, hid, practice = false }: { role: Role
             {on && <span className="absolute inset-y-2 left-0 w-1 rounded-full bg-leaf" />}
             <Icon className="h-4.5 w-4.5 shrink-0" strokeWidth={2.2} />
             {label}
+            {href === "/hospital/messages" && <Count n={waiting} />}
           </Link>
         );
       })}
@@ -59,7 +72,7 @@ export function HospitalSidebarNav({ role, hid, practice = false }: { role: Role
   );
 }
 
-export function HospitalMobileNav({ role, hid, practice = false }: { role: Role; hid: string | null; practice?: boolean }) {
+export function HospitalMobileNav({ role, hid, practice = false, waiting = 0 }: { role: Role; hid: string | null; practice?: boolean; waiting?: number }) {
   const here = useHere();
   return (
     <nav className="flex items-center gap-1 overflow-x-auto px-4 pb-2.5">
@@ -77,6 +90,7 @@ export function HospitalMobileNav({ role, hid, practice = false }: { role: Role;
           >
             <Icon className="h-3.5 w-3.5" strokeWidth={2.4} />
             {"short" in t && t.short ? t.short : t.label}
+            {t.href === "/hospital/messages" && <Count n={waiting} light />}
           </Link>
         );
       })}

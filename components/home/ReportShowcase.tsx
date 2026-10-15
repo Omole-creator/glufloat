@@ -71,7 +71,7 @@ export default function ReportShowcase() {
             <p className="flex items-center justify-center gap-2 text-sm font-semibold">
               <MessageCircle className="h-4 w-4 text-leaf-bright" /> Chat with your dietitian
             </p>
-            <p className="mt-1 text-xs text-white/70">The same dietitian every time you message.</p>
+            <p className="mt-1 text-xs text-white/70">Inside GluFloat. The same dietitian every time you message.</p>
           </div>
           <a
             href="#pricing"

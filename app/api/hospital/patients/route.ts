@@ -121,6 +121,32 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ ok: true, ...update });
   }
 
+  // A hospital doctor's or dietitian's own note on top of the patient's blue
+  // card (chat-schema.sql), one each. Empty removes it. A dietitian's practice
+  // keeps its note in "rules" below.
+  if (action === "note") {
+    if (isPractice(ctx.hospital)) return NextResponse.json({ error: "Use \"Your advice\" for your note." }, { status: 400 });
+    if (ctx.staff.role !== "doctor" && ctx.staff.role !== "dietitian")
+      return NextResponse.json({ error: "Only doctors and dietitians write notes for patients." }, { status: 403 });
+    if (p.status !== "active") return NextResponse.json({ error: "This patient is not using one of your places." }, { status: 409 });
+    const note = String(body.note ?? "").replace(/\r\n?/g, "\n").trim().slice(0, NOTE_MAX);
+    const { error } = note
+      ? await ctx.admin.from("patient_notes").upsert(
+          {
+            patient_row_id: p.id,
+            author_id: ctx.user.id,
+            author_name: ctx.staff.name,
+            author_role: ctx.staff.role,
+            note,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "patient_row_id,author_id" },
+        )
+      : await ctx.admin.from("patient_notes").delete().eq("patient_row_id", p.id).eq("author_id", ctx.user.id);
+    if (error) return NextResponse.json({ error: "This is not ready yet. Please try again later." }, { status: 503 });
+    return NextResponse.json({ ok: true, note: note || null });
+  }
+
   if (ctx.staff.role !== "admin") return NextResponse.json({ error: "Only the hospital admin can do this." }, { status: 403 });
 
   // A dietitian's note and food rules for this patient (GluFloat for

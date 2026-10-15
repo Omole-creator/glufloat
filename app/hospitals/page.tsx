@@ -129,12 +129,14 @@ export default function HospitalsPage() {
     { icon: Utensils, text: "A meal picked for them for breakfast, lunch and dinner" },
     { icon: Search, text: "Check any of over 1,500 Nigerian foods and meals" },
     { icon: ClipboardList, text: "Their sugar tests saved next to what they ate" },
-    { icon: MessageCircle, text: "Chat on WhatsApp with your own dietitian or doctor" },
+    { icon: MessageCircle, text: "Chat with your own doctors and dietitians inside GluFloat" },
   ];
   const teamGets = [
     { icon: Users, text: "Every patient on one list, with when they last used it" },
     { icon: FileText, text: "A month report for each patient, as a PDF" },
     { icon: Stethoscope, text: "Logins for all your doctors and dietitians, free" },
+    { icon: MessageCircle, text: "Every patient's chat in one place. Any of your doctors or dietitians can answer" },
+    { icon: ClipboardList, text: "Each doctor and dietitian can leave a note on top of a patient's meal card" },
     { icon: QrCode, text: "Your own QR code for patients to join" },
   ];
   const faqs = [

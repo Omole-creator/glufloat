@@ -3,6 +3,7 @@ import Link from "next/link";
 import { AlertTriangle, Sparkles } from "lucide-react";
 import { hospitalLive, isPractice, orgWords, planName, PRACTICE_TRIAL_DAYS, waitingForFirstPatient } from "@/lib/hospitalPlans";
 import { ROLE_LABEL, type StaffContext } from "@/lib/hospitalServer";
+import { isWaiting } from "@/lib/chat";
 import { HospitalLogOut, HospitalMobileNav, HospitalSidebarNav, HospitalSwitcher } from "./HospitalNav";
 
 /**
@@ -10,7 +11,7 @@ import { HospitalLogOut, HospitalMobileNav, HospitalSidebarNav, HospitalSwitcher
  * GluFloat's own admin, carrying the HOSPITAL's name, because this is their
  * screen. Navigation in the sidebar, anything a page can do beside its title.
  */
-export default function HospitalShell({
+export default async function HospitalShell({
   ctx,
   title,
   subtitle,
@@ -33,6 +34,19 @@ export default function HospitalShell({
   // A dietitian with no patient yet: nothing has ended, her 14 days have not begun.
   const notStarted = waitingForFirstPatient(h);
   const options = ctx.all.map((x) => ({ id: x.hospital.id, name: x.hospital.name }));
+  // Patients waiting for a reply, for the Messages tab (chat-schema.sql; none before it runs).
+  let waiting = 0;
+  if (live) {
+    const { data: threads, error } = await ctx.admin
+      .from("chat_threads")
+      .select("last_patient_at,last_staff_at,patient_read_at,staff_cleared_at")
+      .eq("hospital_id", h.id)
+      .not("last_patient_at", "is", null);
+    if (!error)
+      waiting = ((threads ?? []) as { last_patient_at: string | null; last_staff_at: string | null; patient_read_at: string | null; staff_cleared_at: string | null }[]).filter((t) =>
+        isWaiting({ lastPatientAt: t.last_patient_at, lastStaffAt: t.last_staff_at, patientReadAt: t.patient_read_at, staffClearedAt: t.staff_cleared_at }),
+      ).length;
+  }
   const daysLeft = h.access_until ? Math.ceil((new Date(h.access_until).getTime() - Date.now()) / 86400000) : 0;
 
   return (
@@ -53,7 +67,7 @@ export default function HospitalShell({
           <HospitalSwitcher options={options} current={h.id} />
         </div>
         <div className="-mx-1 mt-6 min-h-0 flex-1 overflow-y-auto px-1">
-          <HospitalSidebarNav role={ctx.staff.role} hid={hid} practice={practice} />
+          <HospitalSidebarNav role={ctx.staff.role} hid={hid} practice={practice} waiting={waiting} />
         </div>
         <div className="border-t border-white/10 pt-4">
           <p className="truncate px-1 text-sm font-semibold text-white">{ctx.staff.name}</p>
@@ -72,7 +86,7 @@ export default function HospitalShell({
           </Link>
           <HospitalLogOut compact />
         </div>
-        <HospitalMobileNav role={ctx.staff.role} hid={hid} practice={practice} />
+        <HospitalMobileNav role={ctx.staff.role} hid={hid} practice={practice} waiting={waiting} />
       </header>
 
       <main className="lg:pl-64">

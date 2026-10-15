@@ -39,6 +39,8 @@ import DashboardLeftNav from "@/components/DashboardLeftNav";
 import ChatWithDietitian from "@/components/ChatWithDietitian";
 import ChatWithHospital from "@/components/ChatWithHospital";
 import DietitianNote from "@/components/DietitianNote";
+import PatientChat from "@/components/chat/PatientChat";
+import { useChatUnread } from "@/lib/useChatUnread";
 import PersonalizationSettings from "@/components/PersonalizationSettings";
 import { PAYSTACK_URLS, PAYSTACK_YEARLY_URLS, YEARLY_ENABLED, pendingReference, clearPendingReference } from "@/lib/access";
 import BillingToggle from "@/components/BillingToggle";
@@ -162,6 +164,8 @@ export default function AppPage() {
    * "nothing open" state) so the dashboard never shows a blank panel.
    */
   const [activeTab, setActiveTabState] = useState<DashboardTabId>(DEFAULT_TAB);
+  // A reply in the in-app chat they have not opened yet: the red dot on Chat.
+  const chatUnread = useChatUnread(!!access && canUseDietitianChat(access));
   // A one-time landing hint pointing at the bottom nav's "Fit me" icon, so a
   // first-time visitor knows where their daily calorie setup lives. Shown
   // once per device (gf_fitme_hint_seen), dismissed by its own close button
@@ -238,6 +242,25 @@ export default function AppPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // A chat alert opens /app?chat=1 (lib/chatServer.ts): land on the chat, once
+  // access is known (the tab only exists for someone who has a chat).
+  useEffect(() => {
+    if (!access) return;
+    try {
+      const url = new URL(window.location.href);
+      if (url.searchParams.get("chat") !== "1") return;
+      if (canUseDietitianChat(access)) {
+        setActiveTab("dietitian");
+        scrollToPanel();
+      }
+      url.searchParams.delete("chat");
+      window.history.replaceState(null, "", url.pathname + url.search + url.hash);
+    } catch {
+      /* nothing to do */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [access]);
 
   // The doctor's report tab asks LogReading to open for a specific meal via
   // this window event. LogReading now lives inside the "todaysmeal" tab
@@ -425,10 +448,22 @@ export default function AppPage() {
   ).map((t) =>
     // A hospital patient chats with their hospital's own dietitian or doctor;
     // a dietitian's patient chats with her.
-    t.id === "dietitian" && hospital
-      ? { ...t, label: hospital.kind === "dietitian" ? "Chat with your dietitian" : "Chat with your hospital" }
+    t.id === "dietitian"
+      ? {
+          ...t,
+          label: hospital ? (hospital.kind === "dietitian" ? "Chat with your dietitian" : "Chat with your care team") : t.label,
+          dot: chatUnread && activeTab !== "dietitian",
+        }
       : t,
   );
+  // Notes on top of the blue card: a practice's one note (hers), or each
+  // hospital doctor's and dietitian's own note.
+  const careNotes =
+    hospital?.kind === "dietitian"
+      ? hospital.rules?.note
+        ? [{ name: hospital.name, role: "dietitian" as const, note: hospital.rules.note }]
+        : []
+      : (hospital?.notes ?? []);
 
   // The badge names the actual plan a subscriber is on, not just "Membership"
   // — someone paying for Plus or Premium should see that reflected, not a
@@ -603,10 +638,11 @@ export default function AppPage() {
                   2026-10-07): the answer a person opened the app for. The
                   calorie tile, the first-steps card and the extras now sit
                   under it instead of in front of it. */}
-              {/* Her note for this patient (GluFloat for dietitians), right above the meal. */}
-              {hospital?.kind === "dietitian" && hospital.rules?.note && (
-                <DietitianNote name={hospital.name} note={hospital.rules.note} />
-              )}
+              {/* Notes from their dietitian or hospital care team, right above the meal. */}
+              <DietitianNote
+                notes={careNotes}
+                onReply={canUseDietitianChat(access) ? () => selectTab("dietitian") : undefined}
+              />
               <div id="todays-meal" className="scroll-mt-24">
                 <TodaysMeal onBuild={buildMeal} personalize={canUseGoalPersonalization(access)} />
               </div>
@@ -633,12 +669,8 @@ export default function AppPage() {
 
               <VarietyNudge onOpenFood={openInSearch} />
 
-              {/* Invite a friend: 5 free days when they pay (lib/referral.ts).
-                  Also ties a newly invited account to its inviter. */}
-              <InviteFriends />
-
-              {/* Under the invite card (founder, 2026-10-11). The nudge stays
-                  right after it, because it says "tap ... above". */}
+              {/* The sugar test and HbA1c buttons. The nudge stays right after
+                  them, because it says "tap ... above". */}
               <div id="log-reading" className="scroll-mt-24">
                 <LogReading />
                 <div className="mt-2.5">
@@ -655,6 +687,11 @@ export default function AppPage() {
                   scrollToPanel();
                 }}
               />
+
+              {/* Invite a friend: 5 free days when they pay (lib/referral.ts).
+                  Also ties a newly invited account to its inviter. At the
+                  bottom of Today, under the HbA1c button (founder, 2026-10-15). */}
+              <InviteFriends />
             </div>
 
             {/* Saving sends the person down to today's meal (`onSaved`) so a
@@ -734,7 +771,12 @@ export default function AppPage() {
                 (same belt-and-suspenders pattern as the rest of the app). */}
             {canUseDietitianChat(access) && (
               <div className={activeTab === "dietitian" ? "" : "hidden"}>
-                {hospital ? <ChatWithHospital hospital={hospital} /> : <ChatWithDietitian />}
+                {/* The in-app chat (2026-10-15). The old WhatsApp card shows
+                    only until supabase/chat-schema.sql has been run. */}
+                <PatientChat
+                  active={activeTab === "dietitian"}
+                  fallback={hospital ? <ChatWithHospital hospital={hospital} /> : <ChatWithDietitian />}
+                />
               </div>
             )}
           </div>

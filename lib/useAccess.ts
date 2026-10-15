@@ -16,6 +16,8 @@ type Result = {
   access: Access;
   /** Hospitals this person works for (GluFloat for hospitals). */
   hospitalStaff?: { id: string; name: string; role: string; kind?: "hospital" | "dietitian" }[];
+  /** Answers Premium members' chats at /inbox. */
+  inbox?: boolean;
 };
 
 let cached: Promise<Result> | null = null;

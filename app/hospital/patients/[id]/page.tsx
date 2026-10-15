@@ -28,6 +28,9 @@ import {
 import SugarFlags from "./SugarFlags";
 import PatientDetail from "./PatientDetail";
 import PracticeRulesEditor from "./PracticeRulesEditor";
+import CareNoteEditor from "./CareNoteEditor";
+import StaffChat from "@/components/chat/StaffChat";
+import { canAnswer, chatReady } from "@/lib/chatServer";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Patient", robots: { index: false, follow: false } };
@@ -100,6 +103,15 @@ export default async function PatientPage({
     startedAt: (m.started_at as string | null) ?? null,
     foodIds: Array.isArray(m.food_ids) ? (m.food_ids as string[]) : null,
   }));
+  // Hospital doctors' and dietitians' notes (chat-schema.sql). A practice has its own note above.
+  const notesRead = isPractice(ctx.hospital)
+    ? null
+    : await ctx.admin
+        .from("patient_notes")
+        .select("author_id,author_name,author_role,note,updated_at")
+        .eq("patient_row_id", row.id)
+        .order("updated_at", { ascending: false });
+  const chatOn = await chatReady(ctx.admin);
   const [profile, hba1cs, weights, readings, { data: staffRows }] = await Promise.all([
     patientProfile(ctx.admin, uid),
     patientHba1cs(ctx.admin, uid),
@@ -141,6 +153,22 @@ export default async function PatientPage({
           }}
         />
       )}
+      {notesRead && !notesRead.error && (
+        <CareNoteEditor
+          patientId={id}
+          hid={ctx.all.length > 1 ? ctx.hospital.id : null}
+          firstName={firstName}
+          me={ctx.user.id}
+          canWrite={ctx.staff.role === "doctor" || ctx.staff.role === "dietitian"}
+          notes={((notesRead.data ?? []) as { author_id: string; author_name: string; author_role: "doctor" | "dietitian"; note: string; updated_at: string }[]).map((n) => ({
+            authorId: n.author_id,
+            name: n.author_name,
+            role: n.author_role,
+            note: n.note,
+            updatedAt: n.updated_at,
+          }))}
+        />
+      )}
       <SugarFlags
         patientId={id}
         hid={ctx.all.length > 1 ? ctx.hospital.id : null}
@@ -151,6 +179,23 @@ export default async function PatientPage({
         amber={amber}
         target={{ mgdl: targetMgdl, mmol: formatMmol(targetMgdl).replace(/\s*mmol\/L$/, ""), set: targetSet !== null, ready: !!flagCols }}
       />
+      {chatOn && (
+        <div className="mt-6">
+          <StaffChat
+            firstName={firstName}
+            apiUrl="/api/hospital/chat"
+            ids={{ id, hid: ctx.all.length > 1 ? ctx.hospital.id : null }}
+            canSend={canAnswer(ctx.staff.role, ctx.hospital)}
+            note={
+              isPractice(ctx.hospital)
+                ? `${firstName} chats with you here.`
+                : canAnswer(ctx.staff.role, ctx.hospital)
+                  ? "Every doctor and dietitian here can read and answer this chat."
+                  : "Your doctors and dietitians answer this chat."
+            }
+          />
+        </div>
+      )}
       <PatientDetail
         patientId={id}
         hid={ctx.all.length > 1 ? ctx.hospital.id : null}

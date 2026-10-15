@@ -16,12 +16,11 @@ const GREETING = "Hi, I have diabetes and I would like some guidance.";
  * this component calls and trusts to refuse anyone who has not actually paid
  * for the dietitian tier.
  *
- * The assigned dietitian's own name (e.g. "Dtn Angela Chinele" for someone
- * routed to a partner-reserved dietitian, see
- * supabase/dietitian-partner-routing-schema.sql) is shown right on the
- * button, 2026-09-07 — `dietitianChat.ts` already fetched it but nothing
- * displayed it, so every user saw the same generic "Chat with my dietitian"
- * regardless of who they were actually about to message.
+ * The assigned dietitian's own name is shown right on the button.
+ *
+ * Since 2026-10-15 this is only the FALLBACK for the in-app chat
+ * (components/chat/PatientChat.tsx): it shows while supabase/chat-schema.sql
+ * has not been run yet.
  */
 export default function ChatWithDietitian() {
   const [dietitian, setDietitian] = useState<AssignedDietitian | null>(null);

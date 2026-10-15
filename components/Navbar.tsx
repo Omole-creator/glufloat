@@ -51,7 +51,7 @@ const LINK_ICON: Record<string, LucideIcon> = {
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const { access, hospitalStaff } = useAccess();
+  const { access, hospitalStaff, inbox } = useAccess();
   // A hospital's doctor, dietitian or admin gets their dashboard in the menu.
   const isHospitalStaff = (hospitalStaff?.length ?? 0) > 0;
   // A dietitian running her own practice (GluFloat for dietitians) and nothing else.
@@ -330,6 +330,15 @@ export default function Navbar() {
                 className="flex items-center justify-center rounded-full bg-brand px-5 py-3.5 text-center text-base font-bold text-white"
               >
                 {onlyPractice ? "My dietitian dashboard" : "Hospital dashboard"}
+              </Link>
+            )}
+            {inbox && (
+              <Link
+                href="/inbox"
+                onClick={() => setMenuOpen(false)}
+                className="flex items-center justify-center rounded-full bg-brand px-5 py-3.5 text-center text-base font-bold text-white"
+              >
+                My dietitian inbox
               </Link>
             )}
             {/* Signing out lives here on EVERY page, not only /app: signed in,

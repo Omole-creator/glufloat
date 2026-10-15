@@ -12,6 +12,8 @@ export interface DashboardTabDef {
    */
   shortLabel?: string;
   icon: ReactNode;
+  /** A red dot on the icon: something new is waiting there (a chat reply). */
+  dot?: boolean;
 }
 
 /**
@@ -55,14 +57,16 @@ export default function DashboardBottomNav({
               }`}
             >
               <span
-                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ring-1 ring-inset transition-colors ${
+                className={`relative flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ring-1 ring-inset transition-colors ${
                   isActive ? "bg-brand text-white ring-brand" : "bg-mist text-ink-soft ring-line"
                 }`}
               >
                 {t.icon}
+                {t.dot && <span aria-hidden className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-verdict-red ring-2 ring-white" />}
               </span>
               <span className="w-full truncate text-[10.5px] font-semibold leading-tight">
                 {t.shortLabel ?? t.label.split(" ")[0]}
+                {t.dot && <span className="sr-only"> (new message)</span>}
               </span>
             </button>
           );

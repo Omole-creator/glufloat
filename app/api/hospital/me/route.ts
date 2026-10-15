@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { hospitalStatusFor, sessionUser } from "@/lib/hospitalServer";
+import { inboxDietitians } from "@/lib/chatServer";
 
 export const dynamic = "force-dynamic";
 
@@ -17,8 +18,9 @@ export async function GET() {
   const user = await sessionUser();
   if (!user) return NextResponse.json(empty);
   try {
-    const status = await hospitalStatusFor(createAdminClient(), user.id);
-    return NextResponse.json(status, { headers: { "Cache-Control": "no-store" } });
+    const admin = createAdminClient();
+    const [status, inbox] = await Promise.all([hospitalStatusFor(admin, user.id), inboxDietitians(admin, user.id)]);
+    return NextResponse.json({ ...status, inbox: inbox.length > 0 }, { headers: { "Cache-Control": "no-store" } });
   } catch {
     return NextResponse.json(empty);
   }

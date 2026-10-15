@@ -23,6 +23,8 @@ import { TRIAL_DAYS } from "@/lib/trial";
 import { isInternalEmail } from "@/lib/internalAccounts";
 import { fetchAll } from "@/lib/adminFetch";
 import { displayLabel } from "@/lib/foodName";
+import { chatStats } from "@/lib/chatChase";
+import { waitLabel } from "@/lib/chat";
 
 export const dynamic = "force-dynamic";
 
@@ -303,6 +305,9 @@ export default async function AdminPage({
     monthly,
   };
 
+  // The in-app chat: counts only, never words (founder, 2026-10-15).
+  const chats = await chatStats(createAdminClient(), period.from ?? new Date(0), period.to ?? new Date(now + DAY_MS));
+
   const periodQuery = `?${new URLSearchParams(
     Object.entries(sp).filter((e): e is [string, string] => typeof e[1] === "string"),
   )}`;
@@ -323,6 +328,7 @@ export default async function AdminPage({
           { id: "money", label: "Money" },
           { id: "growth", label: "Growth" },
           { id: "usage", label: "How they use it" },
+          { id: "chats", label: "Chats" },
           { id: "comeback", label: "Do they come back?" },
           { id: "sugar", label: "Sugar tests" },
           { id: "data", label: "Data for AI" },
@@ -416,6 +422,53 @@ export default async function AdminPage({
             <BarList rows={usageRows} max={10} empty="No taps in this period." />
           </AdminCard>
         </div>
+      </AdminSection>
+
+      <AdminSection id="chats" title="Chats" sub={`Patients and their care teams. Counts only, never what was said. ${period.label}.`}>
+        {!chats.ready ? (
+          <p className="rounded-2xl border border-[#e3e9f1] bg-white px-5 py-6 text-sm text-ink-soft">Waiting for the database update (chat-schema.sql).</p>
+        ) : (
+          <>
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
+              <AdminTile label="Waiting for a reply now" value={chats.waitingNow.toLocaleString()} sub="patients, all teams" />
+              <AdminTile label="Messages from patients" value={chats.fromPatients.toLocaleString()} sub={period.label} />
+              <AdminTile label="Replies from care teams" value={chats.fromTeams.toLocaleString()} sub={period.label} />
+            </div>
+            <div className="mt-4">
+              <AdminCard title="Waiting for a reply" sub="Patients who have waited more than a day. Nudge the dietitian or hospital." flush>
+                {chats.chase.length === 0 ? (
+                  <p className="px-5 pb-5 pt-3 text-sm text-ink-soft sm:px-6">Nobody has waited more than a day.</p>
+                ) : (
+                  <ul className="mt-3 divide-y divide-[#eef2f7] border-t border-[#eef2f7]">
+                    {chats.chase.map((c) => (
+                      <li key={c.kind + c.name} className="flex flex-wrap items-center gap-3 px-5 py-3.5 sm:px-6">
+                        <div className="min-w-0 flex-1">
+                          <p className="font-semibold text-ink">{c.name}</p>
+                          <p className="text-xs text-ink-soft">
+                            {c.kind === "premium" ? "Premium dietitian" : c.kind === "practice" ? "Dietitian's practice" : "Hospital"} · {c.waiting}{" "}
+                            {c.waiting === 1 ? "patient" : "patients"} waiting · longest {waitLabel(c.oldest)}
+                          </p>
+                        </div>
+                        {c.whatsapp && (
+                          <a
+                            href={`https://wa.me/${c.whatsapp}?text=${encodeURIComponent(
+                              `Hello ${c.name}, ${c.waiting} ${c.waiting === 1 ? "patient is" : "patients are"} waiting for your reply in GluFloat. Please open your GluFloat chats when you can. Thank you.`,
+                            )}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="rounded-full bg-[#25D366] px-3.5 py-1.5 text-xs font-bold text-white hover:brightness-95"
+                          >
+                            Nudge on WhatsApp
+                          </a>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </AdminCard>
+            </div>
+          </>
+        )}
       </AdminSection>
 
       <AdminSection id="comeback" title="Do they come back?" sub={`People who signed up in ${period.label}`}>

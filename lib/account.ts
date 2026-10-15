@@ -38,6 +38,9 @@ export type Access =
 
 export type HospitalChat = { name: string; role: "admin" | "doctor" | "dietitian"; whatsapp: string };
 
+/** A clinician's note on top of the patient's blue card (one per doctor or dietitian). */
+export type CareNote = { name: string; role: "doctor" | "dietitian"; note: string; updatedAt: string };
+
 export type HospitalCover = {
   name: string;
   /** "dietitian" when a dietitian's practice pays (GluFloat for dietitians): every screen then says "your dietitian". */
@@ -48,6 +51,8 @@ export type HospitalCover = {
   paidUntil: string | null;
   /** Who the patient can chat with: their hospital's dietitian and doctor (either may be missing). */
   chats: HospitalChat[];
+  /** Hospital doctors' and dietitians' notes for this patient, newest first (chat-schema.sql). */
+  notes: CareNote[];
 };
 
 type HospitalMe = {
@@ -59,8 +64,11 @@ type HospitalMe = {
     kind?: "hospital" | "dietitian";
     rules?: { note: string | null; avoid: string[]; prefer: string[] } | null;
     paidUntil?: string | null;
+    notes?: CareNote[];
   };
   staff: { id: string; name: string; role: string; kind?: "hospital" | "dietitian" }[];
+  /** A GluFloat Premium dietitian who answers chats at /inbox (chat-schema.sql). */
+  inbox?: boolean;
 };
 
 /**
@@ -73,7 +81,7 @@ async function hospitalMe(): Promise<HospitalMe> {
     const res = await fetch("/api/hospital/me", { cache: "no-store", credentials: "same-origin" });
     if (!res.ok) return { patient: null, staff: [] };
     const j = (await res.json()) as HospitalMe;
-    return { patient: j.patient ?? null, staff: Array.isArray(j.staff) ? j.staff : [] };
+    return { patient: j.patient ?? null, staff: Array.isArray(j.staff) ? j.staff : [], inbox: j.inbox === true };
   } catch {
     return { patient: null, staff: [] };
   }
@@ -116,6 +124,8 @@ export async function getAccess(): Promise<{
   access: Access;
   /** Hospitals this person works for (doctor, dietitian, admin). Empty for almost everyone. */
   hospitalStaff?: { id: string; name: string; role: string; kind?: "hospital" | "dietitian" }[];
+  /** Answers Premium members' chats at /inbox. */
+  inbox?: boolean;
 }> {
   const supabase = createClient();
   const user = await currentUser();
@@ -154,6 +164,7 @@ export async function getAccess(): Promise<{
 
   const name = (profile?.name ?? "").trim() || null;
   const hospitalStaff = hosp.staff;
+  const inbox = hosp.inbox === true;
 
   // A hospital paying for this person wins over everything: they get Premium
   // for as long as the hospital's plan runs.
@@ -165,6 +176,7 @@ export async function getAccess(): Promise<{
         email: user.email ?? null,
         name,
         hospitalStaff,
+        inbox,
         access: {
           status: "subscribed",
           daysLeft,
@@ -176,6 +188,7 @@ export async function getAccess(): Promise<{
             rules: hosp.patient.rules ?? null,
             paidUntil: hosp.patient.paidUntil ?? null,
             chats: Array.isArray(hosp.patient.chats) ? hosp.patient.chats : [],
+            notes: Array.isArray(hosp.patient.notes) ? hosp.patient.notes : [],
           },
         },
       };
@@ -195,6 +208,7 @@ export async function getAccess(): Promise<{
         email: user.email ?? null,
         name,
         hospitalStaff,
+        inbox,
         access: { status: "subscribed", daysLeft, tier, yearly: isYearlyAmount(sub.amount) },
       };
   }
@@ -205,7 +219,7 @@ export async function getAccess(): Promise<{
       TRIAL_DAYS -
       calendarDaysBetween(new Date(profile.trial_start).getTime(), Date.now());
     if (daysLeft > 0)
-      return { email: user.email ?? null, name, hospitalStaff, access: { status: "trial", daysLeft } };
+      return { email: user.email ?? null, name, hospitalStaff, inbox, access: { status: "trial", daysLeft } };
     // A subscriptions row at all means they have paid us before. It is already
     // fetched above, so knowing this costs no extra query.
     const previousTier: Tier | null =
@@ -214,12 +228,13 @@ export async function getAccess(): Promise<{
       email: user.email ?? null,
       name,
       hospitalStaff,
+      inbox,
       access: { status: "expired", lapsed: !!sub, previousTier, previousYearly: isYearlyAmount(sub?.amount) },
     };
   }
 
   // Signed in but no trial yet and no subscription.
-  return { email: user.email ?? null, name, hospitalStaff, access: { status: "new" } };
+  return { email: user.email ?? null, name, hospitalStaff, inbox, access: { status: "new" } };
 }
 
 /** Stamp the trial start on the user's profile, only if it is not already set. */

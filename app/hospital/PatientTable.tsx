@@ -3,15 +3,16 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronRight, Droplet, KeyRound, PauseCircle, PlayCircle, Search, Send, UserMinus, UserCheck } from "lucide-react";
+import { ChevronRight, Droplet, MessageCircle, KeyRound, PauseCircle, PlayCircle, Search, Send, UserMinus, UserCheck } from "lucide-react";
 import type { RosterRow } from "@/lib/hospitalRoster";
 import { formatBoth } from "@/lib/glucose";
 import { SITE_URL } from "@/lib/site";
 import { safetyBadge } from "@/lib/safetyFlag";
+import { waitLabel } from "@/lib/chat";
 
 const DAY_MS = 86400000;
 
-type Filter = "all" | "safety" | "active" | "due" | "quiet" | "waiting" | "invited" | "paused";
+type Filter = "all" | "messages" | "safety" | "active" | "due" | "quiet" | "waiting" | "invited" | "paused";
 
 /**
  * The patient's own payment to their dietitian or hospital, which happens
@@ -47,6 +48,20 @@ function SafetyBadge({ r }: { r: RosterRow }) {
       <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-white motion-safe:animate-pulse" />
       Sugar: {text}
     </span>
+  );
+}
+
+/** The patient wrote in the chat and nobody has answered yet. */
+function MessageBadge({ r, href }: { r: RosterRow; href: string }) {
+  if (!r.chatWaitingSince) return null;
+  return (
+    <Link
+      href={`${href}#chat`}
+      className="inline-flex items-center gap-1.5 rounded-full bg-brand px-2 py-0.5 text-[11px] font-bold text-white hover:bg-brand-deep"
+    >
+      <MessageCircle aria-hidden className="h-3 w-3" />
+      New message · {waitLabel(r.chatWaitingSince)}
+    </Link>
   );
 }
 
@@ -122,8 +137,11 @@ export default function PatientTable({
   const isAmber = (r: RosterRow) => r.status === "active" && (!!r.beforeFlag || r.patterns.length > 0);
   const isFlagged = (r: RosterRow) => isRed(r) || isAmber(r);
 
+  const hasMessage = (r: RosterRow) => r.status === "active" && !!r.chatWaitingSince;
+
   const counts = {
     all: rows.length,
+    messages: rows.filter(hasMessage).length,
     safety: rows.filter(isFlagged).length,
     active: rows.filter((r) => r.status === "active").length,
     due: rows.filter(isDue).length,
@@ -138,7 +156,7 @@ export default function PatientTable({
     const digits = needle.replace(/\D/g, "");
     return rows
       .filter((r) =>
-        filter === "all" ? true : filter === "safety" ? isFlagged(r) : filter === "quiet" ? isQuiet(r) : filter === "due" ? isDue(r) : r.status === filter,
+        filter === "all" ? true : filter === "messages" ? hasMessage(r) : filter === "safety" ? isFlagged(r) : filter === "quiet" ? isQuiet(r) : filter === "due" ? isDue(r) : r.status === filter,
       )
       .filter(
         (r) =>
@@ -147,10 +165,11 @@ export default function PatientTable({
           (digits.length >= 3 && r.phone.replace(/\D/g, "").includes(digits.replace(/^234/, "0"))) ||
           (r.email ?? "").toLowerCase().includes(needle),
       )
-      // Red safety flags go to the top (newest first), then amber ones.
-      // The sort is stable, so everyone else keeps the order they had.
+      // Red safety flags go to the top (newest first), then unanswered
+      // messages, then amber flags. The sort is stable, so everyone else
+      // keeps the order they had.
       .sort((a, b) => {
-        const rank = (r: RosterRow) => (isRed(r) ? 2 : isAmber(r) ? 1 : 0);
+        const rank = (r: RosterRow) => (isRed(r) ? 3 : hasMessage(r) ? 2 : isAmber(r) ? 1 : 0);
         if (rank(a) !== rank(b)) return rank(b) - rank(a);
         return isRed(a) ? b.safety[0].takenAt.localeCompare(a.safety[0].takenAt) : 0;
       });
@@ -183,6 +202,7 @@ export default function PatientTable({
 
   const FILTERS: { id: Filter; label: string }[] = [
     { id: "all", label: "Everyone" },
+    { id: "messages", label: "New messages" },
     { id: "safety", label: "Sugar needs a look" },
     { id: "active", label: "Using GluFloat" },
     { id: "due", label: "Payment due" },
@@ -358,6 +378,7 @@ export default function PatientTable({
                       <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-ink-soft">
                         <span>{r.phone}</span>
                         <SafetyBadge r={r} />
+                        <MessageBadge r={r} href={detailHref(r)} />
                         <AmberBadges r={r} />
                         {r.status !== "active" && (
                           <span className={`rounded-full px-2 py-0.5 font-bold ${STATUS[r.status].tone}`}>{STATUS[r.status].label}</span>
@@ -426,9 +447,10 @@ export default function PatientTable({
                       <p className="font-semibold text-ink">{r.name}</p>
                     )}
                     <p className="text-xs text-ink-soft">{r.phone}</p>
-                    {isFlagged(r) && (
+                    {(isFlagged(r) || hasMessage(r)) && (
                       <div className="mt-1 flex flex-wrap gap-1">
                         <SafetyBadge r={r} />
+                        <MessageBadge r={r} href={detailHref(r)} />
                         <AmberBadges r={r} />
                       </div>
                     )}
