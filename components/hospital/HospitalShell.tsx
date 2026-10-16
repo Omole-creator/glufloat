@@ -87,11 +87,13 @@ export default async function HospitalShell({
           </Link>
           <HospitalLogOut compact />
         </div>
-        <HospitalMobileNav role={ctx.staff.role} hid={hid} practice={practice} doctor={doctor} waiting={waiting} />
       </header>
+      {/* Phones: the nav is a bar fixed to the bottom (HospitalMobileNav). */}
+      <HospitalMobileNav role={ctx.staff.role} hid={hid} practice={practice} doctor={doctor} waiting={waiting} />
 
       <main className="lg:pl-64">
-        <div className="mx-auto max-w-6xl px-4 pb-16 pt-6 sm:px-6 lg:px-8 lg:pt-9">
+        {/* pb-32 on phones so the bottom bar never covers the last thing. */}
+        <div className="mx-auto max-w-6xl px-4 pb-32 pt-6 sm:px-6 lg:px-8 lg:pb-16 lg:pt-9">
           {notStarted && (
             <div className="mb-6 flex items-start gap-3 rounded-2xl bg-brand/[0.07] px-4 py-3.5 text-sm text-ink ring-1 ring-inset ring-brand/15">
               <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-brand" />

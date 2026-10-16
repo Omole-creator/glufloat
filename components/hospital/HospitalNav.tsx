@@ -94,6 +94,22 @@ export function HospitalSidebarNav({
   );
 }
 
+/**
+ * The phone's nav: a bar fixed to the BOTTOM of the screen, icon over a short
+ * label, every tab visible at once (2026-10-16, replacing a sideways-scrolling
+ * row that hid the last tabs, so a doctor's Earnings sat off-screen). The same
+ * pattern patients use in the GluFloat app. At most 5 tabs, which the tab
+ * lists above keep to. Hidden from lg up, where the sidebar shows.
+ */
+const MOBILE_LABEL: Record<string, string> = {
+  "/hospital": "Patients",
+  "/hospital/messages": "Messages",
+  "/hospital/add": "Add",
+  "/hospital/staff": "Staff",
+  "/hospital/plan": "Plan",
+  "/hospital/earnings": "Earnings",
+};
+
 export function HospitalMobileNav({
   role,
   hid,
@@ -109,25 +125,43 @@ export function HospitalMobileNav({
 }) {
   const here = useHere();
   return (
-    <nav className="flex items-center gap-1 overflow-x-auto px-4 pb-2.5">
-      {tabs(role, practice, doctor).map((t) => {
-        const on = here(t.href, t.exact);
-        const Icon = t.icon;
-        return (
-          <Link
-            key={t.href}
-            href={withHid(t.href, hid)}
-            aria-current={on ? "page" : undefined}
-            className={`flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 font-display text-xs font-bold transition-colors ${
-              on ? "bg-white/15 text-white ring-1 ring-inset ring-white/25" : "text-white/70"
-            }`}
-          >
-            <Icon className="h-3.5 w-3.5" strokeWidth={2.4} />
-            {"short" in t && t.short ? t.short : t.label}
-            {t.href === "/hospital/messages" && <Count n={waiting} light />}
-          </Link>
-        );
-      })}
+    <nav
+      aria-label="Dashboard"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-white/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-10px_28px_-16px_rgba(12,42,71,0.22)] backdrop-blur lg:hidden"
+    >
+      <div className="mx-auto flex max-w-xl items-stretch justify-between px-0.5">
+        {tabs(role, practice, doctor).map((t) => {
+          const on = here(t.href, t.exact);
+          const Icon = t.icon;
+          const label = doctor && t.href === "/hospital/plan" ? "QR code" : MOBILE_LABEL[t.href] ?? t.label;
+          const count = t.href === "/hospital/messages" ? waiting : 0;
+          return (
+            <Link
+              key={t.href}
+              href={withHid(t.href, hid)}
+              aria-current={on ? "page" : undefined}
+              className={`flex min-w-0 flex-1 flex-col items-center gap-1 py-2.5 text-center transition-colors ${on ? "text-brand" : "text-ink-soft"}`}
+            >
+              <span
+                className={`relative flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ring-1 ring-inset transition-colors ${
+                  on ? "bg-brand text-white ring-brand" : "bg-mist text-ink-soft ring-line"
+                }`}
+              >
+                <Icon className="h-4 w-4" strokeWidth={2.3} />
+                {count > 0 && (
+                  <span className="absolute -right-1.5 -top-1.5 min-w-4 rounded-full bg-verdict-red px-1 text-[10px] font-bold leading-4 text-white ring-2 ring-white">
+                    {count}
+                  </span>
+                )}
+              </span>
+              <span className="w-full truncate text-[10.5px] font-semibold leading-tight">
+                {label}
+                {count > 0 && <span className="sr-only"> ({count} waiting)</span>}
+              </span>
+            </Link>
+          );
+        })}
+      </div>
     </nav>
   );
 }
