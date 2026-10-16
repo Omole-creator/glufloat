@@ -2,7 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Check, Hospital, ShieldCheck, Stethoscope, X } from "lucide-react";
 import Navbar from "@/components/Navbar";
-import SocialProofTicker from "@/components/SocialProofTicker";
 import Footer from "@/components/Footer";
 import Reveal from "@/components/Reveal";
 import TrafficLight from "@/components/TrafficLight";
@@ -98,7 +97,6 @@ function Label({ children, dark = false }: { children: React.ReactNode; dark?: b
 export default function Home() {
   return (
     <>
-      <SocialProofTicker />
       <Navbar />
 
       <HeroLanding

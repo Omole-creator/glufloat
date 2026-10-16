@@ -68,11 +68,6 @@ export default function Navbar() {
   // Signed in, but the trial or the month has run out. The only thing left to do is
   // pay, so that button stays even on /app.
   const isLocked = access.status === "expired";
-  // The social-proof ticker sits above the bar on the home page only, so the
-  // fixed navbar drops by its height (h-8) there. It was taken off /app on
-  // 2026-10-07 (founder: the app should not look busy), so the bar is flush
-  // there like every other page.
-  const offsetTop = pathname === "/" ? "top-8" : "top-0";
   // The landing hero is a solid deep blue, so at the top of the home page the
   // bar sits ON that blue and has to be white to be readable. Once it scrolls
   // away from the hero the normal white bar with dark text takes over.
@@ -146,7 +141,7 @@ export default function Navbar() {
         : { label: "Start my 7-day free trial", href: "/trial" };
 
   return (
-    <header className={`fixed inset-x-0 ${offsetTop} z-50 px-3 pt-2 sm:px-5`}>
+    <header className="fixed inset-x-0 top-0 z-50 px-3 pt-2 sm:px-5">
       {/* Redesigned 2026-10-12 (founder: the old bar "looks archaic"): one
           floating, rounded bar. Frosted white on light pages; on the deep-blue
           hero it is see-through glass until the page scrolls. Same 64px of
