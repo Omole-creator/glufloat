@@ -5,6 +5,7 @@ import AdminLogin from "../AdminLogin";
 import AdminShell from "../AdminShell";
 import AdminHero from "../AdminHero";
 import AdminCard from "../AdminCard";
+import FoldCard from "@/components/FoldCard";
 import { doctorsReady } from "@/lib/careFeesServer";
 import { loadFieldTeam, unpaidEarnings } from "@/lib/fieldTeam";
 import { nairaFromKobo, weekStartWAT } from "@/lib/careFees";
@@ -142,8 +143,14 @@ export default async function PayoutsAdminPage() {
         </AdminCard>
       </div>
 
+      {/* History: folded, so this week's work comes first. */}
       <div className="mt-6">
-        <AdminCard title="Paid" flush>
+        <FoldCard
+          title="Paid"
+          sub="Every payout marked as paid, newest first"
+          meta={`${team.payouts.length} ${team.payouts.length === 1 ? "payout" : "payouts"}`}
+          bodyClassName=""
+        >
           {team.payouts.length === 0 ? (
             <p className="px-6 pb-6 text-sm text-ink-soft">Nothing paid yet.</p>
           ) : (
@@ -162,7 +169,7 @@ export default async function PayoutsAdminPage() {
               ))}
             </ul>
           )}
-        </AdminCard>
+        </FoldCard>
       </div>
     </AdminShell>
   );

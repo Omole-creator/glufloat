@@ -4,8 +4,8 @@ import { createAdminClient } from "@/lib/supabase/server";
 import AdminLogin from "../AdminLogin";
 import AdminShell from "../AdminShell";
 import AdminHero from "../AdminHero";
-import AdminCard from "../AdminCard";
 import BankDetailsForm from "@/components/BankDetailsForm";
+import FoldCard from "@/components/FoldCard";
 import { doctorsReady } from "@/lib/careFeesServer";
 import { loadFieldTeam, moneyFor } from "@/lib/fieldTeam";
 import { nairaFromKobo } from "@/lib/careFees";
@@ -59,13 +59,12 @@ export default async function AgentsAdminPage() {
         />
       </div>
 
-      <div className="mt-6">
-        <AdminCard title="Add a field agent or advisor" sub="Add the advisor first, then their agents.">
-          <AddAgentForm advisors={advisors.filter((a) => a.status === "active").map((a) => ({ id: a.id, name: a.name }))} />
-        </AdminCard>
-      </div>
+      {/* Used now and then: folded once there is anybody on the list. */}
+      <FoldCard className="mt-6" title="Add a field agent or advisor" sub="Add the advisor first, then their agents." open={people.length === 0}>
+        <AddAgentForm advisors={advisors.filter((a) => a.status === "active").map((a) => ({ id: a.id, name: a.name }))} />
+      </FoldCard>
 
-      <div className="mt-6 space-y-4">
+      <div className="mt-6 space-y-3">
         {people.length === 0 && (
           <p className="rounded-2xl border border-[#e3e9f1] bg-white p-6 text-sm text-ink-soft">Nobody yet. Add your first advisor or agent above.</p>
         )}
@@ -74,18 +73,22 @@ export default async function AgentsAdminPage() {
           const m = moneyFor(team, { agentId: a.id });
           const off = a.status === "off";
           return (
-            <section key={a.id} className={`rounded-2xl border border-[#e3e9f1] bg-white p-5 sm:p-6 ${off ? "opacity-70" : ""}`}>
+            // One row per person, folded: name, who they are, doctors and money
+            // owed stay visible; links, bank and the doctor list open on tap.
+            <FoldCard
+              key={a.id}
+              className={off ? "opacity-70" : ""}
+              title={a.name}
+              sub={`${a.role === "advisor" ? "Advisor" : "Field agent"}${a.manager_id ? ` · advisor: ${nameOf.get(a.manager_id) ?? "-"}` : ""}${a.phone ? ` · ${a.phone}` : ""}${off ? " · Switched off" : ""}`}
+              meta={
+                <>
+                  <span className="block font-semibold text-ink">{docs.length} {docs.length === 1 ? "doctor" : "doctors"}</span>
+                  <span className="block">{nairaFromKobo(m.owed)} owed</span>
+                </>
+              }
+            >
               <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <h2 className="font-display text-lg font-bold text-ink">{a.name}</h2>
-                  <p className="text-xs text-ink-soft">
-                    {a.role === "advisor" ? "Advisor" : "Field agent"}
-                    {a.manager_id ? ` · advisor: ${nameOf.get(a.manager_id) ?? "-"}` : ""}
-                    {a.phone ? ` · ${a.phone}` : ""}
-                    {off ? " · Switched off" : ""}
-                  </p>
-                </div>
-                <div className="grid grid-cols-3 gap-4 text-right text-sm">
+                <div className="grid grid-cols-3 gap-4 text-sm">
                   <div>
                     <p className="text-[11px] font-bold uppercase tracking-[0.06em] text-ink/50">Doctors</p>
                     <p className="font-display text-xl font-bold text-ink">{docs.length}</p>
@@ -124,7 +127,7 @@ export default async function AgentsAdminPage() {
                   Doctors: {docs.map((d) => `${d.name} (${d.paying} paying)`).join(", ")}
                 </p>
               )}
-            </section>
+            </FoldCard>
           );
         })}
       </div>

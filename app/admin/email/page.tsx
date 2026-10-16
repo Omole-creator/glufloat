@@ -6,6 +6,7 @@ import { NAME_TOKEN, mailyteConfigured, listSenders, recentCampaigns, type Sende
 import AdminLogin from "../AdminLogin";
 import AdminShell from "../AdminShell";
 import AdminCard from "../AdminCard";
+import FoldCard from "@/components/FoldCard";
 import AdminTile from "../AdminTile";
 import Compose from "./Compose";
 import AddContact from "./AddContact";
@@ -104,9 +105,10 @@ export default async function EmailPage() {
         </div>
       </AdminCard>
 
-      <AdminCard className="mt-4" title="Add a contact">
+      {/* Used now and then: folded. */}
+      <FoldCard className="mt-4" title="Add a contact" sub="Put anyone on a list by hand.">
         <AddContact disabled={!keyOn} />
-      </AdminCard>
+      </FoldCard>
     </AdminShell>
   );
 }

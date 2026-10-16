@@ -1,5 +1,6 @@
 "use client";
 
+import FoldCard from "@/components/FoldCard";
 import { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Phone, Pill, Scale, Send, UserRound, Droplet } from "lucide-react";
 import { SITE_URL } from "@/lib/site";
@@ -131,12 +132,12 @@ export default function PatientDetail({
       </div>
 
       {colleagues.length > 0 && (
-        <section className="rounded-2xl border border-[#e3e9f1] bg-white p-5">
-          <h2 className="font-display text-base font-bold text-ink">Pass this patient to a colleague</h2>
-          <p className="mt-1 text-sm text-ink-soft">
-            Think a dietitian or doctor should see {name.split(/\s+/)[0]}? Send them this record on WhatsApp.
-          </p>
-          <div className="mt-3 flex flex-wrap gap-2">
+        // Used now and then: folded, so the record itself comes first.
+        <FoldCard
+          title="Pass this patient to a colleague"
+          sub={`Think a dietitian or doctor should see ${name.split(/\s+/)[0]}? Send them this record on WhatsApp.`}
+        >
+          <div className="flex flex-wrap gap-2">
             {colleagues.map((c) => (
               <a
                 key={c.whatsapp + c.name}
@@ -154,7 +155,7 @@ ${SITE_URL}/hospital/patients/${patientId}`,
               </a>
             ))}
           </div>
-        </section>
+        </FoldCard>
       )}
 
       <div className="grid gap-6 lg:grid-cols-3">
