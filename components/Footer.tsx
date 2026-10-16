@@ -60,6 +60,7 @@ const COLUMNS: { title: string; links: { href: string; label: string }[] }[] = [
     links: [
       { href: "/about", label: "About us" },
       { href: "/blog", label: "Blog" },
+      { href: "/contact", label: "Contact us" },
     ],
   },
   {
@@ -141,7 +142,7 @@ export default function Footer() {
             .
           </p>
           <p className="mt-3 text-xs text-ink-soft">
-            © 2026 GluFloat. Lagos State, Nigeria.
+            © 2026 GluFloat. 11 Idris Ogunlaja Drive, Majek, Lagos, Nigeria.
           </p>
         </div>
       </div>
