@@ -61,6 +61,8 @@ export type PatientTeam =
       dietitianName: string;
       /** The login she answers from, or null until it is linked (then nobody can answer yet). */
       dietitianUserId: string | null;
+      /** Her number, for the Call button (founder put it back, 2026-10-16). */
+      callPhone: string | null;
     };
 
 /** The doctors and dietitians who answer a hospital's chats. */
@@ -92,7 +94,7 @@ export function canAnswer(role: StaffRole, hospital: Pick<HospitalRow, "kind">):
 async function premiumDietitian(
   admin: SupabaseClient,
   uid: string,
-): Promise<{ id: string; name: string; user_id: string | null } | null> {
+): Promise<{ id: string; name: string; user_id: string | null; phone: string | null } | null> {
   const ask = async () => {
     const { data, error } = await admin.rpc("assign_dietitian", { p_user_id: uid });
     if (error || !data || (data as unknown[]).length === 0) return null;
@@ -100,15 +102,17 @@ async function premiumDietitian(
   };
   let id = await ask();
   if (!id) return null;
-  let { data: row } = await admin.from("inhouse_dietitians").select("id,name,active,user_id").eq("id", id).maybeSingle();
+  let { data: row } = await admin.from("inhouse_dietitians").select("id,name,active,user_id,whatsapp_number").eq("id", id).maybeSingle();
   if (row && !row.active) {
     await admin.from("dietitian_assignments").delete().eq("user_id", uid).eq("dietitian_id", id);
     id = await ask();
     if (!id) return null;
-    ({ data: row } = await admin.from("inhouse_dietitians").select("id,name,active,user_id").eq("id", id).maybeSingle());
+    ({ data: row } = await admin.from("inhouse_dietitians").select("id,name,active,user_id,whatsapp_number").eq("id", id).maybeSingle());
   }
   if (!row || !row.active) return null;
-  return { id: row.id as string, name: row.name as string, user_id: (row.user_id as string | null) ?? null };
+  const n = String(row.whatsapp_number ?? "").replace(/\D/g, "");
+  const phone = n ? (n.startsWith("234") ? `+${n}` : n) : null;
+  return { id: row.id as string, name: row.name as string, user_id: (row.user_id as string | null) ?? null, phone };
 }
 
 /**
@@ -156,7 +160,7 @@ export async function patientTeam(admin: SupabaseClient, uid: string): Promise<P
   if (!premium) return null;
   const d = await premiumDietitian(admin, uid);
   if (!d) return null;
-  return { kind: "premium", dietitianId: d.id, dietitianName: d.name, dietitianUserId: d.user_id };
+  return { kind: "premium", dietitianId: d.id, dietitianName: d.name, dietitianUserId: d.user_id, callPhone: d.phone };
 }
 
 /** The chat for this patient and team, made on first use when `create` is set. */

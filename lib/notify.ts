@@ -18,6 +18,62 @@ const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&
 
 export type NotifyResult = { ok: boolean; status: number | null; detail: string };
 
+/**
+ * One email to one person through Mailyte's application mail (the same
+ * sender as the founder alert below). Never throws; the caller decides what
+ * to show when it did not go.
+ */
+export async function sendEmail(to: string, subject: string, html: string, text: string, tag: string): Promise<NotifyResult> {
+  const key = process.env.MAILYTE_SEND_KEY || process.env.MAILYTE_API_KEY;
+  if (!key) return { ok: false, status: null, detail: "No Mailyte key is set on the server." };
+  try {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 8000);
+    const res = await fetch(`${API}/messages`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({ to: [to], from: FROM, subject, html, text, tags: [tag] }),
+      signal: ctrl.signal,
+    });
+    clearTimeout(t);
+    if (res.ok) return { ok: true, status: res.status, detail: "Sent." };
+    const j = (await res.json().catch(() => ({}))) as { message?: string };
+    return { ok: false, status: res.status, detail: j.message ?? res.statusText };
+  } catch (e) {
+    return { ok: false, status: null, detail: e instanceof Error ? e.message : "Could not reach Mailyte." };
+  }
+}
+
+/**
+ * The email a hospital gets the moment it asks for the free pilot (founder,
+ * 2026-10-16: no waiting for GluFloat, no WhatsApp step). The button is its
+ * admin invite link, the same one /admin/hospitals makes.
+ */
+export function pilotEmail(firstName: string, hospital: string, link: string, days: number, seats: number, inviteDays: number) {
+  const subject = `Set up your GluFloat dashboard for ${hospital}`;
+  const html = `<div style="font-family:Arial,sans-serif;color:#0c2a47;max-width:560px">
+<div style="background:#1b5faa;color:#fff;padding:18px 22px;border-radius:14px 14px 0 0;font-size:20px;font-weight:bold">GluFloat for hospitals</div>
+<div style="border:1px solid #e3e9f1;border-top:0;border-radius:0 0 14px 14px;padding:22px">
+<p style="margin:0 0 12px;font-size:16px">Hello ${esc(firstName)},</p>
+<p style="margin:0 0 12px;font-size:16px;line-height:1.5">Your free ${days}-day pilot for <b>${esc(hospital)}</b> has started. It covers ${seats} patients. You do not pay anything to start.</p>
+<p style="margin:0 0 18px;font-size:16px;line-height:1.5">Tap the button to set up your dashboard. Then add your patients.</p>
+<p style="margin:0 0 18px"><a href="${esc(link)}" style="background:#3e9b4f;color:#fff;padding:13px 22px;border-radius:999px;text-decoration:none;font-weight:bold;font-size:16px">Set up my dashboard</a></p>
+<p style="margin:0 0 8px;font-size:14px;color:#46617a;line-height:1.5">This link works for ${inviteDays} days. Do not share it. It opens your hospital's patient records.</p>
+<p style="margin:0;font-size:14px;color:#46617a">Need help? Call or WhatsApp us on 0813 209 7317.</p>
+</div></div>`;
+  const text = `Hello ${firstName},
+
+Your free ${days}-day pilot for ${hospital} has started. It covers ${seats} patients. You do not pay anything to start.
+
+Open this link to set up your dashboard. Then add your patients:
+${link}
+
+This link works for ${inviteDays} days. Do not share it. It opens your hospital's patient records.
+
+Need help? Call or WhatsApp us on 0813 209 7317.`;
+  return { subject, html, text };
+}
+
 export async function notifyFounder(subject: string, rows: [string, string | null | undefined][], link: string): Promise<NotifyResult> {
   const key = process.env.MAILYTE_SEND_KEY || process.env.MAILYTE_API_KEY;
   if (!key) return { ok: false, status: null, detail: "No Mailyte key is set on the server." };

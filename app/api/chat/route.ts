@@ -38,7 +38,7 @@ function teamOut(team: PatientTeam) {
         kind: "premium" as const,
         name: team.dietitianName,
         members: [{ name: team.dietitianName, role: "dietitian" as const }],
-        callPhone: null,
+        callPhone: team.callPhone,
         canSend: !!team.dietitianUserId,
       };
 }

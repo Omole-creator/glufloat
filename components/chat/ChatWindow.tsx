@@ -34,7 +34,6 @@ export default function ChatWindow({
   onData,
   seed,
   className = "",
-  suggestions = [],
 }: {
   getUrl: (after: number) => string;
   postUrl: string;
@@ -52,8 +51,6 @@ export default function ChatWindow({
   seed?: { text: string; n: number } | null;
   /** Classes on the outer box (e.g. "flex-1" to fill a full-height card). */
   className?: string;
-  /** Tap-to-fill starters, shown while the chat is empty. */
-  suggestions?: string[];
 }) {
   const [messages, setMessages] = useState<ChatMessage[] | null>(null);
   const [canSend, setCanSend] = useState<boolean>(canSendProp ?? true);
@@ -190,7 +187,7 @@ export default function ChatWindow({
           const el = e.currentTarget;
           stick.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
         }}
-        className={`${heightClass} overflow-y-auto bg-[#eef3f8] px-3 py-4 sm:px-5`}
+        className={`${heightClass} overflow-y-auto bg-gradient-to-b from-[#eaf2fb] via-[#f1f6fb] to-[#eef7f0] px-3 py-4 sm:px-5`}
         aria-live="polite"
         aria-label="Messages"
       >
@@ -200,35 +197,18 @@ export default function ChatWindow({
           </div>
         ) : messages.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center px-4 text-center">
-            <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-brand shadow-sm ring-1 ring-brand/10">
-              <MessagesSquare className="h-7 w-7" strokeWidth={2} />
+            <span className="flex h-16 w-16 items-center justify-center rounded-3xl bg-gradient-to-br from-brand to-leaf text-white shadow-[0_14px_30px_-14px_rgba(27,95,170,0.8)]">
+              <MessagesSquare className="h-8 w-8" strokeWidth={2} />
             </span>
             <p className="mt-4 font-display text-lg font-bold text-ink">{emptyTitle}</p>
             <p className="mt-1.5 max-w-xs text-sm leading-relaxed text-ink-soft">{emptyText}</p>
-            {canSend && suggestions.length > 0 && (
-              <div className="mt-5 flex w-full max-w-sm flex-col gap-2">
-                {suggestions.map((s) => (
-                  <button
-                    key={s}
-                    type="button"
-                    onClick={() => {
-                      setText(s);
-                      boxRef.current?.focus();
-                    }}
-                    className="rounded-2xl bg-white px-4 py-3 text-left text-sm font-semibold text-ink shadow-sm ring-1 ring-brand/10 transition-colors hover:ring-brand/40"
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
-            )}
           </div>
         ) : (
           <div className="space-y-5">
             {days.map((g) => (
               <div key={g.day} className="space-y-1.5">
                 <p className="flex justify-center pb-1">
-                  <span className="rounded-full bg-white/90 px-3 py-1 text-[11px] font-bold text-ink-soft shadow-sm">{dayLabel(g.day)}</span>
+                  <span className="rounded-full bg-brand/10 px-3 py-1 text-[11px] font-bold text-brand">{dayLabel(g.day)}</span>
                 </p>
                 {g.items.map((m, i) => {
                   const prev = g.items[i - 1];
@@ -243,7 +223,7 @@ export default function ChatWindow({
                     <div key={m.id} className={`flex ${m.mine ? "justify-end" : "justify-start"} ${sameAsPrev ? "" : "pt-1.5"}`}>
                       <div className="max-w-[82%] sm:max-w-[70%]">
                         {showName && (
-                          <p className={`mb-1 px-2 text-[11px] font-bold text-brand ${m.mine ? "text-right" : ""}`}>
+                          <p className={`mb-1 px-2 text-[11px] font-bold text-leaf-deep ${m.mine ? "text-right" : ""}`}>
                             {m.senderName}
                             {role && <span className="font-semibold text-ink-soft">, {role}</span>}
                           </p>
@@ -251,8 +231,8 @@ export default function ChatWindow({
                         <div
                           className={`flow-root whitespace-pre-wrap break-words px-3.5 pb-1.5 pt-2 text-[15px] leading-relaxed ${
                             m.mine
-                              ? `rounded-2xl bg-brand text-white shadow-[0_6px_16px_-10px_rgba(27,95,170,0.8)] ${sameAsNext ? "" : "rounded-br-md"}`
-                              : `rounded-2xl bg-white text-ink shadow-sm ${sameAsNext ? "" : "rounded-bl-md"}`
+                              ? `rounded-2xl bg-gradient-to-br from-brand to-[#14538f] text-white shadow-[0_6px_16px_-10px_rgba(27,95,170,0.8)] ${sameAsNext ? "" : "rounded-br-md"}`
+                              : `rounded-2xl bg-white text-ink shadow-sm ring-1 ring-leaf/15 ${sameAsNext ? "" : "rounded-bl-md"}`
                           }`}
                         >
                           {m.body}
@@ -298,7 +278,7 @@ export default function ChatWindow({
               onClick={() => void send()}
               disabled={sending || !text.trim()}
               aria-label="Send message"
-              className="absolute bottom-1.5 right-1.5 flex h-10 w-10 items-center justify-center rounded-full bg-leaf text-white transition-colors hover:bg-leaf-deep disabled:bg-ink/15"
+              className="absolute bottom-1.5 right-1.5 flex h-10 w-10 items-center justify-center rounded-full bg-leaf text-white shadow-[0_8px_18px_-8px_rgba(62,155,79,0.9)] transition-colors hover:bg-leaf-deep disabled:bg-ink/15 disabled:shadow-none"
             >
               {sending ? (
                 <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />

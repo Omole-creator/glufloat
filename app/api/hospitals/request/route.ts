@@ -1,17 +1,28 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
-import { newCode } from "@/lib/hospitalServer";
+import { newCode, readableToken } from "@/lib/hospitalServer";
+import { PILOT_DAYS, PILOT_SEATS } from "@/lib/hospitalPlans";
 import { normalizePhone } from "@/lib/phone";
-import { notifyFounder } from "@/lib/notify";
+import { notifyFounder, pilotEmail, sendEmail } from "@/lib/notify";
 import { SITE_URL } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
+const INVITE_DAYS = 14;
+
 /**
- * A hospital asks for the free 30-day pilot, from /hospitals. It lands in
- * /admin/hospitals as "requested", and nothing else happens until GluFloat
- * approves it by hand (founder's call). Public, so it only ever INSERTS a
- * request and never reveals anything back.
+ * A hospital asks for the free 30-day pilot, or for a quote, from /hospitals.
+ *
+ * A PILOT starts at once (founder, 2026-10-16): the hospital is saved as a
+ * pilot, its admin invite link is made, and the link is emailed to the person
+ * who asked, so they set up their dashboard without waiting for anybody. The
+ * founder still gets an email, and can end a fake one from /admin/hospitals.
+ * The same email asking again for the same hospital gets a fresh link to that
+ * hospital, never a second pilot.
+ *
+ * A QUOTE still lands as "requested" and is answered by hand.
+ *
+ * Public, so it never reveals anything back except whether the email went.
  */
 export async function POST(request: Request) {
   const body = await request.json().catch(() => ({}));
@@ -40,8 +51,51 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Please add a real email address." }, { status: 400 });
 
   const admin = createAdminClient();
+  const firstName = contactName.split(/\s+/)[0] || contactName;
+
+  // Make an admin invite for a hospital and email it. Returns whether it went.
+  const sendLink = async (hospitalId: string, hospitalName: string): Promise<boolean> => {
+    const token = readableToken(hospitalName, false);
+    const { error } = await admin.from("hospital_invites").insert({
+      token,
+      hospital_id: hospitalId,
+      role: "admin",
+      name: contactName,
+      phone,
+      email,
+      expires_at: new Date(Date.now() + INVITE_DAYS * 86400000).toISOString(),
+    });
+    if (error) return false;
+    const mail = pilotEmail(firstName, hospitalName, `${SITE_URL}/hospital/join/${token}`, PILOT_DAYS, PILOT_SEATS, INVITE_DAYS);
+    return (await sendEmail(email, mail.subject, mail.html, mail.text, "hospital-pilot")).ok;
+  };
+
+  if (!isQuote) {
+    const { data: same } = await admin
+      .from("hospitals")
+      .select("id,name,status")
+      .eq("contact_email", email)
+      .ilike("name", name)
+      .in("status", ["pilot", "active"])
+      .limit(1);
+    if (same && same.length > 0) {
+      const emailed = await sendLink(same[0].id as string, same[0].name as string);
+      return NextResponse.json({ ok: true, started: true, emailed, again: true });
+    }
+  }
+
   for (let attempt = 0; attempt < 4; attempt++) {
-    const { error } = await admin.from("hospitals").insert({
+    const now = new Date();
+    const pilot = isQuote
+      ? { status: "requested" }
+      : {
+          status: "pilot",
+          plan: "pilot",
+          seats: PILOT_SEATS,
+          access_until: new Date(now.getTime() + PILOT_DAYS * 86400000).toISOString(),
+          approved_at: now.toISOString(),
+        };
+    const { data: row, error } = await admin.from("hospitals").insert({
       code: newCode(),
       name,
       contact_name: contactName,
@@ -52,11 +106,12 @@ export async function POST(request: Request) {
       state: state || null,
       est_patients: Number.isFinite(est) && est > 0 ? Math.min(est, 100000) : null,
       message: message || null,
-      status: "requested",
-    });
-    if (!error) {
+      ...pilot,
+    }).select("id").single();
+    if (!error && row) {
+      const emailed = isQuote ? false : await sendLink(row.id as string, name);
       await notifyFounder(
-        isQuote ? `Quote request: ${name}` : `New free pilot request: ${name}`,
+        isQuote ? `Quote request: ${name}` : `New free pilot started: ${name}${emailed ? "" : " (setup email did not send)"}`,
         [
           ["Hospital", name],
           ["Where", [city, state].filter(Boolean).join(", ")],
@@ -65,13 +120,14 @@ export async function POST(request: Request) {
           ["WhatsApp", phone],
           ["Email", email],
           ["Message", typed],
+          ...(isQuote ? [] : ([["Setup link emailed", emailed ? "Yes" : "No, send it from admin"]] as [string, string][])),
         ],
         `${SITE_URL}/admin/hospitals`,
       );
-      return NextResponse.json({ ok: true });
+      return NextResponse.json({ ok: true, started: !isQuote, emailed });
     }
     // A code clash is the only error worth another try.
-    if (!/duplicate|unique/i.test(error.message)) {
+    if (error && !/duplicate|unique/i.test(error.message)) {
       return NextResponse.json(
         { error: "We could not send this just now. Please try again, or chat with us on WhatsApp." },
         { status: 503 },

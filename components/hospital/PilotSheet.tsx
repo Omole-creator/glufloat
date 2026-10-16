@@ -53,6 +53,8 @@ export default function PilotSheet() {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const [sent, setSent] = useState(false);
+  // A pilot starts at once and its setup link is emailed (founder, 2026-10-16).
+  const [emailed, setEmailed] = useState(false);
   const set = (k: keyof typeof EMPTY) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setErr("");
     setF({ ...f, [k]: e.target.value });
@@ -112,6 +114,7 @@ export default function PilotSheet() {
     const j = await res.json().catch(() => ({}));
     setBusy(false);
     if (!res.ok) return setErr(j.error ?? "Something went wrong. Please try again.");
+    setEmailed(j.emailed === true);
     setSent(true);
   };
 
@@ -192,16 +195,32 @@ export default function PilotSheet() {
 
         <div className="relative -mt-4 flex-1 overflow-y-auto rounded-t-3xl bg-[#f3f6fa] px-5 pb-6 pt-6">
           {sent ? (
-            <div className="rounded-3xl bg-white p-6 text-center shadow-sm ring-1 ring-ink/[0.04]">
-              <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366]/15 text-[#1DA851]">
-                <MessageCircle className="h-7 w-7" />
-              </span>
-              <p className="mt-4 font-display text-lg font-bold text-ink">We got your request</p>
-              <p className="mt-2 text-[15px] leading-relaxed text-ink-soft">
-                {first ? `${first}, we` : "We"} will chat with you on WhatsApp at <span className="font-semibold text-ink">{f.phone}</span>{" "}
-                {mode === "quote" ? "with your quote." : "to set up your free pilot."}
-              </p>
-            </div>
+            mode === "pilot" && emailed ? (
+              <div className="rounded-3xl bg-white p-6 text-center shadow-sm ring-1 ring-ink/[0.04]">
+                <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-leaf/15 text-leaf-deep">
+                  <Mail className="h-7 w-7" />
+                </span>
+                <p className="mt-4 font-display text-lg font-bold text-ink">Check your email</p>
+                <p className="mt-2 text-[15px] leading-relaxed text-ink-soft">
+                  {first ? `${first}, your` : "Your"} free pilot has started. We sent a link to{" "}
+                  <span className="font-semibold text-ink">{f.email}</span>. Open it to set up your dashboard.
+                </p>
+                <p className="mt-3 text-sm leading-relaxed text-ink-soft">
+                  Cannot find it? Look in your spam or promotions folder. Or call us on 0813 209 7317.
+                </p>
+              </div>
+            ) : (
+              <div className="rounded-3xl bg-white p-6 text-center shadow-sm ring-1 ring-ink/[0.04]">
+                <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366]/15 text-[#1DA851]">
+                  <MessageCircle className="h-7 w-7" />
+                </span>
+                <p className="mt-4 font-display text-lg font-bold text-ink">We got your request</p>
+                <p className="mt-2 text-[15px] leading-relaxed text-ink-soft">
+                  {first ? `${first}, we` : "We"} will chat with you on WhatsApp at <span className="font-semibold text-ink">{f.phone}</span>{" "}
+                  {mode === "quote" ? "with your quote." : "to send your setup link."}
+                </p>
+              </div>
+            )
           ) : (
             <div className="space-y-4">
               {step === 0 && (

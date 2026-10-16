@@ -136,17 +136,17 @@ export default function DietitiansPage() {
   ];
   const patientGets = [
     { icon: Utensils, text: "A meal picked for them for breakfast, lunch and dinner" },
-    { icon: Search, text: "Check any of over 1,500 Nigerian foods and meals" },
-    { icon: ClipboardList, text: "Their sugar tests saved next to what they ate" },
-    { icon: MessageCircle, text: "Chat with you inside GluFloat, and a button to call you if something is urgent" },
+    { icon: Search, text: "Check over 1,500 Nigerian foods to see if they are good to eat" },
+    { icon: ClipboardList, text: "A place to save their sugar tests, next to what they ate" },
+    { icon: MessageCircle, text: "Chat with you in the app, and a button to call you if something is urgent" },
   ];
   const youGet = [
-    { icon: Users, text: "All your patients on one list, with when they last used it" },
-    { icon: FileText, text: "A month report for each patient, as a PDF" },
-    { icon: MessageCircle, text: "Every patient's chat in one place, with new messages marked. Only you and your patient can read it" },
-    { icon: ClipboardList, text: "A note from you on top of each patient's meal card" },
-    { icon: QrCode, text: "Your own QR code and invite links" },
-    { icon: ShieldCheck, text: "Only you see your patients' records" },
+    { icon: Users, text: "See all your patients in one list, and the last day each one used GluFloat" },
+    { icon: FileText, text: "A report for each patient every month, ready to print" },
+    { icon: MessageCircle, text: "Read and answer your patients' messages. New ones are marked. Only you and the patient can see them" },
+    { icon: ClipboardList, text: "Write a note that your patient sees at the top of their app" },
+    { icon: QrCode, text: "Your own QR code and links to invite patients" },
+    { icon: ShieldCheck, text: "Only you can see your patients' records" },
   ];
   const faqs = [
     {

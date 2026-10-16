@@ -4,6 +4,7 @@ import {
   ClipboardList,
   FileText,
   Hospital,
+  Mail,
   MessageCircle,
   QrCode,
   Search,
@@ -127,17 +128,17 @@ export default function HospitalsPage() {
   ];
   const patientGets = [
     { icon: Utensils, text: "A meal picked for them for breakfast, lunch and dinner" },
-    { icon: Search, text: "Check any of over 1,500 Nigerian foods and meals" },
-    { icon: ClipboardList, text: "Their sugar tests saved next to what they ate" },
-    { icon: MessageCircle, text: "Chat with your own doctors and dietitians inside GluFloat" },
+    { icon: Search, text: "Check over 1,500 Nigerian foods to see if they are good to eat" },
+    { icon: ClipboardList, text: "A place to save their sugar tests, next to what they ate" },
+    { icon: MessageCircle, text: "Chat with your doctors and dietitians in the app" },
   ];
   const teamGets = [
-    { icon: Users, text: "Every patient on one list, with when they last used it" },
-    { icon: FileText, text: "A month report for each patient, as a PDF" },
-    { icon: Stethoscope, text: "Logins for all your doctors and dietitians, free" },
-    { icon: MessageCircle, text: "Every patient's chat in one place. Any of your doctors or dietitians can answer. Only the patient and your own team can read it" },
-    { icon: ClipboardList, text: "Each doctor and dietitian can leave a note on top of a patient's meal card" },
-    { icon: QrCode, text: "Your own QR code for patients to join" },
+    { icon: Users, text: "See all your patients in one list, and the last day each one used GluFloat" },
+    { icon: FileText, text: "A report for each patient every month, ready to print" },
+    { icon: Stethoscope, text: "Add all your doctors and dietitians for free" },
+    { icon: MessageCircle, text: "Read and answer your patients' messages. Only the patient and your team can see them" },
+    { icon: ClipboardList, text: "Write a note that your patient sees at the top of their app" },
+    { icon: QrCode, text: "Your own QR code. Patients scan it to join" },
   ];
   const faqs = [
     {
@@ -293,7 +294,7 @@ export default function HospitalsPage() {
               <ol className="space-y-3">
                 {[
                   { icon: Hospital, title: "Tell us about your hospital", text: "Three short steps. It takes about 2 minutes." },
-                  { icon: MessageCircle, title: "We chat with you on WhatsApp", text: "We set up your dashboard and send your login." },
+                  { icon: Mail, title: "Check your email", text: "We email you a link at once. Open it to set up your dashboard." },
                   { icon: QrCode, title: "Add your patients", text: "Type them in, or let them scan your QR code." },
                 ].map((st, i) => (
                   <li key={st.title} className="flex items-start gap-4 rounded-3xl bg-white/[0.08] p-5 ring-1 ring-inset ring-white/15">
