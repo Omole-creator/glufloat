@@ -206,11 +206,15 @@ export default function Navbar() {
             type="button"
             onClick={() => setMenuOpen(true)}
             aria-label="Open menu"
-            className={`flex h-9 w-9 items-center justify-center rounded-full transition-colors ${menuOnly ? "" : "lg:hidden"} ${
+            className={`flex h-9 items-center gap-1.5 rounded-full pl-2.5 pr-3 text-sm font-bold transition-colors ${menuOnly ? "" : "lg:hidden"} ${
               onDark ? "text-white hover:bg-white/10" : "text-ink hover:bg-mist"
             }`}
           >
+            {/* The word as well as the three lines: many older readers do not
+                read three lines as "menu", and the menu is the way in for
+                dietitians and hospitals on a phone. */}
             <Menu className="h-5 w-5" />
+            <span aria-hidden>Menu</span>
           </button>
         </div>
       </nav>
@@ -249,7 +253,37 @@ export default function Navbar() {
           </div>
 
           <div className="flex-1 overflow-y-auto px-4 pb-4 pt-4">
-            <div className="overflow-hidden rounded-3xl bg-white ring-1 ring-ink/[0.05]">
+            {/* Dietitians and hospitals first (founder, 2026-10-16): on a phone
+                this menu is their only way in, and a dietitian asked how to
+                sign up because she could not find it lower down. */}
+            <p className="px-1 text-[11px] font-bold uppercase tracking-[0.14em] text-ink-soft">For professionals</p>
+            <div className="mt-2 grid grid-cols-2 gap-2.5">
+              <Link
+                href="/dietitians"
+                onClick={() => setMenuOpen(false)}
+                className="flex flex-col rounded-3xl bg-gradient-to-br from-brand to-[#14538f] p-4 text-white shadow-[0_12px_26px_-16px_rgba(27,95,170,0.9)] transition-transform active:scale-[0.98]"
+              >
+                <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/15 ring-1 ring-inset ring-white/25">
+                  <Stethoscope className="h-5 w-5" strokeWidth={2.2} />
+                </span>
+                <span className="mt-3 font-display text-base font-bold leading-tight">Dietitians</span>
+                <span className="mt-0.5 text-xs leading-snug text-white/80">Start free in 2 minutes</span>
+              </Link>
+              <Link
+                href="/hospitals"
+                onClick={() => setMenuOpen(false)}
+                className="flex flex-col rounded-3xl bg-gradient-to-br from-leaf to-leaf-deep p-4 text-white shadow-[0_12px_26px_-16px_rgba(62,155,79,0.9)] transition-transform active:scale-[0.98]"
+              >
+                <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/15 ring-1 ring-inset ring-white/25">
+                  <HospitalIcon className="h-5 w-5" strokeWidth={2.2} />
+                </span>
+                <span className="mt-3 font-display text-base font-bold leading-tight">Hospitals</span>
+                <span className="mt-0.5 text-xs leading-snug text-white/80">Free 30-day pilot</span>
+              </Link>
+            </div>
+
+            <p className="mt-5 px-1 text-[11px] font-bold uppercase tracking-[0.14em] text-ink-soft">GluFloat</p>
+            <div className="mt-2 overflow-hidden rounded-3xl bg-white ring-1 ring-ink/[0.05]">
               {/* Try it and FAQ are left out of the menu (founder, 2026-10-13). */}
               {LINKS.filter((l) => !["/hospitals", "/dietitians", "/#demo", "/#faq"].includes(l.href)).map((l, i) => {
                 const Icon = LINK_ICON[l.href] ?? ChevronRight;
@@ -274,34 +308,6 @@ export default function Navbar() {
               })}
             </div>
 
-            <Link
-              href="/hospitals"
-              onClick={() => setMenuOpen(false)}
-              className="mt-3 flex items-center gap-3.5 rounded-3xl bg-white p-4 ring-1 ring-ink/[0.05] transition-colors hover:bg-mist"
-            >
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-leaf/10 text-leaf-deep">
-                <HospitalIcon className="h-5 w-5" strokeWidth={2.2} />
-              </span>
-              <span className="flex-1">
-                <span className="block text-base font-bold text-ink">For hospitals</span>
-                <span className="block text-sm text-ink-soft">Care for your patients between visits</span>
-              </span>
-              <ChevronRight className="h-4 w-4 text-ink-soft/40" />
-            </Link>
-            <Link
-              href="/dietitians"
-              onClick={() => setMenuOpen(false)}
-              className="mt-3 flex items-center gap-3.5 rounded-3xl bg-white p-4 ring-1 ring-ink/[0.05] transition-colors hover:bg-mist"
-            >
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand/10 text-brand">
-                <Stethoscope className="h-5 w-5" strokeWidth={2.2} />
-              </span>
-              <span className="flex-1">
-                <span className="block text-base font-bold text-ink">For dietitians</span>
-                <span className="block text-sm text-ink-soft">Support your patients beyond the clinic</span>
-              </span>
-              <ChevronRight className="h-4 w-4 text-ink-soft/40" />
-            </Link>
           </div>
 
           <div className="shrink-0 space-y-2.5 border-t border-line bg-white px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4">

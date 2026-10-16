@@ -109,7 +109,7 @@ export default function Home() {
         ctaSlot={
           <TrialCta className="group inline-flex items-center gap-2 rounded-full bg-leaf px-8 py-4 text-base font-bold text-white shadow-[0_16px_34px_-12px_rgba(70,184,94,0.85)] transition-all hover:-translate-y-1 hover:bg-leaf-deep hover:shadow-[0_22px_44px_-12px_rgba(70,184,94,0.95)]" />
         }
-        reassurance="7 days free. You do not need a card. After that it is N1,500 a month, and you can stop any time."
+        reassurance={["7-day free trial", "No card required", "Stop any time"]}
         media={
           <>
             {/* Food, not a phone screen (founder, 2026-10-07): the day cards

@@ -3,7 +3,7 @@
 import { motion, type Variants } from "framer-motion";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Check } from "lucide-react";
 
 /**
  * The landing hero: ONE solid brand colour, not a faint wash on white.
@@ -44,7 +44,8 @@ export interface HeroLandingProps {
    */
   ctaSlot?: ReactNode;
   /** The small print under the buttons. */
-  reassurance?: string;
+  /** Short lines under the button, each with a green check (like a checklist). */
+  reassurance?: string[];
   /** The product picture (the looping demo device). */
   media?: ReactNode;
   titleSize?: "small" | "medium" | "large";
@@ -170,12 +171,16 @@ export function HeroLanding({
         )}
 
         {reassurance && (
-          <motion.p
-            variants={item}
-            className="mt-5 max-w-md text-sm leading-relaxed text-white/70"
-          >
-            {reassurance}
-          </motion.p>
+          <motion.ul variants={item} className="mt-6 space-y-2 text-left">
+            {reassurance.map((r) => (
+              <li key={r} className="flex items-center gap-2.5 text-[15px] font-semibold text-white/90">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-leaf text-white">
+                  <Check className="h-3 w-3" strokeWidth={3.5} aria-hidden />
+                </span>
+                {r}
+              </li>
+            ))}
+          </motion.ul>
         )}
 
         {media && (
