@@ -106,7 +106,9 @@ export function AgentLinks({
   const [copied, setCopied] = useState<string | null>(null);
   const first = name.split(/\s+/)[0];
   const wa = phone ? (phone.startsWith("0") && phone.length === 11 ? "234" + phone.slice(1) : phone) : "";
-  const message = `Hello ${first}, welcome to GluFloat.\n\nGive doctors this link to sign up. It is yours, so every doctor who signs up with it is counted for you:\n${doctorLink}\n\nYour own dashboard, to see your doctors and your money (keep this one private):\n${dashLink}`;
+  // ONE link to send: their dashboard, which carries their link for doctors
+  // with its own copy and WhatsApp buttons.
+  const message = `Hello ${first}, welcome to GluFloat.\n\nThis is your own GluFloat dashboard. Keep it private:\n${dashLink}\n\nOpen it to get your link for doctors (copy it, or send it to a doctor on WhatsApp in one tap), and to see your doctors and your money.`;
 
   const act = async (action: string, ask?: string) => {
     if (ask && !confirm(ask)) return;
@@ -156,10 +158,10 @@ export function AgentLinks({
             href={`https://wa.me/${wa}?text=${encodeURIComponent(message)}`}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label={`Send ${name} their links on WhatsApp`}
+            aria-label={`Send ${name} their dashboard on WhatsApp`}
             className="inline-flex items-center gap-1.5 rounded-full bg-[#25D366] px-3.5 py-1.5 text-xs font-bold text-white hover:brightness-95"
           >
-            <Send className="h-3.5 w-3.5" /> Send links on WhatsApp
+            <Send className="h-3.5 w-3.5" /> Send dashboard on WhatsApp
           </a>
         )}
         <button

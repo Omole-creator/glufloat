@@ -3,7 +3,7 @@ import Image from "next/image";
 import { createAdminClient } from "@/lib/supabase/server";
 import { doctorsReady } from "@/lib/careFeesServer";
 import { loadFieldTeam, moneyFor, type DoctorStats, type FieldAgent } from "@/lib/fieldTeam";
-import { ADVISOR_RATE, AGENT_RATE, maskAccount, nairaFromKobo } from "@/lib/careFees";
+import { ADVISOR_DIRECT_RATE, ADVISOR_RATE, AGENT_RATE, maskAccount, nairaFromKobo } from "@/lib/careFees";
 import { PREMIUM_MONTHLY } from "@/lib/hospitalPlans";
 import { SITE_URL } from "@/lib/site";
 import AgentShare from "./AgentShare";
@@ -41,7 +41,7 @@ export default async function AgentDashboard({ params }: { params: Promise<{ tok
   const money = moneyFor(team, { agentId: agent.id });
   const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
   const thisMonth = money.earnings.filter((e) => e.earned_at >= monthStart).reduce((n, e) => n + e.amount, 0);
-  const perPatient = nairaFromKobo(Math.floor(PREMIUM_MONTHLY * 100 * (advisor ? ADVISOR_RATE : AGENT_RATE)));
+  const fee = (rate: number) => nairaFromKobo(Math.floor(PREMIUM_MONTHLY * 100 * rate));
   const first = agent.name.split(/\s+/)[0];
 
   const tiles = [
@@ -109,8 +109,8 @@ export default async function AgentDashboard({ params }: { params: Promise<{ tok
 
         <p className="mt-4 rounded-2xl bg-brand/[0.06] px-4 py-3 text-sm text-ink ring-1 ring-inset ring-brand/10">
           {advisor
-            ? `You earn ${perPatient} for each paying patient of your agents' doctors, every month, for the patient's first 12 months.`
-            : `You earn ${perPatient} for each paying patient of the doctors you bring, every month, for the patient's first 12 months.`}{" "}
+            ? `For each paying patient, every month, for the patient's first 12 months, you earn ${fee(ADVISOR_DIRECT_RATE)} on doctors you bring yourself and ${fee(ADVISOR_RATE)} on doctors your agents bring.`
+            : `You earn ${fee(AGENT_RATE)} for each paying patient of the doctors you bring, every month, for the patient's first 12 months.`}{" "}
           {agent.account_number
             ? `Paid every week to ${agent.account_name ?? ""} (${agent.bank_name ?? ""} ${maskAccount(agent.account_number)}).`
             : "Send GluFloat your bank details so we can pay you."}
@@ -145,7 +145,7 @@ export default async function AgentDashboard({ params }: { params: Promise<{ tok
 
         <section className="mt-6 rounded-2xl border border-[#e3e9f1] bg-white">
           <h2 className="border-b border-[#eef2f7] px-5 py-4 font-display text-lg font-bold text-ink">
-            {advisor ? "Doctors your agents brought" : "Your doctors"}
+            {advisor ? "Your doctors and your agents' doctors" : "Your doctors"}
           </h2>
           <DoctorList list={advisor ? myDoctors : own} />
         </section>

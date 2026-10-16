@@ -8,7 +8,7 @@ import AdminCard from "../AdminCard";
 import BankDetailsForm from "@/components/BankDetailsForm";
 import { doctorsReady } from "@/lib/careFeesServer";
 import { loadFieldTeam, moneyFor } from "@/lib/fieldTeam";
-import { maskAccount, nairaFromKobo } from "@/lib/careFees";
+import { nairaFromKobo } from "@/lib/careFees";
 import { listBanks } from "@/lib/paystackBanks";
 import { SITE_URL } from "@/lib/site";
 import { AddAgentForm, AgentLinks } from "./AgentControls";
@@ -116,7 +116,7 @@ export default async function AgentsAdminPage() {
                   endpoint="/api/admin/agents/bank"
                   extra={{ agentId: a.id }}
                   title="Their bank"
-                  saved={{ bankName: a.bank_name, accountMasked: a.account_number ? maskAccount(a.account_number) : null, accountName: a.account_name }}
+                  saved={{ bankName: a.bank_name, accountShown: a.account_number, accountName: a.account_name }}
                 />
               </div>
               {docs.length > 0 && (

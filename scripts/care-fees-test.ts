@@ -2,10 +2,10 @@
  * Care fee rules (lib/careFees.ts). Run: npx tsx scripts/care-fees-test.ts
  */
 import {
+  ADVISOR_DIRECT_RATE,
   ADVISOR_RATE,
   AGENT_RATE,
-  DOCTOR_RATE_DIRECT,
-  DOCTOR_RATE_WITH_AGENT,
+  DOCTOR_RATE,
   agentWindowOpen,
   glufloatShare,
   maskAccount,
@@ -32,12 +32,20 @@ check("doctor 22.23% of N4,500 = N1,000.35", by(full, "care") === 100_035, full)
 check("agent 11.12% = N500.40", by(full, "agent") === 50_040, full);
 check("advisor 10% = N450", by(full, "advisor") === 45_000, full);
 check("GluFloat keeps 56.65%", glufloatShare(450_000, full) === 254_925, glufloatShare(450_000, full));
-check("rates add to 43.35%", Math.abs(DOCTOR_RATE_WITH_AGENT + AGENT_RATE + ADVISOR_RATE - 0.4335) < 1e-9);
+check("rates add to 43.35%", Math.abs(DOCTOR_RATE + AGENT_RATE + ADVISOR_RATE - 0.4335) < 1e-9);
 
-// No agent: doctor 30%, nobody else.
+// No agent: the doctor keeps the same 22.23%, nobody else.
 const direct = splitPayment({ amountKobo: 450_000, hasAgent: false, hasAdvisor: true, paidAt: now, firstPaidAt: null });
-check("no agent: doctor 30% = N1,350", by(direct, "care") === 135_000 && DOCTOR_RATE_DIRECT === 0.3, direct);
+check("no agent: doctor still 22.23% = N1,000.35", by(direct, "care") === 100_035, direct);
 check("no agent: no agent or advisor share", direct.length === 1, direct);
+
+// The advisor brought the doctor himself: advisor 15%, no agent share.
+const adv = splitPayment({ amountKobo: 450_000, hasAgent: true, agentIsAdvisor: true, hasAdvisor: true, paidAt: now, firstPaidAt: null });
+check("advisor's own doctor: advisor 15% = N675", by(adv, "advisor") === 67_500 && ADVISOR_DIRECT_RATE === 0.15, adv);
+check("advisor's own doctor: doctor 22.23%, no agent share", by(adv, "care") === 100_035 && by(adv, "agent") === 0 && adv.length === 2, adv);
+check("advisor's own doctor: GluFloat keeps 62.77%", glufloatShare(450_000, adv) === 282_465, glufloatShare(450_000, adv));
+const advLate = splitPayment({ amountKobo: 450_000, hasAgent: true, agentIsAdvisor: true, hasAdvisor: true, paidAt: now, firstPaidAt: new Date(now.getTime() - 400 * DAY) });
+check("advisor's own doctor after 12 months: doctor only", advLate.length === 1, advLate);
 
 // Agent with no advisor.
 const noAdv = splitPayment({ amountKobo: 450_000, hasAgent: true, hasAdvisor: false, paidAt: now, firstPaidAt: null });
@@ -48,12 +56,12 @@ const m11 = splitPayment({ amountKobo: 450_000, hasAgent: true, hasAdvisor: true
 check("month 11: agent and advisor still paid", by(m11, "agent") > 0 && by(m11, "advisor") > 0, m11);
 const m13 = splitPayment({ amountKobo: 450_000, hasAgent: true, hasAdvisor: true, paidAt: now, firstPaidAt: new Date(now.getTime() - 400 * DAY) });
 check("month 13: only the doctor is paid", m13.length === 1 && by(m13, "care") === 100_035, m13);
-check("month 13: doctor keeps the with-agent rate", m13[0].rate === DOCTOR_RATE_WITH_AGENT);
+check("month 13: doctor keeps 22.23%", m13[0].rate === DOCTOR_RATE);
 check("window boundary: day 364 open, day 365 closed",
   agentWindowOpen(new Date(now.getTime() - 364 * DAY), now) && !agentWindowOpen(new Date(now.getTime() - 365 * DAY), now));
 
 const off = splitPayment({ amountKobo: 450_000, hasAgent: true, agentActive: false, hasAdvisor: true, paidAt: now, firstPaidAt: null });
-check("agent switched off: doctor keeps 22.23%, nobody else", off.length === 1 && off[0].rate === DOCTOR_RATE_WITH_AGENT, off);
+check("agent switched off: doctor keeps 22.23%, nobody else", off.length === 1 && off[0].rate === DOCTOR_RATE, off);
 
 // Yearly plan N43,200.
 const year = splitPayment({ amountKobo: 4_320_000, hasAgent: true, hasAdvisor: true, paidAt: now, firstPaidAt: null });

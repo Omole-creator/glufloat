@@ -19,7 +19,7 @@ type DoctorPractice = {
   invited_by: string | null;
 };
 
-type AgentRow = { id: string; status: string; manager_id: string | null };
+type AgentRow = { id: string; status: string; manager_id: string | null; role: string };
 
 /** The doctor's practice this patient is with right now, or null. */
 export async function patientsDoctor(admin: SupabaseClient, uid: string): Promise<{ practice: DoctorPractice } | null> {
@@ -61,10 +61,10 @@ export async function earnCareFees(
     let agent: AgentRow | null = null;
     let advisor: AgentRow | null = null;
     if (practice.agent_id) {
-      const { data: a } = await admin.from("field_agents").select("id,status,manager_id").eq("id", practice.agent_id).maybeSingle();
+      const { data: a } = await admin.from("field_agents").select("id,status,manager_id,role").eq("id", practice.agent_id).maybeSingle();
       agent = (a as AgentRow | null) ?? null;
-      if (agent?.manager_id) {
-        const { data: m } = await admin.from("field_agents").select("id,status,manager_id").eq("id", agent.manager_id).maybeSingle();
+      if (agent?.manager_id && agent.role !== "advisor") {
+        const { data: m } = await admin.from("field_agents").select("id,status,manager_id,role").eq("id", agent.manager_id).maybeSingle();
         advisor = m && (m as AgentRow).status === "active" ? (m as AgentRow) : null;
       }
     }
@@ -73,6 +73,7 @@ export async function earnCareFees(
       amountKobo: p.amount,
       hasAgent: !!practice.agent_id,
       agentActive: !!agent && agent.status === "active",
+      agentIsAdvisor: agent?.role === "advisor",
       hasAdvisor: !!advisor,
       paidAt,
       firstPaidAt,
@@ -82,7 +83,10 @@ export async function earnCareFees(
       reference: p.reference,
       kind: s.kind,
       hospital_id: s.kind === "care" ? practice.id : null,
-      agent_id: s.kind === "agent" ? agent?.id ?? null : s.kind === "advisor" ? advisor?.id ?? null : null,
+      // The advisor's share goes to the agent's advisor, or to the advisor
+      // himself when he brought the doctor.
+      agent_id:
+        s.kind === "agent" ? agent?.id ?? null : s.kind === "advisor" ? (agent?.role === "advisor" ? agent.id : advisor?.id ?? null) : null,
       source_hospital_id: practice.id,
       patient_user_id: p.uid,
       payment_amount: p.amount,

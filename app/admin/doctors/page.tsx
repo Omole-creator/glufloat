@@ -64,7 +64,7 @@ export default async function DoctorsAdminPage() {
             <p className="px-6 pb-6 text-sm text-ink-soft">No doctors yet. They sign up with a field agent&apos;s link.</p>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[860px] text-sm">
+              <table className="w-full min-w-[1100px] text-sm">
                 <thead>
                   <tr className="border-y border-[#e3e9f1] bg-[#f7f9fc] text-left text-[11px] font-bold uppercase tracking-[0.06em] text-ink/50">
                     <th className="px-5 py-2.5">Doctor</th>
@@ -72,7 +72,9 @@ export default async function DoctorsAdminPage() {
                     <th className="px-3 py-2.5">Brought by</th>
                     <th className="px-3 py-2.5 text-right">Patients</th>
                     <th className="px-3 py-2.5 text-right">On Premium</th>
-                    <th className="px-3 py-2.5 text-right">Earned</th>
+                    <th className="px-3 py-2.5 text-right">Owed</th>
+                    <th className="px-3 py-2.5 text-right">Paid</th>
+                    <th className="px-3 py-2.5">Bank</th>
                     <th className="px-3 py-2.5">Joined</th>
                     <th className="px-5 py-2.5" />
                   </tr>
@@ -96,11 +98,24 @@ export default async function DoctorsAdminPage() {
                             ? agentName.get(d.agent_id) ?? "An agent"
                             : d.invited_by
                               ? `Colleague: ${doctorName.get(d.invited_by) ?? "a doctor"}`
-                              : "Nobody (30%)"}
+                              : "Nobody"}
                         </td>
                         <td className="px-3 py-3 text-right">{d.patients}</td>
                         <td className="px-3 py-3 text-right">{d.paying}</td>
-                        <td className="px-3 py-3 text-right">{nairaFromKobo(m.total)}</td>
+                        <td className="px-3 py-3 text-right font-semibold">{nairaFromKobo(m.owed + m.sending)}</td>
+                        <td className="px-3 py-3 text-right">{nairaFromKobo(m.paid)}</td>
+                        <td className="px-3 py-3 text-xs">
+                          {d.account_number ? (
+                            <>
+                              <p className="font-semibold text-ink">{d.account_name}</p>
+                              <p className="font-mono text-ink-soft">
+                                {d.bank_name} · {d.account_number}
+                              </p>
+                            </>
+                          ) : (
+                            <span className="text-ink-soft">Not added yet</span>
+                          )}
+                        </td>
                         <td className="px-3 py-3 text-xs">{shortDate(d.created_at)}</td>
                         <td className="px-5 py-3 text-right">
                           <DoctorSwitch id={d.id} name={d.name} off={d.status === "declined"} />

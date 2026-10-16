@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { Landmark } from "lucide-react";
 
 export type BankOption = { name: string; code: string };
-export type SavedBank = { bankName: string | null; accountMasked: string | null; accountName: string | null };
+/** `accountShown` is the full number in admin, and ******1234 for the person themselves. */
+export type SavedBank = { bankName: string | null; accountShown: string | null; accountName: string | null };
 
 /**
  * Bank details for care fees: pick the bank, type the 10-digit account
@@ -27,7 +28,7 @@ export default function BankDetailsForm({
   title?: string;
 }) {
   const router = useRouter();
-  const has = !!saved.accountMasked;
+  const has = !!saved.accountShown;
   const [editing, setEditing] = useState(!has);
   const [bankCode, setBankCode] = useState("");
   const [account, setAccount] = useState("");
@@ -65,7 +66,7 @@ export default function BankDetailsForm({
         <div className="mt-4 rounded-2xl bg-mist/70 px-4 py-3.5 text-sm text-ink">
           <p className="font-semibold">{saved.accountName}</p>
           <p className="mt-0.5 text-ink-soft">
-            {saved.bankName} · {saved.accountMasked}
+            {saved.bankName} · {saved.accountShown}
           </p>
         </div>
       )}

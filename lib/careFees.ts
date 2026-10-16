@@ -3,13 +3,16 @@
  * payment. Pure (no I/O), so `npx tsx scripts/care-fees-test.ts` proves every
  * rule. The server side is lib/careFeesServer.ts.
  *
- * Founder's decisions (advisor's model, 2026-10-16):
+ * Founder's decisions (advisor's model, 2026-10-16, revised the same day):
  *  - Doctor 22.23% of every payment by a patient they look after, for as long
- *    as the patient stays with them and keeps paying.
- *  - 30% instead when no field agent brought the doctor (they found GluFloat
- *    themselves, or a colleague invited them).
- *  - Agent 11.12% and advisor 10%, only for the patient's first 12 months.
- *    The advisor is the agent's manager; an agent with none has no advisor share.
+ *    as the patient stays with them and keeps paying. The SAME rate however
+ *    the doctor joined (an agent, the advisor, a colleague, or nobody), so two
+ *    doctors who compare notes never find different rates.
+ *  - Agent 11.12% and their advisor 10%, only for the patient's first 12
+ *    months. An agent with no advisor still gets 11.12%; the 10% stays with
+ *    GluFloat.
+ *  - A doctor the advisor brought HIMSELF: the advisor gets 15% for the
+ *    patient's first 12 months, and nobody else but the doctor.
  *  - A doctor who invites a colleague gets N3,000 once, when the colleague's
  *    first patient pays. Agents earn nothing from a colleague's referral.
  *  - Paid weekly, no minimum.
@@ -18,10 +21,12 @@
  * up to more than the payment.
  */
 
-export const DOCTOR_RATE_WITH_AGENT = 0.2223;
-export const DOCTOR_RATE_DIRECT = 0.3;
+export const DOCTOR_RATE = 0.2223;
 export const AGENT_RATE = 0.1112;
+/** The advisor's share on a doctor one of their agents brought. */
 export const ADVISOR_RATE = 0.1;
+/** The advisor's share on a doctor the advisor brought himself. */
+export const ADVISOR_DIRECT_RATE = 0.15;
 /** Agent and advisor shares stop this long after the patient's first payment. */
 export const AGENT_WINDOW_DAYS = 365;
 /** N3,000 to a doctor when a colleague they invited gets their first paying patient. */
@@ -35,10 +40,10 @@ export type Share = { kind: Exclude<EarningKind, "colleague">; rate: number; amo
 
 /**
  * How one payment is shared.
- *  - `hasAgent`: a field agent brought this doctor. This sets the doctor's
- *    rate for good, even if the agent is later switched off.
- *  - `agentActive`: the agent is still active, so they are paid (default true).
- *  - `hasAdvisor`: that agent has an active advisor.
+ *  - `hasAgent`: a field agent (or the advisor) brought this doctor.
+ *  - `agentActive`: that person is still active, so they are paid (default true).
+ *  - `agentIsAdvisor`: the person who brought the doctor IS the advisor.
+ *  - `hasAdvisor`: an agent's active advisor (ignored when agentIsAdvisor).
  *  - `firstPaidAt`: when this patient first paid while with this doctor
  *    (null = this is the first payment).
  */
@@ -46,17 +51,21 @@ export function splitPayment(opts: {
   amountKobo: number;
   hasAgent: boolean;
   agentActive?: boolean;
+  agentIsAdvisor?: boolean;
   hasAdvisor: boolean;
   paidAt: Date;
   firstPaidAt: Date | null;
 }): Share[] {
   const amount = Math.max(0, Math.floor(opts.amountKobo));
   if (amount <= 0) return [];
-  const doctorRate = opts.hasAgent ? DOCTOR_RATE_WITH_AGENT : DOCTOR_RATE_DIRECT;
-  const out: Share[] = [{ kind: "care", rate: doctorRate, amount: Math.floor(amount * doctorRate) }];
+  const out: Share[] = [{ kind: "care", rate: DOCTOR_RATE, amount: Math.floor(amount * DOCTOR_RATE) }];
   if (opts.hasAgent && opts.agentActive !== false && agentWindowOpen(opts.firstPaidAt, opts.paidAt)) {
-    out.push({ kind: "agent", rate: AGENT_RATE, amount: Math.floor(amount * AGENT_RATE) });
-    if (opts.hasAdvisor) out.push({ kind: "advisor", rate: ADVISOR_RATE, amount: Math.floor(amount * ADVISOR_RATE) });
+    if (opts.agentIsAdvisor) {
+      out.push({ kind: "advisor", rate: ADVISOR_DIRECT_RATE, amount: Math.floor(amount * ADVISOR_DIRECT_RATE) });
+    } else {
+      out.push({ kind: "agent", rate: AGENT_RATE, amount: Math.floor(amount * AGENT_RATE) });
+      if (opts.hasAdvisor) out.push({ kind: "advisor", rate: ADVISOR_RATE, amount: Math.floor(amount * ADVISOR_RATE) });
+    }
   }
   return out.filter((s) => s.amount > 0);
 }

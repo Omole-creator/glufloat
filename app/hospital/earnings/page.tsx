@@ -5,7 +5,7 @@ import { requireStaffPage } from "@/components/hospital/requireStaff";
 import BankDetailsForm from "@/components/BankDetailsForm";
 import InviteColleagueCard from "@/components/hospital/InviteColleagueCard";
 import { isDoctorPractice, PREMIUM_MONTHLY } from "@/lib/hospitalPlans";
-import { DOCTOR_RATE_DIRECT, DOCTOR_RATE_WITH_AGENT, maskAccount, nairaFromKobo } from "@/lib/careFees";
+import { DOCTOR_RATE, maskAccount, nairaFromKobo } from "@/lib/careFees";
 import { doctorsReady, earningTotals, type EarningRow, type PayoutRow } from "@/lib/careFeesServer";
 import { listBanks } from "@/lib/paystackBanks";
 import { SITE_URL } from "@/lib/site";
@@ -59,8 +59,7 @@ export default async function EarningsPage({ searchParams }: { searchParams: Pro
   }
   const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
   const thisMonth = earnings.filter((e) => e.earned_at >= monthStart).reduce((n, e) => n + e.amount, 0);
-  const rate = h.agent_id ? DOCTOR_RATE_WITH_AGENT : DOCTOR_RATE_DIRECT;
-  const perPatient = nairaFromKobo(Math.floor(PREMIUM_MONTHLY * 100 * rate));
+  const perPatient = nairaFromKobo(Math.floor(PREMIUM_MONTHLY * 100 * DOCTOR_RATE));
   const status = new Map(payouts.map((p) => [p.id, p.status]));
 
   const tiles = [
@@ -91,7 +90,7 @@ export default async function EarningsPage({ searchParams }: { searchParams: Pro
           banks={banks}
           endpoint="/api/hospital/bank"
           extra={{ hid: ctx.all.length > 1 ? h.id : null }}
-          saved={{ bankName: h.bank_name ?? null, accountMasked: h.account_number ? maskAccount(h.account_number) : null, accountName: h.account_name ?? null }}
+          saved={{ bankName: h.bank_name ?? null, accountShown: h.account_number ? maskAccount(h.account_number) : null, accountName: h.account_name ?? null }}
         />
         <InviteColleagueCard link={`${SITE_URL}/d/${h.code}`} />
       </div>
