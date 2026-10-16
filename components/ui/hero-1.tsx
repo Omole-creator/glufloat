@@ -170,11 +170,19 @@ export function HeroLanding({
           </motion.div>
         )}
 
+        {/* One row on a phone (founder, 2026-10-16), a short stacked list from
+            sm up. If a very small phone has no room, it wraps, centred. */}
         {reassurance && (
-          <motion.ul variants={item} className="mt-6 space-y-2 text-left">
+          <motion.ul
+            variants={item}
+            className="-mx-3 mt-5 flex flex-wrap items-center justify-center gap-x-2 gap-y-2 sm:mx-0 sm:mt-6 sm:flex-col sm:items-start sm:gap-y-2 sm:text-left"
+          >
             {reassurance.map((r) => (
-              <li key={r} className="flex items-center gap-2.5 text-[15px] font-semibold text-white/90">
-                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-leaf text-white">
+              <li key={r} className="flex items-center gap-1 whitespace-nowrap text-[12.5px] font-semibold text-white/90 sm:gap-2.5 sm:text-[15px]">
+                {/* A plain green tick on a phone, so all three fit on one row;
+                    the round green badge from sm up. */}
+                <Check className="h-3.5 w-3.5 shrink-0 text-leaf-bright sm:hidden" strokeWidth={3.5} aria-hidden />
+                <span className="hidden h-5 w-5 shrink-0 items-center justify-center rounded-full bg-leaf text-white sm:flex">
                   <Check className="h-3 w-3" strokeWidth={3.5} aria-hidden />
                 </span>
                 {r}
