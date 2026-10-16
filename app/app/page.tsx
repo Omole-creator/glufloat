@@ -48,6 +48,7 @@ import {
   canUseGoalPersonalization,
   canUseDietitianChat,
   type Access,
+  type DoctorLink,
 } from "@/lib/account";
 import { trackAppOpen } from "@/lib/usage";
 import { accessOnce, clearAccessCache } from "@/lib/useAccess";
@@ -148,6 +149,8 @@ export default function AppPage() {
   const [access, setAccess] = useState<Access | null>(null);
   const [email, setEmail] = useState<string | null>(null);
   const [name, setName] = useState<string | null>(null);
+  // Their GluFloat doctor, if they joined one (never changes access).
+  const [doctor, setDoctor] = useState<DoctorLink | null>(null);
   // Monthly or yearly on the plan picker. Until they tap, a lapsed yearly
   // member sees yearly first, everyone else monthly.
   const [payYearlyChoice, setPayYearly] = useState<boolean | null>(null);
@@ -305,9 +308,10 @@ export default function AppPage() {
       // page only mounts once this answers, and reuses it (lib/useAccess.ts),
       // so opening the app still asks the account once, not twice.
       clearAccessCache();
-      const { access, email, name } = await accessOnce();
+      const { access, email, name, doctor } = await accessOnce();
       setEmail(email);
       setName(name);
+      setDoctor(doctor ?? null);
       if (access.status === "anon") {
         router.replace("/signin");
       } else if (access.status === "new") {
@@ -361,17 +365,21 @@ export default function AppPage() {
   // Trial ended and no active subscription. This is the SINGLE paywall — the
   // landing page never links straight to Paystack, it always lands here.
   if (access.status === "expired") {
-    const TIER_COPY: { tier: "basic" | "plus" | "dietitian"; blurb: string }[] = [
-      { tier: "basic", blurb: "Every answer and the full Meal Builder" },
-      { tier: "plus", blurb: "Basic, plus meals picked around your goal" },
-      { tier: "dietitian", blurb: "Plus, and a dietitian in your corner" },
-    ];
+    // A GluFloat doctor's patient is offered Premium only: it is the plan
+    // that keeps their doctor in the chat.
+    const TIER_COPY: { tier: "basic" | "plus" | "dietitian"; blurb: string }[] = doctor
+      ? [{ tier: "dietitian", blurb: `Everything in GluFloat, and chat with ${doctor.name}` }]
+      : [
+          { tier: "basic", blurb: "Every answer and the full Meal Builder" },
+          { tier: "plus", blurb: "Basic, plus meals picked around your goal" },
+          { tier: "dietitian", blurb: "Plus, and a dietitian in your corner" },
+        ];
     // Yearly only when the yearly pages exist (lib/access.ts).
     const showYearly = YEARLY_ENABLED && payYearly;
     // A renewal is highlighted at the SAME tier they last paid for, never a
     // silent downgrade to Basic pricing. Someone who never paid starts at
     // Basic, same as before.
-    const currentTier = access.previousTier ?? "basic";
+    const currentTier = doctor ? "dietitian" : access.previousTier ?? "basic";
     return (
       <>
         <Navbar />
@@ -449,7 +457,13 @@ export default function AppPage() {
     t.id === "dietitian"
       ? {
           ...t,
-          label: hospital ? (hospital.kind === "dietitian" ? "Chat with your dietitian" : "Chat with your care team") : t.label,
+          label: hospital
+            ? hospital.kind === "dietitian"
+              ? "Chat with your dietitian"
+              : "Chat with your care team"
+            : doctor
+              ? "Chat with your doctor"
+              : t.label,
           dot: chatUnread && activeTab !== "dietitian",
         }
       : t,
@@ -461,7 +475,9 @@ export default function AppPage() {
       ? hospital.rules?.note
         ? [{ name: hospital.name, role: "dietitian" as const, note: hospital.rules.note }]
         : []
-      : (hospital?.notes ?? []);
+      : hospital
+        ? hospital.notes
+        : (doctor?.notes ?? []);
 
   // The badge names the actual plan a subscriber is on, not just "Membership"
   // — someone paying for Plus or Premium should see that reflected, not a
@@ -588,6 +604,16 @@ export default function AppPage() {
           />
           {/* Said plainly, once (founder agreed, 2026-10-12): the hospital pays,
               and the hospital's doctors and dietitians can see the record. */}
+          {/* A GluFloat doctor's patient: who looks after them, and what the doctor sees. */}
+          {!hospital && doctor && (
+            <p className="mt-2 flex items-start gap-2 rounded-2xl bg-brand/[0.06] px-3.5 py-2.5 text-sm text-ink ring-1 ring-inset ring-brand/10">
+              <Stethoscope className="mt-0.5 h-4 w-4 shrink-0 text-brand" strokeWidth={2.2} />
+              <span>
+                <span className="font-semibold">{doctor.name}</span> looks after your diabetes on GluFloat. Your doctor can see
+                your meals and sugar tests.
+              </span>
+            </p>
+          )}
           {hospital && (
             <p className="mt-2 flex items-start gap-2 rounded-2xl bg-brand/[0.06] px-3.5 py-2.5 text-sm text-ink ring-1 ring-inset ring-brand/10">
               <Stethoscope className="mt-0.5 h-4 w-4 shrink-0 text-brand" strokeWidth={2.2} />

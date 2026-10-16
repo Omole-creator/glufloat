@@ -5,7 +5,7 @@ import HospitalShell from "@/components/hospital/HospitalShell";
 import NotStaff from "@/components/hospital/NotStaff";
 import { requireStaffPage } from "@/components/hospital/requireStaff";
 import { hospitalRoster } from "@/lib/hospitalRoster";
-import { isPractice } from "@/lib/hospitalPlans";
+import { isDoctorPractice, isPractice } from "@/lib/hospitalPlans";
 import PatientTable from "./PatientTable";
 
 export const dynamic = "force-dynamic";
@@ -27,8 +27,12 @@ export default async function HospitalHome({ searchParams }: { searchParams: Pro
   const waiting = rows.filter((r) => r.status === "waiting").length;
   const isAdmin = ctx.staff.role === "admin";
 
+  const doctor = isDoctorPractice(ctx.hospital);
+  const premium = active.filter((r) => r.plan === "premium").length;
   const tiles = [
-    { label: "Places used", value: `${active.length} of ${ctx.hospital.seats}`, sub: waiting ? `${waiting} waiting for a place` : "patients using GluFloat" },
+    doctor
+      ? { label: "Your patients", value: String(active.length), sub: premium ? `${premium} on GluFloat Premium` : "joined with your QR code or link" }
+      : { label: "Places used", value: `${active.length} of ${ctx.hospital.seats}`, sub: waiting ? `${waiting} waiting for a place` : "patients using GluFloat" },
     { label: "Used it this week", value: String(usedThisWeek), sub: `of ${active.length} ${active.length === 1 ? "patient" : "patients"}` },
     { label: "Meals saved", value: meals.toLocaleString(), sub: "last 30 days" },
     { label: "Sugar tests saved", value: tests.toLocaleString(), sub: "last 30 days" },
@@ -38,7 +42,7 @@ export default async function HospitalHome({ searchParams }: { searchParams: Pro
     <HospitalShell
       ctx={ctx}
       title="Patients"
-      subtitle={`${ctx.hospital.name} · ${isPractice(ctx.hospital) ? "Your practice" : ROLE_GREETING[ctx.staff.role]}`}
+      subtitle={`${ctx.hospital.name} · ${isPractice(ctx.hospital) || doctor ? "Your practice" : ROLE_GREETING[ctx.staff.role]}`}
       actions={
         isAdmin ? (
           <Link
@@ -60,7 +64,7 @@ export default async function HospitalHome({ searchParams }: { searchParams: Pro
         ))}
       </div>
 
-      <PatientTable rows={rows} isAdmin={isAdmin} hid={ctx.all.length > 1 ? ctx.hospital.id : null} hospitalName={ctx.hospital.name} hospitalCode={ctx.hospital.code} />
+      <PatientTable rows={rows} isAdmin={isAdmin} hid={ctx.all.length > 1 ? ctx.hospital.id : null} hospitalName={ctx.hospital.name} hospitalCode={ctx.hospital.code} doctor={doctor} />
     </HospitalShell>
   );
 }

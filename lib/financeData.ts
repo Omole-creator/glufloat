@@ -14,7 +14,7 @@ import type { FinanceInput } from "@/lib/finance";
  */
 export async function loadFinance(): Promise<{ input: FinanceInput; ready: boolean }> {
   const admin = createAdminClient();
-  const [profiles, subs, payments, commissions, payouts, expenses, income, loans] = await Promise.all([
+  const [profiles, subs, payments, commissions, payouts, expenses, income, loans, careFees, carePayouts] = await Promise.all([
     fetchAll<{ id: string; email: string }>(() => admin.from("profiles").select("id,email")),
     fetchAll<{ user_id: string; status: string; current_period_end: string | null; amount: number | null }>(
       () => admin.from("subscriptions").select("user_id,status,current_period_end,amount"),
@@ -44,6 +44,13 @@ export async function loadFinance(): Promise<{ input: FinanceInput; ready: boole
         .select("id,founder,kind,happened_on,amount,note")
         .order("happened_on", { ascending: false }),
     ),
+    // Care fees to GluFloat doctors, field agents and advisors
+    // (supabase/doctors-schema.sql). A cost, exactly like a partner
+    // commission. Empty until that SQL runs.
+    fetchAll<{ patient_user_id: string | null; amount: number; earned_at: string }>(() =>
+      admin.from("clinician_earnings").select("patient_user_id,amount,earned_at"),
+    ),
+    fetchAll<{ amount: number; created_at: string; status: string }>(() => admin.from("earning_payouts").select("amount,created_at,status")),
   ]);
 
   const internal = new Set(profiles.rows.filter((p) => isInternalEmail(p.email)).map((p) => p.id));
@@ -64,10 +71,14 @@ export async function loadFinance(): Promise<{ input: FinanceInput; ready: boole
         end: s.current_period_end ? new Date(s.current_period_end).getTime() : null,
         amount: s.amount,
       })),
-    commissions: commissions.rows
-      .filter((c) => real(c.user_id))
-      .map((c) => ({ at: new Date(c.earned_at).getTime(), amount: c.amount })),
-    payouts: payouts.rows.map((p) => ({ at: new Date(p.paid_at).getTime(), amount: p.amount })),
+    commissions: [
+      ...commissions.rows.filter((c) => real(c.user_id)).map((c) => ({ at: new Date(c.earned_at).getTime(), amount: c.amount })),
+      ...careFees.rows.filter((c) => real(c.patient_user_id)).map((c) => ({ at: new Date(c.earned_at).getTime(), amount: Number(c.amount) })),
+    ],
+    payouts: [
+      ...payouts.rows.map((p) => ({ at: new Date(p.paid_at).getTime(), amount: p.amount })),
+      ...carePayouts.rows.filter((p) => p.status === "paid").map((p) => ({ at: new Date(p.created_at).getTime(), amount: Number(p.amount) })),
+    ],
     expenses: expenses.rows,
     income: income.rows,
     loans: loans.rows,

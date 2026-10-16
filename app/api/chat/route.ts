@@ -28,7 +28,7 @@ function teamKey(team: PatientTeam) {
 function teamOut(team: PatientTeam) {
   return team.kind === "hospital"
     ? {
-        kind: team.hospital.kind === "dietitian" ? ("practice" as const) : ("hospital" as const),
+        kind: team.hospital.kind === "dietitian" ? ("practice" as const) : team.hospital.kind === "doctor" ? ("doctor" as const) : ("hospital" as const),
         name: team.hospital.name,
         members: team.members.map((m) => ({ name: m.name, role: m.role })),
         callPhone: team.callPhone,

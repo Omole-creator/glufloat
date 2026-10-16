@@ -15,6 +15,8 @@ import {
   Receipt,
   Landmark,
   Hospital,
+  Handshake,
+  Wallet,
 } from "lucide-react";
 
 /**
@@ -35,6 +37,7 @@ const GROUPS = [
       { href: "/admin/finance", label: "Finance", icon: LineChart, exact: true },
       { href: "/admin/finance/expenses", label: "Expenses", icon: Receipt },
       { href: "/admin/finance/loans", label: "Founder loans", icon: Landmark },
+      { href: "/admin/payouts", label: "Payouts", icon: Wallet },
     ],
   },
   {
@@ -43,6 +46,8 @@ const GROUPS = [
       { href: "/admin/users", label: "Users", icon: Users },
       { href: "/admin/hospitals", label: "Hospitals", icon: Hospital },
       { href: "/admin/dietitians", label: "Dietitians", icon: Stethoscope },
+      { href: "/admin/doctors", label: "Doctors", icon: Stethoscope },
+      { href: "/admin/agents", label: "Field agents", icon: Handshake },
       { href: "/admin/email", label: "Email", icon: Mail },
     ],
   },

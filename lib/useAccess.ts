@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getAccess, type Access } from "@/lib/account";
+import { getAccess, type Access, type DoctorLink } from "@/lib/account";
 import { createClient } from "@/lib/supabase/client";
 
 // One access read, shared by every button on the page.
@@ -15,9 +15,11 @@ type Result = {
   name: string | null;
   access: Access;
   /** Hospitals this person works for (GluFloat for hospitals). */
-  hospitalStaff?: { id: string; name: string; role: string; kind?: "hospital" | "dietitian" }[];
+  hospitalStaff?: { id: string; name: string; role: string; kind?: "hospital" | "dietitian" | "doctor" }[];
   /** Answers Premium members' chats at /inbox. */
   inbox?: boolean;
+  /** Their GluFloat doctor, if any (never changes access). */
+  doctor?: DoctorLink;
 };
 
 let cached: Promise<Result> | null = null;

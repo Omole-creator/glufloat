@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
-import { acceptsPatients, orgWords, PRACTICE_TRIAL_DAYS, waitingForFirstPatient } from "@/lib/hospitalPlans";
+import { acceptsPatients, isDoctorPractice, orgWords, PRACTICE_TRIAL_DAYS, waitingForFirstPatient } from "@/lib/hospitalPlans";
 import { ownPaidMsLeft, seatsUsed, sessionUser, type HospitalRow, type PatientRow } from "@/lib/hospitalServer";
 import { normalizePhone } from "@/lib/phone";
 import { isPhoneLoginEmail, phoneLoginEmail } from "@/lib/phoneLogin";
@@ -105,7 +105,7 @@ export async function POST(request: Request) {
     .neq("status", "removed")
     .maybeSingle();
   if (mine && (mine as PatientRow).status !== "invited")
-    return NextResponse.json({ ok: true, status: (mine as PatientRow).status, login: createdLogin });
+    return NextResponse.json({ ok: true, status: (mine as PatientRow).status, login: createdLogin, doctor: isDoctorPractice(h) });
 
   // Which row is theirs: the invite, a row with their phone, or a new one.
   let row: PatientRow | null = invite ?? (mine as PatientRow | null);
@@ -123,7 +123,10 @@ export async function POST(request: Request) {
 
   const used = await seatsUsed(admin, h.id);
   const status: "active" | "waiting" = used < h.seats ? "active" : "waiting";
-  const carried = status === "active" ? await ownPaidMsLeft(admin, uid) : 0;
+  // A GluFloat doctor's patient is linked, not covered: they keep paying for
+  // their own plan, so no paid days are set aside.
+  const doctorPractice = isDoctorPractice(h);
+  const carried = status === "active" && !doctorPractice ? await ownPaidMsLeft(admin, uid) : 0;
   const now = new Date().toISOString();
   const patch = {
     user_id: uid,
@@ -171,7 +174,7 @@ export async function POST(request: Request) {
 
   // The patient's own payment countdown starts at 30 days (patient-paid-schema.sql).
   // Its own write: a database without the column still lets them join.
-  if (finalStatus === "active") {
+  if (finalStatus === "active" && !doctorPractice) {
     await admin
       .from("hospital_patients")
       .update({ paid_until: new Date(Date.now() + 30 * 86400000).toISOString() })
@@ -192,5 +195,5 @@ export async function POST(request: Request) {
       .is("access_until", null);
   }
 
-  return NextResponse.json({ ok: true, status: finalStatus, login: createdLogin });
+  return NextResponse.json({ ok: true, status: finalStatus, login: createdLogin, doctor: doctorPractice });
 }

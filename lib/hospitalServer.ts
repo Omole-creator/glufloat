@@ -35,8 +35,16 @@ export type HospitalRow = {
   chat_dietitian_id?: string | null;
   chat_doctor_id?: string | null;
   /** dietitian-practice-schema.sql (#25): 'dietitian' for a dietitian's practice. Missing until it runs (a hospital). */
-  kind?: "hospital" | "dietitian" | null;
+  kind?: "hospital" | "dietitian" | "doctor" | null;
   dcn_number?: string | null;
+  /** doctors-schema.sql (#31): a doctor's practice. Missing until it runs. */
+  mdcn_number?: string | null;
+  agent_id?: string | null;
+  invited_by?: string | null;
+  bank_name?: string | null;
+  bank_code?: string | null;
+  account_number?: string | null;
+  account_name?: string | null;
   created_at: string;
   approved_at: string | null;
 };
@@ -339,8 +347,12 @@ export async function hospitalStatusFor(admin: SupabaseClient, uid: string): Pro
     until: string;
     status: "active" | "waiting";
     chats: ChatPerson[];
-    /** "dietitian" when a dietitian's practice covers them, so the app says "your dietitian". */
-    kind: "hospital" | "dietitian";
+    /**
+     * "dietitian" when a dietitian's practice covers them, so the app says "your
+     * dietitian". "doctor" when they are a GluFloat doctor's patient: LINKED,
+     * not covered, so their own trial or plan decides their access.
+     */
+    kind: "hospital" | "dietitian" | "doctor";
     /** Her note and food rules for this patient (practice-rules-schema.sql), or null. */
     rules: PracticeRulesOut | null;
     /** When their payment to the dietitian or hospital runs out (patient-paid-schema.sql), or null. */
@@ -348,7 +360,7 @@ export async function hospitalStatusFor(admin: SupabaseClient, uid: string): Pro
     /** Hospital doctors' and dietitians' notes (chat-schema.sql). A practice uses `rules.note` instead. */
     notes: CareNoteOut[];
   };
-  staff: { id: string; name: string; role: StaffRole; kind: "hospital" | "dietitian" }[];
+  staff: { id: string; name: string; role: StaffRole; kind: "hospital" | "dietitian" | "doctor" }[];
 }> {
   const out: Awaited<ReturnType<typeof hospitalStatusFor>> = { patient: null, staff: [] };
   const [{ data: pats, error }, { data: staff }] = await Promise.all([
@@ -362,30 +374,42 @@ export async function hospitalStatusFor(admin: SupabaseClient, uid: string): Pro
 
   for (const s of (staff ?? []) as unknown as { role: StaffRole; hospitals: { id: string; name: string; status: string; kind?: string | null } | null }[]) {
     if (s.hospitals && (s.hospitals.status === "pilot" || s.hospitals.status === "active" || s.hospitals.status === "ended"))
-      out.staff.push({ id: s.hospitals.id, name: s.hospitals.name, role: s.role, kind: s.hospitals.kind === "dietitian" ? "dietitian" : "hospital" });
+      out.staff.push({
+        id: s.hospitals.id,
+        name: s.hospitals.name,
+        role: s.role,
+        kind: s.hospitals.kind === "dietitian" ? "dietitian" : s.hospitals.kind === "doctor" ? "doctor" : "hospital",
+      });
   }
 
   type Joined = PatientRow & { hospitals: HospitalRow | null };
   const rows = (pats ?? []) as unknown as Joined[];
   for (const r of rows) {
     const h = r.hospitals;
-    const covered = r.status === "active" && h && hospitalLive(h);
+    // A doctor's patient is never covered, and brings no paid days in.
+    const covered = r.status === "active" && h && hospitalLive(h) && h.kind !== "doctor";
     if (!covered) await restoreCarried(admin, r);
   }
   const live = rows
     .filter((r) => r.hospitals && hospitalLive(r.hospitals) && (r.status === "active" || r.status === "waiting"))
-    // Covered first, then the newest.
-    .sort((a, b) => (a.status === b.status ? (b.joined_at ?? "").localeCompare(a.joined_at ?? "") : a.status === "active" ? -1 : 1));
+    // A hospital or dietitian that pays for them first, then covered, then the newest.
+    .sort((a, b) => {
+      const doc = (r: Joined) => (r.hospitals?.kind === "doctor" ? 1 : 0);
+      if (doc(a) !== doc(b)) return doc(a) - doc(b);
+      return a.status === b.status ? (b.joined_at ?? "").localeCompare(a.joined_at ?? "") : a.status === "active" ? -1 : 1;
+    });
   const pick = live[0];
   if (pick && pick.hospitals) {
+    const doctor = pick.hospitals.kind === "doctor";
     out.patient = {
       hospitalName: pick.hospitals.name,
       until: pick.hospitals.access_until as string,
       status: pick.status as "active" | "waiting",
-      chats: pick.status === "active" ? await chatContacts(admin, pick.hospitals) : [],
-      kind: pick.hospitals.kind === "dietitian" ? "dietitian" : "hospital",
+      // A doctor's patients chat in the app only (lib/chatServer.ts); no WhatsApp contact.
+      chats: pick.status === "active" && !doctor ? await chatContacts(admin, pick.hospitals) : [],
+      kind: pick.hospitals.kind === "dietitian" ? "dietitian" : doctor ? "doctor" : "hospital",
       rules: pick.status === "active" && pick.hospitals.kind === "dietitian" ? await practiceRulesFor(admin, pick.id) : null,
-      paidUntil: pick.status === "active" ? await paidUntilFor(admin, pick.id) : null,
+      paidUntil: pick.status === "active" && !doctor ? await paidUntilFor(admin, pick.id) : null,
       notes: pick.status === "active" && pick.hospitals.kind !== "dietitian" ? await careNotesFor(admin, pick.id) : [],
     };
   }

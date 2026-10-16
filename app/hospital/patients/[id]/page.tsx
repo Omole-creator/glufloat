@@ -4,7 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import HospitalShell from "@/components/hospital/HospitalShell";
 import NotStaff from "@/components/hospital/NotStaff";
 import { requireStaffPage } from "@/components/hospital/requireStaff";
-import { hospitalLive, isPractice } from "@/lib/hospitalPlans";
+import { hospitalLive, isDoctorPractice, isPractice } from "@/lib/hospitalPlans";
 import { practiceRuleFoodIds } from "@/lib/nextMeal";
 import { getFood } from "@/lib/search";
 import { cleanFoodName } from "@/lib/foodName";
@@ -159,7 +159,7 @@ export default async function PatientPage({
           hid={ctx.all.length > 1 ? ctx.hospital.id : null}
           firstName={firstName}
           me={ctx.user.id}
-          canWrite={ctx.staff.role === "doctor" || ctx.staff.role === "dietitian"}
+          canWrite={isDoctorPractice(ctx.hospital) || ctx.staff.role === "doctor" || ctx.staff.role === "dietitian"}
           notes={((notesRead.data ?? []) as { author_id: string; author_name: string; author_role: "doctor" | "dietitian"; note: string; updated_at: string }[]).map((n) => ({
             authorId: n.author_id,
             name: n.author_name,
@@ -189,6 +189,8 @@ export default async function PatientPage({
             note={
               isPractice(ctx.hospital)
                 ? `${firstName} chats with you here.`
+                : isDoctorPractice(ctx.hospital)
+                  ? `${firstName} can chat with you here on GluFloat Premium.`
                 : canAnswer(ctx.staff.role, ctx.hospital)
                   ? "Every doctor and dietitian here can read and answer this chat."
                   : "Your doctors and dietitians answer this chat."

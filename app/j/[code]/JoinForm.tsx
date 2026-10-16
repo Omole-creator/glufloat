@@ -21,6 +21,7 @@ export default function JoinForm({
   knownName,
   tokenWasBad,
   practice = false,
+  doctor = false,
 }: {
   code: string;
   token: string | null;
@@ -29,6 +30,8 @@ export default function JoinForm({
   tokenWasBad: boolean;
   /** A dietitian's practice (GluFloat for dietitians): say "your dietitian", not "your hospital". */
   practice?: boolean;
+  /** A GluFloat doctor: the patient is linked to them and starts their own 7 free days. */
+  doctor?: boolean;
 }) {
   const router = useRouter();
   const [me, setMe] = useState<{ label: string } | null | undefined>(undefined);
@@ -93,7 +96,9 @@ export default function JoinForm({
             <p className="font-display text-lg font-bold text-ink">{done === "active" ? "You are in" : "You are on the waiting list"}</p>
             <p className="mt-1 text-sm text-ink">
               {done === "active"
-                ? practice
+                ? doctor
+                  ? `${hospitalName} can now see your meals and sugar tests on GluFloat. Start your 7 free days to begin.`
+                  : practice
                   ? `${hospitalName} now looks after your diabetes on GluFloat. Your dietitian can see your meals and sugar tests.`
                   : `${hospitalName} now looks after your GluFloat. Your doctors and dietitians can see your meals and sugar tests.`
                 : practice
@@ -104,12 +109,12 @@ export default function JoinForm({
         </div>
         <button
           onClick={() => {
-            router.push(done === "active" ? "/app" : "/trial");
+            router.push(done === "active" && !doctor ? "/app" : "/trial");
             router.refresh();
           }}
           className="flex h-14 w-full items-center justify-center rounded-full bg-leaf text-base font-bold text-white shadow-[0_14px_30px_-14px_rgba(62,155,79,0.9)] hover:bg-leaf-deep"
         >
-          {done === "active" ? "Open GluFloat" : "Start my 7 free days"}
+          {done === "active" && !doctor ? "Open GluFloat" : "Start my 7 free days"}
         </button>
       </div>
     );
@@ -167,7 +172,7 @@ export default function JoinForm({
         onChange={(e) => setPhone(e.target.value)}
         required
         autoComplete="tel"
-        hint={knownName ? `The number you gave ${practice ? "your dietitian" : "your hospital"}. You will log in with it.` : "You will log in with this number."}
+        hint={knownName ? `The number you gave ${doctor ? "your doctor" : practice ? "your dietitian" : "your hospital"}. You will log in with it.` : "You will log in with this number."}
       />
       <Field
         label="Email (only if you have one)"

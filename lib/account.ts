@@ -55,18 +55,26 @@ export type HospitalCover = {
   notes: CareNote[];
 };
 
+/**
+ * A GluFloat doctor this person is a patient of (GluFloat for doctors). It
+ * never gives access: the patient's own trial or plan does. It only changes
+ * who their Chat tab reaches (their doctor, once they are on Premium) and
+ * shows their doctor's notes above the blue card.
+ */
+export type DoctorLink = { name: string; notes: CareNote[] };
+
 type HospitalMe = {
   patient: null | {
     hospitalName: string;
     until: string;
     status: "active" | "waiting";
     chats: HospitalChat[];
-    kind?: "hospital" | "dietitian";
+    kind?: "hospital" | "dietitian" | "doctor";
     rules?: { note: string | null; avoid: string[]; prefer: string[] } | null;
     paidUntil?: string | null;
     notes?: CareNote[];
   };
-  staff: { id: string; name: string; role: string; kind?: "hospital" | "dietitian" }[];
+  staff: { id: string; name: string; role: string; kind?: "hospital" | "dietitian" | "doctor" }[];
   /** A GluFloat Premium dietitian who answers chats at /inbox (chat-schema.sql). */
   inbox?: boolean;
 };
@@ -123,9 +131,11 @@ export async function getAccess(): Promise<{
   name: string | null;
   access: Access;
   /** Hospitals this person works for (doctor, dietitian, admin). Empty for almost everyone. */
-  hospitalStaff?: { id: string; name: string; role: string; kind?: "hospital" | "dietitian" }[];
+  hospitalStaff?: { id: string; name: string; role: string; kind?: "hospital" | "dietitian" | "doctor" }[];
   /** Answers Premium members' chats at /inbox. */
   inbox?: boolean;
+  /** Their GluFloat doctor, if they joined one. Never changes access. */
+  doctor?: DoctorLink;
 }> {
   const supabase = createClient();
   const user = await currentUser();
@@ -165,10 +175,16 @@ export async function getAccess(): Promise<{
   const name = (profile?.name ?? "").trim() || null;
   const hospitalStaff = hosp.staff;
   const inbox = hosp.inbox === true;
+  // A doctor's patient pays for themselves: the doctor link rides along on
+  // every answer below and grants nothing.
+  const doctor: DoctorLink | undefined =
+    hosp.patient && hosp.patient.kind === "doctor" && hosp.patient.status === "active"
+      ? { name: hosp.patient.hospitalName, notes: Array.isArray(hosp.patient.notes) ? hosp.patient.notes : [] }
+      : undefined;
 
   // A hospital paying for this person wins over everything: they get Premium
   // for as long as the hospital's plan runs.
-  if (hosp.patient && hosp.patient.status === "active") {
+  if (hosp.patient && hosp.patient.status === "active" && hosp.patient.kind !== "doctor") {
     const end = new Date(hosp.patient.until).getTime();
     const daysLeft = Math.max(0, Math.ceil((end - Date.now()) / DAY_MS));
     if (daysLeft > 0)
@@ -209,6 +225,7 @@ export async function getAccess(): Promise<{
         name,
         hospitalStaff,
         inbox,
+        doctor,
         access: { status: "subscribed", daysLeft, tier, yearly: isYearlyAmount(sub.amount) },
       };
   }
@@ -219,7 +236,7 @@ export async function getAccess(): Promise<{
       TRIAL_DAYS -
       calendarDaysBetween(new Date(profile.trial_start).getTime(), Date.now());
     if (daysLeft > 0)
-      return { email: user.email ?? null, name, hospitalStaff, inbox, access: { status: "trial", daysLeft } };
+      return { email: user.email ?? null, name, hospitalStaff, inbox, doctor, access: { status: "trial", daysLeft } };
     // A subscriptions row at all means they have paid us before. It is already
     // fetched above, so knowing this costs no extra query.
     const previousTier: Tier | null =
@@ -229,12 +246,13 @@ export async function getAccess(): Promise<{
       name,
       hospitalStaff,
       inbox,
+      doctor,
       access: { status: "expired", lapsed: !!sub, previousTier, previousYearly: isYearlyAmount(sub?.amount) },
     };
   }
 
   // Signed in but no trial yet and no subscription.
-  return { email: user.email ?? null, name, hospitalStaff, inbox, access: { status: "new" } };
+  return { email: user.email ?? null, name, hospitalStaff, inbox, doctor, access: { status: "new" } };
 }
 
 /** Stamp the trial start on the user's profile, only if it is not already set. */

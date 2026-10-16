@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import HospitalShell from "@/components/hospital/HospitalShell";
 import NotStaff from "@/components/hospital/NotStaff";
 import { requireStaffPage } from "@/components/hospital/requireStaff";
-import { hospitalLive, isPractice, planName, practicePlanName, waitingForFirstPatient } from "@/lib/hospitalPlans";
+import { hospitalLive, isDoctorPractice, isPractice, planName, practicePlanName, waitingForFirstPatient } from "@/lib/hospitalPlans";
+import QrCodeCard from "@/components/hospital/QrCodeCard";
+import InviteColleagueCard from "@/components/hospital/InviteColleagueCard";
+import { SITE_URL } from "@/lib/site";
 import { seatsUsed } from "@/lib/hospitalServer";
 import { readInvoiceSettings } from "@/lib/invoiceSettings";
 import type { DocumentForPdf } from "@/lib/hospitalPdf";
@@ -23,6 +26,18 @@ export default async function PlanPage({ searchParams }: { searchParams: Promise
       </HospitalShell>
     );
   const h = ctx.hospital;
+
+  // GluFloat for doctors: nothing to pay. Their QR code for patients, and
+  // their link for colleagues.
+  if (isDoctorPractice(h))
+    return (
+      <HospitalShell ctx={ctx} title="QR code" subtitle="Patients scan it to join you. Colleagues sign up with your link.">
+        <div className="mt-6 grid gap-4 lg:grid-cols-2">
+          <QrCodeCard name={h.name} code={h.code} open={hospitalLive(h)} practice />
+          <InviteColleagueCard link={`${SITE_URL}/d/${h.code}`} />
+        </div>
+      </HospitalShell>
+    );
 
   // GluFloat for dietitians: she pays by Paystack, not by invoice.
   if (isPractice(h)) {

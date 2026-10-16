@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { fetchAll } from "@/lib/adminFetch";
 import type { PatientRow } from "@/lib/hospitalServer";
 import { isPhoneLoginEmail } from "@/lib/phoneLogin";
+import { TRIAL_DAYS } from "@/lib/trial";
 import type { Reading } from "@/lib/glucose";
 import { waitingSince } from "@/lib/chat";
 import { beforeMealFlag, mealPatternFlags, safetyEvents, type BeforeFlag, type PatternMeal, type SafetyEvent } from "@/lib/safetyFlag";
@@ -50,6 +51,12 @@ export type RosterRow = {
   pausedLeftMs: number | null;
   /** The patient wrote in the chat and nobody has answered yet: since when (chat-schema.sql), or null. */
   chatWaitingSince: string | null;
+  /**
+   * Their own GluFloat plan right now, for a GluFloat doctor's list (their
+   * patients pay for themselves): "premium", "basic", "plus", "trial",
+   * "ended", or null (no account yet).
+   */
+  plan: "premium" | "plus" | "basic" | "trial" | "ended" | null;
 };
 
 export async function hospitalRoster(admin: SupabaseClient, hospitalId: string): Promise<RosterRow[]> {
@@ -75,11 +82,12 @@ export async function hospitalRoster(admin: SupabaseClient, hospitalId: string):
   const emails = new Map<string, string | null>();
   const readings = new Map<string, Reading[]>();
   const mealsBy = new Map<string, PatternMeal[]>();
+  const plans = new Map<string, RosterRow["plan"]>();
 
   // In slices, so a 200-patient hospital never builds one enormous URL.
   for (let i = 0; i < ids.length; i += 100) {
     const slice = ids.slice(i, i + 100);
-    const [usage, mc, gr, hb, pr] = await Promise.all([
+    const [usage, mc, gr, hb, pr, subs] = await Promise.all([
       fetchAll<{ user_id: string; created_at: string }>(() =>
         admin.from("usage_events").select("user_id,created_at").in("user_id", slice).gte("created_at", since90),
       ),
@@ -100,7 +108,8 @@ export async function hospitalRoster(admin: SupabaseClient, hospitalId: string):
       fetchAll<{ user_id: string; percent: number; tested_on: string }>(() =>
         admin.from("hba1c_results").select("user_id,percent,tested_on").in("user_id", slice),
       ),
-      admin.from("profiles").select("id,email").in("id", slice),
+      admin.from("profiles").select("id,email,trial_start").in("id", slice),
+      admin.from("subscriptions").select("user_id,status,current_period_end,tier").in("user_id", slice),
     ]);
     for (const r of usage.rows) bump(r.user_id, r.created_at);
     for (const r of mc.rows) {
@@ -138,7 +147,20 @@ export async function hospitalRoster(admin: SupabaseClient, hospitalId: string):
       const cur = hba1c.get(r.user_id);
       if (!cur || cur.testedOn < r.tested_on) hba1c.set(r.user_id, { percent: Number(r.percent), testedOn: r.tested_on });
     }
-    for (const p of (pr.data ?? []) as { id: string; email: string | null }[]) emails.set(p.id, p.email);
+    for (const p of (pr.data ?? []) as { id: string; email: string | null; trial_start?: string | null }[]) {
+      emails.set(p.id, p.email);
+      // 7 calendar days from the trial start, the same length as lib/trial.ts.
+      const trialLive = !!p.trial_start && Date.now() - new Date(p.trial_start).getTime() < TRIAL_DAYS * DAY_MS;
+      plans.set(p.id, trialLive ? "trial" : p.trial_start ? "ended" : null);
+    }
+    for (const sub of (subs.data ?? []) as { user_id: string; status: string; current_period_end: string | null; tier: string | null }[]) {
+      const live =
+        (sub.status === "active" || sub.status === "non-renewing") &&
+        !!sub.current_period_end &&
+        new Date(sub.current_period_end).getTime() > Date.now();
+      if (live) plans.set(sub.user_id, sub.tier === "dietitian" ? "premium" : sub.tier === "plus" ? "plus" : "basic");
+      else if (!plans.get(sub.user_id)) plans.set(sub.user_id, "ended");
+    }
   }
 
   // Chats waiting for an answer (chat-schema.sql). Its own read: a database
@@ -183,6 +205,7 @@ export async function hospitalRoster(admin: SupabaseClient, hospitalId: string):
       paidUntil: p.paid_until ?? null,
       pausedLeftMs: p.paused_left_ms != null ? Number(p.paused_left_ms) : null,
       chatWaitingSince: flagged ? chatWait.get(uid as string) ?? null : null,
+      plan: uid ? plans.get(uid) ?? null : null,
     };
   });
 }

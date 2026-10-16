@@ -26,6 +26,15 @@ function pausedLine(r: { pausedLeftMs: number | null; paidUntil: string | null }
   return days > 0 ? `Paused · ${days} ${days === 1 ? "day" : "days"} kept` : "Paused · payment due";
 }
 
+/** A GluFloat doctor's patient pays GluFloat themselves: show their own plan. */
+const PLAN_LABEL: Record<NonNullable<RosterRow["plan"]>, string> = {
+  premium: "Premium",
+  plus: "Plus",
+  basic: "Basic",
+  trial: "Free trial",
+  ended: "Not subscribed",
+};
+
 function paidLine(paidUntil: string | null): { text: string; due: boolean } {
   if (!paidUntil) return { text: "Not recorded", due: false };
   const days = Math.ceil((new Date(paidUntil).getTime() - Date.now()) / DAY_MS);
@@ -116,12 +125,15 @@ export default function PatientTable({
   hid,
   hospitalName,
   hospitalCode,
+  doctor = false,
 }: {
   rows: RosterRow[];
   isAdmin: boolean;
   hid: string | null;
   hospitalName: string;
   hospitalCode: string;
+  /** A GluFloat doctor's practice: no payment countdown, show each patient's own plan. */
+  doctor?: boolean;
 }) {
   const router = useRouter();
   const [q, setQ] = useState("");
@@ -131,7 +143,7 @@ export default function PatientTable({
 
   const weekAgo = new Date(Date.now() - 7 * DAY_MS).toISOString();
   const isQuiet = (r: RosterRow) => r.status === "active" && (!r.lastActive || r.lastActive < weekAgo);
-  const isDue = (r: RosterRow) => r.status === "active" && paidLine(r.paidUntil).due;
+  const isDue = (r: RosterRow) => !doctor && r.status === "active" && paidLine(r.paidUntil).due;
 
   const isRed = (r: RosterRow) => r.status === "active" && r.safety.length > 0;
   const isAmber = (r: RosterRow) => r.status === "active" && (!!r.beforeFlag || r.patterns.length > 0);
@@ -210,7 +222,7 @@ export default function PatientTable({
     { id: "waiting", label: "Waiting" },
     { id: "invited", label: "Invited" },
     { id: "paused", label: "Paused" },
-  ];
+  ].filter((f) => !doctor || (f.id !== "due" && f.id !== "paused" && f.id !== "waiting")) as { id: Filter; label: string }[];
 
   const Actions = ({ r }: { r: RosterRow }) =>
     !isAdmin ? null : (
@@ -236,7 +248,7 @@ export default function PatientTable({
             <UserCheck className="h-3.5 w-3.5" /> Give a place
           </button>
         )}
-        {(r.status === "active" || r.status === "paused") && (
+        {!doctor && (r.status === "active" || r.status === "paused") && (
           <select
             disabled={busy === r.id}
             value=""
@@ -254,7 +266,7 @@ export default function PatientTable({
             <option value="12">Paid 12 months</option>
           </select>
         )}
-        {r.status === "paused" && (
+        {!doctor && r.status === "paused" && (
           <button
             disabled={busy === r.id}
             onClick={() => void patch(r.id, "unpause").then((ok) => ok && setMsg(`${r.name} is back, with the days they had left.`))}
@@ -264,7 +276,7 @@ export default function PatientTable({
             <PlayCircle className="h-3.5 w-3.5" /> Unpause
           </button>
         )}
-        {r.status === "active" && (
+        {!doctor && r.status === "active" && (
           <button
             disabled={busy === r.id}
             onClick={() => {
@@ -360,7 +372,7 @@ export default function PatientTable({
                   <th className="px-3 py-2.5 text-right">Tests</th>
                   <th className="px-3 py-2.5">Latest sugar test</th>
                   <th className="px-3 py-2.5">HbA1c</th>
-                  <th className="px-3 py-2.5">Paid</th>
+                  <th className="px-3 py-2.5">{doctor ? "GluFloat plan" : "Paid"}</th>
                   <th className="px-5 py-2.5" />
                 </tr>
               </thead>
@@ -411,7 +423,15 @@ export default function PatientTable({
                       )}
                     </td>
                     <td className={`px-3 py-3 text-xs ${isDue(r) ? "font-semibold text-verdict-red" : "text-ink"}`}>
-                      {r.status === "paused" ? pausedLine(r) : r.status === "active" ? paidLine(r.paidUntil).text : "-"}
+                      {doctor
+                        ? r.plan
+                          ? PLAN_LABEL[r.plan]
+                          : "-"
+                        : r.status === "paused"
+                          ? pausedLine(r)
+                          : r.status === "active"
+                            ? paidLine(r.paidUntil).text
+                            : "-"}
                     </td>
                     <td className="px-5 py-3">
                       <div className="flex items-center justify-end gap-2">
@@ -475,11 +495,13 @@ export default function PatientTable({
                     </div>
                   </div>
                 )}
-                {(r.status === "active" || r.status === "paused") && (
-                  <p className={`mt-2 text-xs ${isDue(r) ? "font-semibold text-verdict-red" : "text-ink"}`}>
-                    Paid: {r.status === "paused" ? pausedLine(r) : paidLine(r.paidUntil).text}
-                  </p>
-                )}
+                {doctor
+                  ? r.plan && <p className="mt-2 text-xs text-ink">GluFloat plan: {PLAN_LABEL[r.plan]}</p>
+                  : (r.status === "active" || r.status === "paused") && (
+                      <p className={`mt-2 text-xs ${isDue(r) ? "font-semibold text-verdict-red" : "text-ink"}`}>
+                        Paid: {r.status === "paused" ? pausedLine(r) : paidLine(r.paidUntil).text}
+                      </p>
+                    )}
                 {r.latestReading && (
                   <p className="mt-2 flex items-center gap-1.5 text-xs text-ink">
                     <Droplet className="h-3.5 w-3.5 text-brand" />

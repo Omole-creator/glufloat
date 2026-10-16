@@ -7,7 +7,7 @@ import { THREAD_COLS, type ThreadRow } from "@/lib/chatServer";
 export type ChaseRow = {
   /** "Dtn Favour Chiamaka", or a hospital's or practice's name. */
   name: string;
-  kind: "premium" | "hospital" | "practice";
+  kind: "premium" | "hospital" | "practice" | "doctor";
   /** Patients waiting more than a day. */
   waiting: number;
   /** When the longest-waiting patient wrote. */
@@ -93,7 +93,7 @@ export async function chatStats(admin: SupabaseClient, from: Date, to: Date): Pr
         const h = hMap.get(g.key.hospital);
         return {
           name: h?.name ?? "A hospital",
-          kind: h?.kind === "dietitian" ? ("practice" as const) : ("hospital" as const),
+          kind: h?.kind === "dietitian" ? ("practice" as const) : h?.kind === "doctor" ? ("doctor" as const) : ("hospital" as const),
           waiting: g.waiting,
           oldest: g.oldest,
           whatsapp: whatsappNumber(h?.contact_phone),

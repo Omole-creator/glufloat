@@ -2,7 +2,7 @@ import { NextResponse, after } from "next/server";
 import { cleanBody, isWaiting } from "@/lib/chat";
 import { hospitalLive } from "@/lib/hospitalPlans";
 import { staffContext, type StaffContext } from "@/lib/hospitalServer";
-import { canAnswer, chatReady, findThread, pushTo, saveMessage, threadMessages, times } from "@/lib/chatServer";
+import { canAnswer, chatReady, senderRoleFor, findThread, pushTo, saveMessage, threadMessages, times } from "@/lib/chatServer";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -69,7 +69,7 @@ export async function POST(request: Request) {
   if (!text) return NextResponse.json({ error: "Type a message first." }, { status: 400 });
   const thread = await findThread(ctx.admin, p.userId, { hospitalId: ctx.hospital.id }, true);
   if (!thread) return NextResponse.json({ error: "This did not send. Please try again." }, { status: 500 });
-  const role = ctx.hospital.kind === "dietitian" ? "dietitian" : ctx.staff.role;
+  const role = senderRoleFor(ctx.staff.role, ctx.hospital);
   const id = await saveMessage(ctx.admin, thread, { id: ctx.user.id, role, name: ctx.staff.name }, text);
   if (!id) return NextResponse.json({ error: "This did not send. Please try again." }, { status: 500 });
 

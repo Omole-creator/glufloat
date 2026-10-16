@@ -2,12 +2,22 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { CreditCard, LogOut, MessageCircle, UserPlus, Users, Stethoscope } from "lucide-react";
+import { CreditCard, LogOut, MessageCircle, QrCode, UserPlus, Users, Stethoscope, Wallet } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 type Role = "admin" | "doctor" | "dietitian";
 
-function tabs(role: Role, practice: boolean) {
+function tabs(role: Role, practice: boolean, doctor = false) {
+  // A GluFloat doctor: no staff and no plan to pay for. Their QR code, and
+  // what they have earned looking after their patients.
+  if (doctor)
+    return [
+      { href: "/hospital", label: "Patients", icon: Users, exact: true },
+      { href: "/hospital/messages", label: "Messages", icon: MessageCircle, exact: false },
+      { href: "/hospital/add", label: "Add patients", icon: UserPlus, exact: false },
+      { href: "/hospital/plan", label: "QR code", short: "QR code", icon: QrCode, exact: false },
+      { href: "/hospital/earnings", label: "Earnings", icon: Wallet, exact: false },
+    ];
   const all = [
     { href: "/hospital", label: "Patients", icon: Users, exact: true, adminOnly: false, hospitalOnly: false },
     { href: "/hospital/messages", label: "Messages", icon: MessageCircle, exact: false, adminOnly: false, hospitalOnly: false },
@@ -46,11 +56,23 @@ function Count({ n, light }: { n: number; light?: boolean }) {
   );
 }
 
-export function HospitalSidebarNav({ role, hid, practice = false, waiting = 0 }: { role: Role; hid: string | null; practice?: boolean; waiting?: number }) {
+export function HospitalSidebarNav({
+  role,
+  hid,
+  practice = false,
+  doctor = false,
+  waiting = 0,
+}: {
+  role: Role;
+  hid: string | null;
+  practice?: boolean;
+  doctor?: boolean;
+  waiting?: number;
+}) {
   const here = useHere();
   return (
     <nav className="flex flex-col gap-0.5">
-      {tabs(role, practice).map(({ href, label, icon: Icon, exact }) => {
+      {tabs(role, practice, doctor).map(({ href, label, icon: Icon, exact }) => {
         const on = here(href, exact);
         return (
           <Link
@@ -72,11 +94,23 @@ export function HospitalSidebarNav({ role, hid, practice = false, waiting = 0 }:
   );
 }
 
-export function HospitalMobileNav({ role, hid, practice = false, waiting = 0 }: { role: Role; hid: string | null; practice?: boolean; waiting?: number }) {
+export function HospitalMobileNav({
+  role,
+  hid,
+  practice = false,
+  doctor = false,
+  waiting = 0,
+}: {
+  role: Role;
+  hid: string | null;
+  practice?: boolean;
+  doctor?: boolean;
+  waiting?: number;
+}) {
   const here = useHere();
   return (
     <nav className="flex items-center gap-1 overflow-x-auto px-4 pb-2.5">
-      {tabs(role, practice).map((t) => {
+      {tabs(role, practice, doctor).map((t) => {
         const on = here(t.href, t.exact);
         const Icon = t.icon;
         return (

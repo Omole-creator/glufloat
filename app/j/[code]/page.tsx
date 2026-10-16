@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import AuthShell from "@/components/auth/AuthShell";
 import { createAdminClient } from "@/lib/supabase/server";
-import { acceptsPatients, isPractice } from "@/lib/hospitalPlans";
+import { acceptsPatients, isDoctorPractice, isPractice } from "@/lib/hospitalPlans";
 import JoinForm from "./JoinForm";
 
 export const dynamic = "force-dynamic";
@@ -24,7 +24,7 @@ export default async function JoinPage({
   const [{ code }, { t }] = await Promise.all([params, searchParams]);
   const clean = (code ?? "").trim().toUpperCase();
 
-  let hospital: { name: string; live: boolean; practice: boolean } | null = null;
+  let hospital: { name: string; live: boolean; practice: boolean; doctor: boolean } | null = null;
   let invite: { name: string; phone: string } | null = null;
   try {
     const admin = createAdminClient();
@@ -33,7 +33,7 @@ export default async function JoinPage({
     if (data) {
       const row = data as { name: string; status: string; access_until: string | null; kind?: string | null };
       // A dietitian with no patient yet is open: her first patient starts her 14 days.
-      hospital = { name: row.name, live: acceptsPatients(row), practice: isPractice(row) };
+      hospital = { name: row.name, live: acceptsPatients(row), practice: isPractice(row), doctor: isDoctorPractice(row) };
       if (t) {
         const { data: p } = await admin
           .from("hospital_patients")
@@ -56,7 +56,7 @@ export default async function JoinPage({
         title={hospital ? "Not open right now" : "We could not find this link"}
         subtitle={
           hospital
-            ? `${hospital.name}'s GluFloat is not open right now. Please speak to ${hospital.practice ? "your dietitian" : "your hospital"}.`
+            ? `${hospital.name}'s GluFloat is not open right now. Please speak to ${hospital.doctor ? "your doctor" : hospital.practice ? "your dietitian" : "your hospital"}.`
             : "Please check the address, or ask your hospital or dietitian for it again."
         }
       >
@@ -71,7 +71,11 @@ export default async function JoinPage({
   return (
     <AuthShell
       title={first ? `Welcome, ${first}` : `Join ${hospital.name}`}
-      subtitle={`${hospital.name} gives you GluFloat. It tells you what to eat for your diabetes and how much, and keeps a report for your doctor and dietitian.`}
+      subtitle={
+        hospital.doctor
+          ? `${hospital.name} uses GluFloat to look after your diabetes. It tells you what to eat and how much, and keeps a report for your doctor. Start with 7 days free.`
+          : `${hospital.name} gives you GluFloat. It tells you what to eat for your diabetes and how much, and keeps a report for your doctor and dietitian.`
+      }
       sideTitle={hospital.name}
     >
       <JoinForm
@@ -81,6 +85,7 @@ export default async function JoinPage({
         knownName={invite?.name ?? null}
         tokenWasBad={!!t && !invite}
         practice={hospital.practice}
+        doctor={hospital.doctor}
       />
     </AuthShell>
   );

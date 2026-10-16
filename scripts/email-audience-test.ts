@@ -18,17 +18,21 @@ const profiles = [
   { id: "u8", email: "qa@glufloat.com", name: "QA", user_type: "diabetic" },         // test account
   { id: "u9", email: "08130000000@phone.glufloat.com", name: "Phone", user_type: "diabetic" }, // no mailbox
   { id: "u10", email: "both@gmail.com", name: "Both", user_type: "diabetic" },       // dietitian AND a patient
+  { id: "u11", email: "drdoc@gmail.com", name: "Okafor", user_type: "health_pro" },  // a GluFloat doctor
+  { id: "u12", email: "drpat@gmail.com", name: "Musa", user_type: "diabetic" },      // a GluFloat doctor's patient
 ];
 const staff = [
   { user_id: "u2", hospitals: { kind: "dietitian", status: "pilot" } },
   { user_id: "u3", hospitals: { kind: "hospital", status: "active" } },
   { user_id: "u10", hospitals: { kind: "dietitian", status: "active" } },
+  { user_id: "u11", hospitals: { kind: "doctor", status: "active" } },
 ];
 const pats = [
   { user_id: "u4", hospitals: { kind: "dietitian", status: "active" } },
   { user_id: "u5", hospitals: { kind: "hospital", status: "pilot" } },
   { user_id: "u7", hospitals: { kind: "hospital", status: "ended" } },
   { user_id: "u10", hospitals: { kind: "hospital", status: "active" } },
+  { user_id: "u12", hospitals: { kind: "doctor", status: "active" } },
 ];
 const table = (t: string) => ({ profiles, hospital_staff: staff, hospital_patients: pats })[t] ?? [];
 const fake = {
@@ -52,6 +56,8 @@ check("patient of an ended hospital is a direct user again", key("old@gmail.com"
 check("test account left out", key("qa@glufloat.com") === undefined);
 check("phone-only patient left out", key("08130000000@phone.glufloat.com") === undefined);
 check("staff wins over patient", key("both@gmail.com") === "dietitians");
+check("a GluFloat doctor stays Health professional", key("drdoc@gmail.com") === "health_pro");
+check("a GluFloat doctor's patient (pays themselves) stays Diabetic", key("drpat@gmail.com") === "diabetic");
 console.log(fails ? `\n${fails} FAILED` : "\nall passed");
 process.exit(fails ? 1 : 0);
 })();

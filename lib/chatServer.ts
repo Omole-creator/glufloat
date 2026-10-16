@@ -75,6 +75,8 @@ export async function careTeam(admin: SupabaseClient, hospital: Pick<HospitalRow
   const staff = (data ?? []) as { user_id: string; role: StaffRole; name: string }[];
   // A dietitian's practice is run by her (role "admin"): she is the team.
   if (hospital.kind === "dietitian") return staff.map((s) => ({ userId: s.user_id, name: s.name, role: "dietitian" as const }));
+  // A doctor's practice is run by the doctor: the doctor is the team.
+  if (hospital.kind === "doctor") return staff.map((s) => ({ userId: s.user_id, name: s.name, role: "doctor" as const }));
   return staff
     .filter((s) => s.role === "doctor" || s.role === "dietitian")
     .map((s) => ({ userId: s.user_id, name: s.name, role: s.role }));
@@ -82,7 +84,14 @@ export async function careTeam(admin: SupabaseClient, hospital: Pick<HospitalRow
 
 /** May this staff member write in a hospital's chats? Doctors, dietitians, and a practice's own dietitian. */
 export function canAnswer(role: StaffRole, hospital: Pick<HospitalRow, "kind">): boolean {
-  return hospital.kind === "dietitian" || role === "doctor" || role === "dietitian";
+  return hospital.kind === "dietitian" || hospital.kind === "doctor" || role === "doctor" || role === "dietitian";
+}
+
+/** The role a staff member's chat messages and notes carry. */
+export function senderRoleFor(role: StaffRole, hospital: Pick<HospitalRow, "kind">): StaffRole {
+  if (hospital.kind === "dietitian") return "dietitian";
+  if (hospital.kind === "doctor") return "doctor";
+  return role;
 }
 
 /**
@@ -121,16 +130,32 @@ async function premiumDietitian(
  * covers them comes first, exactly like the rest of the app.
  */
 export async function patientTeam(admin: SupabaseClient, uid: string): Promise<PatientTeam | null> {
-  const { data: pats } = await admin
-    .from("hospital_patients")
-    .select("id,status,joined_at,hospitals(*)")
-    .eq("user_id", uid)
-    .eq("status", "active");
+  const [{ data: pats }, { data: sub }] = await Promise.all([
+    admin.from("hospital_patients").select("id,status,joined_at,hospitals(*)").eq("user_id", uid).eq("status", "active"),
+    admin.from("subscriptions").select("tier,status,current_period_end").eq("user_id", uid).maybeSingle(),
+  ]);
+  const premium =
+    !!sub &&
+    sub.tier === "dietitian" &&
+    (sub.status === "active" || sub.status === "non-renewing") &&
+    !!sub.current_period_end &&
+    new Date(sub.current_period_end as string).getTime() > Date.now();
   type Joined = { id: string; joined_at: string | null; hospitals: HospitalRow | null };
   const live = ((pats ?? []) as unknown as Joined[])
-    .filter((p) => p.hospitals && hospitalLive(p.hospitals))
-    .sort((a, b) => (b.joined_at ?? "").localeCompare(a.joined_at ?? ""));
+    // A GluFloat doctor's patient chats with their doctor only once they are on
+    // Premium (they pay for it themselves; the doctor answers).
+    .filter((p) => p.hospitals && hospitalLive(p.hospitals) && (p.hospitals.kind !== "doctor" || premium))
+    // A hospital or dietitian that pays for them comes before their doctor.
+    .sort((a, b) => {
+      const doc = (p: Joined) => (p.hospitals?.kind === "doctor" ? 1 : 0);
+      return doc(a) !== doc(b) ? doc(a) - doc(b) : (b.joined_at ?? "").localeCompare(a.joined_at ?? "");
+    });
   const pick = live[0];
+  if (pick?.hospitals && pick.hospitals.kind === "doctor") {
+    // No phone number for a doctor (doctors do not share theirs).
+    const members = await careTeam(admin, pick.hospitals);
+    return { kind: "hospital", hospital: pick.hospitals, patientRowId: pick.id, members, callPhone: null };
+  }
   if (pick?.hospitals) {
     const members = await careTeam(admin, pick.hospitals);
     let callPhone = pick.hospitals.contact_phone;
@@ -146,17 +171,6 @@ export async function patientTeam(admin: SupabaseClient, uid: string): Promise<P
     return { kind: "hospital", hospital: pick.hospitals, patientRowId: pick.id, members, callPhone };
   }
 
-  const { data: sub } = await admin
-    .from("subscriptions")
-    .select("tier,status,current_period_end")
-    .eq("user_id", uid)
-    .maybeSingle();
-  const premium =
-    sub &&
-    sub.tier === "dietitian" &&
-    (sub.status === "active" || sub.status === "non-renewing") &&
-    sub.current_period_end &&
-    new Date(sub.current_period_end as string).getTime() > Date.now();
   if (!premium) return null;
   const d = await premiumDietitian(admin, uid);
   if (!d) return null;

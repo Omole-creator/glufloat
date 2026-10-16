@@ -52,6 +52,7 @@ export function planById(id: string | null | undefined): HospitalPlan | undefine
 export function planName(id: string | null | undefined): string {
   if (id === "custom") return CUSTOM_PLAN_NAME;
   if (id === "pilot") return "Free pilot";
+  if (id === "doctor") return "GluFloat for doctors";
   return planById(id)?.name ?? practicePlanById(id)?.name ?? "No plan";
 }
 
@@ -149,6 +150,26 @@ export function isPractice(h: Kinded | null | undefined): boolean {
   return h?.kind === "dietitian";
 }
 
+/* ---------------------------------------------------------------------------
+ * GluFloat for doctors (2026-10-16, supabase/doctors-schema.sql). A doctor's
+ * practice is a hospital row with kind = 'doctor'. The doctor pays nothing;
+ * each patient pays GluFloat Premium themselves after the 7-day trial, and
+ * the doctor earns a care fee from it (lib/careFees.ts). So a doctor's
+ * patients are LINKED, never covered: their own trial or plan decides their
+ * access, exactly as for anybody else. The practice never runs out and has
+ * no limit on patients.
+ * ------------------------------------------------------------------------- */
+
+/** A doctor's practice. */
+export function isDoctorPractice(h: Kinded | null | undefined): boolean {
+  return h?.kind === "doctor";
+}
+
+/** A doctor's practice is open until switched off. */
+export const DOCTOR_ACCESS_UNTIL = "2999-12-31T00:00:00.000Z";
+/** No limit on a doctor's patients. */
+export const DOCTOR_SEATS = 1_000_000;
+
 /** A dietitian who signed up and has no patient yet: her 14 days have not started. */
 export function waitingForFirstPatient(h: Kinded & { status: string; access_until: string | null }): boolean {
   return isPractice(h) && h.status === "pilot" && !h.access_until;
@@ -161,6 +182,8 @@ export function acceptsPatients(h: Kinded & { status: string; access_until: stri
 
 /** The words a patient or the dashboard reads, so a dietitian is never called a hospital. */
 export function orgWords(h: Kinded | null | undefined) {
+  if (isDoctorPractice(h))
+    return { yours: "your doctor", Yours: "Your doctor", product: "for doctors", adminLabel: "Doctor" };
   const p = isPractice(h);
   return {
     /** "your hospital" / "your dietitian" */

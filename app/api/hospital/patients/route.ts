@@ -4,7 +4,7 @@ import { TARGET_MAX, TARGET_MIN, validTarget } from "@/lib/safetyFlag";
 import { newToken, restoreCarried, seatsUsed, staffContext, type PatientRow } from "@/lib/hospitalServer";
 import { normalizePhone } from "@/lib/phone";
 import { isPhoneLoginEmail } from "@/lib/phoneLogin";
-import { extendAccess, isPractice } from "@/lib/hospitalPlans";
+import { extendAccess, isDoctorPractice, isPractice } from "@/lib/hospitalPlans";
 import { practiceRuleFoodIds } from "@/lib/nextMeal";
 
 const RULE_FOODS = new Set(practiceRuleFoodIds());
@@ -126,7 +126,9 @@ export async function PATCH(request: Request) {
   // keeps its note in "rules" below.
   if (action === "note") {
     if (isPractice(ctx.hospital)) return NextResponse.json({ error: "Use \"Your advice\" for your note." }, { status: 400 });
-    if (ctx.staff.role !== "doctor" && ctx.staff.role !== "dietitian")
+    // A doctor's practice is run by the doctor (role "admin"): they write notes too.
+    const doctorPractice = isDoctorPractice(ctx.hospital);
+    if (!doctorPractice && ctx.staff.role !== "doctor" && ctx.staff.role !== "dietitian")
       return NextResponse.json({ error: "Only doctors and dietitians write notes for patients." }, { status: 403 });
     if (p.status !== "active") return NextResponse.json({ error: "This patient is not using one of your places." }, { status: 409 });
     const note = String(body.note ?? "").replace(/\r\n?/g, "\n").trim().slice(0, NOTE_MAX);
@@ -136,7 +138,7 @@ export async function PATCH(request: Request) {
             patient_row_id: p.id,
             author_id: ctx.user.id,
             author_name: ctx.staff.name,
-            author_role: ctx.staff.role,
+            author_role: doctorPractice ? "doctor" : ctx.staff.role,
             note,
             updated_at: new Date().toISOString(),
           },
@@ -202,6 +204,10 @@ export async function PATCH(request: Request) {
   /** Time left on a paused patient's countdown, frozen at the moment of the pause. */
   const savedMs = () =>
     p.paused_left_ms != null ? Math.max(0, Number(p.paused_left_ms)) : p.paid_until ? Math.max(0, new Date(p.paid_until).getTime() - Date.now()) : 0;
+
+  // A doctor's patients pay GluFloat themselves: no payment countdown or pause.
+  if ((action === "paid" || action === "pause" || action === "unpause") && isDoctorPractice(ctx.hospital))
+    return NextResponse.json({ error: "Your patients pay for GluFloat themselves." }, { status: 400 });
 
   if (action === "paid") {
     const months = Number(body.months);

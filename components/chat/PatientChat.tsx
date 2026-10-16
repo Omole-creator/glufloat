@@ -9,7 +9,7 @@ import { weightFlagLine } from "@/lib/weightTrend";
 import { CHAT_READ } from "@/lib/useChatUnread";
 
 type Team = {
-  kind: "hospital" | "practice" | "premium";
+  kind: "hospital" | "practice" | "premium" | "doctor";
   name: string;
   members: { name: string; role: string }[];
   callPhone: string | null;
@@ -71,10 +71,13 @@ export default function PatientChat({ active }: { active: boolean }) {
     );
 
   const premium = team.kind === "premium";
+  const doctor = team.kind === "doctor";
   const oneDietitian = premium || team.kind === "practice";
-  const who = oneDietitian ? "your dietitian" : "your care team";
+  const who = doctor ? "your doctor" : oneDietitian ? "your dietitian" : "your care team";
   const shown = team.members.slice(0, 3);
-  const subline = oneDietitian
+  const subline = doctor
+    ? "Your doctor"
+    : oneDietitian
     ? "Your dietitian"
     : team.members.length > 0
       ? team.members.map((m) => `${m.name} (${m.role})`).join(" · ")
@@ -111,7 +114,11 @@ export default function PatientChat({ active }: { active: boolean }) {
         </div>
         <p className="relative mt-3 inline-flex items-center gap-1.5 rounded-full bg-white/12 px-3 py-1 text-[11px] font-semibold text-white/90 ring-1 ring-inset ring-white/15">
           <Lock className="h-3 w-3" />
-          {oneDietitian ? "Only you and your dietitian can read this chat." : "Only you and your care team can read this chat."}
+          {doctor
+            ? "Only you and your doctor can read this chat."
+            : oneDietitian
+              ? "Only you and your dietitian can read this chat."
+              : "Only you and your care team can read this chat."}
         </p>
       </div>
 
@@ -140,7 +147,7 @@ export default function PatientChat({ active }: { active: boolean }) {
           postUrl="/api/chat"
           postBody={(extra) => extra}
           emptyTitle="Ask your question here"
-          emptyText={oneDietitian ? `${team.name} will reply in this chat.` : `A doctor or dietitian at ${team.name} will reply in this chat.`}
+          emptyText={oneDietitian || doctor ? `${team.name} will reply in this chat.` : `A doctor or dietitian at ${team.name} will reply in this chat.`}
           onData={() => window.dispatchEvent(new Event(CHAT_READ))}
           seed={seed}
         />
@@ -148,6 +155,8 @@ export default function PatientChat({ active }: { active: boolean }) {
         <p className="flex flex-1 items-center justify-center bg-[#f1f6fb] px-6 text-center text-sm text-ink-soft">
           {premium
             ? "Your dietitian is not ready to chat yet. Please try again later."
+            : doctor
+            ? "Your doctor is not ready to chat yet. Please try again later."
             : `${team.name} has not added a doctor or dietitian yet. Please ask your hospital.`}
         </p>
       )}
@@ -162,7 +171,9 @@ export default function PatientChat({ active }: { active: boolean }) {
             <span className="font-bold">Anything urgent?</span>{" "}
             {tel
               ? `Call ${oneDietitian ? "your dietitian" : team.name} now. Do not wait for a chat reply.`
-              : "Call your doctor or go to the nearest hospital. Do not wait for a chat reply."}
+              : doctor
+                ? "Go to the nearest hospital now. Do not wait for a chat reply."
+                : "Call your doctor or go to the nearest hospital. Do not wait for a chat reply."}
           </p>
           {tel && (
             <a

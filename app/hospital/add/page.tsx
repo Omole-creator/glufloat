@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import HospitalShell from "@/components/hospital/HospitalShell";
 import NotStaff from "@/components/hospital/NotStaff";
 import { requireStaffPage } from "@/components/hospital/requireStaff";
-import { acceptsPatients } from "@/lib/hospitalPlans";
+import { acceptsPatients, isDoctorPractice } from "@/lib/hospitalPlans";
 import { seatsUsed } from "@/lib/hospitalServer";
 import AddPatients from "./AddPatients";
 
@@ -26,7 +26,11 @@ export default async function AddPage({ searchParams }: { searchParams: Promise<
     <HospitalShell
       ctx={ctx}
       title="Add patients"
-      subtitle={`${used} of ${ctx.hospital.seats} places used. Added patients get a place when they join.`}
+      subtitle={
+        isDoctorPractice(ctx.hospital)
+          ? `${used} ${used === 1 ? "patient has" : "patients have"} joined. Each patient you add gets an invite to join you on GluFloat.`
+          : `${used} of ${ctx.hospital.seats} places used. Added patients get a place when they join.`
+      }
     >
       <AddPatients
         hid={ctx.all.length > 1 ? ctx.hospital.id : null}

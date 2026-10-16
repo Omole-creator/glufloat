@@ -455,7 +455,7 @@ export default async function AdminPage({
                         <div className="min-w-0 flex-1">
                           <p className="font-semibold text-ink">{c.name}</p>
                           <p className="text-xs text-ink-soft">
-                            {c.kind === "premium" ? "Premium dietitian" : c.kind === "practice" ? "Dietitian's practice" : "Hospital"} · {c.waiting}{" "}
+                            {c.kind === "premium" ? "Premium dietitian" : c.kind === "practice" ? "Dietitian's practice" : c.kind === "doctor" ? "Doctor" : "Hospital"} · {c.waiting}{" "}
                             {c.waiting === 1 ? "patient" : "patients"} waiting · longest {waitLabel(c.oldest)}
                           </p>
                         </div>

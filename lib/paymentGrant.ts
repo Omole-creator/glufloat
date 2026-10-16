@@ -21,6 +21,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { periodMsForAmount, tierForAmount } from "@/lib/pricing";
 import { upsertSubscription } from "@/lib/subscriptionWrite";
 import { rewardInviter } from "@/lib/referral";
+import { earnCareFees } from "@/lib/careFeesServer";
 
 export type GrantResult = "granted" | "already" | "conflict" | "no_user";
 
@@ -99,5 +100,9 @@ export async function grantPayment(
   });
 
   await rewardInviter(admin, uid, p.reference);
+  // A patient of a GluFloat doctor: the doctor's care fee, and the field agent
+  // and advisor who brought that doctor (lib/careFeesServer.ts). Here, after
+  // the lock above, so it runs once per payment. It never throws.
+  await earnCareFees(admin, { uid, reference: p.reference, amount: p.amount, paidAt: p.paidAt });
   return "granted";
 }
