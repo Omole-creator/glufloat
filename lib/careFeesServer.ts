@@ -131,7 +131,8 @@ export async function doctorsReady(admin: SupabaseClient): Promise<boolean> {
 export type EarningRow = {
   id: string;
   reference: string;
-  kind: "care" | "agent" | "advisor" | "colleague";
+  /** "dietitian": her share of a patient's payment to her (patient-pays-schema.sql). */
+  kind: "care" | "agent" | "advisor" | "colleague" | "dietitian";
   hospital_id: string | null;
   agent_id: string | null;
   source_hospital_id: string | null;

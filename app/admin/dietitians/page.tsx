@@ -10,6 +10,9 @@ import { nairaText } from "@/lib/hospitalPlans";
 import { dietitianShareNaira, isPatientPays, patientPrice } from "@/lib/patientPays";
 import { whatsappNumber, type HospitalRow } from "@/lib/hospitalServer";
 import { isInternalEmail } from "@/lib/internalAccounts";
+import { fetchAll } from "@/lib/adminFetch";
+import { earningTotals, type EarningRow, type PayoutRow } from "@/lib/careFeesServer";
+import { nairaFromKobo } from "@/lib/careFees";
 import DietitianSwitch from "./DietitianSwitch";
 
 export const dynamic = "force-dynamic";
@@ -72,6 +75,20 @@ export default async function DietitiansAdminPage() {
   const paidIn = monthPays.reduce((n, x) => n + Number(x.amount), 0) / 100;
   const toThem = monthPays.reduce((n, x) => n + Number(x.dietitian_share), 0) / 100;
 
+  // Her money, the same way the Doctors page shows a doctor's: what she is
+  // owed (not yet sent, or on its way) and what has been paid to her.
+  const [earnRes, payoutRes] = await Promise.all([
+    fetchAll<EarningRow>(() =>
+      admin.from("clinician_earnings").select("id,reference,kind,hospital_id,agent_id,source_hospital_id,patient_user_id,payment_amount,amount,earned_at,payout_id").eq("kind", "dietitian"),
+    ),
+    fetchAll<PayoutRow>(() => admin.from("earning_payouts").select("id,hospital_id,agent_id,amount,status,reference,note,created_at").not("hospital_id", "is", null)),
+  ]);
+  const moneyOf = (id: string) =>
+    earningTotals(
+      earnRes.rows.filter((e) => e.hospital_id === id).map((e) => ({ ...e, amount: Number(e.amount) })),
+      payoutRes.rows.filter((p) => p.hospital_id === id).map((p) => ({ ...p, amount: Number(p.amount) })),
+    );
+
   const on = practices.filter((p) => p.status !== "declined");
   const patients = on.reduce((n, p) => n + (counts.get(p.id)?.all ?? 0), 0);
   const withTime = on.reduce((n, p) => n + (counts.get(p.id)?.paid ?? 0), 0);
@@ -95,7 +112,7 @@ export default async function DietitiansAdminPage() {
             <p className="px-6 pb-6 text-sm text-ink-soft">No dietitians yet. They sign up at /dietitians.</p>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[760px] text-sm">
+              <table className="w-full min-w-[980px] text-sm">
                 <thead>
                   <tr className="border-y border-[#e3e9f1] bg-[#f7f9fc] text-left text-[11px] font-bold uppercase tracking-[0.06em] text-ink/50">
                     <th className="px-5 py-2.5">Dietitian</th>
@@ -103,8 +120,10 @@ export default async function DietitiansAdminPage() {
                     <th className="px-3 py-2.5">Status</th>
                     <th className="px-3 py-2.5">Price a month</th>
                     <th className="px-3 py-2.5 text-right">Patients</th>
+                    <th className="px-3 py-2.5 text-right">Owed</th>
+                    <th className="px-3 py-2.5 text-right">Paid</th>
+                    <th className="px-3 py-2.5">Bank</th>
                     <th className="px-3 py-2.5">Joined</th>
-                    <th className="px-5 py-2.5 text-right" />
                   </tr>
                 </thead>
                 <tbody>
@@ -120,22 +139,7 @@ export default async function DietitiansAdminPage() {
                           <p className="text-xs text-ink-soft">
                             {[p.contact_phone, p.contact_email, p.city].filter(Boolean).join(" · ")}
                           </p>
-                        </td>
-                        <td className="px-3 py-3 font-mono text-xs text-ink">{p.dcn_number ?? "-"}</td>
-                        <td className="px-3 py-3">
-                          <span className={`inline-block rounded-full px-2.5 py-1 text-xs font-bold ${st.tone}`}>{st.label}</span>
-                        </td>
-                        <td className="px-3 py-3 text-ink">
-                          {nairaText(patientPrice(p))}
-                          <span className="block text-xs text-ink-soft">she gets {nairaText(dietitianShareNaira(patientPrice(p)))}</span>
-                        </td>
-                        <td className="px-3 py-3 text-right text-ink">
-                          {counts.get(p.id)?.all ?? 0}
-                          <span className="block text-xs text-ink-soft">{counts.get(p.id)?.paid ?? 0} with time left</span>
-                        </td>
-                        <td className="px-3 py-3 text-ink-soft">{shortDate(p.created_at)}</td>
-                        <td className="px-5 py-3">
-                          <div className="flex justify-end gap-2">
+                          <div className="mt-2.5 flex flex-wrap gap-1.5">
                             {wa && (
                               <a
                                 href={`https://wa.me/${wa}`}
@@ -157,6 +161,33 @@ export default async function DietitiansAdminPage() {
                             <DietitianSwitch id={p.id} name={p.name} off={p.status === "declined"} />
                           </div>
                         </td>
+                        <td className="px-3 py-3 font-mono text-xs text-ink">{p.dcn_number ?? "-"}</td>
+                        <td className="px-3 py-3">
+                          <span className={`inline-block rounded-full px-2.5 py-1 text-xs font-bold ${st.tone}`}>{st.label}</span>
+                        </td>
+                        <td className="px-3 py-3 text-ink">
+                          {nairaText(patientPrice(p))}
+                          <span className="block text-xs text-ink-soft">she gets {nairaText(dietitianShareNaira(patientPrice(p)))}</span>
+                        </td>
+                        <td className="px-3 py-3 text-right text-ink">
+                          {counts.get(p.id)?.all ?? 0}
+                          <span className="block text-xs text-ink-soft">{counts.get(p.id)?.paid ?? 0} with time left</span>
+                        </td>
+                        <td className="px-3 py-3 text-right font-semibold text-ink">{nairaFromKobo(moneyOf(p.id).owed + moneyOf(p.id).sending)}</td>
+                        <td className="px-3 py-3 text-right text-ink">{nairaFromKobo(moneyOf(p.id).paid)}</td>
+                        <td className="px-3 py-3 text-xs">
+                          {p.account_number ? (
+                            <>
+                              <p className="font-semibold text-ink">{p.account_name}</p>
+                              <p className="font-mono text-ink-soft">
+                                {p.bank_name} · {p.account_number}
+                              </p>
+                            </>
+                          ) : (
+                            <span className="text-ink-soft">Not added yet</span>
+                          )}
+                        </td>
+                        <td className="px-3 py-3 text-ink-soft">{shortDate(p.created_at)}</td>
                       </tr>
                     );
                   })}

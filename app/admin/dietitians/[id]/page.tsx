@@ -11,6 +11,8 @@ import { hospitalLive, nairaText, practicePlanName, waitingForFirstPatient } fro
 import { dietitianShareNaira, isPatientPays, patientPrice } from "@/lib/patientPays";
 import FoldCard from "@/components/FoldCard";
 import EditDietitian from "./EditDietitian";
+import { earningTotals, type EarningRow, type PayoutRow } from "@/lib/careFeesServer";
+import { nairaFromKobo } from "@/lib/careFees";
 import { whatsappNumber, type HospitalRow } from "@/lib/hospitalServer";
 import { hospitalRoster } from "@/lib/hospitalRoster";
 import DietitianSwitch from "../DietitianSwitch";
@@ -43,7 +45,19 @@ export default async function DietitianAdminPage({ params }: { params: Promise<{
   const { data } = await admin.from("hospitals").select("*").eq("id", id).maybeSingle();
   if (!data || data.kind !== "dietitian") notFound();
   const p = data as HospitalRow;
-  const rows = await hospitalRoster(admin, p.id);
+  const [rows, { data: earn }, { data: pays }] = await Promise.all([
+    hospitalRoster(admin, p.id),
+    admin
+      .from("clinician_earnings")
+      .select("id,reference,kind,hospital_id,agent_id,source_hospital_id,patient_user_id,payment_amount,amount,earned_at,payout_id")
+      .eq("hospital_id", p.id)
+      .limit(5000),
+    admin.from("earning_payouts").select("id,hospital_id,agent_id,amount,status,reference,note,created_at").eq("hospital_id", p.id),
+  ]);
+  const money = earningTotals(
+    ((earn ?? []) as EarningRow[]).map((e) => ({ ...e, amount: Number(e.amount) })),
+    ((pays ?? []) as PayoutRow[]).map((x) => ({ ...x, amount: Number(x.amount) })),
+  );
   const active = rows.filter((r) => r.status === "active");
   const wa = whatsappNumber(p.contact_phone);
   const now = Date.now();
@@ -104,6 +118,20 @@ export default async function DietitianAdminPage({ params }: { params: Promise<{
             <div>
               <dt className="text-ink-soft">Email</dt>
               <dd className="font-semibold text-ink">{p.contact_email ?? "-"}</dd>
+            </div>
+            <div>
+              <dt className="text-ink-soft">Owed to her</dt>
+              <dd className="font-semibold text-ink">{nairaFromKobo(money.owed + money.sending)}</dd>
+            </div>
+            <div>
+              <dt className="text-ink-soft">Paid to her</dt>
+              <dd className="font-semibold text-ink">{nairaFromKobo(money.paid)}</dd>
+            </div>
+            <div>
+              <dt className="text-ink-soft">Bank</dt>
+              <dd className="font-semibold text-ink">
+                {p.account_number ? `${p.account_name} · ${p.bank_name} · ${p.account_number}` : "Not added yet"}
+              </dd>
             </div>
             <div>
               <dt className="text-ink-soft">Joined GluFloat</dt>
