@@ -9,7 +9,8 @@ import { doctorsReady } from "@/lib/careFeesServer";
 import { loadFieldTeam, moneyFor } from "@/lib/fieldTeam";
 import { nairaFromKobo } from "@/lib/careFees";
 import { isInternalEmail } from "@/lib/internalAccounts";
-import DoctorSwitch from "./DoctorSwitch";
+import FoldCard from "@/components/FoldCard";
+import { AddDoctorForm, DoctorActions } from "./DoctorControls";
 
 export const dynamic = "force-dynamic";
 
@@ -19,8 +20,9 @@ function shortDate(iso: string): string {
 
 /**
  * GluFloat for doctors, from GluFloat's side (2026-10-16). Doctors sign up
- * through a field agent's or a colleague's link; nothing is approved by hand.
- * This is where to see them, check MDCN numbers, and switch one off.
+ * through a field agent's or a colleague's link, or GluFloat adds them here
+ * (2026-10-17, no field agent needed); nothing is approved by hand. This is
+ * where to see them, check MDCN numbers, edit, switch off or delete one.
  */
 export default async function DoctorsAdminPage() {
   if (!(await isAdmin())) return <AdminLogin />;
@@ -58,10 +60,17 @@ export default async function DoctorsAdminPage() {
         />
       </div>
 
+      {/* Used now and then: folded once there is anybody on the list. */}
+      <FoldCard className="mt-6" title="Add a doctor" sub="No field agent needed. They get an email to set their password." open={doctors.length === 0}>
+        <AddDoctorForm
+          agents={team.agents.filter((a) => a.status === "active").map((a) => ({ id: a.id, name: a.name, role: a.role }))}
+        />
+      </FoldCard>
+
       <div className="mt-6">
         <AdminCard title="All doctors" sub="Check each MDCN number. Switch off anyone whose number does not check out." flush>
           {doctors.length === 0 ? (
-            <p className="px-6 pb-6 text-sm text-ink-soft">No doctors yet. They sign up with a field agent&apos;s link.</p>
+            <p className="px-6 pb-6 text-sm text-ink-soft">No doctors yet. Add one above, or they sign up with a field agent&apos;s link.</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[1100px] text-sm">
@@ -76,7 +85,6 @@ export default async function DoctorsAdminPage() {
                     <th className="px-3 py-2.5 text-right">Paid</th>
                     <th className="px-3 py-2.5">Bank</th>
                     <th className="px-3 py-2.5">Joined</th>
-                    <th className="px-5 py-2.5" />
                   </tr>
                 </thead>
                 <tbody>
@@ -91,6 +99,15 @@ export default async function DoctorsAdminPage() {
                             {!d.setUp && " · not set up yet"}
                             {d.status === "declined" && " · switched off"}
                           </p>
+                          <div className="mt-2.5">
+                            <DoctorActions
+                              id={d.id}
+                              name={d.name}
+                              email={d.contact_email ?? ""}
+                              mdcn={d.mdcn_number ?? ""}
+                              off={d.status === "declined"}
+                            />
+                          </div>
                         </td>
                         <td className="px-3 py-3 font-mono text-xs">{d.mdcn_number ?? "-"}</td>
                         <td className="px-3 py-3 text-xs">
@@ -117,9 +134,7 @@ export default async function DoctorsAdminPage() {
                           )}
                         </td>
                         <td className="px-3 py-3 text-xs">{shortDate(d.created_at)}</td>
-                        <td className="px-5 py-3 text-right">
-                          <DoctorSwitch id={d.id} name={d.name} off={d.status === "declined"} />
-                        </td>
+
                       </tr>
                     );
                   })}

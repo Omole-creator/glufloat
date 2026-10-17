@@ -8,8 +8,10 @@ export const metadata: Metadata = {
 };
 
 /**
- * GluFloat for doctors: reached only through a link from a field agent or a
- * colleague (/d/<code>), never from the site's menus (founder, 2026-10-16).
+ * GluFloat for doctors: reached through a link from a field agent or a
+ * colleague (/d/<code>), and since 2026-10-17 from a quiet "For doctors" line
+ * in the For professionals menu and the footer (never a home-page card). A
+ * doctor who arrives that way is credited to nobody, so only they earn.
  */
 export default function DoctorStartPage() {
   return (

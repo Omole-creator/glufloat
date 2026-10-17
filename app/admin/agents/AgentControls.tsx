@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Copy, Send } from "lucide-react";
+import { Copy, Pencil, Send, Trash2, X } from "lucide-react";
 
 type Advisor = { id: string; name: string };
 
@@ -85,11 +85,15 @@ export function AddAgentForm({ advisors }: { advisors: Advisor[] }) {
   );
 }
 
-/** The two links, copy and send, and on/off and a fresh dashboard link. */
+/** The two links, copy and send, on/off, a fresh dashboard link, edit and delete. */
 export function AgentLinks({
   id,
   name,
   phone,
+  email = null,
+  role = "agent",
+  managerId = null,
+  advisors = [],
   doctorLink,
   dashLink,
   off,
@@ -97,10 +101,18 @@ export function AgentLinks({
   id: string;
   name: string;
   phone: string | null;
+  email?: string | null;
+  role?: "agent" | "advisor";
+  managerId?: string | null;
+  /** Advisors an agent can be moved under (never themselves). */
+  advisors?: Advisor[];
   doctorLink: string;
   dashLink: string;
   off: boolean;
 }) {
+  const [editing, setEditing] = useState(false);
+  const [v, setV] = useState({ name, phone: phone ?? "", email: email ?? "", managerId: managerId ?? "" });
+  const [err, setErr] = useState("");
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
@@ -122,6 +134,39 @@ export function AgentLinks({
     if (!res.ok) return alert("That did not work. Please try again.");
     router.refresh();
   };
+
+  const save = async () => {
+    setBusy(true);
+    setErr("");
+    const res = await fetch("/api/admin/agents", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, action: "edit", ...v, managerId: role === "agent" ? v.managerId || null : null }),
+    });
+    const j = await res.json().catch(() => ({}));
+    setBusy(false);
+    if (!res.ok) return setErr(j.error ?? "That did not save.");
+    setEditing(false);
+    router.refresh();
+  };
+
+  const remove = async () => {
+    const typed = prompt(
+      `Delete ${name}? Only somebody added by mistake can be deleted: no doctors, no agents under them and no money on record. Anybody else is switched off instead.\n\nType the name to delete:`,
+    );
+    if (typed == null) return;
+    setBusy(true);
+    const res = await fetch("/api/admin/agents", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, confirmName: typed }),
+    });
+    const j = await res.json().catch(() => ({}));
+    setBusy(false);
+    if (!res.ok) return alert(j.error ?? "Could not delete.");
+    router.refresh();
+  };
+  const box = "mt-1 h-11 w-full rounded-xl border border-line bg-white px-3 text-sm outline-none focus:border-brand";
 
   const copy = async (text: string, which: string) => {
     try {
@@ -184,7 +229,76 @@ export function AgentLinks({
         >
           {off ? "Switch on" : "Switch off"}
         </button>
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => setEditing(true)}
+          aria-label={`Edit ${name}`}
+          className="inline-flex items-center gap-1 rounded-full border border-line px-3.5 py-1.5 text-xs font-bold text-ink hover:border-brand disabled:opacity-50"
+        >
+          <Pencil className="h-3 w-3" /> Edit
+        </button>
+        <button
+          type="button"
+          disabled={busy}
+          onClick={remove}
+          aria-label={`Delete ${name}`}
+          className="inline-flex items-center gap-1 rounded-full border border-verdict-red/30 px-3.5 py-1.5 text-xs font-bold text-verdict-red hover:bg-verdict-red/10 disabled:opacity-50"
+        >
+          <Trash2 className="h-3 w-3" /> Delete
+        </button>
       </div>
+
+      {editing && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 px-4" onClick={() => setEditing(false)}>
+          <form
+            onClick={(e) => e.stopPropagation()}
+            onSubmit={(e) => {
+              e.preventDefault();
+              void save();
+            }}
+            className="w-full max-w-md rounded-2xl bg-white p-6 text-left shadow-xl"
+          >
+            <div className="flex items-center justify-between">
+              <h3 className="font-display text-lg font-bold text-ink">Edit {name}</h3>
+              <button type="button" onClick={() => setEditing(false)} aria-label="Close" className="rounded-full p-1 text-ink-soft hover:bg-mist">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="mt-4 space-y-3">
+              <label className="block text-xs font-semibold text-ink-soft">
+                Name
+                <input value={v.name} onChange={(e) => setV({ ...v, name: e.target.value })} required className={box} />
+              </label>
+              <label className="block text-xs font-semibold text-ink-soft">
+                WhatsApp number
+                <input value={v.phone} onChange={(e) => setV({ ...v, phone: e.target.value })} inputMode="tel" className={box} />
+              </label>
+              <label className="block text-xs font-semibold text-ink-soft">
+                Email (optional)
+                <input value={v.email} onChange={(e) => setV({ ...v, email: e.target.value })} type="email" className={box} />
+              </label>
+              {role === "agent" && (
+                <label className="block text-xs font-semibold text-ink-soft">
+                  Their advisor
+                  <select value={v.managerId} onChange={(e) => setV({ ...v, managerId: e.target.value })} className={box}>
+                    <option value="">No advisor</option>
+                    {advisors.filter((a) => a.id !== id).map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {a.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
+            </div>
+            {err && <p className="mt-2 text-sm font-semibold text-verdict-red">{err}</p>}
+            <button disabled={busy} className="mt-5 h-11 w-full rounded-full bg-leaf text-sm font-bold text-white hover:bg-leaf-deep disabled:opacity-50">
+              {busy ? "Saving..." : "Save changes"}
+            </button>
+          </form>
+        </div>
+      )}
     </div>
   );
 }

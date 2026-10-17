@@ -53,6 +53,7 @@ const COLUMNS: { title: string; links: { href: string; label: string }[] }[] = [
     links: [
       { href: "/hospitals", label: "For hospitals and clinics" },
       { href: "/dietitians", label: "For dietitians" },
+      { href: "/doctors/start", label: "For doctors" },
     ],
   },
   {

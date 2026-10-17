@@ -281,6 +281,17 @@ export default function Navbar() {
                 <span className="mt-0.5 text-xs leading-snug text-white/80">Free 30-day pilot</span>
               </Link>
             </div>
+            {/* Doctors: a slim row, not a third card (founder, 2026-10-17). */}
+            <Link
+              href="/doctors/start"
+              onClick={() => setMenuOpen(false)}
+              className="mt-2.5 flex items-center justify-between rounded-2xl bg-white px-4 py-3 text-sm font-bold text-ink ring-1 ring-ink/[0.05] active:scale-[0.99]"
+            >
+              <span>
+                For doctors <span className="font-normal text-ink-soft">· join GluFloat</span>
+              </span>
+              <ChevronRight className="h-4 w-4 text-ink-soft" />
+            </Link>
 
             <p className="mt-5 px-1 text-[11px] font-bold uppercase tracking-[0.14em] text-ink-soft">GluFloat</p>
             <div className="mt-2 overflow-hidden rounded-3xl bg-white ring-1 ring-ink/[0.05]">

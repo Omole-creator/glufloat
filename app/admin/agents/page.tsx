@@ -110,6 +110,10 @@ export default async function AgentsAdminPage() {
                   id={a.id}
                   name={a.name}
                   phone={a.phone}
+                  email={a.email ?? null}
+                  role={a.role}
+                  managerId={a.manager_id ?? null}
+                  advisors={advisors.filter((x) => x.status === "active").map((x) => ({ id: x.id, name: x.name }))}
                   doctorLink={`${SITE_URL}/d/${a.ref_code}`}
                   dashLink={`${SITE_URL}/agent/${a.dash_token}`}
                   off={off}

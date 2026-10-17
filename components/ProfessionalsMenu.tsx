@@ -2,11 +2,14 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, Hospital, Stethoscope } from "lucide-react";
+import { BriefcaseMedical, ChevronDown, Hospital, Stethoscope } from "lucide-react";
 
 const ITEMS = [
   { href: "/hospitals", label: "For hospitals", sub: "Care for your patients between visits", icon: Hospital },
   { href: "/dietitians", label: "For dietitians", sub: "Support your patients beyond the clinic", icon: Stethoscope },
+  // A line, not a home-page card (founder, 2026-10-17: doctors had asked how
+  // to join). Opens the doctor sign-up directly; there is no /doctors page.
+  { href: "/doctors/start", label: "For doctors", sub: "Look after your patients between visits", icon: BriefcaseMedical },
 ];
 
 /**
