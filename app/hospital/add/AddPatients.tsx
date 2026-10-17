@@ -25,7 +25,18 @@ function parseList(text: string): Patient[] {
     });
 }
 
-export default function AddPatients({ hid, open, backHref }: { hid: string | null; open: boolean; backHref: string }) {
+export default function AddPatients({
+  hid,
+  open,
+  backHref,
+  patientPays = false,
+}: {
+  hid: string | null;
+  open: boolean;
+  backHref: string;
+  /** A dietitian whose patients pay her in the app (patient-pays-schema.sql). */
+  patientPays?: boolean;
+}) {
   const [mode, setMode] = useState<"one" | "many">("one");
   const [one, setOne] = useState<Patient>({ name: "", phone: "", email: "" });
   const [text, setText] = useState("");
@@ -172,7 +183,9 @@ export default function AddPatients({ hid, open, backHref }: { hid: string | nul
             "Each patient appears on your list as Invited.",
             "Tap Send invite. Their own link opens in WhatsApp, ready to send.",
             "They open it, check their phone number and choose a password. No email needed.",
-            "They get everything in GluFloat Premium, and your doctors and dietitians see their record.",
+            patientPays
+              ? "Their first 14 days are free. Then they pay you inside GluFloat, every month, at your price."
+              : "They get everything in GluFloat Premium, and your doctors and dietitians see their record.",
           ].map((s, i) => (
             <li key={i} className="flex gap-3">
               <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-leaf text-xs font-bold text-white">{i + 1}</span>
@@ -181,7 +194,7 @@ export default function AddPatients({ hid, open, backHref }: { hid: string | nul
           ))}
         </ol>
         <p className="mt-5 rounded-xl bg-white/10 px-3.5 py-3 text-sm text-white/85">
-          Patients can also join on their own with your QR code. Print it from Plan and QR code.
+          Patients can also join on their own with your QR code. Print it from {patientPays ? "Price and earnings" : "Plan and QR code"}.
         </p>
       </aside>
     </div>

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import AuthShell from "@/components/auth/AuthShell";
-import { PRACTICE_TRIAL_DAYS, PRACTICE_TRIAL_SEATS } from "@/lib/hospitalPlans";
+import { PATIENT_FREE_DAYS } from "@/lib/patientPays";
 import StartForm from "./StartForm";
 
 export const metadata: Metadata = {
@@ -11,9 +11,9 @@ export const metadata: Metadata = {
 export default function DietitianStartPage() {
   return (
     <AuthShell
-      title={`Start your ${PRACTICE_TRIAL_DAYS} free days`}
+      title="Start GluFloat for your patients"
       sideTitle="GluFloat for dietitians"
-      subtitle={`For ${PRACTICE_TRIAL_SEATS} patients. Your ${PRACTICE_TRIAL_DAYS} days start when your first patient joins. No payment to start.`}
+      subtitle={`No payment to start. You set your price. Each patient gets ${PATIENT_FREE_DAYS} free days, then pays you inside GluFloat.`}
     >
       <StartForm />
     </AuthShell>

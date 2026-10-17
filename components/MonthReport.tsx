@@ -21,14 +21,16 @@ import {
   askForReading,
   deleteReading,
   looseMonthReadings,
+  recentReadings,
 } from "@/lib/glucoseLog";
 import { type Hba1c, deleteHba1c, formatHba1c, latestHba1c } from "@/lib/hba1c";
-import { currentWeightFlag } from "@/lib/weighIn";
+import { currentWeightFlag, weightHistory } from "@/lib/weighIn";
 import { weightFlagLine } from "@/lib/weightTrend";
 import { formatChange, mealTestNumber, minutesLabel } from "@/lib/mealResponse";
 import { mealTestReport, periodLabel, trendPoints } from "@/lib/mealTestReport";
 import { accessOnce } from "@/lib/useAccess";
 import SugarTrend from "./SugarTrend";
+import WeightTrend from "./WeightTrend";
 
 // Glufloat brand colours (from app/globals.css), as RGB for jsPDF.
 const BRAND = [27, 95, 170] as const; // --blue
@@ -80,6 +82,10 @@ export type ReportViewer = {
     loose: Reading[];
     hba1c: Hba1c | null;
     weightLine: string | null;
+    /** Every sugar test in the 3 months up to the month on screen, oldest first. */
+    trend?: Reading[];
+    /** Every weight saved up to then, oldest first. */
+    weights?: { kg: number; at: string }[];
   }>;
 };
 
@@ -104,6 +110,10 @@ export default function MonthReport({
   const [hba1c, setHba1c] = useState<Hba1c | null>(null);
   // Weight gone the wrong way 2 months running, for a clinician to look at.
   const [weightLine, setWeightLine] = useState<string | null>(null);
+  // The report's two graphs (founder, 2026-10-17): every sugar test in the
+  // last 3 months, and every weight saved. Shown at the top, and in the PDF.
+  const [trend, setTrend] = useState<Reading[]>([]);
+  const [weights, setWeights] = useState<{ kg: number; at: string }[]>([]);
   const [busy, setBusy] = useState(false);
   /** Which part of the report is on screen. Null until the person picks one. */
   const [tab, setTab] = useState<ReportView | null>(null);
@@ -142,6 +152,8 @@ export default function MonthReport({
         setLoose(d.loose);
         setHba1c(d.hba1c);
         setWeightLine(d.weightLine);
+        setTrend(d.trend ?? []);
+        setWeights(d.weights ?? []);
       });
       return () => {
         alive = false;
@@ -152,6 +164,8 @@ export default function MonthReport({
       void looseMonthReadings().then(setLoose);
       void latestHba1c().then(setHba1c);
       void currentWeightFlag().then((f) => setWeightLine(f ? weightFlagLine(f) : null));
+      void recentReadings().then((r) => setTrend([...r].sort((a, b) => a.takenAt.localeCompare(b.takenAt))));
+      void weightHistory().then(setWeights);
     };
     load();
     window.addEventListener(READINGS_CHANGED, load);
@@ -167,7 +181,7 @@ export default function MonthReport({
   const list = items ?? [];
   // A reading on its own is a report too. Somebody who tests first thing in the
   // morning and logs nothing else still has something worth handing over.
-  const hasData = list.length > 0 || loose.length > 0 || hba1c !== null || weightLine !== null;
+  const hasData = list.length > 0 || loose.length > 0 || hba1c !== null || weightLine !== null || weights.length > 1 || trend.length > 0;
   const anyReadings =
     loose.length > 0 ||
     hba1c !== null ||
@@ -175,6 +189,9 @@ export default function MonthReport({
   // The dietitian's Meal–Glucose Report: one builder for screen, PDF and text.
   const report = mealTestReport(list);
   const points = trendPoints(list, loose);
+  // The sugar line: the last 3 months. A server from before the graphs were
+  // added sends none, so the month's own tests stand in.
+  const sugarLine = trend.length >= 2 ? trend : points;
   const period = viewer?.period ?? periodLabel();
   const readOnly = !!viewer;
   const tally = (items: CheckedMeal[]) => ({
@@ -409,43 +426,58 @@ export default function MonthReport({
       y += 4;
     }
 
-    // ---- The sugar trend, every test this month as one line -------------
-    if (points.length >= 2) {
+    // ---- The graphs: sugar over 3 months, weight over time ---------------
+    // One line each, one colour, no target band: the numbers, never a grade.
+    const drawLine = (title: string, unit: string, ats: string[], vs: number[], step: number, label: (iso: string) => string) => {
+      if (vs.length < 2) return;
       nextPageIfNeeded(215);
-      band("All sugar tests this month", "mg/dL");
+      band(title, unit);
       const gx = M + 12;
       const gw = 166;
       const gh = 40;
       const gy = y;
-      const ts = points.map((p) => new Date(p.takenAt).getTime());
+      const ts = ats.map((a) => new Date(a).getTime());
       const t0 = Math.min(...ts);
       const t1 = Math.max(...ts);
-      const vs = points.map((p) => p.mgdl);
-      const lo = Math.floor((Math.min(...vs) - 10) / 20) * 20;
-      const hi = Math.ceil((Math.max(...vs) + 10) / 20) * 20;
+      const lo = Math.floor((Math.min(...vs) - step / 2) / step) * step;
+      const hi = Math.ceil((Math.max(...vs) + step / 2) / step) * step;
       const px = (t: number) => gx + ((t - t0) / Math.max(1, t1 - t0)) * gw;
-      const py = (v: number) => gy + (1 - (v - lo) / Math.max(1, hi - lo)) * gh;
+      const py = (v: number) => gy + (1 - (v - lo) / Math.max(1e-9, hi - lo)) * gh;
       doc.setDrawColor(225);
       doc.setLineWidth(0.2);
       doc.setFontSize(7);
       doc.setTextColor(120);
-      for (const v of [lo, Math.round((lo + hi) / 2), hi]) {
+      for (const v of [lo, Math.round(((lo + hi) / 2) * 10) / 10, hi]) {
         doc.line(gx, py(v), gx + gw, py(v));
         doc.text(String(v), gx - 2, py(v) + 1, { align: "right" });
       }
       doc.setDrawColor(BRAND[0], BRAND[1], BRAND[2]);
       doc.setLineWidth(0.6);
-      for (let k = 1; k < points.length; k++) {
-        doc.line(px(ts[k - 1]), py(vs[k - 1]), px(ts[k]), py(vs[k]));
-      }
+      for (let k = 1; k < vs.length; k++) doc.line(px(ts[k - 1]), py(vs[k - 1]), px(ts[k]), py(vs[k]));
       fill(BRAND);
-      for (let k = 0; k < points.length; k++) doc.circle(px(ts[k]), py(vs[k]), 0.9, "F");
+      for (let k = 0; k < vs.length; k++) doc.circle(px(ts[k]), py(vs[k]), 0.9, "F");
       doc.setLineWidth(0.2);
       doc.setTextColor(120);
-      doc.text(readingWhen(points[0].takenAt), gx, gy + gh + 5);
-      doc.text(readingWhen(points[points.length - 1].takenAt), gx + gw, gy + gh + 5, { align: "right" });
+      doc.text(label(ats[0]), gx, gy + gh + 5);
+      doc.text(label(ats[ats.length - 1]), gx + gw, gy + gh + 5, { align: "right" });
       y = gy + gh + 13;
-    }
+    };
+    drawLine(
+      trend.length >= 2 ? "Sugar tests, last 3 months" : "All sugar tests this month",
+      "mg/dL",
+      sugarLine.map((p) => p.takenAt),
+      sugarLine.map((p) => p.mgdl),
+      20,
+      readingWhen,
+    );
+    drawLine(
+      "Weight, every time it was saved",
+      "kg",
+      weights.map((w) => w.at),
+      weights.map((w) => w.kg),
+      2,
+      (iso) => new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }),
+    );
 
     // ---- Meal pattern and observations ------------------------------------
     if (report.rows.length > 0 && report.pattern.length > 0) {
@@ -779,6 +811,21 @@ export default function MonthReport({
             </div>
           )}
 
+          {/* The graphs, at the top so nobody has to find them (founder,
+              2026-10-17): sugar over the last 3 months, and weight. */}
+          {(sugarLine.length >= 2 || weights.length >= 2) && (
+            <div className="mt-4 space-y-5 rounded-2xl bg-mist/40 p-4 ring-1 ring-inset ring-line/60">
+              {sugarLine.length >= 2 && (
+                <SugarTrend
+                  points={sugarLine}
+                  title={trend.length >= 2 ? "Sugar tests, last 3 months" : "Sugar tests this month"}
+                  span={trend.length >= 2 ? "in the last 3 months" : "this month"}
+                />
+              )}
+              {weights.length >= 2 && <WeightTrend points={weights} />}
+            </div>
+          )}
+
           <div role="tablist" aria-label="What to show" className="mt-5 grid grid-cols-3 gap-1 rounded-full bg-mist p-1">
             {TABS.map((t) => (
               <button
@@ -952,9 +999,8 @@ export default function MonthReport({
             {/* ---- Sugar tests: the line, the other tests, the 3-month test ---- */}
             {view === "sugar" && (
               <>
-                {points.length >= 2 ? (
-                  <SugarTrend points={points} />
-                ) : (
+                {/* The line itself sits at the top of the report now. */}
+                {sugarLine.length < 2 && (
                   <p className="rounded-2xl bg-mist/70 px-4 py-6 text-center text-sm text-ink-soft">
                     Save 2 or more sugar tests to see them as a line.
                   </p>

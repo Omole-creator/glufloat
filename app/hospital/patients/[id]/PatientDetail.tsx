@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight, Phone, Pill, Scale, Send, UserRound, Droplet
 import { SITE_URL } from "@/lib/site";
 import MonthReport, { type ReportViewer } from "@/components/MonthReport";
 import SugarTrend from "@/components/SugarTrend";
+import WeightTrend from "@/components/WeightTrend";
 import { watMonth, type PatientProfile } from "@/lib/patientRecord";
 import type { Hba1c } from "@/lib/hba1c";
 import { formatBoth, formatMgdl, type Reading } from "@/lib/glucose";
@@ -83,6 +84,8 @@ export default function PatientDetail({
           loose: res.ok ? j.loose ?? [] : [],
           hba1c: res.ok ? j.hba1c ?? null : null,
           weightLine: res.ok ? j.weightLine ?? null : null,
+          trend: res.ok ? j.trend ?? [] : [],
+          weights: res.ok ? j.weights ?? [] : [],
         };
       },
     }),
@@ -195,6 +198,11 @@ ${SITE_URL}/hospital/patients/${patientId}`,
             <Row k="BMI" v={b ? `${b.toFixed(1)}, ${BMI_WORD[bmiCategory(b)]}` : "Not given"} />
           </dl>
           {weightLine && <p className="mt-3 rounded-xl bg-verdict-yellow/15 px-3 py-2 text-sm text-ink">{weightLine}</p>}
+          {weights.length > 1 && (
+            <div className="mt-4">
+              <WeightTrend points={weights} />
+            </div>
+          )}
           {weights.length > 1 && (
             <ul className="mt-3 space-y-1 text-xs text-ink-soft">
               {weights.slice(-6).reverse().map((w) => (

@@ -6,15 +6,8 @@ import AdminShell from "../AdminShell";
 import AdminHero from "../AdminHero";
 import AdminCard from "../AdminCard";
 import Link from "next/link";
-import {
-  hospitalLive,
-  nairaText,
-  practicePlanById,
-  practicePlanName,
-  practiceYearly,
-  PRACTICE_CUSTOM_PER_PATIENT,
-  waitingForFirstPatient,
-} from "@/lib/hospitalPlans";
+import { nairaText } from "@/lib/hospitalPlans";
+import { dietitianShareNaira, isPatientPays, patientPrice } from "@/lib/patientPays";
 import { whatsappNumber, type HospitalRow } from "@/lib/hospitalServer";
 import { isInternalEmail } from "@/lib/internalAccounts";
 import DietitianSwitch from "./DietitianSwitch";
@@ -24,8 +17,9 @@ export const dynamic = "force-dynamic";
 /**
  * GluFloat for dietitians, from GluFloat's side (2026-10-13). Dietitians sign
  * up themselves at /dietitians/start; this is where their DCN numbers are
- * checked and where one that does not check out is switched off. Payments
- * are Paystack, so there is nothing to invoice here.
+ * checked and where one that does not check out is switched off. Since
+ * 2026-10-17 (patient-pays-schema.sql) her patients pay her inside the app at
+ * her own price; GluFloat keeps N2,000 of each payment. Nothing to invoice.
  */
 
 function shortDate(iso: string | null): string {
@@ -35,10 +29,8 @@ function shortDate(iso: string | null): string {
 
 function statusOf(p: HospitalRow): { label: string; tone: string } {
   if (p.status === "declined") return { label: "Switched off", tone: "bg-verdict-red/10 text-verdict-red" };
-  if (waitingForFirstPatient(p)) return { label: "No patient yet", tone: "bg-verdict-yellow/20 text-ink" };
-  if (!hospitalLive(p)) return { label: `Ended ${shortDate(p.access_until)}`, tone: "bg-ink/5 text-ink-soft" };
-  if (p.status === "pilot") return { label: `Free until ${shortDate(p.access_until)}`, tone: "bg-brand/10 text-brand" };
-  return { label: `Paid until ${shortDate(p.access_until)}`, tone: "bg-leaf/10 text-leaf-deep" };
+  if (!isPatientPays(p)) return { label: "Old plan (run #32)", tone: "bg-verdict-yellow/20 text-ink" };
+  return { label: "Open", tone: "bg-leaf/10 text-leaf-deep" };
 }
 
 export default async function DietitiansAdminPage() {
@@ -57,37 +49,42 @@ export default async function DietitiansAdminPage() {
     );
   }
 
-  const [{ data: ps }, { data: pats }] = await Promise.all([
+  const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
+  const [{ data: ps }, { data: pats }, payRes] = await Promise.all([
     admin.from("hospitals").select("*").eq("kind", "dietitian").order("created_at", { ascending: false }),
-    admin.from("hospital_patients").select("hospital_id,status").in("status", ["active", "waiting", "invited"]),
+    admin.from("hospital_patients").select("hospital_id,status,paid_until").in("status", ["active", "paused"]),
+    admin.from("patient_payments").select("hospital_id,amount,dietitian_share,paid_at").gte("paid_at", monthStart),
   ]);
   // Test accounts (any @glufloat.com email) are left out, like every admin number.
   const practices = ((ps ?? []) as HospitalRow[]).filter((p) => !isInternalEmail(p.contact_email ?? ""));
-  const counts = new Map<string, number>();
-  for (const p of pats ?? []) if (p.status === "active") counts.set(p.hospital_id as string, (counts.get(p.hospital_id as string) ?? 0) + 1);
+  const mine = new Set(practices.map((p) => p.id));
+  const now = Date.now();
+  const counts = new Map<string, { all: number; paid: number }>();
+  for (const p of (pats ?? []) as { hospital_id: string; status: string; paid_until: string | null }[]) {
+    const c = counts.get(p.hospital_id) ?? { all: 0, paid: 0 };
+    c.all += 1;
+    if (p.status === "active" && p.paid_until && new Date(p.paid_until).getTime() > now) c.paid += 1;
+    counts.set(p.hospital_id, c);
+  }
+  // Patient payments this month (none before #32 runs: the table is missing).
+  const pays = ((payRes.error ? [] : payRes.data) ?? []) as { hospital_id: string | null; amount: number; dietitian_share: number }[];
+  const monthPays = pays.filter((x) => x.hospital_id && mine.has(x.hospital_id));
+  const paidIn = monthPays.reduce((n, x) => n + Number(x.amount), 0) / 100;
+  const toThem = monthPays.reduce((n, x) => n + Number(x.dietitian_share), 0) / 100;
 
   const on = practices.filter((p) => p.status !== "declined");
-  const live = on.filter((p) => hospitalLive(p));
-  const paying = live.filter((p) => p.status === "active");
-  const covered = live.reduce((n, p) => n + (counts.get(p.id) ?? 0), 0);
-  // A yearly plan counts as a twelfth of its yearly price, like hospitals.
-  const monthlyValue = paying.reduce((n, p) => {
-    const plan = practicePlanById(p.plan);
-    // A custom plan is counted at its places times N1,600 (the invoice may differ).
-    const monthly = plan ? plan.monthly : p.plan === "custom" ? p.seats * PRACTICE_CUSTOM_PER_PATIENT : 0;
-    const yearlyPrice = plan ? practiceYearly(plan) : monthly * 10;
-    return n + (p.billing === "annual" ? yearlyPrice / 12 : monthly);
-  }, 0);
+  const patients = on.reduce((n, p) => n + (counts.get(p.id)?.all ?? 0), 0);
+  const withTime = on.reduce((n, p) => n + (counts.get(p.id)?.paid ?? 0), 0);
 
   return (
     <AdminShell title="Dietitians" subtitle="GluFloat for dietitians" icon={<Stethoscope className="h-5 w-5" />}>
       <div className="mt-6">
         <AdminHero
           items={[
-            { label: "Dietitians", value: String(on.length), sub: `${on.filter((p) => waitingForFirstPatient(p)).length} with no patient yet` },
-            { label: "Free days running", value: String(live.filter((p) => p.status === "pilot").length), sub: "first patient joined" },
-            { label: "Paying", value: String(paying.length), sub: `${nairaText(monthlyValue)} a month` },
-            { label: "Patients covered", value: covered.toLocaleString(), sub: "using a place now" },
+            { label: "Dietitians", value: String(on.length), sub: `${on.filter((p) => (counts.get(p.id)?.all ?? 0) === 0).length} with no patient yet` },
+            { label: "Their patients", value: patients.toLocaleString(), sub: `${withTime} with time left` },
+            { label: "Paid by patients", value: nairaText(paidIn), sub: `this month, ${monthPays.length} ${monthPays.length === 1 ? "payment" : "payments"}` },
+            { label: "GluFloat kept", value: nairaText(paidIn - toThem), sub: `${nairaText(toThem)} to dietitians` },
           ]}
         />
       </div>
@@ -104,7 +101,7 @@ export default async function DietitiansAdminPage() {
                     <th className="px-5 py-2.5">Dietitian</th>
                     <th className="px-3 py-2.5">DCN number</th>
                     <th className="px-3 py-2.5">Status</th>
-                    <th className="px-3 py-2.5">Plan</th>
+                    <th className="px-3 py-2.5">Price a month</th>
                     <th className="px-3 py-2.5 text-right">Patients</th>
                     <th className="px-3 py-2.5">Joined</th>
                     <th className="px-5 py-2.5 text-right" />
@@ -129,10 +126,12 @@ export default async function DietitiansAdminPage() {
                           <span className={`inline-block rounded-full px-2.5 py-1 text-xs font-bold ${st.tone}`}>{st.label}</span>
                         </td>
                         <td className="px-3 py-3 text-ink">
-                          {p.plan && p.plan !== "pilot" ? `${practicePlanName(p.plan)}${p.billing === "annual" ? ", yearly" : ""}` : "Free days"}
+                          {nairaText(patientPrice(p))}
+                          <span className="block text-xs text-ink-soft">she gets {nairaText(dietitianShareNaira(patientPrice(p)))}</span>
                         </td>
                         <td className="px-3 py-3 text-right text-ink">
-                          {counts.get(p.id) ?? 0} of {p.seats}
+                          {counts.get(p.id)?.all ?? 0}
+                          <span className="block text-xs text-ink-soft">{counts.get(p.id)?.paid ?? 0} with time left</span>
                         </td>
                         <td className="px-3 py-3 text-ink-soft">{shortDate(p.created_at)}</td>
                         <td className="px-5 py-3">
@@ -149,11 +148,11 @@ export default async function DietitiansAdminPage() {
                               </a>
                             )}
                             <Link
-                              href={`/admin/hospitals/${p.id}`}
-                              aria-label={`Custom plan invoice for ${p.name}`}
+                              href={`/admin/dietitians/${p.id}#edit`}
+                              aria-label={`Edit ${p.name}`}
                               className="rounded-full border border-line px-3 py-1.5 text-xs font-bold text-ink hover:border-brand"
                             >
-                              Invoice
+                              Edit
                             </Link>
                             <DietitianSwitch id={p.id} name={p.name} off={p.status === "declined"} />
                           </div>

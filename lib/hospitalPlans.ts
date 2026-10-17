@@ -53,6 +53,8 @@ export function planName(id: string | null | undefined): string {
   if (id === "custom") return CUSTOM_PLAN_NAME;
   if (id === "pilot") return "Free pilot";
   if (id === "doctor") return "GluFloat for doctors";
+  // A dietitian whose patients pay her in the app (patient-pays-schema.sql).
+  if (id === "patient_pays") return "Patients pay you";
   return planById(id)?.name ?? practicePlanById(id)?.name ?? "No plan";
 }
 

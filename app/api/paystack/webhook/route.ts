@@ -5,6 +5,7 @@ import { tierForAmount } from "@/lib/pricing";
 import { grantPayment } from "@/lib/paymentGrant";
 import { practicePlanForAmount } from "@/lib/hospitalPlans";
 import { grantPracticePayment } from "@/lib/practicePayment";
+import { grantPatientPayment, isPatientPayment, readMetadata } from "@/lib/patientPaysServer";
 import { upsertSubscription } from "@/lib/subscriptionWrite";
 
 export const dynamic = "force-dynamic";
@@ -55,7 +56,19 @@ export async function POST(request: Request) {
     return p?.id ?? null;
   }
 
-  if (type === "charge.success" && practicePlanForAmount(data.amount)) {
+  const meta = readMetadata(data.metadata);
+  if (type === "charge.success" && isPatientPayment(meta)) {
+    // A patient paying their dietitian: the person is the one GluFloat's own
+    // server named when it started the payment (lib/patientPaysServer.ts).
+    if (typeof meta.user_id === "string" && meta.user_id)
+      await grantPatientPayment(admin, {
+        uid: meta.user_id,
+        reference: data.reference,
+        amount: data.amount,
+        paidAt: data.paid_at || new Date().toISOString(),
+        meta,
+      });
+  } else if (type === "charge.success" && practicePlanForAmount(data.amount)) {
     // A dietitian paying for her practice: never a patient subscription.
     await grantPracticePayment(admin, {
       uid: await payerUserId(),

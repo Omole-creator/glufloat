@@ -18,13 +18,13 @@ import {
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { PRACTICE_TRIAL_DAYS, PRACTICE_TRIAL_SEATS } from "@/lib/hospitalPlans";
-import PracticePricing from "@/components/dietitian/PracticePricing";
+import { GLUFLOAT_SHARE, naira, PATIENT_FREE_DAYS, PATIENT_PRICE_MIN } from "@/lib/patientPays";
+import EarningsCalculator from "@/components/dietitian/EarningsCalculator";
 
 export const metadata: Metadata = {
   title: "GluFloat for Dietitians | Support Your Diabetes Patients Between Visits",
   description:
-    "Give your patients GluFloat Premium and see every meal and sugar test they save, from your own dashboard. 14 free days for 5 patients.",
+    "Give your patients GluFloat Premium and see every meal and sugar test they save. Set your own price: your patients pay you inside GluFloat.",
   alternates: { canonical: "/dietitians" },
 };
 
@@ -34,9 +34,11 @@ export const metadata: Metadata = {
  * link to /dietitians/start or down the page.
  *
  * The promise this page makes and the product keeps: her patients chat only
- * with her (lib/hospitalServer.ts chatContacts), see no GluFloat payment
- * links while she covers them (lib/account.ts, the "hospital" Access), and
- * she sets her own price (GluFloat never sees it).
+ * with her (lib/hospitalServer.ts chatContacts), see only HER price, never
+ * GluFloat's plans (lib/account.ts, `practice` on "expired"), and pay her
+ * inside the app at the price she sets, with GluFloat keeping N2,000 of each
+ * payment (lib/patientPays.ts, founder 2026-10-17). Every number on this
+ * page is read from lib/patientPays.ts.
  */
 
 const H2 = "mx-auto mt-4 max-w-3xl text-balance text-center font-display text-3xl font-bold leading-tight tracking-tight text-ink sm:text-[2.5rem]";
@@ -82,7 +84,7 @@ function DashboardPreview() {
       </div>
       <div className="mt-3 grid grid-cols-3 gap-2">
         {[
-          ["Places used", "8 of 10"],
+          ["Patients", "8"],
           ["Used this week", "7"],
           ["Meals saved", "312"],
         ].map(([k, v]) => (
@@ -120,8 +122,8 @@ export default function DietitiansPage() {
     },
     {
       icon: Wallet,
-      title: "Run it your way",
-      text: "Add GluFloat to the care you already give, in the way that suits your practice. GluFloat charges you one plan price.",
+      title: "You set the price",
+      text: `Choose what each patient pays you every month. GluFloat keeps ${naira(GLUFLOAT_SHARE)} of each payment, and the rest is paid to your bank every week.`,
     },
     {
       icon: Stethoscope,
@@ -132,7 +134,7 @@ export default function DietitiansPage() {
   const steps = [
     { icon: BadgeCheck, title: "Start free", text: "Give your name, your DCN registration number and your WhatsApp number. It takes 2 minutes." },
     { icon: UserPlus, title: "Invite your patients", text: "Send each patient their own link on WhatsApp, or share your QR code. They join with their phone number." },
-    { icon: ClipboardList, title: "Review before each visit", text: "Open any patient and see every meal and sugar test since you last saw them." },
+    { icon: ClipboardList, title: "Review before each visit", text: `Each patient gets ${PATIENT_FREE_DAYS} free days, then pays you inside GluFloat. Open any patient to see every meal and sugar test.` },
   ];
   const patientGets = [
     { icon: Utensils, text: "A meal picked for them for breakfast, lunch and dinner" },
@@ -142,20 +144,31 @@ export default function DietitiansPage() {
   ];
   const youGet = [
     { icon: Users, text: "See all your patients in one list, and the last day each one used GluFloat" },
-    { icon: FileText, text: "A report for each patient every month, ready to print" },
+    { icon: FileText, text: "A report for each patient every month, ready to print, with their sugar and weight as graphs" },
+    { icon: ShieldCheck, text: "A mark on any patient with a very low or very high sugar test, so you know who to check first" },
+    { icon: Stethoscope, text: "Each patient's medicine, weight and how active they are" },
+    { icon: Wallet, text: "What each patient paid you, and your money sent to your bank every week" },
     { icon: MessageCircle, text: "Read and answer your patients' messages. New ones are marked. Only you and the patient can see them" },
     { icon: ClipboardList, text: "Write a note that your patient sees at the top of their app" },
     { icon: QrCode, text: "Your own QR code and links to invite patients" },
-    { icon: ShieldCheck, text: "Only you can see your patients' records" },
+    { icon: HeartHandshake, text: "Only you can see your patients' records" },
   ];
   const faqs = [
     {
-      q: "Who pays GluFloat?",
-      a: "You do, one plan price a month or a year. Your patients do not pay GluFloat anything while you cover them.",
+      q: "Who pays?",
+      a: `Your patients pay you, inside GluFloat, at the price you set. You pay GluFloat nothing. GluFloat keeps ${naira(GLUFLOAT_SHARE)} of each payment and sends the rest to your bank every week.`,
     },
     {
-      q: `What happens after the ${PRACTICE_TRIAL_DAYS} free days?`,
-      a: `You choose a plan and pay by card, bank transfer or USSD. Your ${PRACTICE_TRIAL_DAYS} days only start when your first patient joins, so you never spend them waiting.`,
+      q: "How much can I charge?",
+      a: `Any price from ${naira(PATIENT_PRICE_MIN)} a month. You can change it any time. A new price starts at each patient's next payment.`,
+    },
+    {
+      q: `What happens after a patient's ${PATIENT_FREE_DAYS} free days?`,
+      a: "They pay you one month at a time, by card, bank transfer or USSD, inside GluFloat. If they do not pay, GluFloat asks them to pay you before they can keep going. It never offers them another plan.",
+    },
+    {
+      q: "Who pays Paystack's fee?",
+      a: `GluFloat does, out of its ${naira(GLUFLOAT_SHARE)}. You always get your price minus ${naira(GLUFLOAT_SHARE)}.`,
     },
     {
       q: "Do my patients need an email address?",
@@ -177,10 +190,6 @@ export default function DietitiansPage() {
       q: "Why do you ask for my DCN number?",
       a: "Your patients trust you with their health records. We check that every dietitian on GluFloat is registered with the Dietitians Council of Nigeria.",
     },
-    {
-      q: "I have more than 20 patients.",
-      a: "Ask us for a custom plan on WhatsApp. Tell us how many patients you have, and we will send you a price. You pay by bank transfer.",
-    },
   ];
 
   return (
@@ -195,7 +204,7 @@ export default function DietitiansPage() {
             <div>
               <Label dark>GluFloat for dietitians</Label>
               <h1 className="mt-5 text-balance font-display text-4xl font-bold leading-[1.08] tracking-tight sm:text-5xl lg:text-[3.4rem]">
-                Support Your Patients Beyond The Consultation Room
+                Double Your Monthly Income While Supporting Your Diabetes Patients With GluFloat
               </h1>
               <p className="mt-5 max-w-xl text-lg leading-relaxed text-white/85">
                 Give your patients a simple way to follow your food advice every day. You see their meals and sugar tests
@@ -206,18 +215,17 @@ export default function DietitiansPage() {
                   href={START}
                   className="inline-flex h-14 items-center justify-center gap-2 rounded-full bg-leaf px-7 text-base font-bold text-white shadow-[0_16px_34px_-14px_rgba(62,155,79,0.9)] transition-transform hover:-translate-y-0.5"
                 >
-                  Start {PRACTICE_TRIAL_DAYS} free days <ArrowRight className="h-4 w-4" />
+                  Start free <ArrowRight className="h-4 w-4" />
                 </Link>
                 <a
                   href="#plans"
                   className="inline-flex h-14 items-center justify-center rounded-full bg-white/10 px-7 text-base font-bold text-white ring-1 ring-inset ring-white/25 hover:bg-white/15"
                 >
-                  See the plans
+                  See what you earn
                 </a>
               </div>
               <p className="mt-5 text-sm text-white/70">
-                {PRACTICE_TRIAL_SEATS} patients free for {PRACTICE_TRIAL_DAYS} days · The days start when your first patient
-                joins · No payment to start
+                No payment to start · You set your price · Each patient gets {PATIENT_FREE_DAYS} free days
               </p>
             </div>
             <DashboardPreview />
@@ -301,21 +309,14 @@ export default function DietitiansPage() {
         {/* Plans */}
         <section id="plans" className="scroll-mt-24 bg-white px-4 py-20 sm:px-6">
           <div className="mx-auto max-w-6xl text-center">
-            <Label>Plans</Label>
-            <h2 className={H2}>Pick The Number Of Patients</h2>
+            <Label>Your money</Label>
+            <h2 className={H2}>See What You Earn</h2>
             <p className={LEAD}>
-              Every plan includes everything. Start with {PRACTICE_TRIAL_DAYS} free days for {PRACTICE_TRIAL_SEATS} patients. Pay for a year and get 2 months free.
+              Your patients pay you inside GluFloat. GluFloat keeps {naira(GLUFLOAT_SHARE)} of each payment. The rest is yours, paid to
+              your bank every week.
             </p>
           </div>
-          <PracticePricing />
-          <p className="mx-auto mt-8 max-w-2xl text-center text-sm text-ink-soft">
-            Pay by card, bank transfer or USSD. More than 20 patients?{" "}
-            <a href="https://wa.me/2348132097317?text=Hello%20GluFloat%2C%20I%20am%20a%20dietitian%20with%20more%20than%2020%20patients.%20I%20would%20like%20a%20custom%20plan." target="_blank" rel="noopener noreferrer" className="font-semibold text-brand hover:underline">
-              Ask us for a custom plan
-            </a>
-            .
-          </p>
-
+          <EarningsCalculator />
         </section>
 
         {/* FAQ */}
@@ -353,7 +354,7 @@ export default function DietitiansPage() {
                 href={START}
                 className="mt-8 inline-flex h-14 items-center justify-center gap-2 rounded-full bg-leaf px-8 text-base font-bold text-white shadow-[0_16px_34px_-14px_rgba(62,155,79,0.9)] transition-transform hover:-translate-y-0.5"
               >
-                Start {PRACTICE_TRIAL_DAYS} free days <ArrowRight className="h-4 w-4" />
+                Start free <ArrowRight className="h-4 w-4" />
               </Link>
               <p className="mt-4 text-sm text-white/70">No payment to start</p>
             </div>

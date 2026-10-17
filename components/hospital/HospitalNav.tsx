@@ -24,7 +24,11 @@ function tabs(role: Role, practice: boolean, doctor = false) {
     { href: "/hospital/add", label: "Add patients", icon: UserPlus, exact: false, adminOnly: true, hospitalOnly: false },
     // A dietitian's practice is one person: she has no staff to manage.
     { href: "/hospital/staff", label: "Doctors and dietitians", short: "Staff", icon: Stethoscope, exact: false, adminOnly: false, hospitalOnly: true },
-    { href: "/hospital/plan", label: "Plan and QR code", short: "Plan", icon: CreditCard, exact: false, adminOnly: true, hospitalOnly: false },
+    // A dietitian's patients pay her in the app (patient-pays-schema.sql): her
+    // price, her money and her QR code live on this one page.
+    practice
+      ? { href: "/hospital/plan", label: "Price and earnings", short: "Earnings", icon: Wallet, exact: false, adminOnly: true, hospitalOnly: false }
+      : { href: "/hospital/plan", label: "Plan and QR code", short: "Plan", icon: CreditCard, exact: false, adminOnly: true, hospitalOnly: false },
   ];
   return all.filter((t) => (!t.adminOnly || role === "admin") && (!t.hospitalOnly || !practice));
 }
@@ -133,7 +137,7 @@ export function HospitalMobileNav({
         {tabs(role, practice, doctor).map((t) => {
           const on = here(t.href, t.exact);
           const Icon = t.icon;
-          const label = doctor && t.href === "/hospital/plan" ? "QR code" : MOBILE_LABEL[t.href] ?? t.label;
+          const label = doctor && t.href === "/hospital/plan" ? "QR code" : practice && t.href === "/hospital/plan" ? "Earnings" : MOBILE_LABEL[t.href] ?? t.label;
           const count = t.href === "/hospital/messages" ? waiting : 0;
           return (
             <Link

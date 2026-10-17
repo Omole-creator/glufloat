@@ -131,7 +131,7 @@ export default function SignUpPage() {
             {[
               "Your patients get everything in GluFloat Premium",
               "You see their meals and sugar tests",
-              "Free for 14 days, for 5 patients",
+              "Set your price. Your patients pay you in the app",
             ].map((t) => (
               <li key={t} className="flex items-start gap-2.5">
                 <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-leaf text-white">
@@ -145,10 +145,10 @@ export default function SignUpPage() {
             href="/dietitians/start"
             className="flex h-14 w-full items-center justify-center rounded-full bg-leaf text-base font-bold text-white shadow-[0_14px_30px_-14px_rgba(62,155,79,0.9)] transition-transform hover:-translate-y-0.5"
           >
-            Start my 14 free days
+            Start free
           </Link>
           <Link href="/dietitians" className="block text-center text-sm font-semibold text-brand hover:underline">
-            See plans and prices
+            See what you earn
           </Link>
         </div>
       ) : path === "hospital" ? (

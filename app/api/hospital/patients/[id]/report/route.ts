@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { staffContext } from "@/lib/hospitalServer";
 import { hospitalLive } from "@/lib/hospitalPlans";
-import { patientHba1cs, patientMonth, patientProfile, patientWeights, watMonth, weightLineFor } from "@/lib/patientRecord";
+import { patientHba1cs, patientMonth, patientProfile, patientReadings, patientWeights, watMonth, weightLineFor } from "@/lib/patientRecord";
 
 export const dynamic = "force-dynamic";
 
@@ -33,11 +33,15 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
   const month = watMonth(url.searchParams.get("month"));
   const uid = p.user_id as string;
-  const [{ items, loose }, hba1cs, profile, weights] = await Promise.all([
+  // The report's graphs (founder, 2026-10-17): the sugar line covers the 3
+  // months up to the end of the month on screen; the weight line, every
+  // weight saved up to then.
+  const [{ items, loose }, hba1cs, profile, weights, trend] = await Promise.all([
     patientMonth(ctx.admin, uid, month.from, month.to),
     patientHba1cs(ctx.admin, uid),
     patientProfile(ctx.admin, uid),
     patientWeights(ctx.admin, uid),
+    patientReadings(ctx.admin, uid, 90, month.to),
   ]);
 
   return NextResponse.json(
@@ -48,6 +52,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       loose,
       hba1c: hba1cs[0] ?? null,
       weightLine: weightLineFor(profile, weights),
+      trend,
+      weights: weights.filter((w) => new Date(w.at).getTime() < month.to.getTime()),
     },
     { headers: { "Cache-Control": "no-store" } },
   );

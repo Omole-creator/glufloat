@@ -157,9 +157,11 @@ export async function patientWeights(admin: SupabaseClient, uid: string): Promis
     .from("weight_history")
     .select("weight_kg,recorded_at")
     .eq("user_id", uid)
-    .order("recorded_at", { ascending: true })
+    // The NEWEST 60, oldest first: ascending with a limit kept the oldest 60
+    // and would drop every new weigh-in after the 60th.
+    .order("recorded_at", { ascending: false })
     .limit(60);
-  return ((data ?? []) as Record<string, unknown>[]).map((r) => ({ kg: Number(r.weight_kg), at: r.recorded_at as string }));
+  return ((data ?? []) as Record<string, unknown>[]).map((r) => ({ kg: Number(r.weight_kg), at: r.recorded_at as string })).reverse();
 }
 
 /** The same weight line the patient's own report carries (lib/weighIn.ts). */
@@ -171,14 +173,19 @@ export function weightLineFor(profile: PatientProfile, weights: { kg: number; at
   return f ? weightFlagLine(f) : null;
 }
 
-/** Every sugar test in the last N days, oldest first, for the trend line. */
-export async function patientReadings(admin: SupabaseClient, uid: string, days: number): Promise<Reading[]> {
-  const { data } = await admin
+/**
+ * Every sugar test in the N days up to `until` (default now), oldest first,
+ * for the trend line. `until` lets the report's 3-month graph end at the
+ * month a clinician picked, not at today.
+ */
+export async function patientReadings(admin: SupabaseClient, uid: string, days: number, until?: Date): Promise<Reading[]> {
+  const end = until ? until.getTime() : Date.now();
+  let q = admin
     .from("glucose_readings")
     .select("id,meal_check_id,value_raw,unit,mgdl,taken_at,context")
     .eq("user_id", uid)
-    .gte("taken_at", new Date(Date.now() - days * DAY_MS).toISOString())
-    .order("taken_at", { ascending: true })
-    .limit(1000);
+    .gte("taken_at", new Date(end - days * DAY_MS).toISOString());
+  if (until) q = q.lt("taken_at", until.toISOString());
+  const { data } = await q.order("taken_at", { ascending: true }).limit(1000);
   return ((data ?? []) as Record<string, unknown>[]).map(readingOf);
 }

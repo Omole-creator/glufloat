@@ -89,3 +89,26 @@ async function currentWeightFlagFresh(): Promise<WeightFlag | null> {
     return null;
   }
 }
+
+/**
+ * Every weight this person has saved, oldest first, for the weight graph on
+ * their report and its PDF (components/WeightTrend.tsx, founder 2026-10-17).
+ * The newest 60, the same cap a clinician's page reads. Any failure reads as none.
+ */
+export function weightHistory(): Promise<{ kg: number; at: string }[]> {
+  return shared(`${WEIGHT}history`, weightHistoryFresh);
+}
+
+async function weightHistoryFresh(): Promise<{ kg: number; at: string }[]> {
+  try {
+    const { data, error } = await createClient()
+      .from("weight_history")
+      .select("weight_kg,recorded_at")
+      .order("recorded_at", { ascending: false })
+      .limit(60);
+    if (error || !data) return [];
+    return data.map((r) => ({ kg: Number(r.weight_kg), at: r.recorded_at as string })).reverse();
+  } catch {
+    return [];
+  }
+}

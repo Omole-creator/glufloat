@@ -32,6 +32,14 @@ export default async function PayoutsAdminPage() {
     );
 
   const team = await loadFieldTeam(admin);
+  // Dietitians are paid their share of their patients' payments the same way
+  // (patient-pays-schema.sql): their rows in clinician_earnings carry the
+  // practice as hospital_id, exactly like a doctor's.
+  const { data: dietRows } = await admin
+    .from("hospitals")
+    .select("id,name,bank_name,account_number,account_name")
+    .eq("kind", "dietitian");
+  const dietitians = (dietRows ?? []) as { id: string; name: string; bank_name: string | null; account_number: string | null; account_name: string | null }[];
   type Owed = {
     key: string;
     who: { hospitalId: string } | { agentId: string };
@@ -52,6 +60,21 @@ export default async function PayoutsAdminPage() {
         who: { hospitalId: d.id },
         name: d.name,
         role: "Doctor",
+        bank: d.bank_name,
+        account: d.account_number,
+        accountName: d.account_name,
+        ids: rows.map((r) => r.id),
+        amount: rows.reduce((n, r) => n + r.amount, 0),
+      });
+  }
+  for (const d of dietitians) {
+    const rows = unpaidEarnings(team, { hospitalId: d.id });
+    if (rows.length)
+      owed.push({
+        key: `h${d.id}`,
+        who: { hospitalId: d.id },
+        name: d.name,
+        role: "Dietitian",
         bank: d.bank_name,
         account: d.account_number,
         accountName: d.account_name,
@@ -81,11 +104,12 @@ export default async function PayoutsAdminPage() {
     .reduce((n, p) => n + p.amount, 0);
   const nameOf = new Map<string, string>([
     ...team.doctors.map((d) => [d.id, d.name] as [string, string]),
+    ...dietitians.map((d) => [d.id, d.name] as [string, string]),
     ...team.agents.map((a) => [a.id, a.name] as [string, string]),
   ]);
 
   return (
-    <AdminShell title="Payouts" subtitle="Care fees to doctors, field agents and advisors, every week" icon={<Wallet className="h-5 w-5" />}>
+    <AdminShell title="Payouts" subtitle="Money owed to doctors, dietitians, field agents and advisors, every week" icon={<Wallet className="h-5 w-5" />}>
       <div className="mt-6">
         <AdminHero
           items={[

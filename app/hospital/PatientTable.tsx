@@ -126,6 +126,7 @@ export default function PatientTable({
   hospitalName,
   hospitalCode,
   doctor = false,
+  patientPays = false,
 }: {
   rows: RosterRow[];
   isAdmin: boolean;
@@ -134,6 +135,8 @@ export default function PatientTable({
   hospitalCode: string;
   /** A GluFloat doctor's practice: no payment countdown, show each patient's own plan. */
   doctor?: boolean;
+  /** A dietitian whose patients pay her in the app: no "Record payment" (patient-pays-schema.sql). */
+  patientPays?: boolean;
 }) {
   const router = useRouter();
   const [q, setQ] = useState("");
@@ -248,7 +251,7 @@ export default function PatientTable({
             <UserCheck className="h-3.5 w-3.5" /> Give a place
           </button>
         )}
-        {!doctor && (r.status === "active" || r.status === "paused") && (
+        {!doctor && !patientPays && (r.status === "active" || r.status === "paused") && (
           <select
             disabled={busy === r.id}
             value=""

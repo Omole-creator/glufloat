@@ -7,7 +7,10 @@ import AdminLogin from "../../AdminLogin";
 import AdminShell from "../../AdminShell";
 import AdminHero from "../../AdminHero";
 import AdminCard from "../../AdminCard";
-import { hospitalLive, practicePlanName, waitingForFirstPatient } from "@/lib/hospitalPlans";
+import { hospitalLive, nairaText, practicePlanName, waitingForFirstPatient } from "@/lib/hospitalPlans";
+import { dietitianShareNaira, isPatientPays, patientPrice } from "@/lib/patientPays";
+import FoldCard from "@/components/FoldCard";
+import EditDietitian from "./EditDietitian";
 import { whatsappNumber, type HospitalRow } from "@/lib/hospitalServer";
 import { hospitalRoster } from "@/lib/hospitalRoster";
 import DietitianSwitch from "../DietitianSwitch";
@@ -45,10 +48,14 @@ export default async function DietitianAdminPage({ params }: { params: Promise<{
   const wa = whatsappNumber(p.contact_phone);
   const now = Date.now();
   const due = active.filter((r) => r.paidUntil && new Date(r.paidUntil).getTime() <= now).length;
+  const payer = isPatientPays(p);
+  const withTime = active.filter((r) => r.paidUntil && new Date(r.paidUntil).getTime() > now).length;
   const state =
     p.status === "declined"
       ? "Switched off"
-      : waitingForFirstPatient(p)
+      : payer
+        ? "Patients pay her in the app"
+        : waitingForFirstPatient(p)
         ? "No patient yet"
         : hospitalLive(p)
           ? `${p.status === "pilot" ? "Free" : "Paid"} until ${shortDate(p.access_until)}`
@@ -63,10 +70,14 @@ export default async function DietitianAdminPage({ params }: { params: Promise<{
       <div className="mt-4">
         <AdminHero
           items={[
-            { label: "Plan", value: p.plan && p.plan !== "pilot" ? practicePlanName(p.plan) : "Free days", sub: state },
-            { label: "Places used", value: `${active.length} of ${p.seats}`, sub: `${rows.filter((r) => r.status === "waiting").length} waiting` },
+            payer
+              ? { label: "Price a month", value: nairaText(patientPrice(p)), sub: `she gets ${nairaText(dietitianShareNaira(patientPrice(p)))}` }
+              : { label: "Plan", value: p.plan && p.plan !== "pilot" ? practicePlanName(p.plan) : "Free days", sub: state },
+            payer
+              ? { label: "Patients", value: String(active.length), sub: `${withTime} with time left` }
+              : { label: "Places used", value: `${active.length} of ${p.seats}`, sub: `${rows.filter((r) => r.status === "waiting").length} waiting` },
             { label: "Paused", value: String(rows.filter((r) => r.status === "paused").length), sub: "kept on the list" },
-            { label: "Payment due", value: String(due), sub: "behind with their payment" },
+            { label: "Payment due", value: String(due), sub: "time ran out, not paid yet" },
           ]}
         />
       </div>
@@ -100,16 +111,25 @@ export default async function DietitianAdminPage({ params }: { params: Promise<{
             </div>
           </dl>
           <div className="mt-4 flex flex-wrap gap-2">
-            <Link
-              href={`/admin/hospitals/${p.id}`}
-              className="rounded-full border border-line px-3 py-1.5 text-xs font-bold text-ink hover:border-brand"
-            >
-              Custom plan invoice
-            </Link>
             <DietitianSwitch id={p.id} name={p.name} off={p.status === "declined"} />
             <DeleteDietitian id={p.id} name={p.name} />
           </div>
         </AdminCard>
+      </div>
+
+      <div id="edit" className="mt-6 scroll-mt-24">
+        <FoldCard title="Edit details" sub="Name, DCN number, WhatsApp, email and price" open>
+          <EditDietitian
+            id={p.id}
+            initial={{
+              name: p.name,
+              phone: p.contact_phone ?? "",
+              email: p.contact_email ?? "",
+              dcn: p.dcn_number ?? "",
+              price: patientPrice(p),
+            }}
+          />
+        </FoldCard>
       </div>
 
       <div className="mt-6">

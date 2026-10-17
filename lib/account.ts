@@ -34,7 +34,14 @@ export type Access =
   // `previousTier` is whatever they last paid for (null if never), so a renewal
   // offers the SAME tier back rather than silently downgrading a Plus/Dietitian
   // subscriber to Basic pricing.
-  | { status: "expired"; lapsed: boolean; previousTier: Tier | null; previousYearly: boolean };
+  //
+  // `practice` is set for a dietitian's patient whose time with her has run
+  // out (or who she paused): the app then shows ONLY her price and a Pay
+  // button, never GluFloat's own plans (founder, 2026-10-17).
+  | { status: "expired"; lapsed: boolean; previousTier: Tier | null; previousYearly: boolean; practice?: PracticeDue };
+
+/** A dietitian's patient who must pay her to keep going (patient-pays-schema.sql). */
+export type PracticeDue = { name: string; price: number };
 
 export type HospitalChat = { name: string; role: "admin" | "doctor" | "dietitian"; whatsapp: string };
 
@@ -49,6 +56,8 @@ export type HospitalCover = {
   rules: { note: string | null; avoid: string[]; prefer: string[] } | null;
   /** When the patient's own payment to the dietitian or hospital runs out, or null. */
   paidUntil: string | null;
+  /** A patient-pays dietitian's monthly price in naira, so they can pay early; null for a hospital. */
+  price: number | null;
   /** Who the patient can chat with: their hospital's dietitian and doctor (either may be missing). */
   chats: HospitalChat[];
   /** Hospital doctors' and dietitians' notes for this patient, newest first (chat-schema.sql). */
@@ -73,6 +82,8 @@ type HospitalMe = {
     rules?: { note: string | null; avoid: string[]; prefer: string[] } | null;
     paidUntil?: string | null;
     notes?: CareNote[];
+    due?: boolean;
+    price?: number | null;
   };
   staff: { id: string; name: string; role: string; kind?: "hospital" | "dietitian" | "doctor" }[];
   /** A GluFloat Premium dietitian who answers chats at /inbox (chat-schema.sql). */
@@ -184,7 +195,7 @@ export async function getAccess(): Promise<{
 
   // A hospital paying for this person wins over everything: they get Premium
   // for as long as the hospital's plan runs.
-  if (hosp.patient && hosp.patient.status === "active" && hosp.patient.kind !== "doctor") {
+  if (hosp.patient && hosp.patient.status === "active" && hosp.patient.kind !== "doctor" && !hosp.patient.due) {
     const end = new Date(hosp.patient.until).getTime();
     const daysLeft = Math.max(0, Math.ceil((end - Date.now()) / DAY_MS));
     if (daysLeft > 0)
@@ -203,6 +214,7 @@ export async function getAccess(): Promise<{
             kind: hosp.patient.kind === "dietitian" ? "dietitian" : "hospital",
             rules: hosp.patient.rules ?? null,
             paidUntil: hosp.patient.paidUntil ?? null,
+            price: typeof hosp.patient.price === "number" ? hosp.patient.price : null,
             chats: Array.isArray(hosp.patient.chats) ? hosp.patient.chats : [],
             notes: Array.isArray(hosp.patient.notes) ? hosp.patient.notes : [],
           },
@@ -229,6 +241,25 @@ export async function getAccess(): Promise<{
         access: { status: "subscribed", daysLeft, tier, yearly: isYearlyAmount(sub.amount) },
       };
   }
+
+  // A dietitian's patient whose time with her ran out (or who she paused),
+  // and who has no paid GluFloat plan of their own: only her Pay button.
+  // Before the trial on purpose, so they are never offered a GluFloat trial
+  // or GluFloat's plans instead of her (founder, 2026-10-17).
+  if (hosp.patient && hosp.patient.due && hosp.patient.kind === "dietitian" && typeof hosp.patient.price === "number")
+    return {
+      email: user.email ?? null,
+      name,
+      hospitalStaff,
+      inbox,
+      access: {
+        status: "expired",
+        lapsed: false,
+        previousTier: null,
+        previousYearly: false,
+        practice: { name: hosp.patient.hospitalName, price: hosp.patient.price },
+      },
+    };
 
   // Trial.
   if (profile?.trial_start) {

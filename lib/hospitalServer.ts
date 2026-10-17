@@ -2,6 +2,7 @@ import { randomBytes } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient, createClient } from "@/lib/supabase/server";
 import { hospitalLive } from "@/lib/hospitalPlans";
+import { isPatientPays, patientPrice } from "@/lib/patientPays";
 import { normalizePhone } from "@/lib/phone";
 
 /**
@@ -45,6 +46,8 @@ export type HospitalRow = {
   bank_code?: string | null;
   account_number?: string | null;
   account_name?: string | null;
+  /** patient-pays-schema.sql (#32): a dietitian's monthly price per patient, naira (null = N4,500). */
+  patient_price?: number | null;
   created_at: string;
   approved_at: string | null;
 };
@@ -359,6 +362,14 @@ export async function hospitalStatusFor(admin: SupabaseClient, uid: string): Pro
     paidUntil: string | null;
     /** Hospital doctors' and dietitians' notes (chat-schema.sql). A practice uses `rules.note` instead. */
     notes: CareNoteOut[];
+    /**
+     * A patient-pays dietitian (patient-pays-schema.sql) whose patient's time
+     * has run out, or who paused them: they see only her price and a Pay
+     * button. False for everyone else.
+     */
+    due: boolean;
+    /** Her monthly price in naira, for a patient-pays dietitian's patient; else null. */
+    price: number | null;
   };
   staff: { id: string; name: string; role: StaffRole; kind: "hospital" | "dietitian" | "doctor" }[];
 }> {
@@ -366,7 +377,7 @@ export async function hospitalStatusFor(admin: SupabaseClient, uid: string): Pro
   const [{ data: pats, error }, { data: staff }] = await Promise.all([
     admin
       .from("hospital_patients")
-      .select("id,user_id,status,carried_ms,carried_restored_at,joined_at,hospitals(*)")
+      .select("id,user_id,status,carried_ms,carried_restored_at,joined_at,paid_until,hospitals(*)")
       .eq("user_id", uid),
     admin.from("hospital_staff").select("role,hospitals(*)").eq("user_id", uid),
   ]);
@@ -384,14 +395,21 @@ export async function hospitalStatusFor(admin: SupabaseClient, uid: string): Pro
 
   type Joined = PatientRow & { hospitals: HospitalRow | null };
   const rows = (pats ?? []) as unknown as Joined[];
+  const now = Date.now();
+  // A patient-pays dietitian covers a patient only while THEIR OWN paid time
+  // runs (their 14 free days, then each month they pay her).
+  const paidUp = (r: Joined) => !!r.paid_until && new Date(r.paid_until).getTime() > now;
   for (const r of rows) {
     const h = r.hospitals;
     // A doctor's patient is never covered, and brings no paid days in.
-    const covered = r.status === "active" && h && hospitalLive(h) && h.kind !== "doctor";
+    const covered = r.status === "active" && h && hospitalLive(h) && h.kind !== "doctor" && (!isPatientPays(h) || paidUp(r));
     if (!covered) await restoreCarried(admin, r);
   }
+  // A patient-pays dietitian's paused patient stays hers: they see her Pay
+  // button (paying brings them back), never GluFloat's own plans.
+  const isPausedPayer = (r: Joined) => r.status === "paused" && !!r.hospitals && isPatientPays(r.hospitals);
   const live = rows
-    .filter((r) => r.hospitals && hospitalLive(r.hospitals) && (r.status === "active" || r.status === "waiting"))
+    .filter((r) => r.hospitals && hospitalLive(r.hospitals) && (r.status === "active" || r.status === "waiting" || isPausedPayer(r)))
     // A hospital or dietitian that pays for them first, then covered, then the newest.
     .sort((a, b) => {
       const doc = (r: Joined) => (r.hospitals?.kind === "doctor" ? 1 : 0);
@@ -401,10 +419,16 @@ export async function hospitalStatusFor(admin: SupabaseClient, uid: string): Pro
   const pick = live[0];
   if (pick && pick.hospitals) {
     const doctor = pick.hospitals.kind === "doctor";
+    const payer = isPatientPays(pick.hospitals);
+    const due = payer && (pick.status === "paused" || !paidUp(pick));
     out.patient = {
       hospitalName: pick.hospitals.name,
-      until: pick.hospitals.access_until as string,
-      status: pick.status as "active" | "waiting",
+      // A patient-pays patient is covered until their own paid time ends.
+      until: payer ? (pick.paid_until ?? new Date(0).toISOString()) : (pick.hospitals.access_until as string),
+      // Paused shows as active-but-due: the app shows her Pay button.
+      status: (pick.status === "paused" ? "active" : pick.status) as "active" | "waiting",
+      due,
+      price: payer ? patientPrice(pick.hospitals) : null,
       // A doctor's patients chat in the app only (lib/chatServer.ts); no WhatsApp contact.
       chats: pick.status === "active" && !doctor ? await chatContacts(admin, pick.hospitals) : [],
       kind: pick.hospitals.kind === "dietitian" ? "dietitian" : doctor ? "doctor" : "hospital",

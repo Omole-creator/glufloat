@@ -42,6 +42,8 @@ import { useChatUnread } from "@/lib/useChatUnread";
 import PersonalizationSettings from "@/components/PersonalizationSettings";
 import { PAYSTACK_URLS, PAYSTACK_YEARLY_URLS, YEARLY_ENABLED, pendingReference, clearPendingReference } from "@/lib/access";
 import BillingToggle from "@/components/BillingToggle";
+import PayDietitian from "@/components/PayDietitian";
+import { naira } from "@/lib/patientPays";
 import { nairaLabel, TIER_AMOUNTS, TIER_YEARLY_AMOUNTS } from "@/lib/pricing";
 import { TIER_LABEL } from "@/lib/pricing";
 import {
@@ -362,6 +364,32 @@ export default function AppPage() {
   const withEmail = (url: string) =>
     email ? `${url}?email=${encodeURIComponent(email)}` : url;
 
+  // A dietitian's patient whose time with her ran out (or who she paused):
+  // ONLY her price and a Pay button, never GluFloat's own plans (founder,
+  // 2026-10-17). Paying her brings them straight back (lib/patientPaysServer.ts).
+  if (access.status === "expired" && access.practice) {
+    const pr = access.practice;
+    return (
+      <>
+        <Navbar />
+        <main className="flex flex-1 items-center justify-center bg-mist px-4 pb-24 pt-28">
+          <div className="w-full max-w-md rounded-2xl border border-line bg-white p-8 text-center shadow-[0_16px_40px_-18px_rgba(12,45,77,0.35)]">
+            <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-brand/10 text-brand">
+              <Stethoscope className="h-6 w-6" strokeWidth={2.2} />
+            </span>
+            <h1 className="mt-4 font-display text-2xl font-bold text-ink">Your time with {pr.name} has ended.</h1>
+            <p className="mt-2 text-sm leading-relaxed text-ink-soft">
+              Pay {naira(pr.price)} for one more month to keep using GluFloat with {pr.name}. Your meals and sugar tests are
+              kept safe.
+            </p>
+            <PayDietitian price={pr.price} className="mt-6" />
+            <p className="mt-3 text-xs text-ink-soft">Pay by card, bank transfer or USSD.</p>
+          </div>
+        </main>
+      </>
+    );
+  }
+
   // Trial ended and no active subscription. This is the SINGLE paywall — the
   // landing page never links straight to Paystack, it always lands here.
   if (access.status === "expired") {
@@ -634,6 +662,17 @@ export default function AppPage() {
               </span>
             </p>
           )}
+          {/* A dietitian's patient pays her in the app: from 5 days before
+              their time ends, the next month is one tap away. */}
+          {hospital?.kind === "dietitian" && hospital.price !== null && hospital.paidUntil &&
+            new Date(hospital.paidUntil).getTime() - Date.now() <= 5 * 86400000 && (
+              <div className="mt-2 rounded-2xl bg-verdict-yellow/15 px-3.5 py-3 ring-1 ring-inset ring-verdict-yellow/40">
+                <p className="text-sm text-ink">
+                  Pay {hospital.name} for next month now, so nothing stops. Your new month starts when this one ends.
+                </p>
+                <PayDietitian price={hospital.price} label={`Pay ${naira(hospital.price)} for next month`} className="mt-2.5 sm:max-w-xs" />
+              </div>
+            )}
 
           {/* ONE panel container, ONE tab visible at a time — no more
               always-visible zone (founder instruction, 2026-08-30: clicking

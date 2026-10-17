@@ -6,6 +6,7 @@ import { normalizePhone } from "@/lib/phone";
 import { isPhoneLoginEmail } from "@/lib/phoneLogin";
 import { extendAccess, isDoctorPractice, isPractice } from "@/lib/hospitalPlans";
 import { practiceRuleFoodIds } from "@/lib/nextMeal";
+import { isPatientPays } from "@/lib/patientPays";
 
 const RULE_FOODS = new Set(practiceRuleFoodIds());
 const NOTE_MAX = 300;
@@ -208,6 +209,12 @@ export async function PATCH(request: Request) {
   // A doctor's patients pay GluFloat themselves: no payment countdown or pause.
   if ((action === "paid" || action === "pause" || action === "unpause") && isDoctorPractice(ctx.hospital))
     return NextResponse.json({ error: "Your patients pay for GluFloat themselves." }, { status: 400 });
+
+  // A dietitian's patients pay her inside the app (patient-pays-schema.sql,
+  // founder 2026-10-17): every month goes through Paystack, so a payment is
+  // never recorded by hand. Hospitals keep "Record payment".
+  if (action === "paid" && isPatientPays(ctx.hospital))
+    return NextResponse.json({ error: "Your patients pay you inside GluFloat. Their months are added when they pay." }, { status: 400 });
 
   if (action === "paid") {
     const months = Number(body.months);

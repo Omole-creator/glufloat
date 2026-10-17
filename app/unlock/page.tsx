@@ -65,6 +65,10 @@ function UnlockInner() {
     (async function run() {
       if (stop) return;
       let { access } = await getAccess();
+      // Still settling (a transfer the bank has not moved yet): keep the
+      // reference, so /app claims it again later, even for somebody who is
+      // already covered and goes straight in.
+      let settling = false;
 
       if (access.status === "anon") {
         router.replace("/signin");
@@ -79,7 +83,10 @@ function UnlockInner() {
       // 202 "pending", and the next pass is what finally links the payment. The
       // claim is idempotent, and it identifies the payer by session rather than
       // by the email they typed, which is the whole point.
-      if (reference && access.status !== "subscribed") {
+      // Somebody already covered can pay too: a dietitian's patient paying
+      // their next month before this one runs out reads as "subscribed", and
+      // must still have the payment linked. The claim is safe to repeat.
+      if (reference) {
         const res = await fetch("/api/paystack/claim", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -97,6 +104,8 @@ function UnlockInner() {
 
         if (res?.ok) {
           clearPendingReference();
+        } else if (res?.status === 202) {
+          settling = true;
         } else if (res?.status === 402) {
           // Paystack says this payment failed outright. Retrying cannot help.
           clearPendingReference();
@@ -107,7 +116,7 @@ function UnlockInner() {
       }
 
       if (access.status === "subscribed") {
-        clearPendingReference();
+        if (!settling) clearPendingReference();
         events.unlocked();
         router.replace("/app");
         return;

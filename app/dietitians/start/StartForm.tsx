@@ -121,7 +121,7 @@ export default function StartForm() {
         {common}
         <FormError>{err}</FormError>
         <SubmitButton busy={busy} busyText="Setting you up..." tone="leaf">
-          Start my 14 free days
+          Start free
         </SubmitButton>
         <button
           type="button"
@@ -180,7 +180,7 @@ export default function StartForm() {
       )}
       <div className="pt-1">
         <SubmitButton busy={busy} busyText="Setting you up..." tone="leaf">
-          Start my 14 free days
+          Start free
         </SubmitButton>
       </div>
       <p className="text-center text-sm text-ink-soft">

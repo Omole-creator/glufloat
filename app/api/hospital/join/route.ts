@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { acceptsPatients, isDoctorPractice, orgWords, PRACTICE_TRIAL_DAYS, waitingForFirstPatient } from "@/lib/hospitalPlans";
+import { isPatientPays, PATIENT_FREE_DAYS } from "@/lib/patientPays";
 import { ownPaidMsLeft, seatsUsed, sessionUser, type HospitalRow, type PatientRow } from "@/lib/hospitalServer";
 import { normalizePhone } from "@/lib/phone";
 import { isPhoneLoginEmail, phoneLoginEmail } from "@/lib/phoneLogin";
@@ -172,12 +173,15 @@ export async function POST(request: Request) {
     finalStatus = "waiting";
   }
 
-  // The patient's own payment countdown starts at 30 days (patient-paid-schema.sql).
-  // Its own write: a database without the column still lets them join.
+  // The patient's own payment countdown starts at 30 days (patient-paid-schema.sql),
+  // or at 14 free days with a dietitian whose patients pay her in the app
+  // (patient-pays-schema.sql, founder 2026-10-17). Its own write: a database
+  // without the column still lets them join.
   if (finalStatus === "active" && !doctorPractice) {
+    const days = isPatientPays(h) ? PATIENT_FREE_DAYS : 30;
     await admin
       .from("hospital_patients")
-      .update({ paid_until: new Date(Date.now() + 30 * 86400000).toISOString() })
+      .update({ paid_until: new Date(Date.now() + days * 86400000).toISOString() })
       .eq("id", rowId)
       .is("paid_until", null);
   }

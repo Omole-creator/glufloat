@@ -99,7 +99,7 @@ export default function JoinForm({
                 ? doctor
                   ? `${hospitalName} can now see your meals and sugar tests on GluFloat. Start your 7 free days to begin.`
                   : practice
-                  ? `${hospitalName} now looks after your diabetes on GluFloat. Your dietitian can see your meals and sugar tests.`
+                  ? `${hospitalName} now looks after your diabetes on GluFloat. Your dietitian can see your meals and sugar tests. Your first 14 days are free.`
                   : `${hospitalName} now looks after your GluFloat. Your doctors and dietitians can see your meals and sugar tests.`
                 : practice
                   ? `Every place with ${hospitalName} is in use right now. Your dietitian will give you a place. Until then, you can use GluFloat free for 7 days.`

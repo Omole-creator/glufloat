@@ -34,9 +34,10 @@ export const COLLEAGUE_BONUS_KOBO = 300_000;
 
 const DAY_MS = 86_400_000;
 
-export type EarningKind = "care" | "agent" | "advisor" | "colleague";
+/** "dietitian": her share of a patient's payment to her (patient-pays-schema.sql). */
+export type EarningKind = "care" | "agent" | "advisor" | "colleague" | "dietitian";
 
-export type Share = { kind: Exclude<EarningKind, "colleague">; rate: number; amount: number };
+export type Share = { kind: Exclude<EarningKind, "colleague" | "dietitian">; rate: number; amount: number };
 
 /**
  * How one payment is shared.

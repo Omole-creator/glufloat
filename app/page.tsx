@@ -398,7 +398,7 @@ export default function Home() {
                   </h3>
                   <p className="mt-2 leading-relaxed text-white/85">
                     Give your patients GluFloat Premium, and see every meal and sugar test they save from your own dashboard.
-                    Start with 14 free days for 5 patients.
+                    Set your own price. Your patients pay you inside GluFloat.
                   </p>
                 </div>
                 <Link

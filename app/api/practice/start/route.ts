@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { newCode, sessionUser } from "@/lib/hospitalServer";
-import { PRACTICE_TRIAL_SEATS } from "@/lib/hospitalPlans";
+import { DOCTOR_ACCESS_UNTIL, DOCTOR_SEATS, PRACTICE_TRIAL_SEATS } from "@/lib/hospitalPlans";
+import { PATIENT_PAYS_PLAN } from "@/lib/patientPays";
 import { normalizePhone } from "@/lib/phone";
 import { isPhoneLoginEmail } from "@/lib/phoneLogin";
 import { notifyFounder } from "@/lib/notify";
@@ -91,7 +92,12 @@ export async function POST(request: Request) {
 
   let practiceId: string | null = null;
   let code = "";
-  for (let attempt = 0; attempt < 4 && !practiceId; attempt++) {
+  // Patients pay her in the app (patient-pays-schema.sql, founder 2026-10-17):
+  // the practice never runs out and has no limit on patients; each patient's
+  // own 14 free days and payments decide who is covered. Until #32 has run
+  // the plan name is refused, so it falls back to the old free start once.
+  let patientPays = true;
+  for (let attempt = 0; attempt < 5 && !practiceId; attempt++) {
     code = newCode();
     const { data, error } = await admin
       .from("hospitals")
@@ -105,16 +111,16 @@ export async function POST(request: Request) {
         contact_email: email,
         city: place || null,
         dcn_number: dcn,
-        status: "pilot",
-        plan: "pilot",
-        seats: PRACTICE_TRIAL_SEATS,
-        // Empty on purpose: her 14 days start with her first patient.
-        access_until: null,
         approved_at: new Date().toISOString(),
+        ...(patientPays
+          ? { status: "active", plan: PATIENT_PAYS_PLAN, seats: DOCTOR_SEATS, access_until: DOCTOR_ACCESS_UNTIL }
+          : // Empty end on purpose: the old 14 days started with her first patient.
+            { status: "pilot", plan: "pilot", seats: PRACTICE_TRIAL_SEATS, access_until: null }),
       })
       .select("id")
       .single();
     if (!error && data) practiceId = data.id as string;
+    else if (patientPays && /check constraint|hospitals_plan_check/i.test(error?.message ?? "")) patientPays = false;
     else if (!/duplicate|unique/i.test(error?.message ?? "")) break;
   }
   if (!practiceId) return NextResponse.json({ error: "We could not set up your practice just now. Please try again." }, { status: 503 });

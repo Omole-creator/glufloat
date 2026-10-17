@@ -3,6 +3,7 @@ import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { grantPayment } from "@/lib/paymentGrant";
 import { practicePlanForAmount } from "@/lib/hospitalPlans";
 import { grantPracticePayment } from "@/lib/practicePayment";
+import { grantPatientPayment, isPatientPayment, readMetadata } from "@/lib/patientPaysServer";
 
 export const dynamic = "force-dynamic";
 
@@ -72,6 +73,23 @@ export async function POST(request: Request) {
   const tx = body.data;
 
   const admin = createAdminClient();
+
+  // A patient paying their dietitian (patient-pays-schema.sql). Told apart by
+  // the metadata GluFloat's server put on it, never by the amount, because
+  // every dietitian sets her own price. Never treated as a GluFloat plan.
+  const meta = readMetadata(tx.metadata);
+  if (isPatientPayment(meta)) {
+    const r = await grantPatientPayment(admin, {
+      uid: user.id,
+      reference,
+      amount: tx.amount,
+      paidAt: tx.paid_at || new Date().toISOString(),
+      meta,
+    });
+    if (r === "conflict") return NextResponse.json({ ok: false, error: "already_claimed", patientPay: true }, { status: 409 });
+    if (r === "not_ready") return NextResponse.json({ ok: false, error: "pending", patientPay: true }, { status: 202 });
+    return NextResponse.json({ ok: true, patientPay: true, found: r !== "no_patient" });
+  }
 
   // A dietitian paying for her practice (GluFloat for dietitians). Never
   // treated as a patient's own subscription (lib/practicePayment.ts).
