@@ -100,7 +100,7 @@ export default function Home() {
       <Navbar />
 
       <HeroLanding
-        title="Defy Diabetes. Enjoy Food Again."
+        title="Eat Right With Diabetes. Enjoy Food Again."
         description="Not sure what to eat with diabetes? GluFloat tells you, every meal. You still eat the food you love. You just eat it the right way."
         announcementBanner={{
           text: "Reviewed by 7 registered dietitians",
