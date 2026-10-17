@@ -14,6 +14,7 @@ import { maskAccount, nairaFromKobo } from "@/lib/careFees";
 import { earningTotals, type EarningRow, type PayoutRow } from "@/lib/careFeesServer";
 import { listBanks } from "@/lib/paystackBanks";
 import { isPatientPays, patientPrice } from "@/lib/patientPays";
+import { payingPatients } from "@/lib/patientPaysServer";
 import PriceForm from "./PriceForm";
 import PlanPanel from "./PlanPanel";
 import PracticePlanPanel, { type PracticePayment } from "./PracticePlanPanel";
@@ -48,7 +49,7 @@ export default async function PlanPage({ searchParams }: { searchParams: Promise
   // GluFloat for dietitians (2026-10-17): her patients pay her inside the
   // app, so this is her price, her money and her QR code. Nothing to pay us.
   if (isPatientPays(h)) {
-    const [{ data: earn }, { data: pays }, { data: pats }, banks] = await Promise.all([
+    const [{ data: earn }, { data: pays }, { data: pats }, banks, paying] = await Promise.all([
       ctx.admin
         .from("clinician_earnings")
         .select("id,reference,kind,hospital_id,agent_id,source_hospital_id,patient_user_id,payment_amount,amount,earned_at,payout_id")
@@ -58,6 +59,7 @@ export default async function PlanPage({ searchParams }: { searchParams: Promise
       ctx.admin.from("earning_payouts").select("id,hospital_id,agent_id,amount,status,reference,note,created_at").eq("hospital_id", h.id).order("created_at", { ascending: false }),
       ctx.admin.from("hospital_patients").select("user_id,name").eq("hospital_id", h.id),
       listBanks(),
+      payingPatients(ctx.admin, h.id, new Date().toISOString()),
     ]);
     const earnings = ((earn ?? []) as EarningRow[]).map((e) => ({ ...e, amount: Number(e.amount) }));
     const payouts = ((pays ?? []) as PayoutRow[]).map((p) => ({ ...p, amount: Number(p.amount) }));
@@ -83,7 +85,7 @@ export default async function PlanPage({ searchParams }: { searchParams: Promise
           ))}
         </div>
         <div className="mt-6 grid gap-4 lg:grid-cols-2">
-          <PriceForm price={patientPrice(h)} hid={ctx.all.length > 1 ? h.id : null} />
+          <PriceForm price={patientPrice(h)} hid={ctx.all.length > 1 ? h.id : null} payingPatients={paying} />
           <BankDetailsForm
             banks={banks}
             endpoint="/api/hospital/bank"

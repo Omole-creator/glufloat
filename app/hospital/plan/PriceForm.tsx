@@ -2,13 +2,35 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { dietitianPercent, dietitianShareNaira, GLUFLOAT_SHARE, naira, parsePatientPrice, PATIENT_PRICE_MIN } from "@/lib/patientPays";
+import {
+  dietitianPercent,
+  dietitianShareNaira,
+  GLUFLOAT_SHARE,
+  GLUFLOAT_SHARE_VOLUME,
+  glufloatShareFor,
+  naira,
+  parsePatientPrice,
+  PATIENT_PRICE_MIN,
+  VOLUME_PATIENTS,
+} from "@/lib/patientPays";
 
 /**
  * A dietitian sets her monthly price per patient (patient-pays-schema.sql),
  * and sees, as she types, exactly what she gets from each payment.
  */
-export default function PriceForm({ price, hid }: { price: number; hid: string | null }) {
+export default function PriceForm({
+  price,
+  hid,
+  payingPatients = 0,
+}: {
+  price: number;
+  hid: string | null;
+  /** Patients who paid her in the last 30 days (the volume discount's count). */
+  payingPatients?: number;
+}) {
+  // A patient paying now would be one more on top, unless they already paid.
+  const nextCount = payingPatients + 1;
+  const volume = nextCount > VOLUME_PATIENTS;
   const router = useRouter();
   const [value, setValue] = useState(String(price));
   const [busy, setBusy] = useState(false);
@@ -80,18 +102,28 @@ export default function PriceForm({ price, hid }: { price: number; hid: string |
         </div>
         <div className="rounded-xl bg-[#f3f6fa] px-2 py-3">
           <dt className="text-[11px] font-semibold text-ink-soft">GluFloat keeps</dt>
-          <dd className="font-display text-lg font-bold text-ink">{naira(GLUFLOAT_SHARE)}</dd>
+          <dd className="font-display text-lg font-bold text-ink">{naira(glufloatShareFor(nextCount))}</dd>
         </div>
         <div className="rounded-xl bg-leaf/10 px-2 py-3 ring-1 ring-inset ring-leaf/20">
           <dt className="text-[11px] font-semibold text-leaf-deep">You get</dt>
           <dd className="font-display text-lg font-bold text-leaf-deep">
-            {naira(dietitianShareNaira(shown))} <span className="text-xs font-semibold">({dietitianPercent(shown)}%)</span>
+            {naira(dietitianShareNaira(shown, nextCount))} <span className="text-xs font-semibold">({dietitianPercent(shown, nextCount)}%)</span>
           </dd>
         </div>
       </dl>
       <p className="mt-3 text-xs text-ink-soft">
         For each patient, every month they pay. Paystack&apos;s fee comes out of GluFloat&apos;s share, never yours. Each new
         patient gets 14 free days first.
+      </p>
+      <p
+        className={`mt-3 rounded-xl px-3.5 py-2.5 text-sm ${
+          volume ? "bg-leaf/10 font-semibold text-leaf-deep ring-1 ring-inset ring-leaf/20" : "bg-[#f3f6fa] text-ink"
+        }`}
+      >
+        {payingPatients} {payingPatients === 1 ? "patient has" : "patients have"} paid you in the last 30 days.{" "}
+        {volume
+          ? `You are over ${VOLUME_PATIENTS}, so GluFloat keeps ${naira(GLUFLOAT_SHARE_VOLUME)} instead of ${naira(GLUFLOAT_SHARE)} on every payment.`
+          : `Over ${VOLUME_PATIENTS}, GluFloat keeps ${naira(GLUFLOAT_SHARE_VOLUME)} instead of ${naira(GLUFLOAT_SHARE)} on every payment.`}
       </p>
     </section>
   );

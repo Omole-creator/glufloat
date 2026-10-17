@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { GLUFLOAT_SHARE, naira, PATIENT_FREE_DAYS, PATIENT_PRICE_MIN } from "@/lib/patientPays";
+import { GLUFLOAT_SHARE, GLUFLOAT_SHARE_VOLUME, naira, PATIENT_FREE_DAYS, PATIENT_PRICE_MIN, VOLUME_PATIENTS } from "@/lib/patientPays";
 import EarningsCalculator from "@/components/dietitian/EarningsCalculator";
 
 export const metadata: Metadata = {
@@ -167,8 +167,12 @@ export default function DietitiansPage() {
       a: "They pay you one month at a time, by card, bank transfer or USSD, inside GluFloat. If they do not pay, GluFloat asks them to pay you before they can keep going. It never offers them another plan.",
     },
     {
+      q: "Is there a better rate for a big practice?",
+      a: `Yes. When more than ${VOLUME_PATIENTS} patients have paid you in the last 30 days, GluFloat keeps ${naira(GLUFLOAT_SHARE_VOLUME)} instead of ${naira(GLUFLOAT_SHARE)} from every payment. If you go back to ${VOLUME_PATIENTS} or fewer, it goes back to ${naira(GLUFLOAT_SHARE)}.`,
+    },
+    {
       q: "Who pays Paystack's fee?",
-      a: `GluFloat does, out of its ${naira(GLUFLOAT_SHARE)}. You always get your price minus ${naira(GLUFLOAT_SHARE)}.`,
+      a: `GluFloat does, out of its share. You always get your price minus ${naira(GLUFLOAT_SHARE)}, or minus ${naira(GLUFLOAT_SHARE_VOLUME)} once you have more than ${VOLUME_PATIENTS} paying patients.`,
     },
     {
       q: "Do my patients need an email address?",

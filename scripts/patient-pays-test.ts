@@ -9,12 +9,15 @@ import {
   dietitianShareKobo,
   dietitianShareNaira,
   GLUFLOAT_SHARE,
+  GLUFLOAT_SHARE_VOLUME,
+  glufloatShareFor,
   isPatientPays,
   nextPaidUntil,
   parsePatientPrice,
   PATIENT_FREE_DAYS,
   PATIENT_PRICE_MIN,
   patientPrice,
+  VOLUME_PATIENTS,
 } from "../lib/patientPays";
 
 let failed = 0;
@@ -45,6 +48,17 @@ check("an amount under GluFloat's share never goes negative", dietitianShareKobo
 check("her share plus GluFloat's is the whole price", [4_500, 5_000, 7_250, 10_000].every((p) => dietitianShareNaira(p) + GLUFLOAT_SHARE === p));
 check("percentage at N6,000 is 67%", dietitianPercent(6_000) === 67);
 check("percentage at N4,500 is 56%", dietitianPercent(4_500) === 56);
+
+// The volume discount (founder, 2026-10-17): over 25 paying patients in 30
+// days, GluFloat keeps N1,750 on every payment.
+check("25 paying patients: still N2,000", glufloatShareFor(25) === 2_000);
+check("26 paying patients: N1,750", glufloatShareFor(26) === 1_750 && GLUFLOAT_SHARE_VOLUME === 1_750 && VOLUME_PATIENTS === 25);
+check("no count given: N2,000", glufloatShareFor() === 2_000);
+check("N6,000 at 26 patients gives her N4,250", dietitianShareNaira(6_000, 26) === 4_250);
+check("kobo at 26 patients", dietitianShareKobo(600_000, 26) === 425_000);
+check("N4,500 at 30 patients gives her N2,750", dietitianShareNaira(4_500, 30) === 2_750);
+check("shares still add up at the volume rate", [4_500, 6_000, 9_999].every((p) => dietitianShareNaira(p, 40) + 1_750 === p));
+check("percentage at N6,000 with 26 patients is 71%", dietitianPercent(6_000, 26) === 71);
 
 // Typing a price.
 check("plain number", JSON.stringify(parsePatientPrice("6000")) === JSON.stringify({ price: 6000 }));

@@ -20,6 +20,16 @@ export const PATIENT_PRICE_MIN = 4_500;
 export const PATIENT_PRICE_MAX = 1_000_000;
 /** What GluFloat keeps from each payment, in naira. */
 export const GLUFLOAT_SHARE = 2_000;
+/**
+ * The volume discount (founder, 2026-10-17): while MORE than this many
+ * patients have paid her in the last 30 days, GluFloat keeps the lower share
+ * on every new payment. Drop back to this many or fewer and it is N2,000 again.
+ */
+export const VOLUME_PATIENTS = 25;
+/** What GluFloat keeps per payment for a practice over VOLUME_PATIENTS, in naira. */
+export const GLUFLOAT_SHARE_VOLUME = 1_750;
+/** The days the paying-patient count looks back over. */
+export const VOLUME_WINDOW_DAYS = 30;
 /** Free days for each new patient of a dietitian. */
 export const PATIENT_FREE_DAYS = 14;
 /** One payment buys this many days. */
@@ -43,21 +53,29 @@ export function patientPrice(h: PriceHolder | null | undefined): number {
   return Math.min(PATIENT_PRICE_MAX, Math.round(p));
 }
 
+/**
+ * What GluFloat keeps per payment, in naira, for a practice with this many
+ * patients who paid her in the last 30 days (this payment's patient counted).
+ */
+export function glufloatShareFor(payingPatients = 0): number {
+  return payingPatients > VOLUME_PATIENTS ? GLUFLOAT_SHARE_VOLUME : GLUFLOAT_SHARE;
+}
+
 /** Her share of a payment, in kobo. Zero for anything at or under GluFloat's share. */
-export function dietitianShareKobo(amountKobo: number): number {
+export function dietitianShareKobo(amountKobo: number, payingPatients = 0): number {
   const a = Math.round(Number(amountKobo) || 0);
-  return Math.max(0, a - GLUFLOAT_SHARE * 100);
+  return Math.max(0, a - glufloatShareFor(payingPatients) * 100);
 }
 
 /** Her share of her own price, in naira. */
-export function dietitianShareNaira(priceNaira: number): number {
-  return Math.max(0, Math.round(priceNaira) - GLUFLOAT_SHARE);
+export function dietitianShareNaira(priceNaira: number, payingPatients = 0): number {
+  return Math.max(0, Math.round(priceNaira) - glufloatShareFor(payingPatients));
 }
 
 /** Her share as a whole percentage of her price ("67%"). */
-export function dietitianPercent(priceNaira: number): number {
+export function dietitianPercent(priceNaira: number, payingPatients = 0): number {
   if (priceNaira <= 0) return 0;
-  return Math.round((dietitianShareNaira(priceNaira) / priceNaira) * 100);
+  return Math.round((dietitianShareNaira(priceNaira, payingPatients) / priceNaira) * 100);
 }
 
 /**

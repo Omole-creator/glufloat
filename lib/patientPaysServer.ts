@@ -19,7 +19,7 @@ import { randomBytes } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { SITE_URL } from "@/lib/site";
 import type { HospitalRow, PatientRow } from "@/lib/hospitalServer";
-import { dietitianShareKobo, isPatientPays, nextPaidUntil, PATIENT_PAY_KIND, patientPrice } from "@/lib/patientPays";
+import { dietitianShareKobo, isPatientPays, nextPaidUntil, PATIENT_PAY_KIND, patientPrice, VOLUME_WINDOW_DAYS } from "@/lib/patientPays";
 
 /** Is #32 in the database? (The lock table must exist before anyone pays.) */
 export async function patientPaysReady(admin: SupabaseClient): Promise<boolean> {
@@ -42,6 +42,25 @@ export async function patientPaysRow(admin: SupabaseClient, uid: string): Promis
   // The newest, the same pick hospitalStatusFor makes.
   rows.sort((a, b) => (b.joined_at ?? "").localeCompare(a.joined_at ?? ""));
   return rows[0] ?? null;
+}
+
+/**
+ * How many different patients paid this practice in the 30 days up to `at`,
+ * leaving one patient out (so the caller can count them in once). The volume
+ * discount's count (lib/patientPays.ts).
+ */
+export async function payingPatients(admin: SupabaseClient, hospitalId: string, at: string, except?: string): Promise<number> {
+  const since = new Date(new Date(at).getTime() - VOLUME_WINDOW_DAYS * 86_400_000).toISOString();
+  const { data } = await admin
+    .from("patient_payments")
+    .select("user_id")
+    .eq("hospital_id", hospitalId)
+    .gt("dietitian_share", 0)
+    .gte("paid_at", since)
+    .lte("paid_at", at)
+    .limit(5000);
+  const ids = new Set(((data ?? []) as { user_id: string | null }[]).map((r) => r.user_id).filter((u): u is string => !!u && u !== except));
+  return ids.size;
 }
 
 export type StartResult = { url: string } | { error: string; status: number };
@@ -130,7 +149,10 @@ export async function grantPatientPayment(
     const r = data as Joined | null;
     if (r && r.user_id === p.uid && r.hospital_id === hospitalId && r.hospitals && isPatientPays(r.hospitals)) row = r;
   }
-  const share = row ? dietitianShareKobo(p.amount) : 0;
+  // The volume discount: her paying patients in the last 30 days, this one
+  // included (founder, 2026-10-17: every payment, while she has 26+).
+  const paying = row ? (await payingPatients(admin, row.hospital_id, p.paidAt, p.uid)) + 1 : 0;
+  const share = row ? dietitianShareKobo(p.amount, paying) : 0;
 
   const { data: inserted, error } = await admin
     .from("patient_payments")

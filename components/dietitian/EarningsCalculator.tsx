@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { dietitianShareNaira, GLUFLOAT_SHARE, naira, PATIENT_PRICE_MIN } from "@/lib/patientPays";
+import { dietitianShareNaira, GLUFLOAT_SHARE, GLUFLOAT_SHARE_VOLUME, glufloatShareFor, naira, PATIENT_PRICE_MIN, VOLUME_PATIENTS } from "@/lib/patientPays";
 
 /**
  * The /dietitians earnings calculator (2026-10-17, replaces the old 5/10/20
@@ -15,7 +15,8 @@ const PRICES = [4_500, 6_000, 8_000, 10_000];
 export default function EarningsCalculator() {
   const [patients, setPatients] = useState(10);
   const [price, setPrice] = useState(6_000);
-  const each = dietitianShareNaira(price);
+  const each = dietitianShareNaira(price, patients);
+  const volume = patients > VOLUME_PATIENTS;
   const month = each * patients;
 
   return (
@@ -59,6 +60,14 @@ export default function EarningsCalculator() {
         <p className="mt-3 text-sm text-ink-soft">
           You choose any price from {naira(PATIENT_PRICE_MIN)}. These are only examples.
         </p>
+        <p
+          className={`mt-3 rounded-xl px-3.5 py-2.5 text-sm ${
+            volume ? "bg-leaf/10 font-semibold text-leaf-deep ring-1 ring-inset ring-leaf/20" : "bg-white text-ink ring-1 ring-inset ring-line"
+          }`}
+        >
+          Over {VOLUME_PATIENTS} paying patients, GluFloat keeps {naira(GLUFLOAT_SHARE_VOLUME)} instead of {naira(GLUFLOAT_SHARE)}. You keep{" "}
+          {naira(GLUFLOAT_SHARE - GLUFLOAT_SHARE_VOLUME)} more on every patient.
+        </p>
       </div>
 
       <div className="relative flex flex-col justify-between rounded-[28px] bg-gradient-to-br from-[#0B2E5C] to-brand p-7 text-white">
@@ -74,7 +83,7 @@ export default function EarningsCalculator() {
             </div>
             <div className="flex justify-between gap-3 border-b border-white/15 pb-2">
               <dt className="text-white/75">GluFloat keeps</dt>
-              <dd className="font-semibold">{naira(GLUFLOAT_SHARE)}</dd>
+              <dd className="font-semibold">{naira(glufloatShareFor(patients))}</dd>
             </div>
             <div className="flex justify-between gap-3">
               <dt className="text-white/75">You keep, per patient</dt>
