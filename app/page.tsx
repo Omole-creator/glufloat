@@ -23,8 +23,8 @@ const PLANS: PricingPlan[] = [
     isPopular: false,
     description: "7 days free. No card needed. Stop anytime.",
     features: [
-      "Check any of 1,500+ Nigerian foods before you eat",
-      "Get personalized breakfast, lunch, and dinner recommendations every day",
+      "Get your breakfast, lunch and dinner picked for you every day",
+      "Want something else? Check any of 1,500+ Nigerian foods first",
       "Build a meal and get personalized guidance on it",
       "Test your sugar before and 2 hours after a meal, and see the change",
       "Generate a monthly meal report to share with your doctor",
@@ -101,7 +101,7 @@ export default function Home() {
 
       <HeroLanding
         title="Defy Diabetes. Enjoy Food Again."
-        description="GluFloat picks your breakfast, lunch and dinner, checks any food you crave, and shows you what each meal does to your sugar. Then it puts it all in one report for your doctor."
+        description="Not sure what to eat with diabetes? GluFloat tells you, every meal. You still eat the food you love. You just eat it the right way."
         announcementBanner={{
           text: "Reviewed by 7 registered dietitians",
           icon: <ShieldCheck className="h-4 w-4 text-leaf-bright" />,
@@ -132,8 +132,8 @@ export default function Home() {
               <TrafficLight size="sm" active="cycle" />
             </div>
             <div className="absolute -bottom-5 right-4 rounded-2xl bg-white px-4 py-3 text-left shadow-[0_18px_40px_-14px_rgba(6,26,50,0.6)] sm:right-6">
-              <p className="font-display text-lg font-bold leading-none text-brand">1,500+</p>
-              <p className="mt-1 text-xs font-semibold text-ink-soft">Nigerian foods checked</p>
+              <p className="font-display text-lg font-bold leading-none text-brand">3 meals a day</p>
+              <p className="mt-1 text-xs font-semibold text-ink-soft">picked for you</p>
             </div>
           </>
         }
@@ -180,10 +180,10 @@ export default function Home() {
             <Reveal className="text-center">
               <Label dark>Try it free</Label>
               <h2 className="mt-4 font-display text-3xl font-bold tracking-tight text-white sm:text-4xl">
-                Ready To Check Your First Food?
+                Let GluFloat Pick Your Next Meal
               </h2>
               <p className="mx-auto mt-4 max-w-md text-lg leading-relaxed text-white/75">
-                Make a free account, then use GluFloat for 7 days. No card needed.
+                Make a free account. Use it free for 7 days. No card needed.
               </p>
             </Reveal>
 
@@ -223,11 +223,11 @@ export default function Home() {
           <Reveal className="text-center">
             <Label>Why GluFloat</Label>
             <h2 className={H2}>
-              Other Apps Don&apos;t Know Our Food. GluFloat Was Made For It.
+              Other Apps Don&apos;t Know Our Food. GluFloat Does.
             </h2>
             <p className={LEAD}>
-              The popular food apps were built abroad. They don&apos;t know jollof, eba or amala,
-              and they don&apos;t know we eat with soup. GluFloat knows over 1,500 of our own foods.
+              Most food apps were made abroad. They don&apos;t know what we cook or how we eat it.
+              GluFloat was made for our food. It knows over 1,500 of them.
             </p>
           </Reveal>
 
@@ -252,7 +252,8 @@ export default function Home() {
                   <div className="bg-brand px-2 py-4 text-center text-white">GluFloat</div>
                 </div>
                 {[
-                  "Knows jollof, eba and amala",
+                  "Tells you what to eat, every meal",
+                  "Knows the food we really eat",
                   "Checks your whole plate, not one food",
                   "Shows you how to fix it, never just no",
                   "Gives the size in things you can see",
@@ -292,7 +293,7 @@ export default function Home() {
                 { end: 1500, suffix: "+", unit: "Nigerian foods", label: "and we add more every month" },
                 { end: 7, suffix: "", unit: "registered dietitians", label: "reviewed our food guidance" },
                 { end: 3, suffix: "", unit: "clear colours", label: "green, yellow or red" },
-                { end: 10, suffix: " sec", unit: "to an answer", label: "faster than dishing the food" },
+                { end: 3, suffix: "", unit: "meals picked for you", label: "every single day" },
               ].map((t, i) => (
                 <Reveal key={t.unit} delay={i * 100}>
                   <div className="h-full rounded-[22px] bg-white/[0.08] p-6 text-center ring-1 ring-inset ring-white/15 backdrop-blur-sm">
