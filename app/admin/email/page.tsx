@@ -11,6 +11,8 @@ import AdminTile from "../AdminTile";
 import Compose from "./Compose";
 import AddContact from "./AddContact";
 import SentEmails from "./SentEmails";
+import DirectEmail, { type DirectFrom, type DirectSent } from "./DirectEmail";
+import { DIRECT_SENDERS } from "@/lib/directEmail";
 
 export const dynamic = "force-dynamic";
 
@@ -38,6 +40,28 @@ export default async function EmailPage() {
     } catch (e) {
       problem = e instanceof Error ? e.message : "Could not reach Mailyte.";
     }
+  }
+
+  // One-to-one emails (hospitals, HMOs, anyone). Each From address must be a
+  // verified Mailyte sender; null = could not check (no key / Mailyte down).
+  const directFrom: DirectFrom[] = DIRECT_SENDERS.map((d) => {
+    const m = senders.find((s) => s.email.toLowerCase() === d.email);
+    return { email: d.email, name: d.name, ready: keyOn && !problem ? !!m?.verified : null };
+  });
+  let directSent: DirectSent[] = [];
+  let directReady = false;
+  try {
+    const { data, error } = await createAdminClient()
+      .from("direct_emails")
+      .select("id, sent_at, from_email, to_name, to_email, cc, subject, html, attachments")
+      .order("sent_at", { ascending: false })
+      .limit(100);
+    if (!error) {
+      directReady = true;
+      directSent = (data ?? []) as DirectSent[];
+    }
+  } catch {
+    directReady = false;
   }
 
   return (
@@ -68,6 +92,10 @@ export default async function EmailPage() {
         )}
       </AdminCard>
       </div>
+
+      <AdminCard className="mt-4" title="Email one person or organisation" sub="A hospital, an HMO, or anyone. You can attach files.">
+        <DirectEmail senders={directFrom} sent={directSent} listReady={directReady} />
+      </AdminCard>
 
       <SentEmails sent={sent} />
 

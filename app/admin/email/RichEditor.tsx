@@ -25,7 +25,7 @@ export default function RichEditor({
 }: {
   onChange: (html: string, isEmpty: boolean) => void;
   /** Inserted by the Name button; the server turns it into Mailyte's tag. */
-  nameToken: string;
+  nameToken?: string;
   /** Change it to clear the box (after a send), or to load initialHtml. */
   resetKey: number;
   /** What the box starts with when resetKey changes (an email opened by Edit). */
@@ -61,7 +61,7 @@ export default function RichEditor({
   );
 }
 
-function Toolbar({ editor, nameToken }: { editor: Editor; nameToken: string }) {
+function Toolbar({ editor, nameToken }: { editor: Editor; nameToken?: string }) {
   const s = useEditorState({
     editor,
     selector: ({ editor: e }) => ({
@@ -120,8 +120,8 @@ function Toolbar({ editor, nameToken }: { editor: Editor; nameToken: string }) {
       <button type="button" title="Link" aria-label="Link" className={btn(s.link)} onClick={setLink}>
         <LinkIcon className="h-4 w-4" />
       </button>
-      <span className="mx-1 h-5 w-px bg-line" />
-      <button
+      {nameToken && <span className="mx-1 h-5 w-px bg-line" />}
+      {nameToken && <button
         type="button"
         title="Insert the person's first name"
         aria-label="Insert first name"
@@ -129,7 +129,7 @@ function Toolbar({ editor, nameToken }: { editor: Editor; nameToken: string }) {
         className="inline-flex h-8 items-center gap-1 rounded-lg px-2 text-xs font-bold text-leaf-deep hover:bg-leaf/10"
       >
         <UserRound className="h-4 w-4" /> Name
-      </button>
+      </button>}
       <span className="ml-auto flex gap-1">
         <button type="button" title="Undo" aria-label="Undo" className={btn(false)} disabled={!s.undo} onClick={() => editor.chain().focus().undo().run()}>
           <Undo2 className="h-4 w-4" />
