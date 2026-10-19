@@ -346,8 +346,12 @@ export async function sendCampaign(id: string): Promise<void> {
 /** Delete a campaign. Returns false if Mailyte refused (never throws, so the
  *  draft clean-up after a test can never turn a good test into an error). */
 export async function deleteCampaign(id: string): Promise<boolean> {
-  const r = await my(`/campaigns/${id}`, { method: "DELETE" });
-  return r.status < 400;
+  try {
+    const r = await my(`/campaigns/${id}`, { method: "DELETE" });
+    return r.status < 400;
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -406,11 +410,11 @@ export interface SentEmail {
 }
 
 /** The last few emails, with how many were sent and opened. */
-export async function recentCampaigns(limit = 10): Promise<SentEmail[]> {
+export async function recentCampaigns(limit = 10, hidden: Set<string> = new Set()): Promise<SentEmail[]> {
   const r = await my<{
     data?: { id: string; name: string; state: string; content?: { subject?: string | null }; created_at: string }[];
-  }>(`/campaigns?per_page=${limit}`);
-  const rows = (r.data?.data ?? []).filter((c) => c.state !== "draft").slice(0, limit);
+  }>(`/campaigns?per_page=${Math.min(100, limit + hidden.size + 10)}`);
+  const rows = (r.data?.data ?? []).filter((c) => c.state !== "draft" && !hidden.has(c.id)).slice(0, limit);
   return Promise.all(
     rows.map(async (c) => {
       const s = await my<{ recipients?: { sent?: number | null }; engagement?: { opened?: number | null; clicked?: number | null } }>(

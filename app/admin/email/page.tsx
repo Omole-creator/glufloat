@@ -13,6 +13,7 @@ import AddContact from "./AddContact";
 import SentEmails from "./SentEmails";
 import DirectEmail, { type DirectFrom, type DirectSent } from "./DirectEmail";
 import { DIRECT_SENDERS } from "@/lib/directEmail";
+import { hiddenCampaigns } from "@/lib/hiddenCampaigns";
 
 export const dynamic = "force-dynamic";
 
@@ -36,7 +37,8 @@ export default async function EmailPage() {
   let problem = "";
   if (keyOn) {
     try {
-      [senders, sent] = await Promise.all([listSenders(), recentCampaigns(10)]);
+      const hidden = await hiddenCampaigns();
+      [senders, sent] = await Promise.all([listSenders(), recentCampaigns(10, hidden)]);
     } catch (e) {
       problem = e instanceof Error ? e.message : "Could not reach Mailyte.";
     }
