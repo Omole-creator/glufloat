@@ -6,8 +6,8 @@ import { CheckCircle2 } from "lucide-react";
 
 /**
  * A GluFloat doctor marks this patient as reviewed (lib/careFeesServer.ts
- * creditReview). N1,000 is added to their earnings at once, once a month,
- * while the patient is on a paid GluFloat plan.
+ * creditReview). N1,000 is added to their earnings at once, once a month.
+ * Only shown for a patient on a paid GluFloat plan (the page checks).
  */
 export default function ReviewButton({
   patientId,
@@ -15,7 +15,6 @@ export default function ReviewButton({
   firstName,
   month,
   feeThisMonth,
-  paying,
   reviewedAt,
 }: {
   patientId: string;
@@ -24,7 +23,6 @@ export default function ReviewButton({
   /** "October": the month this review counts for. */
   month: string;
   feeThisMonth: boolean;
-  paying: boolean;
   /** The last time this patient was marked reviewed, if remembered. */
   reviewedAt: string | null;
 }) {
@@ -46,7 +44,6 @@ export default function ReviewButton({
       setMsg(j.error ?? "Something went wrong.");
       return;
     }
-    if (!j.paying) setMsg(`Marked as reviewed. No fee: ${firstName} is not on a paid GluFloat plan right now.`);
     router.refresh();
   };
 
@@ -70,9 +67,7 @@ export default function ReviewButton({
         <div className="min-w-0 flex-1">
           <p className="text-sm font-bold text-ink">Monthly review</p>
           <p className="text-xs text-ink-soft">
-            {paying
-              ? `Look at ${firstName}'s meals and sugar tests, then mark as reviewed. You earn ₦1,000, once a month.`
-              : `${firstName} is not on a paid GluFloat plan right now, so there is no fee for reviewing this month.`}
+            {`Look at ${firstName}'s meals and sugar tests, then mark as reviewed. You earn ₦1,000, once a month.`}
             {when ? ` Last marked as reviewed on ${when}.` : ""}
           </p>
         </div>

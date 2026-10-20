@@ -59,7 +59,12 @@ export type RosterRow = {
   plan: "premium" | "plus" | "basic" | "trial" | "ended" | null;
 };
 
-export async function hospitalRoster(admin: SupabaseClient, hospitalId: string): Promise<RosterRow[]> {
+/**
+ * `paidOnly` (a GluFloat doctor's list, founder 2026-10-20): a patient with no
+ * paid GluFloat plan shows no record (meals, tests, readings, HbA1c, flags)
+ * until they pay.
+ */
+export async function hospitalRoster(admin: SupabaseClient, hospitalId: string, opts: { paidOnly?: boolean } = {}): Promise<RosterRow[]> {
   const { data } = await admin
     .from("hospital_patients")
     .select("*")
@@ -181,8 +186,10 @@ export async function hospitalRoster(admin: SupabaseClient, hospitalId: string):
   return pats.map((p) => {
     const uid = p.user_id;
     const accountEmail = uid ? emails.get(uid) ?? null : null;
-    const flagged = !!uid && p.status === "active";
-    const rs = uid ? readings.get(uid) ?? [] : [];
+    const plan = uid ? plans.get(uid) ?? null : null;
+    const hidden = !!opts.paidOnly && !(plan === "premium" || plan === "plus" || plan === "basic");
+    const flagged = !!uid && p.status === "active" && !hidden;
+    const rs = uid && !hidden ? readings.get(uid) ?? [] : [];
     return {
       id: p.id,
       name: p.name,
@@ -195,17 +202,17 @@ export async function hospitalRoster(admin: SupabaseClient, hospitalId: string):
       joinedAt: p.joined_at,
       phoneLogin: isPhoneLoginEmail(accountEmail),
       lastActive: uid ? last.get(uid) ?? null : null,
-      meals30: uid ? meals.get(uid) ?? 0 : 0,
-      tests30: uid ? tests.get(uid) ?? 0 : 0,
-      latestReading: uid ? latest.get(uid) ?? null : null,
-      latestHba1c: uid ? hba1c.get(uid) ?? null : null,
+      meals30: uid && !hidden ? meals.get(uid) ?? 0 : 0,
+      tests30: uid && !hidden ? tests.get(uid) ?? 0 : 0,
+      latestReading: uid && !hidden ? latest.get(uid) ?? null : null,
+      latestHba1c: uid && !hidden ? hba1c.get(uid) ?? null : null,
       safety: flagged ? safetyEvents(rs, new Date(), p.safety_seen_at ?? null) : [],
       beforeFlag: flagged ? beforeMealFlag(rs, p.before_target_mgdl) : null,
       patterns: flagged ? mealPatternFlags(mealsBy.get(uid as string) ?? [], rs).map((f) => f.label) : [],
       paidUntil: p.paid_until ?? null,
       pausedLeftMs: p.paused_left_ms != null ? Number(p.paused_left_ms) : null,
       chatWaitingSince: flagged ? chatWait.get(uid as string) ?? null : null,
-      plan: uid ? plans.get(uid) ?? null : null,
+      plan,
     };
   });
 }

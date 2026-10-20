@@ -73,6 +73,22 @@ export default async function PatientPage({
   }
 
   const uid = row.user_id as string;
+  // A GluFloat doctor sees a patient's record (and the review button) only
+  // while the patient has a paid GluFloat plan (founder, 2026-10-20).
+  const doctorPractice = isDoctorPractice(ctx.hospital);
+  if (doctorPractice && !(await payingNow(ctx.admin, uid))) {
+    const first = (row.name as string).split(/\s+/)[0];
+    return (
+      <HospitalShell ctx={ctx} title={row.name as string}>
+        <Link href={back} className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:underline">
+          <ArrowLeft className="h-4 w-4" /> All patients
+        </Link>
+        <p className="mt-6 rounded-2xl border border-[#e3e9f1] bg-white p-6 text-sm text-ink-soft">
+          {first} has not paid for GluFloat yet. You can see their meals and sugar tests once they pay.
+        </p>
+      </HospitalShell>
+    );
+  }
   // GluFloat for dietitians: her note and food rules for this patient. Its own
   // read, so a database without practice-rules-schema.sql (#26) only hides the editor.
   const practice = isPractice(ctx.hospital) && ctx.staff.role === "admin";
@@ -128,18 +144,15 @@ export default async function PatientPage({
     .map((s) => ({ name: s.name, role: s.role, whatsapp: whatsappNumber(s.phone) as string }));
 
   const firstName = (profile.name || (row.name as string)).split(/\s+/)[0];
-  // A GluFloat doctor's monthly review (N1,000 once a month while the patient
-  // pays). reviewed_at is its own read: without doctor-review-schema.sql the
+  // A GluFloat doctor's monthly review (N1,000 once a month; the patient pays,
+  // checked above). reviewed_at is its own read: without doctor-review-schema.sql the
   // button still works, the last date is just not shown.
-  const doctorPractice = isDoctorPractice(ctx.hospital);
   const review = doctorPractice
     ? await Promise.all([
         reviewFeeThisMonth(ctx.admin, ctx.hospital.id, uid),
-        payingNow(ctx.admin, uid),
         ctx.admin.from("hospital_patients").select("reviewed_at").eq("id", row.id).maybeSingle(),
-      ]).then(([fee, paying, r]) => ({
+      ]).then(([fee, r]) => ({
         fee,
-        paying,
         reviewedAt: r.error ? null : ((r.data?.reviewed_at as string | null) ?? null),
       }))
     : null;
@@ -163,7 +176,6 @@ export default async function PatientPage({
           firstName={firstName}
           month={new Date().toLocaleDateString("en-GB", { month: "long", timeZone: "Africa/Lagos" })}
           feeThisMonth={review.fee}
-          paying={review.paying}
           reviewedAt={review.reviewedAt}
         />
       )}

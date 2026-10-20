@@ -19,7 +19,7 @@ export default async function HospitalHome({ searchParams }: { searchParams: Pro
   const ctx = await requireStaffPage(sp.h, "/hospital");
   if (!ctx) return <NotStaff />;
 
-  const rows = await hospitalRoster(ctx.admin, ctx.hospital.id);
+  const rows = await hospitalRoster(ctx.admin, ctx.hospital.id, { paidOnly: isDoctorPractice(ctx.hospital) });
   const active = rows.filter((r) => r.status === "active");
   const weekAgo = new Date(Date.now() - 7 * DAY_MS).toISOString();
   const usedThisWeek = active.filter((r) => r.lastActive && r.lastActive >= weekAgo).length;
