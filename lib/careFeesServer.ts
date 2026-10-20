@@ -9,7 +9,7 @@
  * before supabase/doctors-schema.sql runs it simply finds no doctor.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { COLLEAGUE_BONUS_KOBO, splitPayment } from "@/lib/careFees";
+import { COLLEAGUE_BONUS_KOBO, REVIEW_FEE_KOBO, reviewReference, splitPayment } from "@/lib/careFees";
 
 type DoctorPractice = {
   id: string;
@@ -22,7 +22,7 @@ type DoctorPractice = {
 type AgentRow = { id: string; status: string; manager_id: string | null; role: string };
 
 /** The doctor's practice this patient is with right now, or null. */
-export async function patientsDoctor(admin: SupabaseClient, uid: string): Promise<{ practice: DoctorPractice } | null> {
+export async function patientsDoctor(admin: SupabaseClient, uid: string): Promise<{ practice: DoctorPractice; joinedAt: string | null } | null> {
   const { data, error } = await admin
     .from("hospital_patients")
     .select("id,joined_at,hospitals(id,kind,status,agent_id,invited_by)")
@@ -30,9 +30,9 @@ export async function patientsDoctor(admin: SupabaseClient, uid: string): Promis
     .eq("status", "active")
     .order("joined_at", { ascending: false });
   if (error || !data) return null;
-  for (const r of data as unknown as { hospitals: DoctorPractice | null }[]) {
+  for (const r of data as unknown as { joined_at: string | null; hospitals: DoctorPractice | null }[]) {
     const h = r.hospitals;
-    if (h && h.kind === "doctor" && h.status === "active") return { practice: h };
+    if (h && h.kind === "doctor" && h.status === "active") return { practice: h, joinedAt: r.joined_at };
   }
   return null;
 }
@@ -47,16 +47,20 @@ export async function earnCareFees(
     const practice = link.practice;
     const paidAt = new Date(p.paidAt || Date.now());
 
-    // The patient's first payment while with this doctor (the agent's 12 months start there).
-    const { data: first } = await admin
-      .from("clinician_earnings")
-      .select("earned_at")
-      .eq("kind", "care")
-      .eq("patient_user_id", p.uid)
-      .eq("source_hospital_id", practice.id)
-      .order("earned_at", { ascending: true })
-      .limit(1);
-    const firstPaidAt = first && first.length ? new Date(first[0].earned_at as string) : null;
+    // The patient's first payment while with this doctor (the agent's 12 months
+    // start there). Read from payments: since 2026-10-20 a payment no longer
+    // writes a doctor's 'care' row to count from. This payment is already in
+    // payments (lib/paymentGrant.ts inserts it first), so a first payment
+    // finds itself and the window is open.
+    let firstQuery = admin
+      .from("payments")
+      .select("paid_at")
+      .eq("user_id", p.uid)
+      .eq("status", "success")
+      .not("paid_at", "is", null);
+    if (link.joinedAt) firstQuery = firstQuery.gte("paid_at", link.joinedAt);
+    const { data: first } = await firstQuery.order("paid_at", { ascending: true }).limit(1);
+    const firstPaidAt = first && first.length ? new Date(first[0].paid_at as string) : null;
 
     let agent: AgentRow | null = null;
     let advisor: AgentRow | null = null;
@@ -120,6 +124,63 @@ export async function earnCareFees(
   } catch {
     /* never block a patient's access over a care fee */
   }
+}
+
+/** True while this person has a paid GluFloat plan running (any tier). */
+export async function payingNow(admin: SupabaseClient, uid: string): Promise<boolean> {
+  const { data } = await admin.from("subscriptions").select("status,current_period_end").eq("user_id", uid).maybeSingle();
+  const end = data?.current_period_end ? new Date(data.current_period_end as string).getTime() : 0;
+  return !!data && (data.status === "active" || data.status === "non-renewing") && end > Date.now();
+}
+
+/** Has this doctor already earned this month's review fee for this patient? */
+export async function reviewFeeThisMonth(admin: SupabaseClient, practiceId: string, uid: string, at = new Date()): Promise<boolean> {
+  const { data } = await admin
+    .from("clinician_earnings")
+    .select("id")
+    .eq("reference", reviewReference(practiceId, uid, at))
+    .eq("kind", "care")
+    .maybeSingle();
+  return !!data;
+}
+
+/**
+ * A doctor pressed "Mark as reviewed" on a patient (founder, 2026-10-20).
+ * N1,000 is credited at once, once per patient per calendar month (WAT), and
+ * only while the patient has a paid GluFloat plan. The unique (reference,
+ * kind) on clinician_earnings makes a second press, or two at once, pay
+ * nothing more. The review itself is remembered on the patient row
+ * (doctor-review-schema.sql) whether or not a fee is due; before that SQL
+ * runs it is simply not remembered.
+ */
+export async function creditReview(
+  admin: SupabaseClient,
+  p: { practiceId: string; patientRowId: string; uid: string; reviewer: string },
+): Promise<{ credited: boolean; already: boolean; paying: boolean }> {
+  const at = new Date();
+  await admin.from("hospital_patients").update({ reviewed_at: at.toISOString(), reviewed_by: p.reviewer }).eq("id", p.patientRowId);
+  if (await reviewFeeThisMonth(admin, p.practiceId, p.uid, at)) return { credited: false, already: true, paying: true };
+  const paying = await payingNow(admin, p.uid);
+  if (!paying) return { credited: false, already: false, paying: false };
+  const { data, error } = await admin
+    .from("clinician_earnings")
+    .upsert(
+      {
+        reference: reviewReference(p.practiceId, p.uid, at),
+        kind: "care",
+        hospital_id: p.practiceId,
+        source_hospital_id: p.practiceId,
+        patient_user_id: p.uid,
+        payment_amount: null,
+        rate: null,
+        amount: REVIEW_FEE_KOBO,
+        earned_at: at.toISOString(),
+      },
+      { onConflict: "reference,kind", ignoreDuplicates: true },
+    )
+    .select("id");
+  if (error) throw new Error(error.message);
+  return { credited: !!data && data.length > 0, already: !data || data.length === 0, paying: true };
 }
 
 /** True once supabase/doctors-schema.sql has been pasted in. */

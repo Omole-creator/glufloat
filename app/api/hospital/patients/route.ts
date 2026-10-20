@@ -7,6 +7,7 @@ import { isPhoneLoginEmail } from "@/lib/phoneLogin";
 import { extendAccess, isDoctorPractice, isPractice } from "@/lib/hospitalPlans";
 import { practiceRuleFoodIds } from "@/lib/nextMeal";
 import { isPatientPays } from "@/lib/patientPays";
+import { creditReview } from "@/lib/careFeesServer";
 
 const RULE_FOODS = new Set(practiceRuleFoodIds());
 const NOTE_MAX = 300;
@@ -120,6 +121,19 @@ export async function PATCH(request: Request) {
     const { error } = await ctx.admin.from("hospital_patients").update(update).eq("id", p.id);
     if (error) return NextResponse.json({ error: "This is not ready yet. Please try again later." }, { status: 503 });
     return NextResponse.json({ ok: true, ...update });
+  }
+
+  // A GluFloat doctor marks a patient as reviewed: N1,000 once a month while
+  // the patient is on a paid plan (lib/careFeesServer.ts creditReview).
+  if (action === "reviewed") {
+    if (!isDoctorPractice(ctx.hospital)) return NextResponse.json({ error: "This is for GluFloat doctors." }, { status: 403 });
+    if (p.status !== "active" || !p.user_id) return NextResponse.json({ error: "This patient is not with you right now." }, { status: 409 });
+    try {
+      const r = await creditReview(ctx.admin, { practiceId: ctx.hospital.id, patientRowId: p.id, uid: p.user_id, reviewer: ctx.staff.name });
+      return NextResponse.json({ ok: true, ...r });
+    } catch {
+      return NextResponse.json({ error: "We could not save this just now. Please try again." }, { status: 503 });
+    }
   }
 
   // A hospital doctor's or dietitian's own note on top of the patient's blue

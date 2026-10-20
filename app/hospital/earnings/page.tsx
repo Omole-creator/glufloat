@@ -4,8 +4,8 @@ import NotStaff from "@/components/hospital/NotStaff";
 import { requireStaffPage } from "@/components/hospital/requireStaff";
 import BankDetailsForm from "@/components/BankDetailsForm";
 import InviteColleagueCard from "@/components/hospital/InviteColleagueCard";
-import { isDoctorPractice, PREMIUM_MONTHLY } from "@/lib/hospitalPlans";
-import { DOCTOR_RATE, maskAccount, nairaFromKobo } from "@/lib/careFees";
+import { isDoctorPractice } from "@/lib/hospitalPlans";
+import { maskAccount, nairaFromKobo, REVIEW_FEE_KOBO } from "@/lib/careFees";
 import { doctorsReady, earningTotals, type EarningRow, type PayoutRow } from "@/lib/careFeesServer";
 import { listBanks } from "@/lib/paystackBanks";
 import { SITE_URL } from "@/lib/site";
@@ -59,7 +59,7 @@ export default async function EarningsPage({ searchParams }: { searchParams: Pro
   }
   const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
   const thisMonth = earnings.filter((e) => e.earned_at >= monthStart).reduce((n, e) => n + e.amount, 0);
-  const perPatient = nairaFromKobo(Math.floor(PREMIUM_MONTHLY * 100 * DOCTOR_RATE));
+  const perReview = nairaFromKobo(REVIEW_FEE_KOBO);
   const status = new Map(payouts.map((p) => [p.id, p.status]));
 
   const tiles = [
@@ -81,8 +81,8 @@ export default async function EarningsPage({ searchParams }: { searchParams: Pro
       </div>
 
       <p className="mt-4 rounded-2xl bg-brand/[0.06] px-4 py-3 text-sm text-ink ring-1 ring-inset ring-brand/10">
-        You earn a care fee of <span className="font-semibold">{perPatient}</span> for each patient you look after, every month they
-        are on GluFloat Premium. It is paid to your bank every week.
+        You earn a care fee of <span className="font-semibold">{perReview}</span> each month for each patient you mark as reviewed,
+        while they are on a paid GluFloat plan. It is added as soon as you mark them, and paid to your bank every week.
       </p>
 
       <div className="mt-6 grid gap-4 lg:grid-cols-2">
@@ -99,7 +99,7 @@ export default async function EarningsPage({ searchParams }: { searchParams: Pro
         <h2 className="border-b border-[#eef2f7] px-5 py-4 font-display text-lg font-bold text-ink">Your care fees</h2>
         {earnings.length === 0 ? (
           <p className="px-5 py-8 text-center text-sm text-ink-soft">
-            Nothing yet. Your care fees show here when your patients subscribe to GluFloat Premium.
+            Nothing yet. Open a patient and press &ldquo;Mark as reviewed&rdquo;. Your care fees show here.
           </p>
         ) : (
           <ul className="divide-y divide-[#eef2f7]">

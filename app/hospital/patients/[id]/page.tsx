@@ -29,6 +29,8 @@ import SugarFlags from "./SugarFlags";
 import PatientDetail from "./PatientDetail";
 import PracticeRulesEditor from "./PracticeRulesEditor";
 import CareNoteEditor from "./CareNoteEditor";
+import ReviewButton from "./ReviewButton";
+import { payingNow, reviewFeeThisMonth } from "@/lib/careFeesServer";
 import StaffChat from "@/components/chat/StaffChat";
 import { canAnswer, chatReady } from "@/lib/chatServer";
 
@@ -126,6 +128,21 @@ export default async function PatientPage({
     .map((s) => ({ name: s.name, role: s.role, whatsapp: whatsappNumber(s.phone) as string }));
 
   const firstName = (profile.name || (row.name as string)).split(/\s+/)[0];
+  // A GluFloat doctor's monthly review (N1,000 once a month while the patient
+  // pays). reviewed_at is its own read: without doctor-review-schema.sql the
+  // button still works, the last date is just not shown.
+  const doctorPractice = isDoctorPractice(ctx.hospital);
+  const review = doctorPractice
+    ? await Promise.all([
+        reviewFeeThisMonth(ctx.admin, ctx.hospital.id, uid),
+        payingNow(ctx.admin, uid),
+        ctx.admin.from("hospital_patients").select("reviewed_at").eq("id", row.id).maybeSingle(),
+      ]).then(([fee, paying, r]) => ({
+        fee,
+        paying,
+        reviewedAt: r.error ? null : ((r.data?.reviewed_at as string | null) ?? null),
+      }))
+    : null;
   const targetSet = validTarget(flagCols?.before_target_mgdl);
   const targetMgdl = targetSet ?? DEFAULT_BEFORE_TARGET;
   const before = beforeMealFlag(readings, targetMgdl);
@@ -139,6 +156,17 @@ export default async function PatientPage({
       <Link href={back} className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:underline">
         <ArrowLeft className="h-4 w-4" /> All patients
       </Link>
+      {review && (
+        <ReviewButton
+          patientId={id}
+          hid={ctx.all.length > 1 ? ctx.hospital.id : null}
+          firstName={firstName}
+          month={new Date().toLocaleDateString("en-GB", { month: "long", timeZone: "Africa/Lagos" })}
+          feeThisMonth={review.fee}
+          paying={review.paying}
+          reviewedAt={review.reviewedAt}
+        />
+      )}
       {rulesRead && !rulesRead.error && (
         <PracticeRulesEditor
           patientId={id}

@@ -72,9 +72,14 @@ export default async function JoinPage({
     <AuthShell
       title={first ? `Welcome, ${first}` : `Join ${hospital.name}`}
       subtitle={
-        hospital.doctor
-          ? `${hospital.name} uses GluFloat to look after your diabetes. It tells you what to eat and how much, and keeps a report for your doctor. Start with 7 days free.`
-          : `${hospital.name} gives you GluFloat. It tells you what to eat for your diabetes and how much, and keeps a report for your doctor and dietitian.`
+        hospital.doctor ? (
+          <>
+            {`${hospital.name} uses GluFloat to look after your diabetes. It tells you what to eat and how much, and keeps a report for your doctor. Start with 7 days free.`}
+            <span className="mt-2 block">Your doctor is paid by GluFloat to review your meals and sugar tests every month.</span>
+          </>
+        ) : (
+          `${hospital.name} gives you GluFloat. It tells you what to eat for your diabetes and how much, and keeps a report for your doctor and dietitian.`
+        )
       }
       sideTitle={hospital.name}
     >

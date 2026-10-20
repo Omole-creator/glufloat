@@ -4,10 +4,11 @@
  * rule. The server side is lib/careFeesServer.ts.
  *
  * Founder's decisions (advisor's model, 2026-10-16, revised the same day):
- *  - Doctor 22.23% of every payment by a patient they look after, for as long
- *    as the patient stays with them and keeps paying. The SAME rate however
- *    the doctor joined (an agent, the advisor, a colleague, or nobody), so two
- *    doctors who compare notes never find different rates.
+ *  - Doctor: N1,000 for each patient they mark as reviewed, once a calendar
+ *    month (WAT), only while that patient has a paid GluFloat plan. Credited
+ *    the moment they press "Mark as reviewed" (founder, 2026-10-20). This
+ *    replaced 22.23% of every payment, which doctors read as a referral fee.
+ *    A payment itself no longer earns the doctor anything.
  *  - Agent 11.12% and their advisor 10%, only for the patient's first 12
  *    months. An agent with no advisor still gets 11.12%; the 10% stays with
  *    GluFloat.
@@ -21,7 +22,8 @@
  * up to more than the payment.
  */
 
-export const DOCTOR_RATE = 0.2223;
+/** N1,000 to a doctor for one patient reviewed in one month. */
+export const REVIEW_FEE_KOBO = 100_000;
 export const AGENT_RATE = 0.1112;
 /** The advisor's share on a doctor one of their agents brought. */
 export const ADVISOR_RATE = 0.1;
@@ -59,7 +61,8 @@ export function splitPayment(opts: {
 }): Share[] {
   const amount = Math.max(0, Math.floor(opts.amountKobo));
   if (amount <= 0) return [];
-  const out: Share[] = [{ kind: "care", rate: DOCTOR_RATE, amount: Math.floor(amount * DOCTOR_RATE) }];
+  // The doctor is paid for reviews (REVIEW_FEE_KOBO), never from a payment.
+  const out: Share[] = [];
   if (opts.hasAgent && opts.agentActive !== false && agentWindowOpen(opts.firstPaidAt, opts.paidAt)) {
     if (opts.agentIsAdvisor) {
       out.push({ kind: "advisor", rate: ADVISOR_DIRECT_RATE, amount: Math.floor(amount * ADVISOR_DIRECT_RATE) });
@@ -69,6 +72,20 @@ export function splitPayment(opts: {
     }
   }
   return out.filter((s) => s.amount > 0);
+}
+
+/** "2026-10": the calendar month (WAT) a review falls in. */
+export function reviewMonthWAT(at: Date): string {
+  const wat = new Date(at.getTime() + 3_600_000);
+  return `${wat.getUTCFullYear()}-${String(wat.getUTCMonth() + 1).padStart(2, "0")}`;
+}
+
+/**
+ * The key of a review fee in clinician_earnings (kind 'care'). The table's
+ * unique (reference, kind) makes it once per doctor, patient and month.
+ */
+export function reviewReference(practiceId: string, patientUid: string, at: Date): string {
+  return `review:${practiceId}:${patientUid}:${reviewMonthWAT(at)}`;
 }
 
 /** Inside the patient's first 12 months (counted from their first payment)? */
