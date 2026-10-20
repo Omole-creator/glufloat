@@ -61,8 +61,8 @@ export type RosterRow = {
 
 /**
  * `paidOnly` (a GluFloat doctor's list, founder 2026-10-20): a patient with no
- * paid GluFloat plan shows no record (meals, tests, readings, HbA1c, flags)
- * until they pay.
+ * paid GluFloat plan and no free trial running shows no record (meals, tests,
+ * readings, HbA1c, flags) until they pay.
  */
 export async function hospitalRoster(admin: SupabaseClient, hospitalId: string, opts: { paidOnly?: boolean } = {}): Promise<RosterRow[]> {
   const { data } = await admin
@@ -187,7 +187,7 @@ export async function hospitalRoster(admin: SupabaseClient, hospitalId: string, 
     const uid = p.user_id;
     const accountEmail = uid ? emails.get(uid) ?? null : null;
     const plan = uid ? plans.get(uid) ?? null : null;
-    const hidden = !!opts.paidOnly && !(plan === "premium" || plan === "plus" || plan === "basic");
+    const hidden = !!opts.paidOnly && !(plan === "premium" || plan === "plus" || plan === "basic" || plan === "trial");
     const flagged = !!uid && p.status === "active" && !hidden;
     const rs = uid && !hidden ? readings.get(uid) ?? [] : [];
     return {

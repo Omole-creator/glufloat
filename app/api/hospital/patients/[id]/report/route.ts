@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { staffContext } from "@/lib/hospitalServer";
 import { hospitalLive, isDoctorPractice } from "@/lib/hospitalPlans";
-import { payingNow } from "@/lib/careFeesServer";
+import { doctorCanSeeRecord } from "@/lib/careFeesServer";
 import { patientHba1cs, patientMonth, patientProfile, patientReadings, patientWeights, watMonth, weightLineFor } from "@/lib/patientRecord";
 
 export const dynamic = "force-dynamic";
@@ -33,8 +33,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     return NextResponse.json({ error: "This patient is not on your list." }, { status: 404 });
 
   const uid = p.user_id as string;
-  // A GluFloat doctor sees a patient's record only while they pay (founder, 2026-10-20).
-  if (isDoctorPractice(ctx.hospital) && !(await payingNow(ctx.admin, uid)))
+  // A GluFloat doctor sees a patient's record only while they pay or are on
+  // their free trial (founder, 2026-10-20).
+  if (isDoctorPractice(ctx.hospital) && !(await doctorCanSeeRecord(ctx.admin, uid)))
     return NextResponse.json({ error: "This patient has not paid for GluFloat yet." }, { status: 402 });
   const month = watMonth(url.searchParams.get("month"));
   // The report's graphs (founder, 2026-10-17): the sugar line covers the 3

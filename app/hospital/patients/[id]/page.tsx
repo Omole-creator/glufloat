@@ -30,7 +30,7 @@ import PatientDetail from "./PatientDetail";
 import PracticeRulesEditor from "./PracticeRulesEditor";
 import CareNoteEditor from "./CareNoteEditor";
 import ReviewButton from "./ReviewButton";
-import { payingNow, reviewFeeThisMonth } from "@/lib/careFeesServer";
+import { doctorCanSeeRecord, payingNow, reviewFeeThisMonth } from "@/lib/careFeesServer";
 import StaffChat from "@/components/chat/StaffChat";
 import { canAnswer, chatReady } from "@/lib/chatServer";
 
@@ -73,10 +73,12 @@ export default async function PatientPage({
   }
 
   const uid = row.user_id as string;
-  // A GluFloat doctor sees a patient's record (and the review button) only
-  // while the patient has a paid GluFloat plan (founder, 2026-10-20).
+  // A GluFloat doctor sees a patient's record while the patient pays or is on
+  // their free trial; the review button (and its N1,000) only while they pay
+  // (founder, 2026-10-20).
   const doctorPractice = isDoctorPractice(ctx.hospital);
-  if (doctorPractice && !(await payingNow(ctx.admin, uid))) {
+  const paying = doctorPractice ? await payingNow(ctx.admin, uid) : false;
+  if (doctorPractice && !paying && !(await doctorCanSeeRecord(ctx.admin, uid))) {
     const first = (row.name as string).split(/\s+/)[0];
     return (
       <HospitalShell ctx={ctx} title={row.name as string}>
@@ -144,10 +146,10 @@ export default async function PatientPage({
     .map((s) => ({ name: s.name, role: s.role, whatsapp: whatsappNumber(s.phone) as string }));
 
   const firstName = (profile.name || (row.name as string)).split(/\s+/)[0];
-  // A GluFloat doctor's monthly review (N1,000 once a month; the patient pays,
-  // checked above). reviewed_at is its own read: without doctor-review-schema.sql the
+  // A GluFloat doctor's monthly review (N1,000 once a month), only for a
+  // paying patient: none during the free trial. reviewed_at is its own read: without doctor-review-schema.sql the
   // button still works, the last date is just not shown.
-  const review = doctorPractice
+  const review = doctorPractice && paying
     ? await Promise.all([
         reviewFeeThisMonth(ctx.admin, ctx.hospital.id, uid),
         ctx.admin.from("hospital_patients").select("reviewed_at").eq("id", row.id).maybeSingle(),

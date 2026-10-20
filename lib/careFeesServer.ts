@@ -9,6 +9,7 @@
  * before supabase/doctors-schema.sql runs it simply finds no doctor.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { TRIAL_DAYS } from "@/lib/trial";
 import { COLLEAGUE_BONUS_KOBO, REVIEW_FEE_KOBO, reviewReference, splitPayment } from "@/lib/careFees";
 
 type DoctorPractice = {
@@ -131,6 +132,19 @@ export async function payingNow(admin: SupabaseClient, uid: string): Promise<boo
   const { data } = await admin.from("subscriptions").select("status,current_period_end").eq("user_id", uid).maybeSingle();
   const end = data?.current_period_end ? new Date(data.current_period_end as string).getTime() : 0;
   return !!data && (data.status === "active" || data.status === "non-renewing") && end > Date.now();
+}
+
+/**
+ * May a GluFloat doctor see this patient's record (meals, sugar tests, flags,
+ * report)? While they pay, and during their free trial (founder, 2026-10-20).
+ * The trial is 7 x 24h from trial_start, the same rule as lib/hospitalRoster.ts.
+ * The review button and its N1,000 still need payingNow().
+ */
+export async function doctorCanSeeRecord(admin: SupabaseClient, uid: string): Promise<boolean> {
+  if (await payingNow(admin, uid)) return true;
+  const { data } = await admin.from("profiles").select("trial_start").eq("id", uid).maybeSingle();
+  const start = data?.trial_start ? new Date(data.trial_start as string).getTime() : 0;
+  return start > 0 && Date.now() - start < TRIAL_DAYS * 86_400_000;
 }
 
 /** Has this doctor already earned this month's review fee for this patient? */
