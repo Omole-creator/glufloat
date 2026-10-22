@@ -45,7 +45,7 @@ export async function POST(request: Request) {
   let agentId: string | null = null;
   if (typeof body.agentId === "string" && body.agentId) {
     const { data: a } = await admin.from("field_agents").select("id,status").eq("id", body.agentId).maybeSingle();
-    if (!a || a.status !== "active") return NextResponse.json({ error: "Choose a field agent from the list, or Nobody." }, { status: 400 });
+    if (!a || a.status !== "active") return NextResponse.json({ error: "Choose a doctor acquisition rep from the list, or Nobody." }, { status: 400 });
     agentId = a.id as string;
   }
 

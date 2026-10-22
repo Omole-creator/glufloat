@@ -88,7 +88,7 @@ export default async function AgentDashboard({ params }: { params: Promise<{ tok
             <span className="font-display text-lg font-bold">GluFloat</span>
           </div>
           <h1 className="mt-6 font-display text-2xl font-bold sm:text-3xl">Hello, {first}</h1>
-          <p className="mt-1 text-sm text-white/80">{advisor ? "Advisor" : "Field agent"} · your doctors and your money</p>
+          <p className="mt-1 text-sm text-white/80">{advisor ? "Advisor" : "Doctor acquisition rep"} · your doctors and your money</p>
           <div className="mt-5">
             <p className="mb-2 text-xs font-bold uppercase tracking-[0.1em] text-white/70">Your link for doctors</p>
             <AgentShare link={`${SITE_URL}/d/${agent.ref_code}`} />
@@ -109,7 +109,7 @@ export default async function AgentDashboard({ params }: { params: Promise<{ tok
 
         <p className="mt-4 rounded-2xl bg-brand/[0.06] px-4 py-3 text-sm text-ink ring-1 ring-inset ring-brand/10">
           {advisor
-            ? `For each paying patient, every month, for the patient's first 12 months, you earn ${fee(ADVISOR_DIRECT_RATE)} on doctors you bring yourself and ${fee(ADVISOR_RATE)} on doctors your agents bring.`
+            ? `For each paying patient, every month, for the patient's first 12 months, you earn ${fee(ADVISOR_DIRECT_RATE)} on doctors you bring yourself and ${fee(ADVISOR_RATE)} on doctors your reps bring.`
             : `You earn ${fee(AGENT_RATE)} for each paying patient of the doctors you bring, every month, for the patient's first 12 months.`}{" "}
           {agent.account_number
             ? `Paid every week to ${agent.account_name ?? ""} (${agent.bank_name ?? ""} ${maskAccount(agent.account_number)}).`
@@ -118,9 +118,9 @@ export default async function AgentDashboard({ params }: { params: Promise<{ tok
 
         {advisor && (
           <section className="mt-6 rounded-2xl border border-[#e3e9f1] bg-white">
-            <h2 className="border-b border-[#eef2f7] px-5 py-4 font-display text-lg font-bold text-ink">Your agents</h2>
+            <h2 className="border-b border-[#eef2f7] px-5 py-4 font-display text-lg font-bold text-ink">Your reps</h2>
             {myAgents.length === 0 ? (
-              <p className="px-5 py-6 text-center text-sm text-ink-soft">No agents yet. GluFloat adds them for you.</p>
+              <p className="px-5 py-6 text-center text-sm text-ink-soft">No reps yet. GluFloat adds them for you.</p>
             ) : (
               <ul className="divide-y divide-[#eef2f7]">
                 {myAgents.map((a) => {
@@ -145,7 +145,7 @@ export default async function AgentDashboard({ params }: { params: Promise<{ tok
 
         <section className="mt-6 rounded-2xl border border-[#e3e9f1] bg-white">
           <h2 className="border-b border-[#eef2f7] px-5 py-4 font-display text-lg font-bold text-ink">
-            {advisor ? "Your doctors and your agents' doctors" : "Your doctors"}
+            {advisor ? "Your doctors and your reps' doctors" : "Your doctors"}
           </h2>
           <DoctorList list={advisor ? myDoctors : own} />
         </section>

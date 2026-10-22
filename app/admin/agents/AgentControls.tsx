@@ -58,8 +58,8 @@ export function AddAgentForm({ advisors }: { advisors: Advisor[] }) {
       <label className="text-xs font-semibold text-ink-soft">
         They are
         <select value={role} onChange={(e) => setRole(e.target.value as "agent" | "advisor")} className={`mt-1 ${box}`}>
-          <option value="agent">A field agent</option>
-          <option value="advisor">An advisor (has field agents)</option>
+          <option value="agent">A doctor acquisition rep</option>
+          <option value="advisor">An advisor (has doctor acquisition reps)</option>
         </select>
       </label>
       {role === "agent" && (

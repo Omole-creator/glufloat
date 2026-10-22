@@ -25,7 +25,7 @@ export default async function AgentsAdminPage() {
   const admin = createAdminClient();
   if (!(await doctorsReady(admin)))
     return (
-      <AdminShell title="Field agents" icon={<Handshake className="h-5 w-5" />}>
+      <AdminShell title="Doctor acquisition reps" icon={<Handshake className="h-5 w-5" />}>
         <div className="mt-6 rounded-2xl border border-[#e3e9f1] bg-white p-6 text-sm text-ink-soft">
           Waiting for the database update. Paste <code className="font-mono text-ink">supabase/doctors-schema.sql</code> into the
           Supabase SQL editor (#31 in SETUP.md).
@@ -47,11 +47,11 @@ export default async function AgentsAdminPage() {
   const people = [...advisors, ...team.agents.filter((a) => a.role === "agent")];
 
   return (
-    <AdminShell title="Field agents" subtitle="Agents and advisors who bring doctors" icon={<Handshake className="h-5 w-5" />}>
+    <AdminShell title="Doctor acquisition reps" subtitle="Reps and advisors who bring doctors" icon={<Handshake className="h-5 w-5" />}>
       <div className="mt-6">
         <AdminHero
           items={[
-            { label: "Field agents", value: String(team.agents.filter((a) => a.role === "agent" && a.status === "active").length), sub: "switched on" },
+            { label: "Doctor acquisition reps", value: String(team.agents.filter((a) => a.role === "agent" && a.status === "active").length), sub: "switched on" },
             { label: "Advisors", value: String(advisors.filter((a) => a.status === "active").length), sub: "switched on" },
             { label: "Doctors they brought", value: String(team.doctors.filter((d) => d.agent_id).length), sub: `of ${team.doctors.length} doctors` },
             { label: "Owed to them", value: nairaFromKobo(owed), sub: "see Payouts" },
@@ -60,7 +60,7 @@ export default async function AgentsAdminPage() {
       </div>
 
       {/* Used now and then: folded once there is anybody on the list. */}
-      <FoldCard className="mt-6" title="Add a field agent or advisor" sub="Add the advisor first, then their agents." open={people.length === 0}>
+      <FoldCard className="mt-6" title="Add a doctor acquisition rep or advisor" sub="Add the advisor first, then their reps." open={people.length === 0}>
         <AddAgentForm advisors={advisors.filter((a) => a.status === "active").map((a) => ({ id: a.id, name: a.name }))} />
       </FoldCard>
 
@@ -79,7 +79,7 @@ export default async function AgentsAdminPage() {
               key={a.id}
               className={off ? "opacity-70" : ""}
               title={a.name}
-              sub={`${a.role === "advisor" ? "Advisor" : "Field agent"}${a.manager_id ? ` · advisor: ${nameOf.get(a.manager_id) ?? "-"}` : ""}${a.phone ? ` · ${a.phone}` : ""}${off ? " · Switched off" : ""}`}
+              sub={`${a.role === "advisor" ? "Advisor" : "Doctor acquisition rep"}${a.manager_id ? ` · advisor: ${nameOf.get(a.manager_id) ?? "-"}` : ""}${a.phone ? ` · ${a.phone}` : ""}${off ? " · Switched off" : ""}`}
               meta={
                 <>
                   <span className="block font-semibold text-ink">{docs.length} {docs.length === 1 ? "doctor" : "doctors"}</span>

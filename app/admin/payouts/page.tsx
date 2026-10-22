@@ -89,7 +89,7 @@ export default async function PayoutsAdminPage() {
         key: `a${a.id}`,
         who: { agentId: a.id },
         name: a.name,
-        role: a.role === "advisor" ? "Advisor" : "Field agent",
+        role: a.role === "advisor" ? "Advisor" : "Doctor acquisition rep",
         bank: a.bank_name,
         account: a.account_number,
         accountName: a.account_name,
@@ -109,7 +109,7 @@ export default async function PayoutsAdminPage() {
   ]);
 
   return (
-    <AdminShell title="Payouts" subtitle="Money owed to doctors, dietitians, field agents and advisors, every week" icon={<Wallet className="h-5 w-5" />}>
+    <AdminShell title="Payouts" subtitle="Money owed to doctors, dietitians, doctor acquisition reps and advisors, every week" icon={<Wallet className="h-5 w-5" />}>
       <div className="mt-6">
         <AdminHero
           items={[

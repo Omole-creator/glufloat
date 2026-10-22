@@ -47,7 +47,7 @@ const GROUPS = [
       { href: "/admin/hospitals", label: "Hospitals", icon: Hospital },
       { href: "/admin/dietitians", label: "Dietitians", icon: Stethoscope },
       { href: "/admin/doctors", label: "Doctors", icon: Stethoscope },
-      { href: "/admin/agents", label: "Field agents", icon: Handshake },
+      { href: "/admin/agents", label: "Doctor acquisition reps", icon: Handshake },
       { href: "/admin/email", label: "Email", icon: Mail },
     ],
   },

@@ -61,7 +61,7 @@ export default async function DoctorsAdminPage() {
       </div>
 
       {/* Used now and then: folded once there is anybody on the list. */}
-      <FoldCard className="mt-6" title="Add a doctor" sub="No field agent needed. They get an email to set their password." open={doctors.length === 0}>
+      <FoldCard className="mt-6" title="Add a doctor" sub="No doctor acquisition rep needed. They get an email to set their password." open={doctors.length === 0}>
         <AddDoctorForm
           agents={team.agents.filter((a) => a.status === "active").map((a) => ({ id: a.id, name: a.name, role: a.role }))}
         />
@@ -70,7 +70,7 @@ export default async function DoctorsAdminPage() {
       <div className="mt-6">
         <AdminCard title="All doctors" sub="Check each MDCN number. Switch off anyone whose number does not check out." flush>
           {doctors.length === 0 ? (
-            <p className="px-6 pb-6 text-sm text-ink-soft">No doctors yet. Add one above, or they sign up with a field agent&apos;s link.</p>
+            <p className="px-6 pb-6 text-sm text-ink-soft">No doctors yet. Add one above, or they sign up with a doctor acquisition rep&apos;s link.</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[1100px] text-sm">

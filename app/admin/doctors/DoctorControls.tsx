@@ -95,7 +95,7 @@ export function AddDoctorForm({ agents }: { agents: Agent[] }) {
             <option value="">Nobody (GluFloat)</option>
             {agents.map((a) => (
               <option key={a.id} value={a.id}>
-                {a.name} ({a.role === "advisor" ? "advisor" : "field agent"})
+                {a.name} ({a.role === "advisor" ? "advisor" : "doctor acquisition rep"})
               </option>
             ))}
           </select>

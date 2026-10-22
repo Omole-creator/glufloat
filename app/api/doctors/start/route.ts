@@ -76,7 +76,7 @@ export async function POST(request: Request) {
         ["Name", name],
         ["MDCN folio number", mdcn],
         ["Email", email],
-        ["Brought by", agentName ? `Field agent: ${agentName}` : invitedBy ? "A colleague's invite" : "Nobody (signed up alone)"],
+        ["Brought by", agentName ? `Doctor acquisition rep: ${agentName}` : invitedBy ? "A colleague's invite" : "Nobody (signed up alone)"],
         ["Set-up link emailed", r.emailed ? "Yes" : "No"],
       ],
       `${SITE_URL}/admin/doctors`,

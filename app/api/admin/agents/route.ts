@@ -121,7 +121,7 @@ export async function DELETE(request: Request) {
     admin.from("earning_payouts").select("id", { count: "exact", head: true }).eq("agent_id", id),
   ]);
   if ((docs.count ?? 0) > 0) return NextResponse.json({ error: "They have doctors on record. Switch them off instead." }, { status: 409 });
-  if ((team.count ?? 0) > 0) return NextResponse.json({ error: "Field agents are under them. Move or remove those first, or switch them off." }, { status: 409 });
+  if ((team.count ?? 0) > 0) return NextResponse.json({ error: "Doctor acquisition reps are under them. Move or remove those first, or switch them off." }, { status: 409 });
   if ((earned.count ?? 0) + (paid.count ?? 0) > 0)
     return NextResponse.json({ error: "They have care fees on record. Switch them off instead." }, { status: 409 });
 
