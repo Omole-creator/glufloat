@@ -28,7 +28,7 @@ import ProgressRing from "@/components/ProgressRing";
  */
 export default function DashboardSnapshot({ show }: { show: boolean }) {
   const [stats, setStats] = useState<MonthStats | null>(null);
-  const { target: calTarget, remaining: calRemaining } = useTodaysCalories(show);
+  const { target: calTarget, remaining: calRemaining, overPlan } = useTodaysCalories(show);
 
   useEffect(() => {
     const refreshMonth = () => monthStats().then(setStats);
@@ -54,16 +54,24 @@ export default function DashboardSnapshot({ show }: { show: boolean }) {
   }[] = [];
 
   if (hasCalories) {
-    const eatenShare = calTarget! > 0 ? ((calTarget! - calRemaining!) / calTarget!) * 100 : 0;
+    // After a bigger meal earlier today the meals left keep their normal size
+    // (co-founder dietitian, 2026-10-23), so the tile shows what is still
+    // planned, which agrees with the meal card, and never an "over" number.
+    const done = overPlan && calRemaining === 0;
+    const eatenShare = done
+      ? 100
+      : calTarget! > 0
+        ? Math.max(0, ((calTarget! - calRemaining!) / calTarget!) * 100)
+        : 0;
     tiles.push({
       key: "calories",
       icon: Zap,
       tone: "blue",
-      eyebrow: "Calories left today",
+      eyebrow: done ? "Calories today" : overPlan ? "Still planned" : "Calories left today",
       percent: eatenShare,
       ringLabel: `${Math.round(eatenShare)}%`,
-      value: `${calRemaining}`,
-      unit: "kcal",
+      value: done ? "Done" : `${calRemaining}`,
+      unit: done ? "for today" : "kcal",
     });
   }
 

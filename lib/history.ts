@@ -6,6 +6,7 @@ import { forget, MEALS, shared } from "@/lib/readCache";
 import type { Reading } from "./glucose";
 import type { Verdict } from "./types";
 import { FOODS } from "./search";
+import { currentMeal, type NamedMeal } from "./mealtime";
 
 /**
  * A person's own food-check history, saved to their account (meal_checks table,
@@ -429,47 +430,74 @@ const foodCalories = new Map(FOODS.map((f) => [f.name, f.calories ?? 0]));
  * not yet run the migration is unaffected rather than broken.
  */
 async function caloriesEatenTodayFresh(): Promise<number> {
+  // The same one read as todaysEaten(), so the two never disagree.
+  const rows = await todaysEaten();
+  return Math.round(rows.reduce((sum, r) => sum + r.calories, 0));
+}
+
+/**
+ * One saved meal from today (Nigerian time): the meal-time it was saved in
+ * (by the clock, the same bands as currentMeal), its food ids (empty on rows
+ * saved before data-collection-schema.sql) and its calories, worked out the
+ * way caloriesEatenToday always has.
+ */
+export interface EatenToday {
+  meal: NamedMeal;
+  foodIds: string[];
+  calories: number;
+}
+
+async function todaysEatenFresh(): Promise<EatenToday[]> {
   try {
     const supabase = createClient();
     const todayK = watDayKey(wat(Date.now()));
     // 48h of buffer (not 24h) so "today" in WAT is always fully covered
     // regardless of the reader's own clock/timezone.
     const since = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
-    const withCalories = await supabase
-      .from("meal_checks")
-      .select("kind,label,checked_at,calories")
-      .gte("checked_at", since);
-    const rows: unknown[] = withCalories.error
-      ? (
-          await supabase
-            .from("meal_checks")
-            .select("kind,label,checked_at")
-            .gte("checked_at", since)
-        ).data ?? []
-      : withCalories.data ?? [];
-    let total = 0;
+    // Each step down drops a column whose migration may not have run.
+    const attempts = [
+      "kind,label,checked_at,calories,food_ids",
+      "kind,label,checked_at,calories",
+      "kind,label,checked_at",
+    ];
+    let rows: unknown[] = [];
+    for (const cols of attempts) {
+      const res = await supabase.from("meal_checks").select(cols).gte("checked_at", since);
+      if (!res.error) {
+        rows = res.data ?? [];
+        break;
+      }
+    }
+    const out: EatenToday[] = [];
     for (const raw of rows) {
       const row = raw as {
         kind: string;
         label: string;
         checked_at: string;
         calories?: number | null;
+        food_ids?: string[] | null;
       };
-      const when = new Date(row.checked_at).getTime();
-      if (watDayKey(wat(when)) !== todayK) continue;
+      const when = new Date(row.checked_at);
+      if (watDayKey(wat(when.getTime())) !== todayK) continue;
+      let calories = 0;
       if (row.calories != null) {
-        total += row.calories;
-        continue;
+        calories = row.calories;
+      } else {
+        const names =
+          row.kind === "single"
+            ? [row.label]
+            : row.label.split(",").map((s) => s.trim());
+        for (const n of names) calories += foodCalories.get(n) ?? 0;
       }
-      const names =
-        row.kind === "single"
-          ? [row.label]
-          : row.label.split(",").map((s) => s.trim());
-      for (const n of names) total += foodCalories.get(n) ?? 0;
+      out.push({
+        meal: currentMeal(when),
+        foodIds: Array.isArray(row.food_ids) ? row.food_ids : [],
+        calories,
+      });
     }
-    return Math.round(total);
+    return out;
   } catch {
-    return 0;
+    return [];
   }
 }
 
@@ -629,6 +657,16 @@ export function todaysFoodSizes(): Promise<{ foodIds: string[]; sizes: string[] 
 
 export function caloriesEatenToday(): Promise<number> {
   return shared(`${MEALS}todayKcal`, () => caloriesEatenTodayFresh());
+}
+
+/** Today's saved meals with the meal-time each was saved in (see todaysEatenFresh). */
+export function todaysEaten(): Promise<EatenToday[]> {
+  return shared(`${MEALS}todayEaten`, () => todaysEatenFresh());
+}
+
+/** Calories eaten today at one meal-time. */
+export function eatenAtMeal(rows: EatenToday[], meal: NamedMeal): number {
+  return Math.round(rows.filter((r) => r.meal === meal).reduce((s, r) => s + r.calories, 0));
 }
 
 export function monthStats(): Promise<MonthStats> {

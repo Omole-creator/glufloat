@@ -36,6 +36,12 @@ export function writeShown(meal: string, day: string, index: number): void {
   }
 }
 
+/** The plate shown for this meal today (its index), or null if none was. */
+export function shownToday(meal: string, today: string): number | null {
+  const hit = readShown(meal).find((s) => s.day === today);
+  return hit ? hit.index : null;
+}
+
 // The plates this person pressed past with "Try another meal". A skip is the
 // clearest thing they ever tell us about a plate, so we stop offering it. Kept
 // to the last few, per meal, on the device: a food somebody did not want in

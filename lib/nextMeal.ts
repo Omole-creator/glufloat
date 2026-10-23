@@ -738,6 +738,11 @@ function applyPracticeRules<T extends { idea: { index: number } }>(
   return out;
 }
 
+/** True for a food on the extras card (eaten on top of a meal, not as one). */
+export function isExtraFood(id: string): boolean {
+  return READY_TO_EAT_EXTRAS.some((c) => c.id === id);
+}
+
 /** Every food a dietitian can pick for her rules: what the blue card and the extras ever serve. */
 export function practiceRuleFoodIds(): string[] {
   const ids = new Set<string>();
@@ -2418,6 +2423,48 @@ export function mealShareFor(
   mealPattern: NamedMeal[],
   meal: NamedMeal,
   conditions: Condition[] = [],
+  /** What was eaten at THIS meal so far (part of eatenToday). */
+  eatenThisMeal = 0,
+): number {
+  const byBudget = budgetShare(dailyTarget, eatenToday, mealPattern, meal, conditions);
+  // A bigger earlier meal never makes this one smaller (co-founder dietitian,
+  // 2026-10-23: do not cut the next meal to make up for a big one; it can
+  // drop the sugar too low on insulin or glibenclamide-type tablets). The
+  // floor is this meal's share on a day that went to plan, less what has
+  // already been eaten at this meal. A smaller earlier meal is still made up
+  // (byBudget is then the bigger), and a day that goes to plan is unchanged.
+  const floor = plannedMealShare(dailyTarget, mealPattern, meal, conditions) - eatenThisMeal;
+  return Math.max(byBudget, Math.round(floor), 0);
+}
+
+/**
+ * This meal's share on a day that goes exactly to plan: each meal before it
+ * eaten at its own share. Same split as mealShareFor, so a normal day agrees.
+ */
+export function plannedMealShare(
+  dailyTarget: number,
+  mealPattern: NamedMeal[],
+  meal: NamedMeal,
+  conditions: Condition[] = [],
+): number {
+  const order: NamedMeal[] = ["breakfast", "lunch", "dinner"];
+  const idx = order.indexOf(meal);
+  let eaten = 0;
+  for (const m of order) {
+    if (order.indexOf(m) >= idx) break;
+    if (!mealPattern.includes(m)) continue;
+    eaten += budgetShare(dailyTarget, eaten, mealPattern, m, conditions);
+  }
+  return budgetShare(dailyTarget, eaten, mealPattern, meal, conditions);
+}
+
+/** This meal's share of what is left of the target, by the budget alone. */
+function budgetShare(
+  dailyTarget: number,
+  eatenToday: number,
+  mealPattern: NamedMeal[],
+  meal: NamedMeal,
+  conditions: Condition[],
 ): number {
   const order: NamedMeal[] = ["breakfast", "lunch", "dinner"];
   const idx = order.indexOf(meal);
@@ -2434,6 +2481,33 @@ export function mealShareFor(
     weights[m] = MEAL_MAX_CALORIES[m] + cap * 2;
   }
   return remainingMealCalorieTarget(dailyTarget, eatenToday, mealPattern, meal, weights);
+}
+
+/**
+ * What is still planned for the rest of today: this meal's share (less what
+ * was eaten at it) plus each later meal's planned share. Equal to the target
+ * minus what was eaten on a day that went to plan; bigger after a big meal,
+ * because later meals keep their normal size.
+ */
+export function stillPlannedToday(
+  dailyTarget: number,
+  eatenToday: number,
+  mealPattern: NamedMeal[],
+  meal: NamedMeal,
+  conditions: Condition[] = [],
+  eatenThisMeal = 0,
+): number {
+  const order: NamedMeal[] = ["breakfast", "lunch", "dinner"];
+  const idx = order.indexOf(meal);
+  let total = mealShareFor(dailyTarget, eatenToday, mealPattern, meal, conditions, eatenThisMeal);
+  let eaten = eatenToday + total;
+  for (const m of order) {
+    if (order.indexOf(m) <= idx || !mealPattern.includes(m)) continue;
+    const share = mealShareFor(dailyTarget, eaten, mealPattern, m, conditions);
+    total += share;
+    eaten += share;
+  }
+  return Math.round(total);
 }
 
 /**

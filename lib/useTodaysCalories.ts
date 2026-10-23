@@ -1,13 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { caloriesEatenToday, foodCountsThisWeek, loggedFoodCounts, likedFoodCounts, todaysFoodSizes, INTAKE_CHANGED } from "@/lib/history";
+import { todaysEaten, eatenAtMeal, foodCountsThisWeek, loggedFoodCounts, likedFoodCounts, todaysFoodSizes, INTAKE_CHANGED } from "@/lib/history";
 import { readPersonalizationProfile, personalRotationKey, PERSONALIZATION_CHANGED } from "@/lib/personalizationProfile";
 import { clinicalTarget } from "@/lib/tdee";
 import {
   suggestExtras,
   suggestSnack,
   mealShareFor,
+  stillPlannedToday,
   planForDay,
   mealIdeaCalories,
   gramsEatenToday,
@@ -35,6 +36,13 @@ export interface TodaysCalories {
    * below. Never used to invent a bigger serving; it only says the truth.
    */
   shortByKcal: number;
+  /**
+   * True after a bigger meal earlier today: the rest of the day keeps its
+   * normal size, so `remaining` is what is still PLANNED, not target minus
+   * eaten (co-founder dietitian, 2026-10-23). Also true once the day is
+   * past its target. The tile then says so.
+   */
+  overPlan: boolean;
 }
 
 /**
@@ -162,6 +170,7 @@ export function useTodaysCalories(show: boolean): TodaysCalories {
   const [extra, setExtra] = useState<ExtraSuggestionSet | null>(null);
   const [snack, setSnack] = useState<ExtraSuggestionSet | null>(null);
   const [shortByKcal, setShortByKcal] = useState(0);
+  const [overPlan, setOverPlan] = useState(false);
 
   const refresh = useCallback(async () => {
     if (!show) {
@@ -170,6 +179,7 @@ export function useTodaysCalories(show: boolean): TodaysCalories {
       setExtra(null);
       setSnack(null);
       setShortByKcal(0);
+      setOverPlan(false);
       return;
     }
     const p = await readPersonalizationProfile();
@@ -179,16 +189,26 @@ export function useTodaysCalories(show: boolean): TodaysCalories {
       setExtra(null);
       setSnack(null);
       setShortByKcal(0);
+      setOverPlan(false);
       return;
     }
     const dailyTarget = clinicalTarget(p.sex, p.weightKg, p.heightCm, p.ageYears, p.activityLevel, p.goals).target;
-    const eatenToday = await caloriesEatenToday();
+    const eatenRows = await todaysEaten();
+    const eatenToday = Math.round(eatenRows.reduce((s, r) => s + r.calories, 0));
     const trueLeft = Math.max(0, dailyTarget - eatenToday);
     const meal = currentMeal();
+    const eatenThisMeal = eatenAtMeal(eatenRows, meal);
+    // After a bigger meal earlier today, the meals left keep their normal
+    // size, so what is still planned can be more than target minus eaten.
+    const planned = stillPlannedToday(dailyTarget, eatenToday, p.mealPattern, meal, p.conditions, eatenThisMeal);
+    // Also true once the day has gone past the target: after dinner nothing
+    // is planned, and the tile says "Done for today", never an "over" number.
+    const over = planned > trueLeft + 1 || eatenToday > dailyTarget;
+    const left = over ? planned : trueLeft;
     const dayKey = localDayKey();
     // mealShareFor, the SAME function components/TodaysMeal.tsx uses to pick
     // the plate, so the plate and the extras are sized against one number.
-    const mealShare = mealShareFor(dailyTarget, eatenToday, p.mealPattern, meal, p.conditions);
+    const mealShare = mealShareFor(dailyTarget, eatenToday, p.mealPattern, meal, p.conditions, eatenThisMeal);
     const [counts, liked, weekCounts, todayRows, rules] = await Promise.all([
       loggedFoodCounts(),
       likedFoodCounts(),
@@ -244,7 +264,8 @@ export function useTodaysCalories(show: boolean): TodaysCalories {
     const snackKcal = snackSet ? snackSet.variants[0].totalCalories : 0;
     setTarget(dailyTarget);
     setSnack(snackSet);
-    setRemaining(meal === "dinner" && trueLeft < DAY_END_FLOOR ? 0 : trueLeft);
+    setRemaining(meal === "dinner" && left < DAY_END_FLOOR ? 0 : left);
+    setOverPlan(over);
     setExtra(extras);
     setShortByKcal(Math.max(0, extrasGap - bestVariantKcal - snackKcal));
   }, [show]);
@@ -261,5 +282,5 @@ export function useTodaysCalories(show: boolean): TodaysCalories {
     };
   }, [refresh]);
 
-  return { target, remaining, extra, snack, shortByKcal };
+  return { target, remaining, extra, snack, shortByKcal, overPlan };
 }

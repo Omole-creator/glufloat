@@ -1,15 +1,16 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { RefreshCw, ArrowRight, Sunrise, Sun, Moon, Check, Pill, Flame, Scale } from "lucide-react";
+import { RefreshCw, ArrowRight, Sunrise, Sun, Moon, Check, Pill, Flame, Scale, Route } from "lucide-react";
 import {
   currentMeal,
   localDayKey,
   type NamedMeal,
 } from "@/lib/mealtime";
-import { planForDay, mealShareFor, mealIdeaCalories, mealIdeaCarbs, mealIdeaFoodsForBuilder, type MealIdea } from "@/lib/nextMeal";
+import { planForDay, mealShareFor, mealIdeaCalories, mealIdeaCarbs, mealIdeaFoodsForBuilder, ideasFor, isExtraFood, type MealIdea } from "@/lib/nextMeal";
+import { differentMealBefore, recoveryLine } from "@/lib/mealRecovery";
 import { practiceRules } from "@/lib/practiceRules";
-import { loggedFoodCounts, likedFoodCounts, caloriesEatenToday, foodCountsThisWeek } from "@/lib/history";
+import { loggedFoodCounts, likedFoodCounts, todaysEaten, eatenAtMeal, foodCountsThisWeek, INTAKE_CHANGED } from "@/lib/history";
 import { trackUsage } from "@/lib/usage";
 import type { Food } from "@/lib/types";
 import { nextEatenMeal } from "@/lib/mealPattern";
@@ -23,7 +24,7 @@ import {
 import { biasVector, type PlateAxes } from "@/lib/personalization";
 import { clinicalTarget } from "@/lib/tdee";
 import { medicationAppliesToMeal, medicationTimingCopy } from "@/lib/medicationTiming";
-import { toAvoid, writeShown, writeSkipped } from "@/lib/mealRotationMemory";
+import { toAvoid, writeShown, writeSkipped, shownToday } from "@/lib/mealRotationMemory";
 import { logImpression, rememberSuggested, type ImpressionPlate } from "@/lib/mealImpressions";
 import { MeasureChips } from "./MeasurePhoto";
 
@@ -168,10 +169,12 @@ export default function TodaysMeal({
       const p = profileRef.current;
       if (!p.sex || !p.ageYears || !p.weightKg || !p.heightCm || !p.activityLevel) return null;
       const dailyTarget = clinicalTarget(p.sex, p.weightKg, p.heightCm, p.ageYears, p.activityLevel, p.goals).target;
-      const eatenToday = await caloriesEatenToday();
+      const rows = await todaysEaten();
+      const eatenToday = rows.reduce((s, r) => s + r.calories, 0);
       // mealShareFor: the SAME share lib/useTodaysCalories.ts sizes the extras
       // and snacks against, so the plate and the green cards never disagree.
-      return mealShareFor(dailyTarget, eatenToday, p.mealPattern, m, p.conditions);
+      // A bigger meal earlier today never makes this one smaller.
+      return mealShareFor(dailyTarget, eatenToday, p.mealPattern, m, p.conditions, eatenAtMeal(rows, m));
     },
     [personalize],
   );
@@ -297,6 +300,35 @@ export default function TodaysMeal({
     return () => clearTimeout(t);
   }, [meal, idea, dayKey]);
 
+  // Back on track (co-founder dietitian, 2026-10-23): when the meal before
+  // this one today was not its blue-card plate, say so calmly at the top.
+  // Re-read whenever a meal is saved.
+  const [earlier, setEarlier] = useState<NamedMeal | null>(null);
+  useEffect(() => {
+    if (!meal || !dayKey) return;
+    let live = true;
+    const check = () =>
+      todaysEaten().then((rows) => {
+        if (!live) return;
+        const found = differentMealBefore(
+          meal,
+          rows,
+          (m) => {
+            const i = shownToday(m, dayKey);
+            return i == null ? null : ideasFor(m)[i] ?? null;
+          },
+          isExtraFood,
+        );
+        setEarlier(found);
+      });
+    check();
+    window.addEventListener(INTAKE_CHANGED, check);
+    return () => {
+      live = false;
+      window.removeEventListener(INTAKE_CHANGED, check);
+    };
+  }, [meal, dayKey]);
+
   if (!meal || !idea || idea.foods.length === 0) return null;
 
   const Icon = MEAL_ICON[meal];
@@ -357,6 +389,13 @@ export default function TodaysMeal({
             {HEADING[meal]}
           </p>
         </div>
+
+        {earlier && (
+          <div className="mt-4 flex items-start gap-2.5 rounded-xl bg-white/10 p-3 ring-1 ring-inset ring-white/15">
+            <Route className="mt-0.5 h-4 w-4 shrink-0 text-white/80" strokeWidth={2.2} aria-hidden />
+            <p className="text-sm text-white/90">{recoveryLine(earlier, meal)}</p>
+          </div>
+        )}
 
         <p className="mt-5 font-display text-3xl font-bold leading-snug text-white sm:text-4xl">
           {line(idea.names)}

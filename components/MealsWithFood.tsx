@@ -13,7 +13,7 @@ import {
 } from "@/lib/nextMeal";
 import { currentMeal, localDayKey, type NamedMeal } from "@/lib/mealtime";
 import { readPersonalizationProfile, PERSONALIZATION_CHANGED } from "@/lib/personalizationProfile";
-import { caloriesEatenToday, foodCountsThisWeek, INTAKE_CHANGED } from "@/lib/history";
+import { todaysEaten, eatenAtMeal, foodCountsThisWeek, INTAKE_CHANGED } from "@/lib/history";
 import { clinicalTarget } from "@/lib/tdee";
 import { rememberSuggested } from "@/lib/mealImpressions";
 import { trackUsage } from "@/lib/usage";
@@ -48,12 +48,15 @@ async function mealTargets(personalize: boolean): Promise<{
     return { targets: {}, conditions };
   }
   const daily = clinicalTarget(p.sex, p.weightKg, p.heightCm, p.ageYears, p.activityLevel, p.goals).target;
-  const eaten = await caloriesEatenToday();
+  const rows = await todaysEaten();
+  const eaten = rows.reduce((s, r) => s + r.calories, 0);
   const now = ORDER.indexOf(currentMeal());
   const targets: Partial<Record<NamedMeal, number>> = {};
   for (const m of ORDER) {
     const past = ORDER.indexOf(m) < now;
-    targets[m] = mealShareFor(daily, past ? 0 : eaten, p.mealPattern, m, conditions);
+    targets[m] = past
+      ? mealShareFor(daily, 0, p.mealPattern, m, conditions)
+      : mealShareFor(daily, eaten, p.mealPattern, m, conditions, eatenAtMeal(rows, m));
   }
   return { targets, conditions };
 }
