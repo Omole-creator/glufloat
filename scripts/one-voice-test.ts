@@ -5,7 +5,7 @@
  *
  *   npx tsx scripts/one-voice-test.ts
  */
-import { planForDay, platesWithFood, ideasFor, mealIdeaCalories, mealIdeaCarbs, mealIdeaFoodsForBuilder, GLUFLOAT_SIZE_STARCHES, SIZE_GROUP_LIMIT, SWALLOW_IDS, SWALLOW_WEEKLY_LIMIT } from "../lib/nextMeal";
+import { planForDay, platesWithFood, ideasFor, mealIdeaCalories, mealIdeaCarbs, mealIdeaFoodsForBuilder, GLUFLOAT_SIZE_STARCHES, SIZE_GROUP_LIMIT, SWALLOW_IDS, SWALLOW_WEEKLY_LIMIT, LEAN_RED_MEAT_IDS } from "../lib/nextMeal";
 import { scoreMeal } from "../lib/verdictEngine";
 import type { NamedMeal } from "../lib/mealtime";
 import type { Condition } from "../lib/personalization";
@@ -60,7 +60,14 @@ for (const id of allIds) {
         scoreMeal(p.foods.map((food) => ({ food, portion: GLUFLOAT_SIZE_STARCHES.has(food.id) ? ("half" as const) : ("normal" as const) }))).verdict === "green",
         `${id}: ${m} plate ${p.index} not green at the right size`,
       );
-      check(!p.foods.some((f) => f.healthNote && f.category === "protein"), `${id}: ${m} plate ${p.index} has a warned protein with a condition`);
+      // Beef and goat meat may come back for high blood pressure, at 50g
+      // (co-founder dietitian, 2026-10-23); every other warned protein may not.
+      check(
+        !p.foods.some((f) => f.healthNote && f.category === "protein" && !LEAN_RED_MEAT_IDS.has(f.id)),
+        `${id}: ${m} plate ${p.index} has a warned protein with a condition`,
+      );
+      const meat = p.foods.find((f) => LEAN_RED_MEAT_IDS.has(f.id));
+      check(!meat || p.scaledProtein?.grams === 50, `${id}: ${m} plate ${p.index} beef/goat not at 50g`);
     }
 }
 

@@ -1,9 +1,22 @@
 // Getting back on track after a different meal (co-founder dietitian,
 // 2026-10-23). No server needed. Run after any edit to mealShareFor,
 // plannedMealShare, stillPlannedToday (lib/nextMeal.ts) or lib/mealRecovery.ts.
-import { mealShareFor, plannedMealShare, stillPlannedToday, ideasFor, isExtraFood } from "../lib/nextMeal";
+import {
+  mealShareFor,
+  plannedMealShare,
+  stillPlannedToday,
+  ideasFor,
+  isExtraFood,
+  excludedProteinsFor,
+  leanRedMeatServing,
+  planForDay,
+  platesWithFood,
+  mealIdeaCalories,
+  LEAN_RED_MEAT_IDS,
+} from "../lib/nextMeal";
+import { getFood, FOODS } from "../lib/search";
 import { remainingMealCalorieTarget } from "../lib/tdee";
-import { differentMealBefore, recoveryLine, type SavedMeal } from "../lib/mealRecovery";
+import { differentMealBefore, recoveryLine, followUpLine, FOLLOW_UP, type SavedMeal } from "../lib/mealRecovery";
 import type { NamedMeal } from "../lib/mealtime";
 
 let failures = 0;
@@ -100,6 +113,78 @@ for (const T of TARGETS) {
     recoveryLine("lunch", "dinner") === "You've logged a different meal at lunch. Your personalised dinner recommendation is ready below.",
   );
   check("the line has no em dash", !recoveryLine("breakfast", "lunch").includes("—"));
+}
+
+// 7. Her follow-up lines.
+{
+  const drink = FOODS.find((f) => f.role === "drink" && f.gi === "high")!.id;
+  const sweet = FOODS.find((f) => f.role === "sugar")!.id;
+  const fried = FOODS.find((f) => (f.healthNote ?? "").startsWith("This food is fried"))!.id;
+  const plain = ideasFor("lunch")[0];
+  const line = (saved: SavedMeal[]) => followUpLine("dinner", saved, getFood, isExtraFood);
+  check("sweet drink line", line([{ meal: "lunch", foodIds: [drink], sizes: ["normal"] }]) === FOLLOW_UP.sweetDrink);
+  check("sweet food line", line([{ meal: "lunch", foodIds: [sweet], sizes: ["normal"] }]) === FOLLOW_UP.sweetFood);
+  check("fried food line", line([{ meal: "lunch", foodIds: [fried], sizes: ["normal"] }]) === FOLLOW_UP.fried);
+  check("drink wins over fried", line([{ meal: "lunch", foodIds: [fried, drink], sizes: ["normal", "normal"] }]) === FOLLOW_UP.sweetDrink);
+  check("ate more line", line([{ meal: "lunch", foodIds: [...plain], sizes: plain.map((_, i) => (i === 0 ? "more:1.5" : "normal")) }]) === FOLLOW_UP.more);
+  check("older 'large' counts as more", line([{ meal: "lunch", foodIds: [plain[0]], sizes: ["large"] }]) === FOLLOW_UP.more);
+  check("blue card's bigger serving is not 'more'", line([{ meal: "lunch", foodIds: [plain[0]], sizes: ["163g"] }]) === null);
+  check("the plate at its size: no line", line([{ meal: "lunch", foodIds: [...plain], sizes: plain.map(() => "normal") }]) === null);
+  check("nothing before breakfast", followUpLine("breakfast", [{ meal: "breakfast", foodIds: [drink] }], getFood, isExtraFood) === null);
+  check("no follow-up line has an em dash", Object.values(FOLLOW_UP).every((l) => !l.includes("—")));
+}
+
+// 8. Beef and goat meat (co-founder dietitian, 2026-10-23).
+{
+  const none = new Map<string, number>();
+  for (const id of LEAN_RED_MEAT_IDS) check(`${id} exists`, !!getFood(id));
+  check("no condition: nothing dropped", excludedProteinsFor([], none).size === 0);
+  const bp = excludedProteinsFor(["hypertension"], none);
+  const chol = excludedProteinsFor(["high_cholesterol"], none);
+  const kid = excludedProteinsFor(["kidney_disease"], none);
+  const bpKid = excludedProteinsFor(["hypertension", "kidney_disease"], none);
+  for (const id of LEAN_RED_MEAT_IDS) {
+    check(`blood pressure: ${id} allowed`, !bp.has(id));
+    check(`cholesterol: ${id} allowed`, !chol.has(id));
+    check(`kidney: ${id} still dropped`, kid.has(id));
+    check(`blood pressure + kidney: ${id} still dropped`, bpKid.has(id));
+  }
+  for (const id of ["pomo", "shaki", "stockfish", "smoked-fish"]) {
+    if (kid.has(id)) check(`blood pressure: ${id} still dropped`, bp.has(id));
+  }
+  const three = new Map([["beef", 2], ["goat-meat", 1]]);
+  check("3 this week (beef + goat together): dropped again", excludedProteinsFor(["hypertension"], three).has("beef"));
+  check("2 this week: still allowed", !excludedProteinsFor(["hypertension"], new Map([["beef", 2]])).has("goat-meat"));
+
+  const beef = getFood("beef")!;
+  const s1 = leanRedMeatServing([beef], ["hypertension"]);
+  check("50g serving for blood pressure", s1?.grams === 50, String(s1?.grams));
+  check("50g serving has fewer calories", !!s1 && s1.calories < (beef.calories ?? 0) && s1.extraCalories < 0);
+  check("no smaller serving without the conditions", leanRedMeatServing([beef], []) === null);
+  check("no smaller serving for kidney", leanRedMeatServing([beef], ["kidney_disease", "hypertension"]) === null);
+  check("the instruction names 50g", !!s1 && s1.instruction.includes("50g"));
+
+  // On the blue card and in search, a beef or goat plate shows the 50g size.
+  let seen = 0;
+  for (const meal of ["breakfast", "lunch", "dinner"] as NamedMeal[]) {
+    for (let d = 0; d < 28; d++) {
+      const day = new Date(Date.UTC(2026, 9, 1 + d)).toISOString().slice(0, 10);
+      const idea = planForDay(meal, day, new Map(), 0, [], new Map(), null, 900, ["hypertension"]);
+      const meat = idea.foods.find((f) => LEAN_RED_MEAT_IDS.has(f.id));
+      if (!meat) continue;
+      seen++;
+      check(`blue card ${meal} ${day}: ${meat.id} at 50g`, idea.scaledProtein?.food.id === meat.id && idea.scaledProtein.grams === 50);
+    }
+  }
+  check("beef or goat comes up for blood pressure at all", seen > 0, String(seen));
+  for (const id of LEAN_RED_MEAT_IDS) {
+    const plates = platesWithFood(id, { lunch: 900, dinner: 900 }, ["high_cholesterol"]);
+    const all = [...plates.lunch, ...plates.dinner];
+    check(`search shows ${id} plates for cholesterol`, all.length > 0);
+    check(`search ${id} plates at 50g`, all.every((p) => p.scaledProtein?.grams === 50));
+    check(`search ${id} kcal uses the smaller size`, all.every((p) => mealIdeaCalories(p) < p.foods.reduce((s, f) => s + (f.calories ?? 0), 0)));
+    check(`search hides ${id} for kidney`, [...Object.values(platesWithFood(id, {}, ["kidney_disease"]))].flat().length === 0);
+  }
 }
 
 if (failures > 0) {

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { ArrowLeft, ArrowRight, Bell, Check, Clock, Droplet, UtensilsCrossed, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Bell, Check, Clock, Droplet, Moon, Sun, Sunrise, UtensilsCrossed, X } from "lucide-react";
 import type { Food, PortionSize, Verdict } from "@/lib/types";
 import { cleanFoodName } from "@/lib/foodName";
 import { dangerLine, echoLine, formatBoth, parseReading } from "@/lib/glucose";
@@ -11,6 +11,7 @@ import { saveCheck } from "@/lib/history";
 import { LESS_AMOUNTS, MORE_AMOUNTS, dueAt, firstSentence, sizeFactor, timeLabel } from "@/lib/mealResponse";
 import { pendingBeforeTest, startMealTest } from "@/lib/mealTestLog";
 import { enablePush, pushConfigured, pushPermission, pushSupported } from "@/lib/push";
+import { currentMeal, type NamedMeal } from "@/lib/mealtime";
 import { showToast } from "./Toast";
 import { MeasureChips } from "./MeasurePhoto";
 
@@ -29,7 +30,14 @@ const AMOUNTS: { key: PortionSize; label: string; aria: string }[] = [
   { key: "large", label: "More", aria: "More than the right size of" },
 ];
 
-type Step = "when" | "amount" | "test" | "done";
+type Step = "when" | "which" | "amount" | "test" | "done";
+
+const MEAL_ORDER: NamedMeal[] = ["breakfast", "lunch", "dinner"];
+const MEAL_CHOICE: Record<NamedMeal, { label: string; icon: typeof Sun }> = {
+  breakfast: { label: "Breakfast", icon: Sunrise },
+  lunch: { label: "Lunch", icon: Sun },
+  dinner: { label: "Dinner", icon: Moon },
+};
 
 /**
  * Saving a meal, one small step at a time (rebuilt 2026-10-07, founder: the
@@ -37,6 +45,9 @@ type Step = "when" | "amount" | "test" | "done";
  * "everything should be simple"). Each step asks one thing:
  *
  *   1. When are you eating this?   about to eat / already ate
+ *   1b. Which meal was this?       only after "already ate" (founder,
+ *                                  2026-10-23): a lunch saved at 7pm counts
+ *                                  as lunch, so dinner stays its normal size
  *   2. How much is on your plate?  less / same / more than the GluFloat size
  *   3. Test your sugar first       only when about to eat; skippable
  *   4. Enjoy your meal             when to test again, and a phone reminder
@@ -72,6 +83,8 @@ export default function StartMealSheet({
 }) {
   const [step, setStep] = useState<Step>("when");
   const [eatingNow, setEatingNow] = useState(true);
+  // "Which meal was this?": the clock's meal is picked to start with.
+  const [whichMeal, setWhichMeal] = useState<NamedMeal>("breakfast");
   const [amounts, setAmounts] = useState<PortionSize[]>([]);
   // After "Less" or "More": how much less or more (lib/mealResponse.ts).
   const [howMuch, setHowMuch] = useState<(string | null)[]>([]);
@@ -89,6 +102,7 @@ export default function StartMealSheet({
     if (!open) return;
     setStep("when");
     setEatingNow(true);
+    setWhichMeal(currentMeal());
     setAmounts(items.map((i) => i.portion));
     setHowMuch(items.map(() => null));
     setTyped("");
@@ -145,7 +159,15 @@ export default function StartMealSheet({
   const foodIds = items.map((i) => i.food.id);
   const ateMore = amounts.some((a) => a === "large");
 
-  const steps: Step[] = eatingNow ? ["when", "amount", "test"] : ["when", "amount"];
+  // Only today's meals so far can have been eaten already; at breakfast time
+  // there is nothing to ask, so the step is skipped.
+  const mealsSoFar = MEAL_ORDER.slice(0, MEAL_ORDER.indexOf(currentMeal()) + 1);
+  const askWhich = !eatingNow && mealsSoFar.length > 1;
+  const steps: Step[] = eatingNow
+    ? ["when", "amount", "test"]
+    : askWhich
+      ? ["when", "which", "amount"]
+      : ["when", "amount"];
   const stepNo = steps.indexOf(step) + 1;
 
   const close = () => {
@@ -153,13 +175,19 @@ export default function StartMealSheet({
   };
   const back = () => {
     setProblem("");
-    setStep(step === "test" ? "amount" : "when");
+    if (step === "test") setStep("amount");
+    else if (step === "amount" && askWhich) setStep("which");
+    else setStep("when");
   };
 
   const saveEaten = async () => {
     if (!askHowMuch()) return;
     setBusy(true);
-    const id = await saveCheck(kind, label, verdict, calories, { foodIds, sizes });
+    const id = await saveCheck(kind, label, verdict, calories, {
+      foodIds,
+      sizes,
+      meal: askWhich ? whichMeal : undefined,
+    });
     setBusy(false);
     if (id === null) {
       setProblem("This did not save. Check your internet and try again.");
@@ -223,6 +251,7 @@ export default function StartMealSheet({
   // part below holds only what you tap.
   const TITLE: Record<Step, string> = {
     when: "When are you eating this?",
+    which: "Which meal was this?",
     amount: "How much is on your plate?",
     test: "Test your sugar first",
     done: "Enjoy your meal",
@@ -233,6 +262,12 @@ export default function StartMealSheet({
   // The one button for the step, pinned to the bottom of the screen.
   let footer: ReactNode = null;
   if (step === "when") {
+    footer = (
+      <button type="button" onClick={() => setStep(askWhich ? "which" : "amount")} className={primary}>
+        Next <ArrowRight className="h-4 w-4" />
+      </button>
+    );
+  } else if (step === "which") {
     footer = (
       <button type="button" onClick={() => setStep("amount")} className={primary}>
         Next <ArrowRight className="h-4 w-4" />
@@ -400,6 +435,29 @@ export default function StartMealSheet({
                     </span>
                   </span>
                 </button>
+              </div>
+            )}
+
+            {/* ---- 1b. Which meal ---- */}
+            {step === "which" && (
+              <div className="space-y-3">
+                {mealsSoFar.map((m) => {
+                  const { label: mealLabel, icon: MealIcon } = MEAL_CHOICE[m];
+                  const active = whichMeal === m;
+                  return (
+                    <button
+                      key={m}
+                      type="button"
+                      onClick={() => setWhichMeal(m)}
+                      aria-pressed={active}
+                      className={choice(active)}
+                    >
+                      {radio(active)}
+                      <MealIcon className="h-5 w-5 shrink-0 text-brand" aria-hidden />
+                      <span className="text-sm font-bold text-ink">{mealLabel}</span>
+                    </button>
+                  );
+                })}
               </div>
             )}
 

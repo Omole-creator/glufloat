@@ -16,6 +16,14 @@ const foods = JSON.parse(readFileSync(FILE, "utf8"));
 const NOTES = {
   meat:
     "Beef and goat are red meat. Liver, kidney, shaki, and pomo are organ meat. Both are fine for your sugar but not for everyone. If you have high blood pressure, high cholesterol, or kidney problems, pick fish or skinless chicken instead and use less salt.",
+  // Beef and goat meat only (co-founder dietitian, 2026-10-23): they may be on
+  // the plate for high blood pressure or high cholesterol, lean and about 50g.
+  // Her words, kept exactly as she wrote them, by the founder's choice; the
+  // 50g is added because the card's own size (90g) is for everyone else.
+  // Kidney disease keeps the old advice. The other red and organ meats keep
+  // `meat` above.
+  leanMeat:
+    "Beef and goat are red meat. They are fine for your sugar but not for everyone. If you have high blood pressure or high cholesterol, choose lean, trimmed meat in your recommended portion (about 50g, one medium chunk), prepared with minimal salt and added oil. Fish and skinless chicken are also good options. If you have kidney problems, pick fish or skinless chicken instead.",
   // The dietician replaced "use only a pinch" with a real number: under 5g of
   // salt a day, which is about one level teaspoon. That is a budget for ALL the
   // salt in a day's food, not a per-serving amount, so it reads correctly on
@@ -86,6 +94,10 @@ const SALT_IDS = new Set(["indomie", "locust-bean", "baked-beans"]);
 const OIL_IDS = new Set(["native-rice", "abacha", "banga-rice"]);
 // Ogbono is an oilseed: the seed carries its own fat, on top of the palm oil.
 const OGBONO_IDS = new Set(["ogbono-soup"]);
+
+// Beef and goat meat get their own note (NOTES.leanMeat). Keep in step with
+// LEAN_RED_MEAT_IDS in lib/nextMeal.ts.
+const LEAN_MEAT_IDS = new Set(["beef", "goat-meat"]);
 
 // Red and organ meat. Only checked on meaty roles.
 const MEAT_ROLES = new Set(["protein", "soup", "snack"]);
@@ -158,6 +170,7 @@ function noteFor(f) {
   // its "draw soup" alias and blame the palm oil alone, never the seed.
   if (OGBONO_IDS.has(f.id)) return NOTES.ogbono;
   const text = identity(f);
+  if (LEAN_MEAT_IDS.has(f.id)) return NOTES.leanMeat;
   if (MEAT_ROLES.has(f.role) && hasAny(text, MEAT_WORDS)) return NOTES.meat;
   if (SALT_IDS.has(f.id) || (SALT_ROLES.has(f.role) && hasAny(text, SALT_WORDS)))
     return NOTES.salt;

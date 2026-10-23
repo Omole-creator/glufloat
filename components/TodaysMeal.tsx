@@ -8,7 +8,8 @@ import {
   type NamedMeal,
 } from "@/lib/mealtime";
 import { planForDay, mealShareFor, mealIdeaCalories, mealIdeaCarbs, mealIdeaFoodsForBuilder, ideasFor, isExtraFood, type MealIdea } from "@/lib/nextMeal";
-import { differentMealBefore, recoveryLine } from "@/lib/mealRecovery";
+import { differentMealBefore, recoveryLine, followUpLine } from "@/lib/mealRecovery";
+import { getFood } from "@/lib/search";
 import { practiceRules } from "@/lib/practiceRules";
 import { loggedFoodCounts, likedFoodCounts, todaysEaten, eatenAtMeal, foodCountsThisWeek, INTAKE_CHANGED } from "@/lib/history";
 import { trackUsage } from "@/lib/usage";
@@ -304,6 +305,9 @@ export default function TodaysMeal({
   // this one today was not its blue-card plate, say so calmly at the top.
   // Re-read whenever a meal is saved.
   const [earlier, setEarlier] = useState<NamedMeal | null>(null);
+  // Her line about what that meal held (a sweet drink, fried food, more than
+  // the size shown), when one fits.
+  const [followUp, setFollowUp] = useState<string | null>(null);
   useEffect(() => {
     if (!meal || !dayKey) return;
     let live = true;
@@ -320,6 +324,7 @@ export default function TodaysMeal({
           isExtraFood,
         );
         setEarlier(found);
+        setFollowUp(followUpLine(meal, rows, getFood, isExtraFood));
       });
     check();
     window.addEventListener(INTAKE_CHANGED, check);
@@ -390,10 +395,13 @@ export default function TodaysMeal({
           </p>
         </div>
 
-        {earlier && (
+        {(earlier || followUp) && (
           <div className="mt-4 flex items-start gap-2.5 rounded-xl bg-white/10 p-3 ring-1 ring-inset ring-white/15">
             <Route className="mt-0.5 h-4 w-4 shrink-0 text-white/80" strokeWidth={2.2} aria-hidden />
-            <p className="text-sm text-white/90">{recoveryLine(earlier, meal)}</p>
+            <div className="min-w-0 space-y-1.5 text-sm text-white/90">
+              {earlier && <p>{recoveryLine(earlier, meal)}</p>}
+              {followUp && <p>{followUp}</p>}
+            </div>
           </div>
         )}
 

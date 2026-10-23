@@ -80,12 +80,71 @@ const CONDITION_EXCLUDED_PROTEIN_IDS = new Set(
   SOUP_PROTEINS.filter((id) => Boolean(getFood(id)?.healthNote)),
 );
 
-/** Any flagged condition is enough: every excluded protein's own healthNote
- * already names all three conditions together (see
- * CONDITION_EXCLUDED_PROTEIN_IDS above), so there is no case here where one
- * of the three should see it and another should not. */
-function excludesRiskyProtein(conditions: Condition[]): boolean {
-  return conditions.length > 0;
+/**
+ * Beef and goat meat come back for high blood pressure or high cholesterol
+ * (co-founder dietitian, 2026-10-23): lean, about 50g, at most 3 times in 7
+ * days, counted together from the meals saved. Kidney disease still drops
+ * them (her renal plan is the dietitian's to set). The other red, organ and
+ * salty proteins stay dropped for all three conditions. Keep the ids in step
+ * with LEAN_MEAT_IDS in scripts/health-notes.mjs.
+ */
+export const LEAN_RED_MEAT_IDS = new Set(["beef", "goat-meat"]);
+export const LEAN_RED_MEAT_GRAMS = 50;
+export const LEAN_RED_MEAT_WEEKLY_LIMIT = 3;
+
+/** Who gets beef or goat meat at the smaller, lean size. */
+function leanRedMeatOnly(conditions: Condition[]): boolean {
+  return (
+    !conditions.includes("kidney_disease") &&
+    (conditions.includes("hypertension") || conditions.includes("high_cholesterol"))
+  );
+}
+
+/**
+ * The proteins dropped from this person's blue-card plates. Nothing without
+ * a flagged condition; every protein with a healthNote for kidney disease;
+ * for high blood pressure or high cholesterol, the same minus beef and goat
+ * meat, until those two have been eaten 3 times this week.
+ */
+export function excludedProteinsFor(
+  conditions: Condition[],
+  weekCounts: ReadonlyMap<string, number> = new Map(),
+): ReadonlySet<string> {
+  if (conditions.length === 0) return new Set();
+  if (!leanRedMeatOnly(conditions)) return CONDITION_EXCLUDED_PROTEIN_IDS;
+  let eaten = 0;
+  for (const id of LEAN_RED_MEAT_IDS) eaten += weekCounts.get(id) ?? 0;
+  if (eaten >= LEAN_RED_MEAT_WEEKLY_LIMIT) return CONDITION_EXCLUDED_PROTEIN_IDS;
+  return new Set([...CONDITION_EXCLUDED_PROTEIN_IDS].filter((id) => !LEAN_RED_MEAT_IDS.has(id)));
+}
+
+/**
+ * Beef or goat meat on a plate for high blood pressure or high cholesterol,
+ * cut to about 50g (from the card's 90g). The same shape as a bigger
+ * serving, so the card, "Check a meal" and the calorie totals all use the
+ * smaller size. Null for everyone else, or a plate with neither meat.
+ */
+export function leanRedMeatServing(foods: Food[], conditions: Condition[]): ScaledPortion | null {
+  if (!leanRedMeatOnly(conditions)) return null;
+  const food = foods.find((f) => LEAN_RED_MEAT_IDS.has(f.id));
+  if (!food) return null;
+  const base = Number(/\((\d+)g\)/.exec(food.portionGuidance)?.[1]);
+  if (!Number.isFinite(base) || base <= LEAN_RED_MEAT_GRAMS) return null;
+  const ratio = LEAN_RED_MEAT_GRAMS / base;
+  const calories = (food.calories ?? 0) * ratio;
+  const carbG = (food.carbG ?? 0) * ratio;
+  const name = cleanFoodName(food.name);
+  const meat = food.id === "beef" ? "beef" : "goat meat";
+  return {
+    food,
+    name,
+    grams: LEAN_RED_MEAT_GRAMS,
+    calories,
+    extraCalories: calories - (food.calories ?? 0),
+    carbG,
+    extraCarbG: carbG - (food.carbG ?? 0),
+    instruction: `Keep the ${meat} to one medium chunk (about ${LEAN_RED_MEAT_GRAMS}g). Choose lean, trimmed meat, prepared with minimal salt and added oil.`,
+  };
 }
 
 /**
@@ -1034,7 +1093,7 @@ function stride(n: number): number {
  * whose protein carries its own comorbidity healthNote
  * (`CONDITION_EXCLUDED_PROTEIN_IDS`: beef, goat meat, pomo, shaki, stockfish,
  * smoked fish) is dropped from the rotation pool before scoring, rather than
- * merely nudged down the order — see `excludesRiskyProtein` above for why
+ * merely nudged down the order — see `excludedProteinsFor` above for why
  * this is a hard exclusion and not a bias. Falls back to the unfiltered pool
  * if that would ever empty it (it does not today — fish, chicken, turkey
  * and snail all carry no healthNote and stay eligible). Omitting it (the
@@ -1155,14 +1214,15 @@ export function planForDay(
     return { idea, eaten: eaten + goalAdjust, tie: hash(`${meal}#${i}`), planCalories, diff: 0, hasScalable, headroom };
   });
 
-  // A hard exclusion, not a reorder (see `excludesRiskyProtein` above): drop
+  // A hard exclusion, not a reorder (see `excludedProteinsFor` above): drop
   // any idea whose protein is one that food's own `healthNote` already warns
   // this person about. Falls back to the unfiltered list if this would ever
   // empty it, so a rare edge case can never leave nothing to serve.
   let base = scored;
-  if (excludesRiskyProtein(conditions)) {
+  const excluded = excludedProteinsFor(conditions, weekCounts);
+  if (excluded.size > 0) {
     const safe = scored.filter(
-      (s) => !s.idea.foods.some((f) => CONDITION_EXCLUDED_PROTEIN_IDS.has(f.id)),
+      (s) => !s.idea.foods.some((f) => excluded.has(f.id)),
     );
     if (safe.length > 0) base = safe;
   }
@@ -1433,6 +1493,10 @@ export function planForDay(
     const residualGap = Math.max(0, gap - (picked.scaledProtein?.extraCalories ?? 0));
     picked.scaledSide = scaleMainSide(picked.foods, residualGap, conditions);
   }
+  // Beef or goat meat for high blood pressure or high cholesterol: the
+  // smaller, lean size, with or without a calorie target. Neither meat is
+  // ever scaled up, so this never replaces a bigger serving.
+  picked.scaledProtein = leanRedMeatServing(picked.foods, conditions) ?? picked.scaledProtein;
   return picked;
 }
 
@@ -1462,7 +1526,8 @@ export function platesWithFood(
     IDEAS[meal].forEach((ids, i) => {
       if (!ids.includes(foodId)) return;
       const idea = resolve(meal, i);
-      if (excludesRiskyProtein(conditions) && idea.foods.some((f) => CONDITION_EXCLUDED_PROTEIN_IDS.has(f.id))) return;
+      const excluded = excludedProteinsFor(conditions, weekCounts);
+      if (idea.foods.some((f) => excluded.has(f.id))) return;
       if (overWeeklyLimit(ids, weekCounts)) return;
       if (target && target > 0) {
         const gap = Math.max(0, target - planCaloriesOf(ids));
@@ -1470,6 +1535,7 @@ export function platesWithFood(
         const residualGap = Math.max(0, gap - (idea.scaledProtein?.extraCalories ?? 0));
         idea.scaledSide = scaleMainSide(idea.foods, residualGap, conditions);
       }
+      idea.scaledProtein = leanRedMeatServing(idea.foods, conditions) ?? idea.scaledProtein;
       hits.push({ idea, diff: target && target > 0 ? Math.abs(target - mealIdeaCalories(idea)) : 0 });
     });
     out[meal] = hits.sort((a, b) => a.diff - b.diff || a.idea.index - b.idea.index).map((h) => h.idea);

@@ -93,7 +93,8 @@ export async function saveCheck(
   label: string,
   verdict: Verdict,
   calories?: number,
-  detail?: { foodIds: string[]; sizes: string[]; startedAt?: string },
+  /** meal: which meal it was, when the person said so ("I already ate it"). */
+  detail?: { foodIds: string[]; sizes: string[]; startedAt?: string; meal?: NamedMeal },
 ): Promise<number | null> {
   try {
     const supabase = createClient();
@@ -116,6 +117,11 @@ export async function saveCheck(
         sizes: detail.sizes,
         started_at: detail.startedAt,
       });
+    }
+    if (detail?.meal) {
+      // "Which meal was this?" (meal-slot-schema.sql). Dropped by the next
+      // step down if that migration has not run.
+      attempts.push({ ...withCalories, food_ids: detail.foodIds, sizes: detail.sizes, meal: detail.meal });
     }
     if (detail) attempts.push({ ...withCalories, food_ids: detail.foodIds, sizes: detail.sizes });
     attempts.push(withCalories);
@@ -436,15 +442,22 @@ async function caloriesEatenTodayFresh(): Promise<number> {
 }
 
 /**
- * One saved meal from today (Nigerian time): the meal-time it was saved in
- * (by the clock, the same bands as currentMeal), its food ids (empty on rows
+ * One saved meal from today (Nigerian time): which meal it was (what the
+ * person picked in "Which meal was this?", else the clock band it was saved
+ * in, the same bands as currentMeal), its food ids (empty on rows
  * saved before data-collection-schema.sql) and its calories, worked out the
  * way caloriesEatenToday always has.
  */
 export interface EatenToday {
   meal: NamedMeal;
   foodIds: string[];
+  /** Each food's saved size, same order as foodIds (empty on older rows). */
+  sizes: string[];
   calories: number;
+}
+
+function isNamedMeal(v: unknown): v is NamedMeal {
+  return v === "breakfast" || v === "lunch" || v === "dinner";
 }
 
 async function todaysEatenFresh(): Promise<EatenToday[]> {
@@ -456,7 +469,8 @@ async function todaysEatenFresh(): Promise<EatenToday[]> {
     const since = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
     // Each step down drops a column whose migration may not have run.
     const attempts = [
-      "kind,label,checked_at,calories,food_ids",
+      "kind,label,checked_at,calories,food_ids,sizes,meal",
+      "kind,label,checked_at,calories,food_ids,sizes",
       "kind,label,checked_at,calories",
       "kind,label,checked_at",
     ];
@@ -476,6 +490,8 @@ async function todaysEatenFresh(): Promise<EatenToday[]> {
         checked_at: string;
         calories?: number | null;
         food_ids?: string[] | null;
+        meal?: string | null;
+        sizes?: string[] | null;
       };
       const when = new Date(row.checked_at);
       if (watDayKey(wat(when.getTime())) !== todayK) continue;
@@ -490,8 +506,10 @@ async function todaysEatenFresh(): Promise<EatenToday[]> {
         for (const n of names) calories += foodCalories.get(n) ?? 0;
       }
       out.push({
-        meal: currentMeal(when),
+        // The meal they said it was, else the clock band it was saved in.
+        meal: isNamedMeal(row.meal) ? row.meal : currentMeal(when),
         foodIds: Array.isArray(row.food_ids) ? row.food_ids : [],
+        sizes: Array.isArray(row.sizes) ? row.sizes : [],
         calories,
       });
     }
