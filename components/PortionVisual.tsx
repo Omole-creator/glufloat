@@ -258,7 +258,27 @@ export function showsFoodItself(food: Food): boolean {
   return (PIECE_CATEGORIES.has(food.category) || SHOWN_AS_ITSELF.has(food.id)) && Boolean(foodPhotoFor(food.id));
 }
 
+/**
+ * Beef or goat meat at the 50g size (high blood pressure or high cholesterol,
+ * lib/nextMeal.ts leanRedMeatServing). Their photos show the card's two
+ * chunks, so the 50g line shows no photo until a one-chunk photo exists
+ * (founder, 2026-10-23).
+ */
+function isLeanMeatServing(food: Food): boolean {
+  if (food.id !== "beef" && food.id !== "goat-meat") return false;
+  const usual = getFood(food.id);
+  return Boolean(usual) && usual!.portionGuidance !== food.portionGuidance;
+}
+
 function PortionPicture({ food, size }: { food: Food; size: "sm" | "md" | "lg" | "fill" }) {
+  if (isLeanMeatServing(food)) {
+    const box = size === "fill" ? "w-full aspect-square rounded-2xl" : size === "lg" ? "h-24 w-24 rounded-2xl" : size === "md" ? "h-16 w-16 rounded-lg" : "h-11 w-11 rounded-lg";
+    return (
+      <span className={`flex shrink-0 items-center justify-center bg-mist text-brand/60 ring-1 ring-black/5 ${box}`}>
+        <Scale className="h-1/3 w-1/3" aria-hidden />
+      </span>
+    );
+  }
   if (showsFoodItself(food)) return <FoodPhotoButton food={food} size={size} />;
   const measure = measuresIn(food.portionGuidance)[0];
   if (measure) {
