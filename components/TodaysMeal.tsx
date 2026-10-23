@@ -27,7 +27,7 @@ import { clinicalTarget } from "@/lib/tdee";
 import { medicationAppliesToMeal, medicationTimingCopy } from "@/lib/medicationTiming";
 import { toAvoid, writeShown, writeSkipped, shownToday } from "@/lib/mealRotationMemory";
 import { logImpression, rememberSuggested, type ImpressionPlate } from "@/lib/mealImpressions";
-import { MeasureChips } from "./MeasurePhoto";
+import { LeanMeatPhotoButton, MeasureChips } from "./MeasurePhoto";
 
 const NO_PROFILE: PersonalizationProfile = {
   goals: [],
@@ -452,12 +452,24 @@ export default function TodaysMeal({
             <Flame className="mt-0.5 h-4 w-4 shrink-0 text-white/80" strokeWidth={2.2} />
             <div className="min-w-0">
               <p className="text-sm text-white/90">{idea.scaledProtein.instruction}</p>
-              <MeasureChips
-                text={idea.scaledProtein.instruction}
-                forFood={idea.scaledProtein.name}
-                tone="dark"
-                className="mt-2"
-              />
+              {idea.scaledProtein.extraCalories < 0 ? (
+                // Beef or goat meat at 50g (high blood pressure or high
+                // cholesterol): the one-chunk photo, never the palm-size
+                // "Chunks of meat" button, which is the card's 90g.
+                <div className="mt-2">
+                  <LeanMeatPhotoButton
+                    food={{ ...idea.scaledProtein.food, portionGuidance: idea.scaledProtein.instruction }}
+                    size="md"
+                  />
+                </div>
+              ) : (
+                <MeasureChips
+                  text={idea.scaledProtein.instruction}
+                  forFood={idea.scaledProtein.name}
+                  tone="dark"
+                  className="mt-2"
+                />
+              )}
             </div>
           </div>
         )}

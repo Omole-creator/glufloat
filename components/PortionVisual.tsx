@@ -2,7 +2,7 @@ import type { Food, PortionSize } from "@/lib/types";
 import { portionVisual, type PortionKey } from "@/lib/portionVisual";
 import { cleanFoodName } from "@/lib/foodName";
 import { measuresIn } from "@/lib/measures";
-import { FoodPhotoButton, MeasureChips, MeasurePhotoButton, UsualSizePhotoButton } from "./MeasurePhoto";
+import { FoodPhotoButton, LeanMeatPhotoButton, MeasureChips, MeasurePhotoButton, UsualSizePhotoButton } from "./MeasurePhoto";
 import { foodPhotoFor } from "@/lib/foodPhotos";
 import { getFood } from "@/lib/search";
 import { Scale } from "lucide-react";
@@ -260,10 +260,11 @@ export function showsFoodItself(food: Food): boolean {
 
 /**
  * Beef or goat meat at the 50g size (high blood pressure or high cholesterol,
- * lib/nextMeal.ts leanRedMeatServing). Their photos show the card's two
- * chunks, so the 50g line shows no photo until a one-chunk photo exists
- * (founder, 2026-10-23).
+ * lib/nextMeal.ts leanRedMeatServing). The card's own photos show two chunks,
+ * so the 50g line shows the one-chunk photo instead (founder, 2026-10-23).
  */
+// Its "Chunks of meat" button is left off too: that photo says the chunks
+// should cover your palm, which is the card's 90g, not 50g.
 function isLeanMeatServing(food: Food): boolean {
   if (food.id !== "beef" && food.id !== "goat-meat") return false;
   const usual = getFood(food.id);
@@ -271,14 +272,7 @@ function isLeanMeatServing(food: Food): boolean {
 }
 
 function PortionPicture({ food, size }: { food: Food; size: "sm" | "md" | "lg" | "fill" }) {
-  if (isLeanMeatServing(food)) {
-    const box = size === "fill" ? "w-full aspect-square rounded-2xl" : size === "lg" ? "h-24 w-24 rounded-2xl" : size === "md" ? "h-16 w-16 rounded-lg" : "h-11 w-11 rounded-lg";
-    return (
-      <span className={`flex shrink-0 items-center justify-center bg-mist text-brand/60 ring-1 ring-black/5 ${box}`}>
-        <Scale className="h-1/3 w-1/3" aria-hidden />
-      </span>
-    );
-  }
+  if (isLeanMeatServing(food)) return <LeanMeatPhotoButton food={food} size={size} />;
   if (showsFoodItself(food)) return <FoodPhotoButton food={food} size={size} />;
   const measure = measuresIn(food.portionGuidance)[0];
   if (measure) {
@@ -327,7 +321,7 @@ export default function PortionVisual({ food }: { food: Food }) {
         <p className="mt-1 text-sm font-medium text-ink">
           {food.portionGuidance}
         </p>
-        {!NO_MEASURE_CHIPS.has(food.id) && (
+        {!NO_MEASURE_CHIPS.has(food.id) && !isLeanMeatServing(food) && (
           <MeasureChips
             text={food.portionGuidance}
             forFood={cleanFoodName(food.name)}
@@ -359,7 +353,7 @@ export function PortionMini({ food, portion = "normal" }: { food: Food; portion?
         </p>
         {note && <p className="mt-0.5 font-semibold text-ink-soft">{note}</p>}
         <p className="mt-0.5 leading-relaxed text-ink-soft">{food.portionGuidance}</p>
-        {!NO_MEASURE_CHIPS.has(food.id) && (
+        {!NO_MEASURE_CHIPS.has(food.id) && !isLeanMeatServing(food) && (
           <MeasureChips
             text={food.portionGuidance}
             forFood={cleanFoodName(food.name)}

@@ -242,6 +242,21 @@ export const FOOD_PHOTOS: Record<string, FoodPhoto> = {
  * (scripts/food-drawings.mjs, for the foods with no honest photo; founder:
  * "colourful and not colourless or sketchy"), else nothing.
  */
+/**
+ * One 50g chunk of beef or goat meat (founder's photos, 2026-10-23), for the
+ * 50g line served to people with high blood pressure or high cholesterol
+ * (lib/nextMeal.ts leanRedMeatServing). The card's own photo shows two chunks.
+ */
+const LEAN_MEAT_PHOTOS: Record<string, FoodPhoto> = {
+  beef: { alt: "One chunk of boiled beef on a plate", source: "founder" },
+  "goat-meat": { alt: "One chunk of boiled goat meat on a plate", source: "founder" },
+};
+
+export function leanMeatPhotoFor(id: string): (FoodPhoto & { photo: string }) | undefined {
+  const p = LEAN_MEAT_PHOTOS[id];
+  return p ? { ...p, photo: `/img/food-portions/${id}-50g.jpg` } : undefined;
+}
+
 export function foodPhotoFor(
   id: string,
 ): (FoodPhoto & { photo: string; drawing?: boolean }) | undefined {

@@ -110,6 +110,10 @@ const BOX = {
   alkaki: [0.36, 0.27, 0.26, 0.45],
   beef: [0.31, 0.25, 0.38, 0.5],
   "goat-meat": [0.3, 0.25, 0.4, 0.5],
+  // One 50g chunk, for high blood pressure or high cholesterol (founder's
+  // photos, 2026-10-23). Shown only beside the 50g line (lib/foodPhotos.ts).
+  "beef-50g": [0.3, 0.28, 0.4, 0.45],
+  "goat-meat-50g": [0.3, 0.25, 0.42, 0.45],
   turkey: [0.29, 0.18, 0.43, 0.55],
   snail: [0.3, 0.24, 0.38, 0.48],
   "prawns-crayfish": [0.27, 0.27, 0.44, 0.5],

@@ -4,7 +4,7 @@ import Image from "next/image";
 import { Pointer } from "lucide-react";
 import { measuresIn, openMeasureGuide, type Measure } from "@/lib/measures";
 import { cn } from "@/lib/utils";
-import { foodPhotoFor } from "@/lib/foodPhotos";
+import { foodPhotoFor, leanMeatPhotoFor } from "@/lib/foodPhotos";
 import { cleanFoodName } from "@/lib/foodName";
 import type { Food } from "@/lib/types";
 import { getFood } from "@/lib/search";
@@ -107,6 +107,29 @@ export function FoodPhotoButton({ food, size = "md" }: { food: Food; size?: "sm"
         })
       }
       skip={p.skip}
+      size={size}
+    />
+  );
+}
+
+/** The one-chunk (50g) beef or goat meat photo beside the 50g line. */
+export function LeanMeatPhotoButton({ food, size = "md" }: { food: Food; size?: "sm" | "md" | "lg" | "fill" }) {
+  const p = leanMeatPhotoFor(food.id);
+  if (!p) return null;
+  const name = cleanFoodName(food.name);
+  return (
+    <PhotoButton
+      photo={p.photo}
+      label={`See how much ${name} to eat, full size`}
+      onOpen={() =>
+        openMeasureGuide({
+          photo: p.photo,
+          alt: p.alt,
+          title: name,
+          size: "The right amount",
+          how: food.portionGuidance,
+        })
+      }
       size={size}
     />
   );
