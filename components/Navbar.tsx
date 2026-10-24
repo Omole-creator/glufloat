@@ -365,6 +365,17 @@ export default function Navbar() {
                 <LogOut className="h-4 w-4" /> Sign out
               </button>
             )}
+            {/* Every kind of user can delete their own account (founder,
+                2026-10-24): members, patients, staff, dietitians, doctors. */}
+            {menuOnly && (
+              <Link
+                href="/account/delete"
+                onClick={() => setMenuOpen(false)}
+                className="mt-1 block w-full py-2 text-center text-sm font-medium text-ink-soft underline-offset-4 hover:text-verdict-red hover:underline"
+              >
+                Delete my account
+              </Link>
+            )}
           </div>
         </DialogContent>
       </Dialog>

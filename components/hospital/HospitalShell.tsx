@@ -74,6 +74,12 @@ export default async function HospitalShell({
           <p className="truncate px-1 text-sm font-semibold text-white">{ctx.staff.name}</p>
           <p className="mb-3 px-1 text-xs text-white/55">{roleLabel}</p>
           <HospitalLogOut />
+          <Link
+            href="/account/delete"
+            className="mt-2 block text-center text-xs font-semibold text-white/55 hover:text-white hover:underline"
+          >
+            Delete my account
+          </Link>
         </div>
       </aside>
 
@@ -150,6 +156,12 @@ export default async function HospitalShell({
             {actions && <div className="flex flex-wrap items-center gap-3">{actions}</div>}
           </div>
           {children}
+          {/* Phones have no sidebar: the same link sits at the foot of every page. */}
+          <div className="mt-10 text-center lg:hidden">
+            <Link href="/account/delete" className="text-xs font-semibold text-ink-soft hover:text-verdict-red hover:underline">
+              Delete my account
+            </Link>
+          </div>
         </div>
       </main>
     </div>

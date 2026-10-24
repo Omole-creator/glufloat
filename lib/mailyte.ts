@@ -179,6 +179,27 @@ export async function syncContacts(contacts: Contact[]): Promise<SyncResult> {
   return out;
 }
 
+/**
+ * Remove a person from Mailyte for good, when they delete their GluFloat
+ * account. The PUT finds the contact by email (or makes it, unsubscribed, if
+ * it was never there) so the DELETE has an id. Best effort: false on any
+ * failure, and the account is still deleted.
+ */
+export async function removeContact(email: string): Promise<boolean> {
+  if (!mailyteConfigured() || isPhoneLoginEmail(email)) return true;
+  try {
+    const r = await my<ContactRow>("/contacts", {
+      method: "PUT",
+      body: JSON.stringify({ email, status_if_new: "unsubscribed" }),
+    });
+    if (r.status >= 400 || !r.data?.id) return false;
+    const d = await my(`/contacts/${r.data.id}`, { method: "DELETE" });
+    return d.status < 400;
+  } catch {
+    return false;
+  }
+}
+
 /** Add or update one person on one list (the admin's "Add a contact" form). */
 export async function addContact(email: string, name: string, group: keyof typeof GROUP_NAME): Promise<void> {
   const lists = await ensureLists();
