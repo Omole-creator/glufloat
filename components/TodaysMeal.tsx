@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { RefreshCw, ArrowRight, Sunrise, Sun, Moon, Check, Pill, Flame, Scale, Route, UserRound } from "lucide-react";
+import { RefreshCw, ArrowRight, ArrowLeftRight, Sunrise, Sun, Moon, Check, Pill, Flame, Scale, Route, UserRound, Wheat } from "lucide-react";
+import FoodIcon from "./FoodIcon";
 import {
   currentMeal,
   localDayKey,
@@ -440,42 +441,48 @@ export default function TodaysMeal({
 
   return (
     /* Brand blue, the same canvas as the landing hero, because this card IS the
-       hero of /app: it is the answer the person opened the app for, and a white
-       card among white cards did not say so. Green is spent on the one action,
-       exactly as it is on the landing page. */
-    <section className="relative isolate overflow-hidden rounded-3xl bg-gradient-to-b from-[#0d3568] via-[#14538f] to-[#1b5faa] shadow-[0_18px_50px_-18px_rgba(12,42,71,0.55)]">
-      <div
-        className="dots-light pointer-events-none absolute inset-x-0 top-0 h-40 opacity-40"
-        aria-hidden
-      />
-      <div
-        className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-white/10 blur-3xl"
-        aria-hidden
-      />
-      <div className="relative px-5 py-6 sm:px-7 sm:py-7">
+       hero of /app. Redesigned 2026-10-25 with the same words: the plate is a
+       list of foods (each with its own "I don't have" button, so it is plain
+       that tapping it swaps that food), the numbers are large, and "View
+       details" is one big white button that clearly opens the rest. */
+    <section className="relative isolate overflow-hidden rounded-[28px] bg-gradient-to-b from-[#0d3568] via-[#134b85] to-[#1b5faa] shadow-[0_24px_60px_-22px_rgba(12,42,71,0.65)]">
+      <div className="dots-light pointer-events-none absolute inset-x-0 top-0 h-48 opacity-30" aria-hidden />
+      <div className="pointer-events-none absolute -right-20 -top-24 h-64 w-64 rounded-full bg-white/10 blur-3xl" aria-hidden />
+      <div className="pointer-events-none absolute -bottom-24 -left-16 h-56 w-56 rounded-full bg-leaf/20 blur-3xl" aria-hidden />
+
+      <div className="relative px-4 pb-5 pt-5 sm:px-7 sm:pb-7 sm:pt-6">
+        {/* Header: which meal, and that it is good to eat */}
         <div className="flex items-center gap-3.5">
-          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/15 text-white ring-1 ring-inset ring-white/25">
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/15 text-white shadow-inner ring-1 ring-inset ring-white/25">
             <Icon className="h-6 w-6" strokeWidth={2.2} />
           </span>
-          {/* One heading only. The "Today's food" eyebrow said the same thing
-              twice over "Today's breakfast" right under it. */}
-          <p className="font-display text-xl font-bold leading-tight text-white sm:text-2xl">
-            {HEADING[meal]}
-          </p>
+          <div className="min-w-0">
+            <p className="font-display text-2xl font-bold leading-tight text-white sm:text-[1.7rem]">
+              {HEADING[meal]}
+            </p>
+            <span className="mt-1 inline-flex items-center gap-1.5 text-[13px] font-semibold text-white/85">
+              <span className="flex h-4 w-4 items-center justify-center rounded-full bg-verdict-green">
+                <Check className="h-3 w-3 text-white" strokeWidth={3.5} />
+              </span>
+              Good to eat <span className="text-white/40">·</span> Picked for you
+            </span>
+          </div>
         </div>
 
         {needsDetails && onOpenDetails && (
-          <div className="mt-4 rounded-xl bg-white/10 p-3 ring-1 ring-inset ring-white/15">
-            <div className="flex items-start gap-2.5">
-              <UserRound className="mt-0.5 h-4 w-4 shrink-0 text-white/80" strokeWidth={2.2} aria-hidden />
-              <p className="text-sm font-semibold text-white">
+          <div className="mt-5 flex flex-col gap-3 rounded-2xl bg-white p-3.5 shadow-[0_10px_30px_-16px_rgba(0,0,0,0.6)] sm:flex-row sm:items-center">
+            <div className="flex min-w-0 flex-1 items-start gap-3">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand/10 text-brand">
+                <UserRound className="h-[18px] w-[18px]" strokeWidth={2.2} aria-hidden />
+              </span>
+              <p className="pt-0.5 text-sm font-semibold leading-snug text-ink">
                 Fill in the &quot;My details&quot; section and start getting meals tailored to you.
               </p>
             </div>
             <button
               type="button"
               onClick={onOpenDetails}
-              className="mt-3 flex items-center gap-2 rounded-full bg-white px-4 py-2.5 text-sm font-bold text-brand transition-colors hover:bg-white/90"
+              className="flex shrink-0 items-center justify-center gap-2 rounded-full bg-brand px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand-deep"
             >
               Go to My details <ArrowRight className="h-4 w-4" />
             </button>
@@ -483,110 +490,143 @@ export default function TodaysMeal({
         )}
 
         {(earlier || followUp) && (
-          <div className="mt-4 flex items-start gap-2.5 rounded-xl bg-white/10 p-3 ring-1 ring-inset ring-white/15">
-            <Route className="mt-0.5 h-4 w-4 shrink-0 text-white/80" strokeWidth={2.2} aria-hidden />
-            <div className="min-w-0 space-y-1.5 text-sm text-white/90">
+          <div className="mt-4 flex items-start gap-3 rounded-2xl bg-white/[0.08] p-3.5 ring-1 ring-inset ring-white/15">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/15 text-white">
+              <Route className="h-4 w-4" strokeWidth={2.2} aria-hidden />
+            </span>
+            <div className="min-w-0 space-y-1.5 pt-1 text-sm leading-relaxed text-white/90">
               {earlier && <p>{recoveryLine(earlier, meal)}</p>}
               {followUp && <p>{followUp}</p>}
             </div>
           </div>
         )}
 
-        <p className="mt-5 font-display text-3xl font-bold leading-snug text-white sm:text-4xl">
-          {line(idea.names)}
-        </p>
+        {/* The plate: one row per food, with its numbers at the foot. */}
+        <div className="mt-5 overflow-hidden rounded-3xl bg-white/[0.07] ring-1 ring-inset ring-white/15">
+          <ul className="divide-y divide-white/10">
+            {idea.foods.map((f, i) => {
+              const isNew = idea.swapped?.to.id === f.id;
+              return (
+                <li key={f.id} className="flex items-center gap-3 px-3.5 py-3 sm:px-4">
+                  <span className="relative">
+                    <FoodIcon food={f} tone="dark" />
+                    {isNew && (
+                      <span aria-hidden className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-leaf text-white ring-2 ring-[#134b85]">
+                        <ArrowLeftRight className="h-2.5 w-2.5" strokeWidth={3} />
+                      </span>
+                    )}
+                  </span>
+                  <p className="min-w-0 flex-1 font-display text-lg font-semibold leading-snug text-white sm:text-xl">
+                    {idea.names[i] ?? cleanName(f)}
+                  </p>
+                  {!idea.swapped && canSwap.has(f.id) && (
+                    <button
+                      type="button"
+                      onClick={() => swap(f)}
+                      aria-label={`I don't have ${cleanName(f)}`}
+                      className="group flex shrink-0 items-center gap-1.5 rounded-full bg-white/10 py-2 pl-2.5 pr-3 text-xs font-bold text-white ring-1 ring-inset ring-white/30 transition-all hover:bg-white hover:text-brand active:scale-95"
+                    >
+                      <ArrowLeftRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:rotate-180" strokeWidth={2.6} aria-hidden />
+                      I don&apos;t have
+                    </button>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
 
-        {/* "I don't have this" (co-founder dietitian + founder, 2026-10-24).
-            Kept to one quiet row so the card does not get busy, and "View
-            details" stays the main button. */}
-        {idea.swapped ? (
-          <p className="mt-3 text-sm text-white/90">
-            Swapped {line([cleanName(idea.swapped.from)])} for {line([cleanName(idea.swapped.to)])}. Tap View details to see how much to eat.{" "}
-            <button type="button" onClick={changeBack} className="font-semibold text-white underline underline-offset-2">
-              Change back
-            </button>
-          </p>
-        ) : (
-          canSwap.size > 0 && (
-            <div className="mt-3 flex flex-wrap items-center gap-1.5 text-xs text-white/75">
-              <span>I don&apos;t have:</span>
-              {idea.foods
-                .filter((f) => canSwap.has(f.id))
-                .map((f) => (
-                  <button
-                    key={f.id}
-                    type="button"
-                    onClick={() => swap(f)}
-                    aria-label={`I don't have ${cleanName(f)}`}
-                    className="rounded-full px-2.5 py-1 font-semibold text-white ring-1 ring-inset ring-white/30 transition-colors hover:bg-white/10"
-                  >
-                    {cleanName(f)}
-                  </button>
-                ))}
+          {idea.swapped && (
+            <div className="flex items-start gap-2.5 border-t border-white/10 bg-leaf/20 px-4 py-3 text-sm text-white">
+              <ArrowLeftRight className="mt-0.5 h-4 w-4 shrink-0 text-white/80" strokeWidth={2.4} aria-hidden />
+              <p className="min-w-0 leading-relaxed">
+                Swapped {line([cleanName(idea.swapped.from)])} for {line([cleanName(idea.swapped.to)])}. Tap View details to see how much to eat.{" "}
+                <button type="button" onClick={changeBack} className="font-bold text-white underline decoration-white/50 underline-offset-4 hover:decoration-white">
+                  Change back
+                </button>
+              </p>
             </div>
-          )
-        )}
-
-        <div className="mt-4 flex flex-wrap items-center gap-2">
-          <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3.5 py-1.5 text-sm font-semibold text-white ring-1 ring-inset ring-white/20">
-            <Check className="h-4 w-4 text-verdict-green" strokeWidth={3} /> Good to eat
-            <span className="text-white/40">·</span> Picked for you
-          </span>
-          {/* Shown up front, not only after "I ate this" — someone deciding
-              whether to eat this plate wants the number before they commit
-              to it, not after. Carbs leads: it is the number that matters
-              for insulin dosing (carb counting), calories is second. */}
-          {mealCarbs > 0 && (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3.5 py-1.5 text-sm font-semibold text-white ring-1 ring-inset ring-white/25">
-              {mealCarbs}g carbs
-            </span>
           )}
-          {mealCalories > 0 && (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3.5 py-1.5 text-sm font-semibold text-white ring-1 ring-inset ring-white/20">
-              {mealCalories} kcal
-            </span>
+
+          {/* Carbs leads: it is the number that matters for insulin (carb
+              counting), calories second. Shown before they commit to the plate. */}
+          {(mealCarbs > 0 || mealCalories > 0) && (
+            <div className="grid grid-cols-2 border-t border-white/10 bg-black/10">
+              {mealCarbs > 0 && (
+                <p className="flex items-center gap-3 px-4 py-3.5">
+                  <Wheat className="h-5 w-5 shrink-0 text-white/50" strokeWidth={2} aria-hidden />
+                  <span>
+                    <span className="block font-display text-2xl font-bold leading-none text-white">{mealCarbs}g</span>
+                    <span className="mt-1 block text-xs font-semibold text-white/70"> carbs</span>
+                  </span>
+                </p>
+              )}
+              {mealCalories > 0 && (
+                <p className="flex items-center gap-3 border-l border-white/10 px-4 py-3.5">
+                  <Flame className="h-5 w-5 shrink-0 text-white/50" strokeWidth={2} aria-hidden />
+                  <span>
+                    <span className="block font-display text-2xl font-bold leading-none text-white">{mealCalories}</span>
+                    <span className="mt-1 block text-xs font-semibold text-white/70"> kcal</span>
+                  </span>
+                </p>
+              )}
+            </div>
           )}
         </div>
 
-        {medicationAppliesToMeal(medTimes, meal) && medicationTimingCopy(medRelationToFood) && (
-          <div className="mt-4 flex items-start gap-2.5 rounded-xl bg-white/10 p-3 ring-1 ring-inset ring-white/15">
-            <Pill className="mt-0.5 h-4 w-4 shrink-0 text-white/80" strokeWidth={2.2} />
-            <p className="text-sm text-white/90">{medicationTimingCopy(medRelationToFood)}</p>
-          </div>
-        )}
-
-        {idea.sizeNote && (
-          <div className="mt-4 flex items-start gap-2.5 rounded-xl bg-white/10 p-3 ring-1 ring-inset ring-white/15">
-            <Scale className="mt-0.5 h-4 w-4 shrink-0 text-white/80" strokeWidth={2.2} />
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-white">{idea.sizeNote}</p>
-              <MeasureChips text={idea.sizeNote} forFood={idea.names[0]} tone="dark" className="mt-2" />
-            </div>
-          </div>
-        )}
-
-        {/* Bigger servings only top up calories, so they live in "View details"
-            and are not repeated here (founder, 2026-10-24). The 50g beef or goat
-            meat line stays: it is a health limit, not a top-up. */}
-        {idea.scaledProtein && idea.scaledProtein.extraCalories < 0 && (
-          <div className="mt-4 flex items-start gap-2.5 rounded-xl bg-white/10 p-3 ring-1 ring-inset ring-white/15">
-            <Flame className="mt-0.5 h-4 w-4 shrink-0 text-white/80" strokeWidth={2.2} />
-            <div className="min-w-0">
-              <p className="text-sm text-white/90">{idea.scaledProtein.instruction}</p>
-              {/* The one-chunk photo, never the palm-size "Chunks of meat"
-                  button, which is the card's 90g. */}
-              <div className="mt-2 empty:hidden">
-                <ServingPhotoButton
-                  food={{ ...idea.scaledProtein.food, portionGuidance: idea.scaledProtein.instruction }}
-                  grams={idea.scaledProtein.grams}
-                  size="md"
-                />
+        {/* The lines that keep this plate safe. */}
+        {(idea.sizeNote ||
+          (idea.scaledProtein && idea.scaledProtein.extraCalories < 0) ||
+          (medicationAppliesToMeal(medTimes, meal) && medicationTimingCopy(medRelationToFood))) && (
+          <div className="mt-3 space-y-2.5">
+            {idea.sizeNote && (
+              <div className="flex items-start gap-3 rounded-2xl bg-white/[0.08] p-3.5 ring-1 ring-inset ring-white/15">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-verdict-yellow text-ink">
+                  <Scale className="h-4 w-4" strokeWidth={2.4} aria-hidden />
+                </span>
+                <div className="min-w-0 pt-1">
+                  <p className="text-sm font-semibold leading-relaxed text-white">{idea.sizeNote}</p>
+                  <MeasureChips text={idea.sizeNote} forFood={idea.names[0]} tone="dark" className="mt-2" />
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* Bigger servings only top up calories, so they live in "View
+                details" (founder, 2026-10-24). The 50g beef or goat meat line
+                stays: it is a health limit, not a top-up. */}
+            {idea.scaledProtein && idea.scaledProtein.extraCalories < 0 && (
+              <div className="flex items-start gap-3 rounded-2xl bg-white/[0.08] p-3.5 ring-1 ring-inset ring-white/15">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/15 text-white">
+                  <Flame className="h-4 w-4" strokeWidth={2.2} aria-hidden />
+                </span>
+                <div className="min-w-0 pt-1">
+                  <p className="text-sm leading-relaxed text-white/90">{idea.scaledProtein.instruction}</p>
+                  {/* The one-chunk photo, never the palm-size "Chunks of meat"
+                      button, which is the card's 90g. */}
+                  <div className="mt-2 empty:hidden">
+                    <ServingPhotoButton
+                      food={{ ...idea.scaledProtein.food, portionGuidance: idea.scaledProtein.instruction }}
+                      grams={idea.scaledProtein.grams}
+                      size="md"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {medicationAppliesToMeal(medTimes, meal) && medicationTimingCopy(medRelationToFood) && (
+              <div className="flex items-start gap-3 rounded-2xl bg-white/[0.08] p-3.5 ring-1 ring-inset ring-white/15">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/15 text-white">
+                  <Pill className="h-4 w-4" strokeWidth={2.2} aria-hidden />
+                </span>
+                <p className="min-w-0 pt-1 text-sm leading-relaxed text-white/90">{medicationTimingCopy(medRelationToFood)}</p>
+              </div>
+            )}
           </div>
         )}
 
-        <div className="mt-6 flex flex-wrap gap-2.5">
+        {/* One big white button that plainly opens the rest; "Try another
+            meal" is the quiet second choice under it. */}
+        <div className="mt-5 space-y-1.5">
           <button
             onClick={() => {
               void trackUsage("check_this_meal");
@@ -596,13 +636,16 @@ export default function TodaysMeal({
               setPulseDetails(false);
               onBuild(mealIdeaFoodsForBuilder(idea));
             }}
-            className={`${pulseDetails ? "cta-pulse " : ""}flex items-center gap-2 rounded-full bg-leaf px-6 py-3.5 text-sm font-bold text-white shadow-[0_10px_24px_-8px_rgba(62,155,79,0.75)] transition-all hover:-translate-y-0.5 hover:bg-leaf-deep`}
+            className={`${pulseDetails ? "cta-pulse " : ""}group flex w-full items-center justify-between gap-3 rounded-2xl bg-white py-2 pl-5 pr-2 text-left shadow-[0_14px_30px_-12px_rgba(0,0,0,0.55)] transition-all hover:-translate-y-0.5 hover:shadow-[0_18px_36px_-12px_rgba(0,0,0,0.6)] active:translate-y-0`}
           >
-            View details <ArrowRight className="h-4 w-4" />
+            <span className="font-display text-lg font-bold text-brand-deep">View details</span>
+            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-leaf text-white shadow-[0_8px_18px_-8px_rgba(62,155,79,0.9)]">
+              <ArrowRight className="details-nudge h-5 w-5" strokeWidth={2.6} />
+            </span>
           </button>
           <button
             onClick={another}
-            className="flex items-center gap-2 rounded-full bg-white/10 px-5 py-3.5 text-sm font-bold text-white ring-1 ring-inset ring-white/25 transition-colors hover:bg-white/20"
+            className="flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-bold text-white/85 transition-colors hover:bg-white/10 hover:text-white"
           >
             <RefreshCw className="h-4 w-4" /> Try another meal
           </button>

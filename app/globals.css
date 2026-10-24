@@ -392,7 +392,16 @@ body {
   50% { transform: translate(-2px, 3px) rotate(-12deg) scale(0.9); }
 }
 .tap-bob { animation: tap-bob 0.9s ease-in-out infinite; display: inline-flex; }
+/* The blue card's "View details" arrow nudges right now and then, so the
+   button reads as "tap to open more" (2026-10-25). */
+@keyframes details-nudge {
+  0%, 70%, 100% { transform: translateX(0); }
+  80% { transform: translateX(4px); }
+  90% { transform: translateX(-1px); }
+}
+.details-nudge { animation: details-nudge 2.6s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) {
+  .details-nudge { animation: none; }
   .tap-ring { animation: none; opacity: 0; }
   /* Still easy to spot without movement: a steady glow ring. */
   .cta-pulse { animation: none; box-shadow: 0 0 0 4px rgba(62, 155, 79, 0.3), 0 12px 26px -12px rgba(44, 122, 60, 0.95); }
