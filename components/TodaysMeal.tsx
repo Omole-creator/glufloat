@@ -7,9 +7,11 @@ import {
   localDayKey,
   type NamedMeal,
 } from "@/lib/mealtime";
-import { planForDay, mealShareFor, mealIdeaCalories, mealIdeaCarbs, mealIdeaFoodsForBuilder, ideasFor, isExtraFood, type MealIdea } from "@/lib/nextMeal";
+import { planForDay, mealShareFor, mealIdeaCalories, mealIdeaCarbs, mealIdeaFoodsForBuilder, ideasFor, isExtraFood, swapInPlate, swappableFoods, type MealIdea, type SwapContext } from "@/lib/nextMeal";
+import { withStoredSwap, writeSwap, shownPlateWithSwap } from "@/lib/mealSwapMemory";
 import { differentMealBefore, recoveryLine, followUpLine } from "@/lib/mealRecovery";
 import { getFood } from "@/lib/search";
+import { cleanFoodName } from "@/lib/foodName";
 import { practiceRules } from "@/lib/practiceRules";
 import { loggedFoodCounts, likedFoodCounts, todaysEaten, eatenAtMeal, foodCountsThisWeek, INTAKE_CHANGED } from "@/lib/history";
 import { trackUsage } from "@/lib/usage";
@@ -71,6 +73,7 @@ function scaledGrams(idea: MealIdea): Record<string, number> {
   const out: Record<string, number> = {};
   if (idea.scaledProtein) out[idea.scaledProtein.food.id] = Math.round(idea.scaledProtein.grams);
   if (idea.scaledSide) out[idea.scaledSide.food.id] = Math.round(idea.scaledSide.grams);
+  if (idea.swapped?.serving) out[idea.swapped.serving.food.id] = Math.round(idea.swapped.serving.grams);
   return out;
 }
 
@@ -79,7 +82,13 @@ function scaledKcal(idea: MealIdea): Record<string, number> {
   const out: Record<string, number> = {};
   if (idea.scaledProtein) out[idea.scaledProtein.food.id] = Math.round(idea.scaledProtein.calories);
   if (idea.scaledSide) out[idea.scaledSide.food.id] = Math.round(idea.scaledSide.calories);
+  if (idea.swapped?.serving) out[idea.swapped.serving.food.id] = Math.round(idea.swapped.serving.calories);
   return out;
+}
+
+/** A food's name as the card shows it. */
+function cleanName(f: Food): string {
+  return cleanFoodName(f.name);
 }
 
 /** Join clean food names into one plain line: "A, B and C". */
@@ -153,6 +162,12 @@ export default function TodaysMeal({
   // "Fill in My details" line, until they do (null while the profile loads,
   // so it never flashes for someone who already has).
   const [needsDetails, setNeedsDetails] = useState<boolean | null>(null);
+  // "I don't have this" (2026-10-24): the plate as planned, before any swap,
+  // the rules a swap must respect, and whether "View details" should pulse
+  // because the new size is shown there.
+  const [baseIdea, setBaseIdea] = useState<MealIdea | null>(null);
+  const [swapCtx, setSwapCtx] = useState<SwapContext>({});
+  const [pulseDetails, setPulseDetails] = useState(false);
 
   // Conditions (hypertension/high cholesterol/kidney disease) are free on
   // every tier — safety-relevant, not a paid perk — so they bias the plate
@@ -209,7 +224,8 @@ export default function TodaysMeal({
     ) => {
       const calTarget = await calorieTargetFor(m);
       calTargetRef.current = calTarget;
-      const next = planForDay(
+      const [week, rules] = await Promise.all([foodCountsThisWeek(), practiceRules()]);
+      const planned = planForDay(
         m,
         dk,
         c,
@@ -220,11 +236,21 @@ export default function TodaysMeal({
         calTarget,
         profileRef.current.conditions,
         personalRotationKey(profileRef.current),
-        await foodCountsThisWeek(),
+        week,
         profileRef.current.swallows,
         // Her dietitian's food rules (GluFloat for dietitians); null for everyone else.
-        await practiceRules(),
+        rules,
       );
+      const ctx: SwapContext = {
+        conditions: profileRef.current.conditions,
+        weekCounts: week,
+        swallows: profileRef.current.swallows,
+        rules,
+        calorieTargetForMeal: calTarget,
+      };
+      const next = withStoredSwap(m, dk, planned, ctx);
+      setSwapCtx(ctx);
+      setBaseIdea(planned);
       setIdea(next);
       setOffset(0);
       writeShown(m, dk, next.index);
@@ -337,7 +363,9 @@ export default function TodaysMeal({
           rows,
           (m) => {
             const i = shownToday(m, dayKey);
-            return i == null ? null : ideasFor(m)[i] ?? null;
+            const plate = i == null ? null : ideasFor(m)[i] ?? null;
+            // A food swapped on the card ("I don't have this") is not a different meal.
+            return plate && i != null ? shownPlateWithSwap(m, dayKey, i, plate) : plate;
           },
           isExtraFood,
         );
@@ -363,6 +391,8 @@ export default function TodaysMeal({
     // They are walking away from this plate. Remember it, so it is not the one
     // we hand them tomorrow.
     writeSkipped(meal, idea.index);
+    writeSwap(null);
+    setPulseDetails(false);
     const n = offset + 1;
     setOffset(n);
     Promise.all([calorieTargetFor(meal), foodCountsThisWeek(), practiceRules()]).then(([calTarget, week, rules]) => {
@@ -382,9 +412,30 @@ export default function TodaysMeal({
         profileRef.current.swallows,
         rules,
       );
+      setSwapCtx({ conditions: profileRef.current.conditions, weekCounts: week, swallows: profileRef.current.swallows, rules, calorieTargetForMeal: calTarget });
+      setBaseIdea(next);
       setIdea(next);
       writeShown(meal, dayKey, next.index);
     });
+  };
+
+  // One swap at a time, only on a food that has an approved swap for them.
+  const base = baseIdea ?? idea;
+  const canSwap = idea.swapped ? new Set<string>() : swappableFoods(meal, idea, swapCtx);
+  const swap = (food: Food) => {
+    const next = swapInPlate(meal, idea, food.id, swapCtx);
+    if (!next) return;
+    void trackUsage("meal_swap");
+    writeSwap({ day: dayKey, meal, plate: idea.index, from: food.id, to: next.swapped!.to.id, turn: 0 });
+    writeShown(meal, dayKey, next.index);
+    setIdea(next);
+    setPulseDetails(true);
+  };
+  const changeBack = () => {
+    writeSwap(null);
+    writeShown(meal, dayKey, base.index);
+    setIdea(base);
+    setPulseDetails(false);
   };
 
   return (
@@ -444,6 +495,37 @@ export default function TodaysMeal({
         <p className="mt-5 font-display text-3xl font-bold leading-snug text-white sm:text-4xl">
           {line(idea.names)}
         </p>
+
+        {/* "I don't have this" (co-founder dietitian + founder, 2026-10-24).
+            Kept to one quiet row so the card does not get busy, and "View
+            details" stays the main button. */}
+        {idea.swapped ? (
+          <p className="mt-3 text-sm text-white/90">
+            Swapped {line([cleanName(idea.swapped.from)])} for {line([cleanName(idea.swapped.to)])}. Tap View details to see how much to eat.{" "}
+            <button type="button" onClick={changeBack} className="font-semibold text-white underline underline-offset-2">
+              Change back
+            </button>
+          </p>
+        ) : (
+          canSwap.size > 0 && (
+            <div className="mt-3 flex flex-wrap items-center gap-1.5 text-xs text-white/75">
+              <span>I don&apos;t have:</span>
+              {idea.foods
+                .filter((f) => canSwap.has(f.id))
+                .map((f) => (
+                  <button
+                    key={f.id}
+                    type="button"
+                    onClick={() => swap(f)}
+                    aria-label={`I don't have ${cleanName(f)}`}
+                    className="rounded-full px-2.5 py-1 font-semibold text-white ring-1 ring-inset ring-white/30 transition-colors hover:bg-white/10"
+                  >
+                    {cleanName(f)}
+                  </button>
+                ))}
+            </div>
+          )
+        )}
 
         <div className="mt-4 flex flex-wrap items-center gap-2">
           <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3.5 py-1.5 text-sm font-semibold text-white ring-1 ring-inset ring-white/20">
@@ -511,9 +593,10 @@ export default function TodaysMeal({
               const plate = impressionPlate(meal, dayKey, idea, calTargetRef.current);
               logImpression(plate, "details");
               rememberSuggested(plate, scaledGrams(idea), scaledKcal(idea));
+              setPulseDetails(false);
               onBuild(mealIdeaFoodsForBuilder(idea));
             }}
-            className="flex items-center gap-2 rounded-full bg-leaf px-6 py-3.5 text-sm font-bold text-white shadow-[0_10px_24px_-8px_rgba(62,155,79,0.75)] transition-all hover:-translate-y-0.5 hover:bg-leaf-deep"
+            className={`${pulseDetails ? "cta-pulse " : ""}flex items-center gap-2 rounded-full bg-leaf px-6 py-3.5 text-sm font-bold text-white shadow-[0_10px_24px_-8px_rgba(62,155,79,0.75)] transition-all hover:-translate-y-0.5 hover:bg-leaf-deep`}
           >
             View details <ArrowRight className="h-4 w-4" />
           </button>

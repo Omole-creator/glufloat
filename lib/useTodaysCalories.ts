@@ -19,6 +19,7 @@ import { practiceRules } from "@/lib/practiceRules";
 import { currentMeal, localDayKey } from "@/lib/mealtime";
 import { biasVector } from "@/lib/personalization";
 import { toAvoid } from "@/lib/mealRotationMemory";
+import { withStoredSwap, SWAP_CHANGED } from "@/lib/mealSwapMemory";
 
 export interface TodaysCalories {
   target: number | null;
@@ -221,7 +222,7 @@ export function useTodaysCalories(show: boolean): TodaysCalories {
     const leftOut = new Set(rules?.avoid ?? []);
     const bias = biasVector({ goals: p.goals, activityLevel: p.activityLevel, conditions: p.conditions });
     const personalKey = personalRotationKey(p);
-    const idea = planForDay(
+    const planned0 = planForDay(
       meal,
       dayKey,
       counts,
@@ -236,6 +237,15 @@ export function useTodaysCalories(show: boolean): TodaysCalories {
       p.swallows,
       rules,
     );
+    // A food swapped on the blue card ("I don't have this") is the plate
+    // really being eaten, so the extras are sized against it too.
+    const idea = withStoredSwap(meal, dayKey, planned0, {
+      conditions: p.conditions,
+      weekCounts,
+      swallows: p.swallows,
+      rules,
+      calorieTargetForMeal: mealShare,
+    });
     // mealIdeaCalories() already folds in scaledProtein/scaledSide's own
     // contribution (a bigger, still-safe serving closes part of the gap
     // directly within the plate, before extras — see scaleMainProtein's and
@@ -274,10 +284,12 @@ export function useTodaysCalories(show: boolean): TodaysCalories {
     refresh();
     window.addEventListener(INTAKE_CHANGED, refresh);
     window.addEventListener(PERSONALIZATION_CHANGED, refresh);
+    window.addEventListener(SWAP_CHANGED, refresh);
     const id = setInterval(refresh, 60_000);
     return () => {
       window.removeEventListener(INTAKE_CHANGED, refresh);
       window.removeEventListener(PERSONALIZATION_CHANGED, refresh);
+      window.removeEventListener(SWAP_CHANGED, refresh);
       clearInterval(id);
     };
   }, [refresh]);

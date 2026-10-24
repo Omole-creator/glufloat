@@ -4,6 +4,8 @@ import type { NamedMeal } from "./mealtime";
 import { cleanFoodName } from "./foodName";
 import { biasScore, type PlateAxes, type Condition } from "./personalization";
 import { remainingMealCalorieTarget } from "./tdee";
+import { FOOD_SWAPS, type FoodSwap } from "./foodSwaps";
+import { scoreMeal } from "./verdictEngine";
 
 /**
  * Safe meal ideas to suggest for the meal happening right now.
@@ -924,6 +926,9 @@ export interface MealIdea {
   /** On a GluFloat-size plate: the line that keeps it green ("Keep the eba
    *  to the GluFloat size: one ball the size of your fist."). */
   sizeNote?: string;
+  /** Set when the person swapped one food ("I don't have this"). `serving` is
+   *  the countable size of the new food when it is not its card size. */
+  swapped?: { from: Food; to: Food; serving: ScaledPortion | null };
 }
 
 function resolve(meal: NamedMeal, index: number): MealIdea {
@@ -955,7 +960,8 @@ export function mealIdeaCalories(idea: MealIdea): number {
   return (
     idea.foods.reduce((s, f) => s + (f.calories ?? 0), 0) +
     (idea.scaledProtein?.extraCalories ?? 0) +
-    (idea.scaledSide?.extraCalories ?? 0)
+    (idea.scaledSide?.extraCalories ?? 0) +
+    (idea.swapped?.serving?.extraCalories ?? 0)
   );
 }
 
@@ -980,7 +986,8 @@ export function mealIdeaCarbs(idea: MealIdea): number {
   return Math.round(
     idea.foods.reduce((s, f) => s + (f.carbG ?? 0), 0) +
       (idea.scaledProtein?.extraCarbG ?? 0) +
-      (idea.scaledSide?.extraCarbG ?? 0),
+      (idea.scaledSide?.extraCarbG ?? 0) +
+      (idea.swapped?.serving?.extraCarbG ?? 0),
   );
 }
 
@@ -1011,6 +1018,7 @@ export function mealIdeaFoodsForBuilder(idea: MealIdea): Food[] {
   const overrides = new Map<string, ScaledPortion>();
   if (idea.scaledProtein) overrides.set(idea.scaledProtein.food.id, idea.scaledProtein);
   if (idea.scaledSide) overrides.set(idea.scaledSide.food.id, idea.scaledSide);
+  if (idea.swapped?.serving) overrides.set(idea.swapped.serving.food.id, idea.swapped.serving);
   // The starch of a GluFloat-size plate is scored at that size in "Check a
   // meal", because that is the size the blue card told them to eat.
   if (overrides.size === 0 && !idea.foods.some((f) => GLUFLOAT_SIZE_STARCHES.has(f.id))) return idea.foods;
@@ -1545,6 +1553,135 @@ export function platesWithFood(
     out[meal] = hits.sort((a, b) => a.diff - b.diff || a.idea.index - b.idea.index).map((h) => h.idea);
   }
   return out;
+}
+
+/** What a swap must respect: the same rules `planForDay` applies. */
+export interface SwapContext {
+  conditions?: Condition[];
+  weekCounts?: Map<string, number>;
+  swallows?: string[];
+  rules?: PracticeRules | null;
+  calorieTargetForMeal?: number | null;
+}
+
+/** The approved swaps for one missing food on this plate that this person may have, in order.
+ *  `index` is the blue-card plate it lands on, or -1 for a new plate (founder,
+ *  2026-10-24: allowed when the whole plate still scores green). */
+function swapsFor(meal: NamedMeal, idea: MealIdea, fromId: string, ctx: SwapContext): { swap: FoodSwap; index: number; ids: string[] }[] {
+  const list = IDEAS[meal];
+  const ids = list[idea.index] ?? [];
+  if (!ids.includes(fromId)) return [];
+  const conditions = ctx.conditions ?? [];
+  const weekCounts = ctx.weekCounts ?? new Map<string, number>();
+  const excluded = excludedProteinsFor(conditions, weekCounts);
+  // Founder + dietitian (her row 17): with high blood pressure or high
+  // cholesterol a swap may go AWAY from beef or goat meat, never into it.
+  const noRedMeat = conditions.includes("hypertension") || conditions.includes("high_cholesterol");
+  const avoid = new Set(ctx.rules?.avoid ?? []);
+  const ticked = ctx.swallows ?? [];
+  const key = (a: string[]) => [...a].sort().join("|");
+  const out: { swap: FoodSwap; index: number; ids: string[] }[] = [];
+  for (const swap of FOOD_SWAPS) {
+    if (swap.from !== fromId) continue;
+    if (excluded.has(swap.to) || avoid.has(swap.to)) continue;
+    if (noRedMeat && LEAN_RED_MEAT_IDS.has(swap.to)) continue;
+    if (SWALLOW_IDS.has(swap.to) && ticked.length > 0 && !ticked.includes(swap.to)) continue;
+    if (ids.includes(swap.to)) continue;
+    const target = ids.map((id) => (id === fromId ? swap.to : id));
+    const index = list.findIndex((p) => key(p) === key(target));
+    if (overWeeklyLimit(target, weekCounts)) continue;
+    if (index < 0) {
+      // A new plate: dinner keeps to slow-sugar foods (swallows excepted, as
+      // on the blue card), and the whole plate must score green the way the
+      // card serves it.
+      const to = getFood(swap.to);
+      if (!to) continue;
+      if (meal === "dinner" && to.gi !== "low" && !SWALLOW_IDS.has(swap.to)) continue;
+      const items = target.map((id) => {
+        const f = getFood(id)!;
+        return { food: f, portion: GLUFLOAT_SIZE_STARCHES.has(id) ? ("half" as const) : ("normal" as const) };
+      });
+      if (scoreMeal(items).verdict !== "green") continue;
+    }
+    out.push({ swap, index, ids: target });
+  }
+  return out;
+}
+
+/** The foods on this plate that have a swap this person may use (to show the button only there). */
+export function swappableFoods(meal: NamedMeal, idea: MealIdea, ctx: SwapContext = {}): Set<string> {
+  const ids = new Set<string>();
+  // One swap at a time (dietitian's answer): a swapped plate offers no more.
+  if (idea.swapped) return ids;
+  for (const f of idea.foods) if (swapsFor(meal, idea, f.id, ctx).length > 0) ids.add(f.id);
+  return ids;
+}
+
+/**
+ * "I don't have this" (co-founder dietitian + founder, 2026-10-24): the plate
+ * with one food swapped, or null when no approved swap fits this person (the
+ * card then offers "Try another meal"). It uses only the dietitian's approved
+ * pairs (lib/foodSwaps.ts). It lands on another blue-card plate when one
+ * exists, otherwise on a new plate only if the whole plate scores green the
+ * way the card serves it (founder, 2026-10-24: the button was missing on most
+ * dinner plates). Either way it is checked with the same rules as `planForDay`:
+ * condition exclusions, weekly limits, ticked swallows and a dietitian's
+ * left-out foods. The new food is served at the countable size in
+ * lib/foodSwaps.ts when it has one, otherwise at its own card size, and the
+ * plate is then sized for the calorie target exactly as the blue card would.
+ * `turn` steps through the options when there is more than one.
+ */
+export function swapInPlate(
+  meal: NamedMeal,
+  idea: MealIdea,
+  fromId: string,
+  ctx: SwapContext = {},
+  turn = 0,
+): MealIdea | null {
+  if (idea.swapped) return null;
+  const options = swapsFor(meal, idea, fromId, ctx);
+  if (options.length === 0) return null;
+  const { swap, index, ids } = options[((turn % options.length) + options.length) % options.length];
+  const conditions = ctx.conditions ?? [];
+  let next: MealIdea;
+  if (index >= 0) {
+    next = resolve(meal, index);
+  } else {
+    // A new plate keeps the original's index, so "shown today" and the
+    // impression log still point at the plate the card picked.
+    const foods = ids.map((id) => getFood(id)).filter((f): f is Food => Boolean(f));
+    next = { foods, names: foods.map((f) => cleanFoodName(f.name)), index: idea.index, count: idea.count, sizeNote: sizeNoteFor(foods) };
+  }
+  const to = next.foods.find((f) => f.id === swap.to)!;
+  const from = idea.foods.find((f) => f.id === fromId)!;
+  let serving: ScaledPortion | null = null;
+  // Health limits win: kidney disease never gets a bigger serving of a
+  // body-building food, so it stays at its card size.
+  const kidneyCap =
+    conditions.includes("kidney_disease") && (to.proteinG ?? 0) >= PROTEIN_CAP_THRESHOLD_G && (swap.calories ?? 0) > (to.calories ?? 0);
+  if (!kidneyCap && swap.grams && swap.instruction && swap.calories != null && swap.carbG != null) {
+    serving = {
+      food: to,
+      name: cleanFoodName(to.name),
+      grams: swap.grams,
+      calories: swap.calories,
+      extraCalories: swap.calories - (to.calories ?? 0),
+      carbG: swap.carbG,
+      extraCarbG: swap.carbG - (to.carbG ?? 0),
+      instruction: swap.instruction,
+    };
+  }
+  const target = ctx.calorieTargetForMeal;
+  if (target && target > 0) {
+    const gap = Math.max(0, target - planCaloriesOf(ids) - (serving?.extraCalories ?? 0));
+    const foodsToScale = next.foods.filter((f) => f.id !== swap.to || !serving);
+    next.scaledProtein = scaleMainProtein(foodsToScale, gap, conditions);
+    const residualGap = Math.max(0, gap - (next.scaledProtein?.extraCalories ?? 0));
+    next.scaledSide = scaleMainSide(foodsToScale, residualGap, conditions);
+  }
+  next.scaledProtein = leanRedMeatServing(next.foods, conditions) ?? next.scaledProtein;
+  next.swapped = { from, to, serving };
+  return next;
 }
 
 /**

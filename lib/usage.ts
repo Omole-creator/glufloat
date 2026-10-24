@@ -20,7 +20,8 @@ export type UsageEvent =
   | "meal_test_started" // tapped "Start my meal" (a meal test, lib/mealResponse.ts)
   | "meal_test_no_before" // ...and started it without a test before eating
   | "meal_test_completed" // saved the 2-hour test on a started meal
-  | "meal_test_skipped"; // pressed "I will not test this time" on the 2-hour check
+  | "meal_test_skipped" // pressed "I will not test this time" on the 2-hour check
+  | "meal_swap"; // swapped one food on the blue card ("I don't have this")
 
 export async function trackUsage(event: UsageEvent): Promise<void> {
   try {
