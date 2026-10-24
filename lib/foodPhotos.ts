@@ -243,18 +243,23 @@ export const FOOD_PHOTOS: Record<string, FoodPhoto> = {
  * "colourful and not colourless or sketchy"), else nothing.
  */
 /**
- * One 50g chunk of beef or goat meat (founder's photos, 2026-10-23), for the
- * 50g line served to people with high blood pressure or high cholesterol
- * (lib/nextMeal.ts leanRedMeatServing). The card's own photo shows two chunks.
+ * Photos of a blue-card serving that is not the card's own size, keyed by
+ * food and grams (founder's photos): one 50g chunk of beef or goat meat for
+ * high blood pressure or high cholesterol (2026-10-23), and the two bigger
+ * servings that only ever come in one size, 2 pieces of fish and a whole
+ * avocado (2026-10-24). A serving with no photo here keeps the card's photo.
  */
-const LEAN_MEAT_PHOTOS: Record<string, FoodPhoto> = {
-  beef: { alt: "One chunk of boiled beef on a plate", source: "founder" },
-  "goat-meat": { alt: "One chunk of boiled goat meat on a plate", source: "founder" },
+const SERVING_PHOTOS: Record<string, FoodPhoto & { file: string }> = {
+  "beef@50": { file: "beef-50g", alt: "One chunk of boiled beef on a plate", source: "founder" },
+  "goat-meat@50": { file: "goat-meat-50g", alt: "One chunk of boiled goat meat on a plate", source: "founder" },
+  "fish@200": { file: "fish-2-pieces", alt: "Two pieces of grilled fish on a plate", source: "founder" },
+  "avocado@150": { file: "avocado-whole", alt: "One whole avocado, cut in half, with its seed", source: "founder" },
 };
 
-export function leanMeatPhotoFor(id: string): (FoodPhoto & { photo: string }) | undefined {
-  const p = LEAN_MEAT_PHOTOS[id];
-  return p ? { ...p, photo: `/img/food-portions/${id}-50g.jpg` } : undefined;
+export function servingPhotoFor(id: string, grams: number | undefined): (FoodPhoto & { photo: string }) | undefined {
+  if (grams == null) return undefined;
+  const p = SERVING_PHOTOS[`${id}@${Math.round(grams)}`];
+  return p ? { alt: p.alt, source: p.source, photo: `/img/food-portions/${p.file}.jpg` } : undefined;
 }
 
 export function foodPhotoFor(

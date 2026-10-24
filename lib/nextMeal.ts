@@ -1019,7 +1019,7 @@ export function mealIdeaFoodsForBuilder(idea: MealIdea): Food[] {
   // 686 kcal for a plate the blue card (and search) called 839 (2026-10-08).
   return idea.foods.map((f) => {
     const s = overrides.get(f.id);
-    if (s) return { ...f, portionGuidance: s.instruction, calories: Math.round(s.calories), carbG: Math.round(s.carbG * 10) / 10 };
+    if (s) return { ...f, portionGuidance: s.instruction, calories: Math.round(s.calories), carbG: Math.round(s.carbG * 10) / 10, servingGrams: Math.round(s.grams) };
     return GLUFLOAT_SIZE_STARCHES.has(f.id) ? { ...f, gluFloatSize: true } : f;
   });
 }

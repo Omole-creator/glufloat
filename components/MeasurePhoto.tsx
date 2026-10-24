@@ -4,7 +4,7 @@ import Image from "next/image";
 import { Pointer } from "lucide-react";
 import { measuresIn, openMeasureGuide, type Measure } from "@/lib/measures";
 import { cn } from "@/lib/utils";
-import { foodPhotoFor, leanMeatPhotoFor } from "@/lib/foodPhotos";
+import { foodPhotoFor, servingPhotoFor } from "@/lib/foodPhotos";
 import { cleanFoodName } from "@/lib/foodName";
 import type { Food } from "@/lib/types";
 import { getFood } from "@/lib/search";
@@ -112,9 +112,17 @@ export function FoodPhotoButton({ food, size = "md" }: { food: Food; size?: "sm"
   );
 }
 
-/** The one-chunk (50g) beef or goat meat photo beside the 50g line. */
-export function LeanMeatPhotoButton({ food, size = "md" }: { food: Food; size?: "sm" | "md" | "lg" | "fill" }) {
-  const p = leanMeatPhotoFor(food.id);
+/** The photo of this exact serving (servingPhotoFor), or nothing. */
+export function ServingPhotoButton({
+  food,
+  grams,
+  size = "md",
+}: {
+  food: Food;
+  grams: number | undefined;
+  size?: "sm" | "md" | "lg" | "fill";
+}) {
+  const p = servingPhotoFor(food.id, grams);
   if (!p) return null;
   const name = cleanFoodName(food.name);
   return (

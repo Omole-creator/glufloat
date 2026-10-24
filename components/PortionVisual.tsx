@@ -2,8 +2,8 @@ import type { Food, PortionSize } from "@/lib/types";
 import { portionVisual, type PortionKey } from "@/lib/portionVisual";
 import { cleanFoodName } from "@/lib/foodName";
 import { measuresIn } from "@/lib/measures";
-import { FoodPhotoButton, LeanMeatPhotoButton, MeasureChips, MeasurePhotoButton, UsualSizePhotoButton } from "./MeasurePhoto";
-import { foodPhotoFor } from "@/lib/foodPhotos";
+import { FoodPhotoButton, MeasureChips, MeasurePhotoButton, ServingPhotoButton, UsualSizePhotoButton } from "./MeasurePhoto";
+import { foodPhotoFor, servingPhotoFor } from "@/lib/foodPhotos";
 import { getFood } from "@/lib/search";
 import { Scale } from "lucide-react";
 
@@ -272,7 +272,11 @@ function isLeanMeatServing(food: Food): boolean {
 }
 
 function PortionPicture({ food, size }: { food: Food; size: "sm" | "md" | "lg" | "fill" }) {
-  if (isLeanMeatServing(food)) return <LeanMeatPhotoButton food={food} size={size} />;
+  // A blue-card serving with its own photo (50g beef, 2 pieces of fish, a
+  // whole avocado) shows that photo, never the card's usual one.
+  if (servingPhotoFor(food.id, food.servingGrams)) {
+    return <ServingPhotoButton food={food} grams={food.servingGrams} size={size} />;
+  }
   if (showsFoodItself(food)) return <FoodPhotoButton food={food} size={size} />;
   const measure = measuresIn(food.portionGuidance)[0];
   if (measure) {

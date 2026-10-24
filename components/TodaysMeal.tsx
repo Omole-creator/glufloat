@@ -27,7 +27,7 @@ import { clinicalTarget } from "@/lib/tdee";
 import { medicationAppliesToMeal, medicationTimingCopy } from "@/lib/medicationTiming";
 import { toAvoid, writeShown, writeSkipped, shownToday } from "@/lib/mealRotationMemory";
 import { logImpression, rememberSuggested, type ImpressionPlate } from "@/lib/mealImpressions";
-import { LeanMeatPhotoButton, MeasureChips } from "./MeasurePhoto";
+import { MeasureChips, ServingPhotoButton } from "./MeasurePhoto";
 
 const NO_PROFILE: PersonalizationProfile = {
   goals: [],
@@ -488,17 +488,18 @@ export default function TodaysMeal({
             <Flame className="mt-0.5 h-4 w-4 shrink-0 text-white/80" strokeWidth={2.2} />
             <div className="min-w-0">
               <p className="text-sm text-white/90">{idea.scaledProtein.instruction}</p>
-              {idea.scaledProtein.extraCalories < 0 ? (
-                // Beef or goat meat at 50g (high blood pressure or high
-                // cholesterol): the one-chunk photo, never the palm-size
-                // "Chunks of meat" button, which is the card's 90g.
-                <div className="mt-2">
-                  <LeanMeatPhotoButton
-                    food={{ ...idea.scaledProtein.food, portionGuidance: idea.scaledProtein.instruction }}
-                    size="md"
-                  />
-                </div>
-              ) : (
+              {/* The photo of this exact serving when there is one (50g beef
+                  or goat meat, 2 pieces of fish). */}
+              <div className="mt-2 empty:hidden">
+                <ServingPhotoButton
+                  food={{ ...idea.scaledProtein.food, portionGuidance: idea.scaledProtein.instruction }}
+                  grams={idea.scaledProtein.grams}
+                  size="md"
+                />
+              </div>
+              {/* Never the palm-size "Chunks of meat" button beside 50g beef:
+                  that photo is the card's 90g. */}
+              {idea.scaledProtein.extraCalories >= 0 && (
                 <MeasureChips
                   text={idea.scaledProtein.instruction}
                   forFood={idea.scaledProtein.name}
@@ -515,6 +516,13 @@ export default function TodaysMeal({
             <Flame className="mt-0.5 h-4 w-4 shrink-0 text-white/80" strokeWidth={2.2} />
             <div className="min-w-0">
               <p className="text-sm text-white/90">{idea.scaledSide.instruction}</p>
+              <div className="mt-2 empty:hidden">
+                <ServingPhotoButton
+                  food={{ ...idea.scaledSide.food, portionGuidance: idea.scaledSide.instruction }}
+                  grams={idea.scaledSide.grams}
+                  size="md"
+                />
+              </div>
               <MeasureChips
                 text={idea.scaledSide.instruction}
                 forFood={idea.scaledSide.name}

@@ -48,6 +48,9 @@ export interface Food {
   /** Set only on a copy handed to "Check a meal" from a GluFloat-size plate
    *  (lib/nextMeal.ts): score this starch at its card's size. Never in data. */
   gluFloatSize?: boolean;
+  /** On a builder copy of a blue-card serving that is not the card's size
+   *  (a bigger one, or 50g beef): its grams, so the matching photo shows. */
+  servingGrams?: number;
   id: string;
   name: string;
   aliases: string[];
