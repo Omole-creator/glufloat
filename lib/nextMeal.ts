@@ -143,7 +143,7 @@ export function leanRedMeatServing(foods: Food[], conditions: Condition[]): Scal
     extraCalories: calories - (food.calories ?? 0),
     carbG,
     extraCarbG: carbG - (food.carbG ?? 0),
-    instruction: `Keep the ${meat} to one medium chunk (about ${LEAN_RED_MEAT_GRAMS}g). Choose lean, trimmed meat, prepared with minimal salt and added oil.`,
+    instruction: `Have one medium chunk of ${meat} (about ${LEAN_RED_MEAT_GRAMS}g). Choose lean, trimmed meat, prepared with minimal salt and added oil.`,
   };
 }
 
@@ -204,12 +204,12 @@ const MAIN_PROTEIN_CONFIG: Record<string, MainProteinConfig> = {
   chicken: {
     baseGrams: 90,
     baseUnits: 2,
-    describe: (units, grams) => `${units} medium pieces of chicken, put together (${grams}g)`,
+    describe: (units, grams) => `${units} medium pieces of chicken (${grams}g in total)`,
   },
   turkey: {
     baseGrams: 90,
     baseUnits: 2,
-    describe: (units, grams) => `${units} turkey pieces, put together (${grams}g)`,
+    describe: (units, grams) => `${units} turkey pieces (${grams}g in total)`,
   },
   snail: {
     baseGrams: 90,
@@ -338,7 +338,9 @@ export function scaleMainProtein(
     extraCalories: calories - baseKcal,
     carbG,
     extraCarbG: carbG - baseCarb,
-    instruction: `A bigger ${cleanFoodName(food.name).toLowerCase()} serving today: about ${config.describe(units, grams)}, instead of the usual ${config.describe(config.baseUnits, baseGrams)}. This helps meet your calorie goal, and this size stays safe for your sugar.`,
+    // Only the size to eat today (founder, 2026-10-24): no "instead of the
+    // usual", no reason. The same words show in "View details".
+    instruction: `Today, have ${config.describe(units, grams)}.`,
   };
 }
 
@@ -467,7 +469,9 @@ export function scaleMainSide(
     extraCalories: calories - baseKcal,
     carbG,
     extraCarbG: carbG - baseCarb,
-    instruction: `A bigger ${cleanFoodName(food.name).toLowerCase()} serving today: about ${config.describe(units, grams)}, instead of the usual ${config.describe(config.baseUnits, config.baseGrams)}. This helps meet your calorie goal, and this size stays safe for your sugar.`,
+    // Only the size to eat today (founder, 2026-10-24): no "instead of the
+    // usual", no reason. The same words show in "View details".
+    instruction: `Today, have ${config.describe(units, grams)}.`,
   };
 }
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { RefreshCw, ArrowRight, Sunrise, Sun, Moon, Check, Pill, Flame, Scale, Route } from "lucide-react";
+import { RefreshCw, ArrowRight, Sunrise, Sun, Moon, Check, Pill, Flame, Scale, Route, UserRound } from "lucide-react";
 import {
   currentMeal,
   localDayKey,
@@ -106,11 +106,24 @@ const HEADING = {
  * Names are kept plain here, so a card never reads "Titus / Mackerel / Tilapia";
  * the full detail is on the food's own card in the builder.
  */
+/**
+ * True until this person has answered what "My details" asks them: the full
+ * calorie questions for a tier that has them, else the medicine question
+ * (Basic sees only health conditions and medicine). Founder, 2026-10-24.
+ */
+function detailsMissing(p: PersonalizationProfile, personalize: boolean): boolean {
+  if (personalize) return !p.sex || !p.ageYears || !p.weightKg || !p.heightCm || !p.activityLevel;
+  return p.medDosesPerDay === null;
+}
+
 export default function TodaysMeal({
   onBuild,
+  onOpenDetails,
   personalize = false,
 }: {
   onBuild: (foods: Food[]) => void;
+  /** Opens the "My details" tab. */
+  onOpenDetails?: () => void;
   /** canUseGoalPersonalization(access) — trial previews it, Basic never sees it. */
   personalize?: boolean;
 }) {
@@ -137,6 +150,9 @@ export default function TodaysMeal({
   // needs to re-render when it changes (profileRef alone does not).
   const [medTimes, setMedTimes] = useState<MedTime[]>([]);
   const [medRelationToFood, setMedRelationToFood] = useState<"before" | "after" | null>(null);
+  // "Fill in My details" line, until they do (null while the profile loads,
+  // so it never flashes for someone who already has).
+  const [needsDetails, setNeedsDetails] = useState<boolean | null>(null);
 
   // Conditions (hypertension/high cholesterol/kidney disease) are free on
   // every tier — safety-relevant, not a paid perk — so they bias the plate
@@ -237,6 +253,7 @@ export default function TodaysMeal({
         setLiked(l);
         setMedTimes(profile.medTimes);
         setMedRelationToFood(profile.medRelationToFood);
+        setNeedsDetails(detailsMissing(profile, personalize));
         const resolved = nextEatenMeal(profile.mealPattern, currentMeal());
         const dk2 = localDayKey();
         nowRef.current = { meal: resolved, day: dk2 };
@@ -276,6 +293,7 @@ export default function TodaysMeal({
         profileRef.current = profile;
         setMedTimes(profile.medTimes);
         setMedRelationToFood(profile.medRelationToFood);
+        setNeedsDetails(detailsMissing(profile, personalize));
         const cur = nowRef.current;
         if (cur.meal === null) return;
         const resolved = nextEatenMeal(profile.mealPattern, cur.meal);
@@ -394,6 +412,24 @@ export default function TodaysMeal({
             {HEADING[meal]}
           </p>
         </div>
+
+        {needsDetails && onOpenDetails && (
+          <div className="mt-4 rounded-xl bg-white/10 p-3 ring-1 ring-inset ring-white/15">
+            <div className="flex items-start gap-2.5">
+              <UserRound className="mt-0.5 h-4 w-4 shrink-0 text-white/80" strokeWidth={2.2} aria-hidden />
+              <p className="text-sm font-semibold text-white">
+                Fill in the &quot;My details&quot; section and start getting meals tailored to you.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={onOpenDetails}
+              className="mt-3 flex items-center gap-2 rounded-full bg-white px-4 py-2.5 text-sm font-bold text-brand transition-colors hover:bg-white/90"
+            >
+              Go to My details <ArrowRight className="h-4 w-4" />
+            </button>
+          </div>
+        )}
 
         {(earlier || followUp) && (
           <div className="mt-4 flex items-start gap-2.5 rounded-xl bg-white/10 p-3 ring-1 ring-inset ring-white/15">

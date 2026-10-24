@@ -708,7 +708,11 @@ export default function AppPage() {
                 onReply={canUseDietitianChat(access) ? () => selectTab("dietitian") : undefined}
               />
               <div id="todays-meal" className="scroll-mt-24">
-                <TodaysMeal onBuild={buildMeal} personalize={canUseGoalPersonalization(access)} />
+                <TodaysMeal
+                  onBuild={buildMeal}
+                  onOpenDetails={() => selectTab("personalize")}
+                  personalize={canUseGoalPersonalization(access)}
+                />
               </div>
 
               {/* The green extras card, directly under the blue meal card
