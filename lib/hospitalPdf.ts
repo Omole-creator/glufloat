@@ -374,3 +374,145 @@ export async function buildPosterPdf(hospital: { name: string; code: string }): 
   pdf.text("Need help? Call customer care on 08132097317.", W / 2, H - 10, { align: "center" });
   return pdf;
 }
+
+/**
+ * The flyer a doctor hands to each patient (founder, 2026-10-24). Half A4
+ * (A5), one design for every doctor: only the doctor's name and QR code
+ * change, so a rep prints any number of copies from one file. Doctors' names
+ * already start with "Dr" (lib/doctorSignup.ts). Wording approved by the
+ * founder word for word; change it only on his say.
+ */
+export async function buildDoctorFlyerPdf(doctor: { name: string; code: string }, priceNaira: number): Promise<jsPDF> {
+  const pdf = new jsPDF({ compress: true, format: "a5" });
+  const W = 148;
+  const H = 210;
+  const M = 12;
+  const logo = await logoDataUrl();
+  const qr = await QRCode.toDataURL(joinUrl(doctor.code), {
+    errorCorrectionLevel: "M",
+    margin: 1,
+    width: 420,
+    color: { dark: "#0b2e59", light: "#ffffff" },
+  });
+
+  // Blue top: who it is from, and the headline.
+  pdf.setFillColor(...BRAND_DEEP);
+  pdf.rect(0, 0, W, 50, "F");
+  pdf.setFillColor(...BRAND);
+  pdf.circle(W - 4, 4, 34, "F");
+  pdf.setFillColor(...BRAND_DEEP);
+  pdf.circle(W - 4, 4, 24, "F");
+  if (logo) {
+    pdf.setFillColor(255, 255, 255);
+    pdf.roundedRect(M, 9, 11, 11, 2.5, 2.5, "F");
+    pdf.addImage(logo, "PNG", M + 1.5, 10.5, 8, 8);
+  }
+  pdf.setTextColor(255, 255, 255);
+  pdf.setFont("helvetica", "bold");
+  pdf.setFontSize(12);
+  pdf.text("GluFloat", M + 14, 16.5);
+  pdf.setFont("helvetica", "normal");
+  pdf.setFontSize(9.5);
+  pdf.text(pdf.splitTextToSize(`From ${doctor.name}`, W - 2 * M - 30), M, 28);
+  pdf.setFont("helvetica", "bold");
+  pdf.setFontSize(17);
+  pdf.text(["Know What To Eat With", "Diabetes, Every Meal"], M, 37);
+
+  // The doctor's own note.
+  let y = 58;
+  pdf.setFont("helvetica", "italic");
+  pdf.setFontSize(10.5);
+  const note = pdf.splitTextToSize(
+    "“I will be checking what you eat and your sugar tests on GluFloat. Please use it every day until your next visit.”",
+    W - 2 * M - 10,
+  );
+  const noteH = note.length * 4.8 + 12;
+  pdf.setFillColor(...MIST);
+  pdf.roundedRect(M, y, W - 2 * M, noteH, 3, 3, "F");
+  pdf.setFillColor(...LEAF);
+  pdf.rect(M, y, 1.6, noteH, "F");
+  pdf.setTextColor(...INK);
+  pdf.text(note, M + 6, y + 6.5);
+  pdf.setFont("helvetica", "bold");
+  pdf.setFontSize(9.5);
+  pdf.text(doctor.name, M + 6, y + 6.5 + note.length * 4.8 + 1.5);
+  y += noteH + 8;
+
+  // What it does.
+  pdf.setTextColor(...BRAND);
+  pdf.setFont("helvetica", "bold");
+  pdf.setFontSize(10.5);
+  pdf.text("What GluFloat does for you", M, y);
+  y += 5.5;
+  const points = [
+    "Picks your breakfast, lunch and dinner every day, from the Nigerian food you love.",
+    "Shows you how to eat each meal, including the right portion size.",
+    "Lets you save your sugar test numbers, so I can see them.",
+    "When you save your sugar tests, I can see if your sugar goes too high or too low.",
+  ];
+  pdf.setFont("helvetica", "normal");
+  pdf.setFontSize(9.5);
+  for (const p of points) {
+    const lines = pdf.splitTextToSize(p, W - 2 * M - 7);
+    pdf.setFillColor(...LEAF);
+    pdf.circle(M + 1.6, y - 1.1, 1.3, "F");
+    pdf.setTextColor(...INK);
+    pdf.text(lines, M + 6, y);
+    y += lines.length * 4.4 + 1.8;
+  }
+
+  // How to start, beside the QR code.
+  y += 3;
+  const size = 44;
+  const qx = W - M - size;
+  pdf.setFillColor(255, 255, 255);
+  pdf.setDrawColor(217, 230, 242);
+  pdf.setLineWidth(0.6);
+  pdf.roundedRect(qx - 3, y - 3, size + 6, size + 6, 3, 3, "FD");
+  pdf.addImage(qr, "PNG", qx, y, size, size);
+
+  pdf.setTextColor(...BRAND);
+  pdf.setFont("helvetica", "bold");
+  pdf.setFontSize(10.5);
+  pdf.text("How to start", M, y + 3);
+  const steps = [
+    "Point your phone camera at the code.",
+    "Sign up.",
+    `Use GluFloat free for 7 days. You do not need a card. After that, it is N${priceNaira.toLocaleString("en-NG")} a month.`,
+  ];
+  let sy = y + 10;
+  const stepW = qx - M - 16;
+  steps.forEach((s, i) => {
+    pdf.setFillColor(...LEAF);
+    pdf.circle(M + 2.6, sy - 1.2, 2.6, "F");
+    pdf.setTextColor(255, 255, 255);
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(8);
+    pdf.text(String(i + 1), M + 2.6, sy - 1.2, { align: "center", baseline: "middle" });
+    pdf.setTextColor(...INK);
+    pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(9.5);
+    const lines = pdf.splitTextToSize(s, stepW);
+    pdf.text(lines, M + 7.5, sy);
+    sy += lines.length * 4.4 + 2.4;
+  });
+
+  // The no-camera route.
+  y = Math.max(sy, y + size + 6) + 2;
+  pdf.setFillColor(...MIST);
+  pdf.roundedRect(M, y, W - 2 * M, 12, 3, 3, "F");
+  pdf.setTextColor(...SOFT);
+  pdf.setFont("helvetica", "normal");
+  pdf.setFontSize(8.5);
+  pdf.text("Or type:", M + 4, y + 7.6);
+  pdf.setTextColor(...BRAND);
+  pdf.setFont("helvetica", "bold");
+  pdf.setFontSize(13);
+  pdf.text(joinShort(doctor.code), M + 17, y + 7.9);
+
+  pdf.setTextColor(...SOFT);
+  pdf.setFont("helvetica", "normal");
+  pdf.setFontSize(8.5);
+  pdf.text("Need help with GluFloat? Call 0813 209 7317", W / 2, H - 8, { align: "center" });
+  return pdf;
+}

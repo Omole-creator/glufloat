@@ -5,6 +5,7 @@ import { requireStaffPage } from "@/components/hospital/requireStaff";
 import { hospitalLive, isDoctorPractice, isPractice, planName, practicePlanName, waitingForFirstPatient } from "@/lib/hospitalPlans";
 import QrCodeCard from "@/components/hospital/QrCodeCard";
 import InviteColleagueCard from "@/components/hospital/InviteColleagueCard";
+import DoctorFlyerButton from "@/components/hospital/DoctorFlyerButton";
 import { SITE_URL } from "@/lib/site";
 import { seatsUsed } from "@/lib/hospitalServer";
 import { readInvoiceSettings } from "@/lib/invoiceSettings";
@@ -43,6 +44,17 @@ export default async function PlanPage({ searchParams }: { searchParams: Promise
           <QrCodeCard name={h.name} code={h.code} open={hospitalLive(h)} practice />
           <InviteColleagueCard link={`${SITE_URL}/d/${h.code}`} />
         </div>
+        <section className="mt-4 rounded-2xl border border-[#e3e9f1] bg-white p-5 sm:p-6">
+          <h2 className="font-display text-lg font-bold text-ink">Flyer for your patients</h2>
+          <p className="mt-2 text-sm text-ink-soft">
+            Half a page with your name and your QR code. Print it and hand one to each patient with diabetes.
+          </p>
+          <DoctorFlyerButton
+            name={h.name}
+            code={h.code}
+            className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-leaf px-5 py-3 text-sm font-bold text-white hover:bg-leaf-deep disabled:opacity-50"
+          />
+        </section>
       </HospitalShell>
     );
 

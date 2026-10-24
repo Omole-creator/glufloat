@@ -7,6 +7,7 @@ import { ADVISOR_DIRECT_RATE, ADVISOR_RATE, AGENT_RATE, maskAccount, nairaFromKo
 import { PREMIUM_MONTHLY } from "@/lib/hospitalPlans";
 import { SITE_URL } from "@/lib/site";
 import AgentShare from "./AgentShare";
+import DoctorFlyerButton from "@/components/hospital/DoctorFlyerButton";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "My GluFloat dashboard", robots: { index: false, follow: false } };
@@ -63,6 +64,9 @@ export default async function AgentDashboard({ params }: { params: Promise<{ tok
                 Joined {new Date(d.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
                 {d.setUp ? "" : " · has not finished setting up"}
               </p>
+              <div className="mt-2">
+                <DoctorFlyerButton name={d.name} code={d.code} />
+              </div>
             </div>
             <div className="shrink-0 text-right text-xs text-ink-soft">
               <p>
