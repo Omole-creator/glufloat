@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { Zap, CheckCircle2 } from "lucide-react";
 import { monthStats, INTAKE_CHANGED, type MonthStats } from "@/lib/history";
 import { useTodaysCalories } from "@/lib/useTodaysCalories";
-import ProgressRing from "@/components/ProgressRing";
 
 /**
  * The dashboard's "at a glance" row — sits directly ABOVE `TodaysMeal`
@@ -105,24 +104,30 @@ export default function DashboardSnapshot({ show }: { show: boolean }) {
         return (
           <div
             key={t.key}
-            className="min-w-0 rounded-2xl bg-white p-3 shadow-[0_6px_28px_-14px_rgba(12,42,71,0.2)] ring-1 ring-ink/[0.05] sm:p-4"
+            className="min-w-0 rounded-3xl bg-white p-4 shadow-[0_10px_34px_-18px_rgba(12,42,71,0.3)] ring-1 ring-ink/[0.05]"
           >
-            <div className="flex items-center gap-1.5">
-              <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-lg ring-1 ring-inset ${tone.chip}`}>
-                <Icon className="h-3 w-3" strokeWidth={2.4} />
+            <div className="flex items-center gap-2">
+              <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 ring-inset ${tone.chip}`}>
+                <Icon className="h-3.5 w-3.5" strokeWidth={2.4} />
               </span>
-              <p className="truncate text-[10.5px] font-semibold uppercase tracking-wide text-ink-soft sm:text-xs">
+              <p className="truncate text-[11px] font-bold uppercase tracking-wide text-ink-soft sm:text-xs">
                 {t.eyebrow}
               </p>
             </div>
-            <div className="mt-2.5 flex items-center gap-2.5 sm:gap-4">
-              <ProgressRing percent={t.percent} size={56} stroke={6}>
-                <span className="font-display text-xs font-bold text-ink">{t.ringLabel}</span>
-              </ProgressRing>
-              <p className="min-w-0 font-display leading-tight text-ink">
-                <span className="text-2xl font-bold sm:text-3xl">{t.value}</span>{" "}
-                <span className="text-xs font-semibold text-ink-soft sm:text-sm">{t.unit}</span>
-              </p>
+            <p className="mt-3 min-w-0 font-display leading-none text-ink">
+              <span className="text-3xl font-bold sm:text-4xl">{t.value}</span>{" "}
+              <span className="text-sm font-semibold text-ink-soft">{t.unit}</span>
+            </p>
+            {/* A bar, not a ring (2026-10-25): a "0%" in a circle next to the
+                number read as a second, different number. */}
+            <div className="mt-3 flex items-center gap-2.5">
+              <span className="h-2 min-w-0 flex-1 overflow-hidden rounded-full bg-mist">
+                <span
+                  className="block h-full rounded-full bg-gradient-to-r from-brand to-leaf transition-[width] duration-700"
+                  style={{ width: `${Number.isFinite(t.percent) ? Math.max(0, Math.min(100, t.percent)) : 0}%` }}
+                />
+              </span>
+              <span className="shrink-0 text-xs font-bold text-ink-soft">{t.ringLabel}</span>
             </div>
           </div>
         );

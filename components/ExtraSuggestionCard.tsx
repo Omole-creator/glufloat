@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Apple, Clock, Plus, Pointer, RefreshCw } from "lucide-react";
+import { AlertTriangle, Apple, Clock, Plus, Pointer, RefreshCw } from "lucide-react";
+import FoodIcon from "@/components/FoodIcon";
+import { foodPhotoFor } from "@/lib/foodPhotos";
 import { extraTimingFor, SNACK_COPY, type ExtraSuggestionSet, type ExtraOption } from "@/lib/nextMeal";
 import type { NamedMeal } from "@/lib/mealtime";
 import { saveCheck } from "@/lib/history";
@@ -12,36 +14,43 @@ import { FoodPhotoButton, MeasureChips } from "@/components/MeasurePhoto";
 
 /** One food's row — shared between the typical set and any automatic top-up. */
 function ExtraRow({ item, meal, snack }: { item: ExtraOption; meal: NamedMeal; snack: boolean }) {
+  const timing = !snack ? extraTimingFor(item.food.id, meal) : null;
   return (
-    <li className="rounded-xl bg-white/70 p-3">
+    <li className="px-4 py-3.5">
       <div className="flex items-start gap-3">
         {/* The food's own photo (founder, 2026-10-10), same as its search card.
             Handed this serving's words, so a bigger serving than the card's
-            usual one opens as "The usual size". Nothing shows without a photo. */}
-        <FoodPhotoButton food={{ ...item.food, portionGuidance: item.instruction }} size="sm" />
+            usual one opens as "The usual size". A food with no photo shows
+            its picture chip instead. */}
+        {foodPhotoFor(item.food.id) ? (
+          <FoodPhotoButton food={{ ...item.food, portionGuidance: item.instruction }} size="sm" />
+        ) : (
+          <FoodIcon food={item.food} tone="green" />
+        )}
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-3">
-            <p className="font-semibold text-ink">{item.name}</p>
-            <p className="shrink-0 text-right font-display text-sm font-bold text-leaf-deep">
+            <p className="font-display text-base font-bold leading-snug text-ink">{item.name}</p>
+            <p className="shrink-0 text-right font-display text-sm font-bold leading-tight text-leaf-deep">
               {item.carbG}g carbs
               <span className="block text-xs font-semibold text-ink-soft">{item.calories} kcal</span>
             </p>
           </div>
-          <p className="mt-1 text-xs leading-snug text-ink-soft">{item.instruction}</p>
+          <p className="mt-1 text-sm leading-snug text-ink-soft">{item.instruction}</p>
+          <MeasureChips text={item.instruction} forFood={item.name} className="mt-2" />
+          {timing && (
+            <p className="mt-2 inline-flex items-start gap-1.5 rounded-lg bg-leaf/10 px-2.5 py-1.5 text-xs font-semibold leading-snug text-leaf-deep">
+              <Clock className="mt-0.5 h-3.5 w-3.5 shrink-0" strokeWidth={2.4} />
+              {timing}
+            </p>
+          )}
+          {item.food.healthNote && (
+            <p className="mt-2 flex gap-1.5 rounded-lg bg-verdict-red/[0.07] px-2.5 py-1.5 text-xs leading-snug text-ink ring-1 ring-inset ring-verdict-red/15">
+              <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-verdict-red" strokeWidth={2.4} aria-hidden />
+              {item.food.healthNote}
+            </p>
+          )}
         </div>
       </div>
-      <MeasureChips text={item.instruction} forFood={item.name} className="mt-1.5" />
-      {!snack && extraTimingFor(item.food.id, meal) && (
-        <p className="mt-1.5 flex items-start gap-1.5 text-xs font-semibold leading-snug text-leaf-deep">
-          <Clock className="mt-0.5 h-3.5 w-3.5 shrink-0" strokeWidth={2.4} />
-          {extraTimingFor(item.food.id, meal)}
-        </p>
-      )}
-      {item.food.healthNote && (
-        <p className="mt-1.5 rounded-lg bg-verdict-red/10 px-2 py-1.5 text-xs leading-snug text-ink">
-          {item.food.healthNote}
-        </p>
-      )}
     </li>
   );
 }
@@ -117,18 +126,22 @@ export default function ExtraSuggestionCard({
   };
 
   return (
-    <div className="rounded-2xl bg-leaf/5 p-4 ring-1 ring-inset ring-leaf/20">
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2.5">
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-leaf/15 text-leaf-deep ring-1 ring-inset ring-leaf/20">
-            <Apple className="h-4 w-4" strokeWidth={2.4} />
+    /* Redesigned 2026-10-25 with the same words: a white card with a green
+       head (green = an extra on top of the blue meal card), one row per food,
+       the total as large numbers and one full-width button. */
+    <div className="overflow-hidden rounded-[28px] bg-white shadow-[0_20px_50px_-26px_rgba(30,90,45,0.55)] ring-1 ring-leaf/20">
+      <div className="relative overflow-hidden bg-gradient-to-br from-leaf to-leaf-deep px-4 py-4 text-white sm:px-5">
+        <span aria-hidden className="pointer-events-none absolute -right-10 -top-14 h-36 w-36 rounded-full bg-white/15 blur-2xl" />
+        <div className="relative flex items-start gap-3">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/20 ring-1 ring-inset ring-white/30">
+            <Apple className="h-5 w-5" strokeWidth={2.2} />
           </span>
-          <div>
-            <p className="font-display text-sm font-bold text-ink">
+          <div className="min-w-0 flex-1">
+            <p className="font-display text-base font-bold leading-snug sm:text-lg">
               {set.snack ? SNACK_COPY[set.snack].title : "Eat this to make up your calorie intake today"}
             </p>
             {set.snack && (
-              <p className="mt-0.5 flex items-center gap-1 text-xs font-semibold text-leaf-deep">
+              <p className="mt-1 flex items-center gap-1.5 text-xs font-semibold text-white/85">
                 <Clock className="h-3.5 w-3.5 shrink-0" strokeWidth={2.4} />
                 {SNACK_COPY[set.snack].when}
               </p>
@@ -139,14 +152,14 @@ export default function ExtraSuggestionCard({
           <button
             type="button"
             onClick={tryAnother}
-            className="flex shrink-0 items-center gap-1 rounded-full bg-white px-2.5 py-1.5 text-xs font-bold text-leaf-deep ring-1 ring-inset ring-leaf/25 transition-colors hover:bg-leaf/10"
+            className="relative mt-3 flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1.5 text-xs font-bold text-white ring-1 ring-inset ring-white/30 transition-colors hover:bg-white hover:text-leaf-deep"
           >
-            <RefreshCw className="h-3 w-3" /> {set.snack ? "Try another snack" : "Try a different snack"}
+            <RefreshCw className="h-3.5 w-3.5" /> {set.snack ? "Try another snack" : "Try a different snack"}
           </button>
         )}
       </div>
 
-      <ul className="mt-3 space-y-3">
+      <ul className="divide-y divide-line">
         {variant.items.slice(0, variant.coreCount).map((item) => (
           <ExtraRow key={item.food.id} item={item} meal={set.meal} snack={!!set.snack} />
         ))}
@@ -154,10 +167,10 @@ export default function ExtraSuggestionCard({
 
       {variant.items.length > variant.coreCount && (
         <>
-          <p className="mt-3 text-[11px] font-bold uppercase tracking-wider text-leaf-deep/80">
+          <p className="border-t border-line bg-mint/60 px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-leaf-deep">
             To fully meet today's number
           </p>
-          <ul className="mt-2 space-y-3">
+          <ul className="divide-y divide-line">
             {variant.items.slice(variant.coreCount).map((item) => (
               <ExtraRow key={item.food.id} item={item} meal={set.meal} snack={!!set.snack} />
             ))}
@@ -165,15 +178,15 @@ export default function ExtraSuggestionCard({
         </>
       )}
 
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-leaf/15 pt-3">
+      <div className="space-y-3 border-t border-line bg-mint/40 px-4 py-4 sm:px-5">
         <p className="text-sm font-semibold text-ink-soft">
-          Total: <span className="text-ink">{variant.totalCarbG}g carbs</span>{" "}
+          Total: <span className="font-display text-xl font-bold text-ink">{variant.totalCarbG}g carbs</span>{" "}
           <span className="text-ink-soft">({variant.totalCalories} kcal)</span>
         </p>
         <button
           type="button"
           onClick={logEaten}
-          className="cta-pulse flex shrink-0 items-center gap-1.5 rounded-full bg-gradient-to-r from-leaf to-leaf-deep px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-leaf-deep"
+          className="cta-pulse flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-leaf to-leaf-deep px-4 py-3.5 text-sm font-bold text-white transition-transform hover:-translate-y-0.5 active:translate-y-0"
         >
           <Plus className="h-4 w-4" strokeWidth={3} /> {set.snack ? "I ate my snack" : "I ate this too"}
           <span aria-hidden className="tap-bob">

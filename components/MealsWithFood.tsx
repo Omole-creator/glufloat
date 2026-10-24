@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import FoodIcon from "./FoodIcon";
 import { ArrowRight, Flame, Moon, Scale, Sun, Sunrise } from "lucide-react";
 import type { Food } from "@/lib/types";
 import {
@@ -127,15 +128,18 @@ export default function MealsWithFood({
 
   const Icon = ICON[meal];
   return (
-    <section className="mt-5 rounded-3xl bg-white p-5 shadow-[0_12px_40px_-20px_rgba(12,42,71,0.35)] ring-1 ring-line sm:p-6">
-      <p className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-brand">
-        <Icon className="h-4 w-4" strokeWidth={2.4} /> {tomorrow ? `${TITLE[meal]} tomorrow` : `For ${TITLE[meal].toLowerCase()}`}
+    /* Redesigned 2026-10-25 with the same words, in the blue card's look:
+       each plate shows its foods as pictures, its numbers, and one clear
+       arrow to open it. */
+    <section className="mt-5 rounded-[28px] bg-white p-5 shadow-[0_16px_44px_-24px_rgba(12,42,71,0.45)] ring-1 ring-line sm:p-6">
+      <p className="inline-flex items-center gap-2 rounded-full bg-brand/[0.08] px-3 py-1 text-xs font-bold uppercase tracking-wide text-brand">
+        <Icon className="h-3.5 w-3.5" strokeWidth={2.4} /> {tomorrow ? `${TITLE[meal]} tomorrow` : `For ${TITLE[meal].toLowerCase()}`}
       </p>
-      <h3 className="mt-1 font-display text-lg font-bold text-ink">
+      <h3 className="mt-2.5 font-display text-xl font-bold leading-snug text-ink">
         {list.length === 1 ? "The best meal" : `The best ${list.length} meals`} with {cleanFoodName(food.name)}
       </h3>
-      <ul className="mt-4 space-y-2">
-        {list.map((idea) => {
+      <ul className="mt-4 space-y-3">
+        {list.map((idea, n) => {
           const carbs = mealIdeaCarbs(idea);
           const cals = mealIdeaCalories(idea);
           const bigger = [idea.scaledProtein, idea.scaledSide].filter(Boolean);
@@ -145,36 +149,48 @@ export default function MealsWithFood({
               <button
                 onClick={() => choose(meal, idea)}
                 aria-label={`${TITLE[meal]}: ${name}. See all the details`}
-                className="group flex w-full items-center gap-3 rounded-2xl bg-mist px-4 py-3 text-left transition-colors hover:bg-brand/10"
+                className="group block w-full overflow-hidden rounded-3xl bg-white text-left ring-1 ring-line transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_30px_-18px_rgba(12,42,71,0.5)] hover:ring-brand/30"
               >
-                <span className="min-w-0 flex-1">
-                  <span className="block font-semibold text-ink">{name}</span>
-                  <span className="mt-1.5 flex flex-wrap gap-1.5">
-                    {carbs > 0 && (
-                      <span className="rounded-full bg-white px-2.5 py-0.5 text-xs font-semibold text-ink ring-1 ring-line">
-                        {carbs}g carbs
-                      </span>
-                    )}
-                    {cals > 0 && (
-                      <span className="rounded-full bg-white px-2.5 py-0.5 text-xs font-semibold text-ink-soft ring-1 ring-line">
-                        {cals} kcal
-                      </span>
-                    )}
+                <span className="flex items-start gap-3 p-4">
+                  <span aria-hidden className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand text-xs font-bold text-white">
+                    {n + 1}
                   </span>
-                  {idea.sizeNote && (
-                    <span className="mt-1.5 flex items-start gap-1.5 text-xs font-semibold text-ink">
-                      <Scale className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand" strokeWidth={2.4} />
-                      {idea.sizeNote}
+                  <span className="min-w-0 flex-1">
+                    <span className="flex -space-x-2">
+                      {idea.foods.map((f) => (
+                        <FoodIcon key={f.id} food={f} size="sm" tone="stack" />
+                      ))}
+                    </span>
+                    <span className="mt-2.5 block font-display text-base font-bold leading-snug text-ink">{name}</span>
+                    {idea.sizeNote && (
+                      <span className="mt-2 flex items-start gap-2 rounded-xl bg-verdict-yellow/15 px-2.5 py-2 text-xs font-semibold leading-snug text-ink">
+                        <Scale className="mt-0.5 h-3.5 w-3.5 shrink-0 text-ink/70" strokeWidth={2.4} />
+                        {idea.sizeNote}
+                      </span>
+                    )}
+                    {bigger.map((s) => (
+                      <span key={s!.food.id} className="mt-2 flex items-start gap-2 text-xs leading-snug text-ink-soft">
+                        <Flame className="mt-0.5 h-3.5 w-3.5 shrink-0 text-leaf" strokeWidth={2.4} />
+                        {s!.instruction}
+                      </span>
+                    ))}
+                  </span>
+                </span>
+                <span className="flex items-center gap-4 border-t border-line bg-mist/70 px-4 py-2.5">
+                  {carbs > 0 && (
+                    <span className="text-sm font-semibold text-ink-soft">
+                      <span className="font-display text-base font-bold text-ink">{carbs}g</span> carbs
                     </span>
                   )}
-                  {bigger.map((s) => (
-                    <span key={s!.food.id} className="mt-1.5 flex items-start gap-1.5 text-xs text-ink-soft">
-                      <Flame className="mt-0.5 h-3.5 w-3.5 shrink-0 text-leaf" strokeWidth={2.4} />
-                      {s!.instruction}
+                  {cals > 0 && (
+                    <span className="text-sm font-semibold text-ink-soft">
+                      <span className="font-display text-base font-bold text-ink">{cals}</span> kcal
                     </span>
-                  ))}
+                  )}
+                  <span className="ml-auto flex h-8 w-8 items-center justify-center rounded-full bg-leaf text-white transition-transform group-hover:translate-x-0.5">
+                    <ArrowRight className="h-4 w-4" strokeWidth={2.6} />
+                  </span>
                 </span>
-                <ArrowRight className="h-4 w-4 shrink-0 text-brand transition-transform group-hover:translate-x-0.5" />
               </button>
             </li>
           );

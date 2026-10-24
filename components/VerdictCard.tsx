@@ -10,6 +10,7 @@ import PortionVisual from "./PortionVisual";
 import ShareOnWhatsApp from "./ShareOnWhatsApp";
 import IntakeWarning from "./IntakeWarning";
 import ReadingRecall from "./ReadingRecall";
+import FoodIcon from "./FoodIcon";
 import { AlertTriangle, ArrowRight, CalendarDays, Flame, Pill, Sparkles, Utensils, Wheat } from "lucide-react";
 
 // The band is the one place the traffic light fills a surface. Yellow is a
@@ -62,45 +63,46 @@ export default function VerdictCard({
   const sweeten = food.baseVerdict !== "green" ? kunuSweetenTips(food) : [];
 
   return (
+    /* Redesigned 2026-10-25 with the same words, in the same look as the
+       "Check a meal" answer: the band holds the name, the verdict and the two
+       numbers; every section below has an icon chip and a quiet label. */
     <div
-      className={`verdict-pop overflow-hidden rounded-3xl bg-white text-left shadow-[0_24px_60px_-28px_rgba(12,42,71,0.45)] ring-1 ${s.ring}`}
+      className={`verdict-pop overflow-hidden rounded-[28px] bg-white text-left shadow-[0_28px_70px_-30px_rgba(12,42,71,0.5)] ring-1 ${s.ring}`}
     >
-      {/* The colour band: the food's name and its plain verdict. */}
-      <div className={`relative overflow-hidden px-5 py-5 ${s.band}`}>
-        <span
-          aria-hidden
-          className="pointer-events-none absolute -right-10 -top-12 h-40 w-40 rounded-full bg-white/15 blur-2xl"
-        />
-        <h3 className="relative font-display text-xl font-semibold leading-tight">
-          {cleanFoodName(food.name)}
-        </h3>
-        <span
-          className={`relative mt-2.5 inline-flex rounded-full px-3 py-1 text-xs font-bold tracking-wide ring-1 ${s.chip}`}
-        >
-          {s.label}
-        </span>
-      </div>
-
-      <div className="answer-rise space-y-3 p-5">
-        {/* Warns before a rule is broken, e.g. a second fast-sugar food today. */}
-        <div className="empty:hidden">
-          <IntakeWarning key={food.id} verdict={food.baseVerdict} />
+      {/* The colour band: the food's name, its plain verdict and its numbers. */}
+      <div className={`relative overflow-hidden px-5 pb-5 pt-5 sm:px-6 ${s.band}`}>
+        <span aria-hidden className="pointer-events-none absolute -right-12 -top-16 h-48 w-48 rounded-full bg-white/20 blur-2xl" />
+        <span aria-hidden className="pointer-events-none absolute -bottom-20 -left-10 h-40 w-40 rounded-full bg-black/10 blur-2xl" />
+        <div className="relative flex items-center gap-3.5">
+          <FoodIcon food={food} tone="band" size="lg" />
+          <div className="min-w-0">
+            <h3 className="font-display text-xl font-bold leading-tight sm:text-2xl">
+              {cleanFoodName(food.name)}
+            </h3>
+            <span className={`mt-1.5 inline-flex rounded-full px-3 py-1 text-xs font-bold tracking-wide ring-1 ${s.chip}`}>
+              {s.label}
+            </span>
+          </div>
         </div>
 
-        {/* Carbs leads calories, same order as TodaysMeal's pills — this is
-            the number that matters for insulin dosing (carb counting). */}
+        {/* Carbs leads calories, same order as the blue card: the number that
+            matters for insulin dosing (carb counting). */}
         {(food.carbG ?? 0) > 0 && (
-          <div className="grid grid-cols-2 gap-2.5">
-            <p className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-brand to-brand-deep px-4 py-3 text-white shadow-[0_10px_24px_-14px_rgba(27,95,170,0.9)]">
-              <Wheat aria-hidden className="absolute -bottom-2 -right-2 h-14 w-14 text-white/15" strokeWidth={1.8} />
-              <span className="block font-display text-2xl font-bold leading-none">{food.carbG}g</span>
-              <span className="mt-1 block text-xs font-semibold text-white/85"> carbs</span>
+          <div className="relative mt-5 grid grid-cols-2 gap-2.5">
+            <p className="flex items-center gap-3 rounded-2xl bg-white/25 px-4 py-3 ring-1 ring-inset ring-white/35">
+              <Wheat aria-hidden className="h-5 w-5 shrink-0 opacity-70" strokeWidth={2} />
+              <span>
+                <span className="block font-display text-2xl font-bold leading-none">{food.carbG}g</span>
+                <span className="mt-1 block text-xs font-semibold opacity-80"> carbs</span>
+              </span>
             </p>
             {(food.calories ?? 0) > 0 && (
-              <p className="relative overflow-hidden rounded-2xl bg-brand/[0.07] px-4 py-3 text-brand-deep ring-1 ring-inset ring-brand/15">
-                <Flame aria-hidden className="absolute -bottom-2 -right-2 h-14 w-14 text-brand/10" strokeWidth={1.8} />
-                <span className="block font-display text-2xl font-bold leading-none">{food.calories}</span>
-                <span className="mt-1 block text-xs font-semibold text-brand-deep/75"> kcal</span>
+              <p className="flex items-center gap-3 rounded-2xl bg-white/25 px-4 py-3 ring-1 ring-inset ring-white/35">
+                <Flame aria-hidden className="h-5 w-5 shrink-0 opacity-70" strokeWidth={2} />
+                <span>
+                  <span className="block font-display text-2xl font-bold leading-none">{food.calories}</span>
+                  <span className="mt-1 block text-xs font-semibold opacity-80"> kcal</span>
+                </span>
               </p>
             )}
           </div>
@@ -108,14 +110,19 @@ export default function VerdictCard({
         {/* Soups are counted from a standard recipe without the meat or fish
             (founder, 2026-10-24); the plate counts its fish or meat once. */}
         {food.nutritionSource === "recipe" && (
-          <p className="-mt-1 text-xs leading-relaxed text-ink-soft">
+          <p className="relative mt-2 text-xs font-medium leading-relaxed opacity-85">
             This is for the soup only. Your fish or meat is not added here.
           </p>
         )}
+      </div>
 
-        <p className="text-sm leading-relaxed text-ink-soft">
-          {food.logicNote}
-        </p>
+      <div className="answer-rise space-y-4 p-5 sm:p-6">
+        {/* Warns before a rule is broken, e.g. a second fast-sugar food today. */}
+        <div className="empty:hidden">
+          <IntakeWarning key={food.id} verdict={food.baseVerdict} />
+        </div>
+
+        <p className="text-[15px] leading-relaxed text-ink">{food.logicNote}</p>
 
         {/* What happened to THIS person the last time they ate it. Straight under
             the verdict, because their own body outranks anything we can say in
@@ -125,68 +132,60 @@ export default function VerdictCard({
         </div>
 
         {food.healthNote && (
-          <div className="rounded-2xl border-l-4 border-verdict-red bg-verdict-red/[0.08] p-3.5">
-            <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-verdict-red">
-              <AlertTriangle className="h-3.5 w-3.5" strokeWidth={2.6} aria-hidden />
-              Please note
-            </p>
-            <p className="mt-1 text-sm text-ink">{food.healthNote}</p>
+          <div className="flex gap-3 rounded-2xl bg-verdict-red/[0.07] p-3.5 ring-1 ring-inset ring-verdict-red/20">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-verdict-red text-white">
+              <AlertTriangle className="h-4 w-4" strokeWidth={2.4} aria-hidden />
+            </span>
+            <div className="min-w-0">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-verdict-red">Please note</p>
+              <p className="mt-0.5 text-sm text-ink">{food.healthNote}</p>
+            </div>
           </div>
         )}
 
         {/* Calm on purpose. This tells you when to take your tablet, not to stop
             eating the food, so it must never be dressed up as a red warning. */}
         {food.medicineNote && (
-          <div className="rounded-2xl bg-mist p-3.5 ring-1 ring-inset ring-line">
-            <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-ink/60">
-              <Pill className="h-3.5 w-3.5" strokeWidth={2.4} aria-hidden />
-              If you take medicine
-            </p>
-            <p className="mt-1 text-sm text-ink">{food.medicineNote}</p>
+          <div className="flex gap-3 rounded-2xl bg-mist p-3.5 ring-1 ring-inset ring-line">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white text-ink/60 shadow-sm">
+              <Pill className="h-4 w-4" strokeWidth={2.4} aria-hidden />
+            </span>
+            <div className="min-w-0">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-ink/60">If you take medicine</p>
+              <p className="mt-0.5 text-sm text-ink">{food.medicineNote}</p>
+            </div>
           </div>
         )}
 
         {swap && (
-          <div className="rounded-2xl bg-gradient-to-br from-mint to-verdict-green/10 p-3.5 ring-1 ring-inset ring-verdict-green/30">
-            <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-leaf-deep">
-              <Sparkles className="h-3.5 w-3.5" strokeWidth={2.4} aria-hidden />
+          <div className="rounded-3xl bg-mint/70 p-4 ring-1 ring-inset ring-leaf/20">
+            <p className="flex items-center gap-2.5 font-display text-base font-bold text-leaf-deep">
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-leaf text-white">
+                <Sparkles className="h-4 w-4" strokeWidth={2.4} aria-hidden />
+              </span>
               Try this instead
             </p>
-            <p className="mt-1 text-sm text-ink">
+            <p className="mt-2.5 text-sm text-ink">
               {isCrossGroupSwap(food, swap)
                 ? `${cleanFoodName(swap.name)} is a better snack. It will not push your sugar up as fast.`
                 : `${cleanFoodName(swap.name)} is in the same food group and will not push your sugar up as fast.`}
             </p>
-            {onSwap && (
-              <button
-                onClick={() => onSwap(swap)}
-                className="mt-2.5 inline-flex items-center gap-2 rounded-full bg-leaf px-4 py-2 text-sm font-semibold text-white shadow-[0_8px_18px_-10px_rgba(44,122,60,0.95)] transition-transform hover:-translate-y-0.5"
-              >
-                See {cleanFoodName(swap.name)}
-                <ArrowRight className="h-4 w-4" aria-hidden />
-              </button>
-            )}
+            {onSwap && <SeeButton name={cleanFoodName(swap.name)} onClick={() => onSwap(swap)} />}
           </div>
         )}
 
         {sweeten.length > 0 && (
-          <div className="rounded-2xl bg-gradient-to-br from-mint to-verdict-green/10 p-3.5 ring-1 ring-inset ring-verdict-green/30">
-            <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-leaf-deep">
-              <Sparkles className="h-3.5 w-3.5" strokeWidth={2.4} aria-hidden />
+          <div className="rounded-3xl bg-mint/70 p-4 ring-1 ring-inset ring-leaf/20">
+            <p className="flex items-center gap-2.5 font-display text-base font-bold text-leaf-deep">
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-leaf text-white">
+                <Sparkles className="h-4 w-4" strokeWidth={2.4} aria-hidden />
+              </span>
               Try this instead
             </p>
             {sweeten.map((t) => (
-              <div key={t.fruit.id} className="mt-2">
+              <div key={t.fruit.id} className="mt-2.5">
                 <p className="text-sm text-ink">{t.text}</p>
-                {onSwap && (
-                  <button
-                    onClick={() => onSwap(t.fruit)}
-                    className="mt-2 inline-flex items-center gap-2 rounded-full bg-leaf px-4 py-2 text-sm font-semibold text-white shadow-[0_8px_18px_-10px_rgba(44,122,60,0.95)] transition-transform hover:-translate-y-0.5"
-                  >
-                    See {cleanFoodName(t.fruit.name)}
-                    <ArrowRight className="h-4 w-4" aria-hidden />
-                  </button>
-                )}
+                {onSwap && <SeeButton name={cleanFoodName(t.fruit.name)} onClick={() => onSwap(t.fruit)} />}
               </div>
             ))}
           </div>
@@ -206,30 +205,26 @@ export default function VerdictCard({
           </div>
         )}
 
-        <div className="grid gap-2.5 sm:grid-cols-2">
-          <div className="rounded-2xl bg-white p-3.5 shadow-[0_6px_20px_-12px_rgba(12,42,71,0.35)] ring-1 ring-brand/10">
-            <p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-brand">
-              <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-brand/10">
-                <Utensils className="h-3.5 w-3.5" strokeWidth={2.4} aria-hidden />
-              </span>
-              Eat it with
-            </p>
-            <p className="mt-1.5 text-sm text-ink">
-              {food.pairingAdvice || "Nothing can make this one safe."}
-            </p>
+        <div className="overflow-hidden rounded-3xl ring-1 ring-line">
+          <div className="flex gap-3.5 bg-white p-4">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand/10 text-brand">
+              <Utensils className="h-5 w-5" strokeWidth={2.2} aria-hidden />
+            </span>
+            <div className="min-w-0">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-brand">Eat it with</p>
+              <p className="mt-1 text-sm leading-relaxed text-ink">
+                {food.pairingAdvice || "Nothing can make this one safe."}
+              </p>
+            </div>
           </div>
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-brand to-brand-deep p-3.5 text-white shadow-[0_14px_30px_-16px_rgba(15,61,117,0.9)]">
-            <span
-              aria-hidden
-              className="pointer-events-none absolute -bottom-10 -right-6 h-24 w-24 rounded-full bg-white/10 blur-xl"
-            />
-            <p className="relative flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-white/80">
-              <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-white/15 ring-1 ring-white/25">
-                <CalendarDays className="h-3.5 w-3.5" strokeWidth={2.4} aria-hidden />
-              </span>
-              How often
-            </p>
-            <p className="relative mt-1.5 text-sm font-semibold">{plainFrequency(food)}</p>
+          <div className="flex gap-3.5 border-t border-brand/10 bg-brand/[0.06] p-4">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand text-white">
+              <CalendarDays className="h-5 w-5" strokeWidth={2.2} aria-hidden />
+            </span>
+            <div className="min-w-0">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-brand">How often</p>
+              <p className="mt-1 font-display text-base font-bold leading-snug text-brand-deep">{plainFrequency(food)}</p>
+            </div>
           </div>
         </div>
 
@@ -238,5 +233,20 @@ export default function VerdictCard({
         </div>
       </div>
     </div>
+  );
+}
+
+/** "See X": opens the suggested food's own card. */
+function SeeButton({ name, onClick }: { name: string; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="mt-3 flex w-full items-center justify-between gap-2 rounded-2xl bg-white py-1.5 pl-4 pr-1.5 text-left text-sm font-bold text-leaf-deep shadow-[0_8px_20px_-12px_rgba(44,122,60,0.8)] ring-1 ring-leaf/20 transition-transform hover:-translate-y-0.5"
+    >
+      See {name}
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-leaf text-white">
+        <ArrowRight className="h-4 w-4" aria-hidden />
+      </span>
+    </button>
   );
 }

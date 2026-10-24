@@ -70,22 +70,28 @@ export default function FoodIcon({
   className = "",
 }: {
   food: Food;
-  /** "dark" sits on the blue card, "light" on white. */
-  tone?: "dark" | "light";
-  size?: "sm" | "md";
+  /** "dark" sits on the blue card, "light" on white, "green" on the extras card. */
+  tone?: "dark" | "light" | "green" | "band" | "stack";
+  size?: "sm" | "md" | "lg";
   className?: string;
 }) {
   const Icon = iconFor(food);
   return (
     <span
       aria-hidden
-      className={`flex ${size === "sm" ? "h-9 w-9" : "h-10 w-10"} shrink-0 items-center justify-center rounded-xl ${
+      className={`flex ${size === "sm" ? "h-9 w-9 rounded-xl" : size === "lg" ? "h-12 w-12 rounded-2xl" : "h-10 w-10 rounded-xl"} shrink-0 items-center justify-center ${
         tone === "dark"
           ? "bg-white/15 text-white ring-1 ring-inset ring-white/20"
-          : "bg-brand/[0.08] text-brand ring-1 ring-inset ring-brand/10"
+          : tone === "stack"
+            ? "bg-[#eaf1fa] text-brand shadow-sm ring-2 ring-white"
+            : tone === "band"
+            ? "bg-white/25 text-current ring-1 ring-inset ring-white/40"
+            : tone === "green"
+            ? "bg-leaf/10 text-leaf-deep ring-1 ring-inset ring-leaf/15"
+            : "bg-brand/[0.08] text-brand ring-1 ring-inset ring-brand/10"
       } ${className}`}
     >
-      <Icon className="h-5 w-5" strokeWidth={2} />
+      <Icon className={size === "lg" ? "h-6 w-6" : "h-5 w-5"} strokeWidth={2} />
     </span>
   );
 }
