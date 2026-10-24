@@ -169,7 +169,10 @@ for (const T of TARGETS) {
   for (const meal of ["breakfast", "lunch", "dinner"] as NamedMeal[]) {
     for (let d = 0; d < 28; d++) {
       const day = new Date(Date.UTC(2026, 9, 1 + d)).toISOString().slice(0, 10);
-      const idea = planForDay(meal, day, new Map(), 0, [], new Map(), null, 900, ["hypertension"]);
+      // No calorie target: since soups are counted without meat (2026-10-24) the
+      // lighter beef plates rarely win the calorie narrowing, and this check is
+      // about the 50g size whenever beef or goat is shown, not how often.
+      const idea = planForDay(meal, day, new Map(), 0, [], new Map(), null, null, ["hypertension"]);
       const meat = idea.foods.find((f) => LEAN_RED_MEAT_IDS.has(f.id));
       if (!meat) continue;
       seen++;

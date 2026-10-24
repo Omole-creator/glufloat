@@ -102,11 +102,11 @@ export function saferSwaps(food: Food, limit = 3, turn = 0): Food[] {
 /**
  * The swallows that really raise sugar more slowly, in a fixed order (co-founder
  * dietitian + founder, 2026-10-12). Oat swallow is the only green one; plantain
- * amala and cocoyam fufu are yellow but medium, so still slower than eba,
+ * amala, cocoyam fufu and acha (medium since 2026-10-24) are yellow but medium, so still slower than eba,
  * pounded yam, fufu or tuwo. Swapping eba for tuwo would be a sideways move, so
  * no other swallow is ever offered here.
  */
-const SLOWER_SWALLOWS = ["oat-swallow", "amala-plantain", "cocoyam-fufu"];
+const SLOWER_SWALLOWS = ["oat-swallow", "amala-plantain", "cocoyam-fufu", "acha"];
 const GI_RANK: Record<Food["gi"], number> = { low: 0, medium: 1, high: 2 };
 
 /**

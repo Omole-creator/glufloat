@@ -44,14 +44,15 @@ for (const food of FOODS) {
 }
 
 // 1c. A swallow's swap takes turns evenly across the slower swallows.
-for (const id of ["garri-eba", "tuwo-shinkafa", "acha", "pounded-yam"]) {
+// Acha is medium since 2026-10-24, so it is now one of the four slower swallows.
+for (const id of ["garri-eba", "tuwo-shinkafa", "pounded-yam"]) {
   const food = FOODS.find((f) => f.id === id)!;
-  const shown = [0, 1, 2, 3, 4, 5].map((t) => saferSwaps(food, 1, t)[0]?.id);
+  const shown = [0, 1, 2, 3, 4, 5, 6, 7].map((t) => saferSwaps(food, 1, t)[0]?.id);
   const tally = new Map<string, number>();
   for (const s of shown) if (s) tally.set(s, (tally.get(s) ?? 0) + 1);
   assertTrue(
-    `${id}: six looks show oat swallow, plantain amala and cocoyam fufu twice each`,
-    tally.size === 3 && [...tally.values()].every((n) => n === 2),
+    `${id}: eight looks show oat swallow, plantain amala, cocoyam fufu and acha twice each`,
+    tally.size === 4 && [...tally.values()].every((n) => n === 2),
   );
 }
 const plantainAmala = FOODS.find((f) => f.id === "amala-plantain")!;

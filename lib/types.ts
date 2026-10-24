@@ -117,7 +117,7 @@ export interface Food {
    * checked by `scripts/food-composition-audit.mjs` (Atwater energy
    * cross-check + per-category plausibility bands) before being written.
    */
-  nutritionSource?: "table" | "estimated";
+  nutritionSource?: "table" | "estimated" | "recipe";
 }
 
 export type PortionSize = "half" | "normal" | "large";

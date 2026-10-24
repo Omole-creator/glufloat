@@ -243,6 +243,20 @@ right-size plates, next to white rice. Owners: `evidence-gi.mjs` (gi,
 logicNote), `clear-instructions.mjs` (size), `portion-icons.mjs` (icon),
 `plain-words.mjs` (name).
 
+**Reopened 2026-10-24: medium again, on two sources.** The founder moved it back
+to medium (3 times a week, half a cup kept): the pilot trial above (GI 50-60) and
+international tables for parboiled/converted rice (GI 38-55). That passes the
+two-source rule for a loosening. Caveat on record: the low figures are mostly for
+Western "converted" rice; Nigerian bagged rice has not been measured. Owner:
+`evidence-gi.mjs` (its LOOSENINGS block, which must name two `sources`).
+
+**Acha, 2026-10-24: high -> medium, on two Nigerian sources.** Alegbejo et al.
+2011, Zaria (J Pure Appl Microbiol 5(1):117-122): acha meal GI 49 in type 2
+diabetes, 35 in healthy subjects. A University of Nigeria, Nsukka study
+(dspace.unn.edu.ng, supplied by the founder): GI 50-66. Medium, not low: the top
+of the Nsukka range is 66, tuwo acha is cooked soft, and the Zaria authors warn
+the home serving gives a high load. Still one of the 4-a-week swallows.
+
 Also noted, not acted on: palm wine measures **11** (we say medium; the frequency
 is pinned to monthly by the alcohol rule regardless, so the band is not doing any
 work), and plain popcorn's literature spans **55–89**, which straddles two bands.
@@ -915,3 +929,28 @@ dinner plates. Swallows may now be at dinner (the low-GI-dinner rule's one
 exception). "Try this instead" on a swallow offers only slower swallows (oat
 swallow, plantain amala, cocoyam fufu), in turn; never tuwo for eba, which would
 be a sideways move.
+
+
+## 15. Soups counted from a standard recipe, without the meat (2026-10-24)
+
+Co-founder dietitian, reviewing the swap table: soup cards "seem to include
+different meat or fish amounts", and "GluFloat needs a standardized recipe and
+serving definition... ingredients, cooking yield and the distribution of
+ingredients in the finished dish." Where a portion cannot be measured
+reliably, the app must not pretend to a precise equivalent.
+
+Done in `scripts/soup-recipes.mjs`: one home pot per soup (ingredient grams,
+yield in ml), numbers per 100ml worked out from an ingredient table (USDA,
+WAFCT 2019). The meat and fish pieces are left out (founder: the plate counts
+its own fish or meat once; no exceptions, native and pepper soup included).
+Crayfish, bits of stockfish, iru/ogiri, seasoning and salt stay. Salt, cube and
+crayfish scale with the pot's yield (cooks salt to taste). `nutritionSource` is
+`"recipe"`. Before, the egusi card held 40g of body-building food per serving
+while efo riro held 12.5g; most soups now hold 3.5-15g.
+
+Known: efo riro, edikang ikong, editan and vegetable soup carry 21-27g fat per
+250ml (palm oil in a standard pot) and still carry no `healthNote`.
+
+**Lean beef** corrected the same day: 190 kcal, 29g protein, 8g fat per 100g
+cooked lean (was 250/26/17, regular beef). **Fish** is counted as Titus or
+mackerel (the numbers were already oily fish) and shown under that name.

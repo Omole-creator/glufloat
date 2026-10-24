@@ -6,7 +6,8 @@
  * Asymmetry rule (see EVIDENCE.md §1): a food may be marked WORSE on a single
  * credible in-vivo measurement, but may only be marked BETTER on two
  * independent sources. Under-calling risk harms someone; over-calling it only
- * inconveniences them. Every change below is a tightening.
+ * inconveniences them. Every change below is a tightening, except the few
+ * marked LOOSENINGS, which each name two independent `sources`.
  *
  * GI bands are ISO 26642-2010: low <=55, medium 56-69, high >=70.
  *
@@ -74,11 +75,25 @@ const CORRECTIONS = {
       "A corn swallow. It still pushes your sugar up fast, so keep to one fist-size ball (100g) and eat it with a green vegetable soup.",
     why: "tuwo masara measured GI 86.8. Was medium, which sat below tuwo shinkafa (95.8) and tuwo dawa (85.3) for no reason.",
   },
+  // LOOSENINGS. Each carries `sources`, two independent measurements, which is
+  // the only thing that lets the guard below mark a food better.
   "parboiled-rice": {
-    gi: "high",
+    gi: "medium",
     logicNote:
-      "Most rice sold in bags in Nigeria is parboiled. Look at the bag. If it says parboiled, this is your rice. It pushes your sugar up fast, the same as white rice. Eat less of it, and add vegetables and fish, meat, or egg to slow it down.",
-    why: "co-founder dietitian, 2026-10-09: treat parboiled rice like white rice (half a cup, 2 times a week). Founder agreed. A tightening, so one source is enough under the asymmetry rule. The pilot trial's GI 50-60 (EVIDENCE.md section 2) is not enough to hold it BETTER than white rice against a dietitian's call.",
+      "Most rice sold in bags in Nigeria is parboiled. Look at the bag. If it says parboiled, this is your rice. It pushes your sugar up a little more slowly than white rice. Keep to the size shown below, and add vegetables and fish, meat, or egg.",
+    sources: [
+      "pilot trial in healthy and T2D adults, GI 50-60 (PMC12155248, EVIDENCE.md section 2)",
+      "international GI tables, parboiled/converted rice GI 38-55 (founder, 2026-10-24)",
+    ],
+    why: "founder, 2026-10-24: moved high -> medium on two sources, overriding the 2026-10-09 call to treat it like white rice. Half a cup kept; 3 times a week like the other medium rices. Caveat on record: the low figures are mostly for Western 'converted' rice, not measured on Nigerian bagged rice.",
+  },
+  acha: {
+    gi: "medium",
+    sources: [
+      "Alegbejo et al. 2011, Zaria (J Pure Appl Microbiol 5(1):117-122): acha meal GI 49 in T2D, 35 in healthy subjects",
+      "University of Nigeria, Nsukka study (dspace.unn.edu.ng): GI 50-66 (founder, 2026-10-24)",
+    ],
+    why: "two independent Nigerian measurements, both below the high band. Medium, not low: the top of the Nsukka range is 66, tuwo acha is cooked soft, and the Zaria authors warn the home serving gives a high load. Still in the 4-a-week swallow group.",
   },
   "tuwo-dawa": {
     gi: "high",
@@ -100,11 +115,12 @@ for (const [id, c] of Object.entries(CORRECTIONS)) {
     process.exit(1);
   }
   // Guard the asymmetry rule in code, not just in prose.
-  if (c.gi && RANK[c.gi] < RANK[f.gi]) {
+  const twoSources = Array.isArray(c.sources) && c.sources.length >= 2;
+  if (c.gi && RANK[c.gi] < RANK[f.gi] && !twoSources) {
     console.error(`${id}: would loosen gi ${f.gi} -> ${c.gi}. Needs two sources; see EVIDENCE.md.`);
     process.exit(1);
   }
-  if (c.baseVerdict && VERDICT_RANK[c.baseVerdict] > VERDICT_RANK[f.baseVerdict]) {
+  if (c.baseVerdict && VERDICT_RANK[c.baseVerdict] > VERDICT_RANK[f.baseVerdict] && !twoSources) {
     console.error(`${id}: would loosen verdict ${f.baseVerdict} -> ${c.baseVerdict}.`);
     process.exit(1);
   }

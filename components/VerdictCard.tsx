@@ -105,6 +105,13 @@ export default function VerdictCard({
             )}
           </div>
         )}
+        {/* Soups are counted from a standard recipe without the meat or fish
+            (founder, 2026-10-24); the plate counts its fish or meat once. */}
+        {food.nutritionSource === "recipe" && (
+          <p className="-mt-1 text-xs leading-relaxed text-ink-soft">
+            This is for the soup only. Your fish or meat is not added here.
+          </p>
+        )}
 
         <p className="text-sm leading-relaxed text-ink-soft">
           {food.logicNote}

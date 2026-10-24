@@ -12,7 +12,9 @@ export const PLAUSIBILITY_BANDS = {
   bread: [200, 340],
   cereal: [30, 420],
   corn: [60, 130],
-  soup: [30, 260],
+  // 5, not 30: since 2026-10-24 a soup card counts the soup without its meat or
+  // fish (scripts/soup-recipes.mjs), and a plain broth like pepper soup is light.
+  soup: [5, 260],
   protein: [60, 450],
   vegetable: [10, 250],
   fruit: [15, 320],

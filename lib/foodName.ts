@@ -31,8 +31,18 @@ const PREFIX_STATES = new Set([
   "grilled",
 ]);
 
+/**
+ * Display names that the rules above would get wrong. The fish card's numbers
+ * are for oily fish (founder, 2026-10-24), so it names those two; tilapia and
+ * catfish still find this card through its aliases.
+ */
+const NAME_DISPLAY: Record<string, string> = {
+  "Fish (Titus / Mackerel / Tilapia / Catfish)": "Fish (Titus or Mackerel)",
+};
+
 export function cleanFoodName(name: string): string {
   if (SOUP_DISPLAY[name]) return SOUP_DISPLAY[name];
+  if (NAME_DISPLAY[name]) return NAME_DISPLAY[name];
   let out = name;
   const m = name.match(/^(.*?)\s*\(([^)]*)\)(.*)$/);
   if (m) {

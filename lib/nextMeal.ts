@@ -595,12 +595,12 @@ const STEADY_PLATES: string[][] = [
   ["rice-and-beans", "tomato-stew", "fish"],
   ["spaghetti", "tomato-stew", "chicken"],
   ["macaroni", "tomato-stew", "fish"],
+  // Medium-GI since 2026-10-24 (founder, two sources: docs/EVIDENCE.md section 3).
+  ["parboiled-rice", "tomato-stew", "chicken"],
 ];
 const SIZE_PLATES_LUNCH: string[][] = [
   ["white-rice", "tomato-stew", "chicken"],
   ["white-rice", "efo-riro", "fish"],
-  // Treated like white rice since 2026-10-09 (co-founder dietitian).
-  ["parboiled-rice", "tomato-stew", "chicken"],
   ["jollof-rice", "coleslaw", "chicken"],
   ["fried-rice", "coleslaw", "chicken"],
   ["coconut-rice", "coleslaw", "chicken"],
@@ -644,8 +644,8 @@ export const SWALLOW_IDS: ReadonlySet<string> = new Set([
   "tuwo-masara", "tuwo-dawa", "acha", "starch-delta",
 ]);
 export const SWALLOW_WEEKLY_LIMIT = 4;
-/** The two swallows that are already green at the normal plate (medium-GI). */
-const STEADY_SWALLOWS = new Set(["amala-plantain", "cocoyam-fufu"]);
+/** The swallows that are already green at the normal plate (medium-GI). Acha joined 2026-10-24. */
+const STEADY_SWALLOWS = new Set(["amala-plantain", "cocoyam-fufu", "acha"]);
 
 /**
  * Each swallow with the soups it is really eaten with, always with fish or

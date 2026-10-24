@@ -42,6 +42,7 @@
 // as the automated stand-in for "check it five times."
 import { readFileSync, writeFileSync } from "node:fs";
 import { PLAUSIBILITY_BANDS, DEFAULT_SERVING_G } from "./food-composition-bands.mjs";
+import { SOUP_PER_100G } from "./soup-recipes.mjs";
 
 const FILE = "data/foods.json";
 const foods = JSON.parse(readFileSync(FILE, "utf8"));
@@ -261,7 +262,9 @@ const PER_100G = {
 
   // proteins
   chicken: [165, 31, 3.6, 0, 0, 256, 70],
-  beef: [250, 26, 17, 0, 0, 315, 65],
+  // Lean cooked beef (trimmed, lean only). Was 250/26/17, which is regular beef
+  // (Favour's swap review, 2026-10-24: "'Lean' beef has 15 g fat per 23 g protein").
+  beef: [190, 29, 8, 0, 0, 330, 65],
   "beef-regular": [270, 25, 19, 0, 0, 300, 65],
   "goat-meat": [143, 27, 3, 0, 0, 380, 80],
   fish: [200, 22, 12, 0, 0, 380, 90],
@@ -514,6 +517,16 @@ function plausibleOk(category, kcal) {
   return kcal >= band[0] && kcal <= band[1];
 }
 
+// Soups come from their standard recipe (scripts/soup-recipes.mjs), counted
+// without the meat or fish pieces. They replace the rows above.
+for (const [id, row] of Object.entries(SOUP_PER_100G)) {
+  if (!PER_100G[id]) {
+    console.error(`soup recipe for ${id}, which has no PER_100G row`);
+    process.exit(1);
+  }
+  PER_100G[id] = row;
+}
+
 const foodsById = new Map(foods.map((f) => [f.id, f]));
 let validationErrors = 0;
 for (const [id, per100] of Object.entries(PER_100G)) {
@@ -569,7 +582,7 @@ for (const food of foods) {
   food.fiberG = round(fiber * scale, 1);
   food.potassiumMg = round(potassium * scale);
   food.sodiumMg = round(sodium * scale);
-  food.nutritionSource = TABLE_GROUNDED.has(food.id) ? "table" : "estimated";
+  food.nutritionSource = TABLE_GROUNDED.has(food.id) ? "table" : SOUP_PER_100G[food.id] ? "recipe" : "estimated";
 }
 
 if (missing.length > 0) {
