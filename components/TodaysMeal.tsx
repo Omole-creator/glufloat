@@ -483,13 +483,16 @@ export default function TodaysMeal({
           </div>
         )}
 
-        {idea.scaledProtein && (
+        {/* Bigger servings only top up calories, so they live in "View details"
+            and are not repeated here (founder, 2026-10-24). The 50g beef or goat
+            meat line stays: it is a health limit, not a top-up. */}
+        {idea.scaledProtein && idea.scaledProtein.extraCalories < 0 && (
           <div className="mt-4 flex items-start gap-2.5 rounded-xl bg-white/10 p-3 ring-1 ring-inset ring-white/15">
             <Flame className="mt-0.5 h-4 w-4 shrink-0 text-white/80" strokeWidth={2.2} />
             <div className="min-w-0">
               <p className="text-sm text-white/90">{idea.scaledProtein.instruction}</p>
-              {/* The photo of this exact serving when there is one (50g beef
-                  or goat meat, 2 pieces of fish). */}
+              {/* The one-chunk photo, never the palm-size "Chunks of meat"
+                  button, which is the card's 90g. */}
               <div className="mt-2 empty:hidden">
                 <ServingPhotoButton
                   food={{ ...idea.scaledProtein.food, portionGuidance: idea.scaledProtein.instruction }}
@@ -497,38 +500,6 @@ export default function TodaysMeal({
                   size="md"
                 />
               </div>
-              {/* Never the palm-size "Chunks of meat" button beside 50g beef:
-                  that photo is the card's 90g. */}
-              {idea.scaledProtein.extraCalories >= 0 && (
-                <MeasureChips
-                  text={idea.scaledProtein.instruction}
-                  forFood={idea.scaledProtein.name}
-                  tone="dark"
-                  className="mt-2"
-                />
-              )}
-            </div>
-          </div>
-        )}
-
-        {idea.scaledSide && (
-          <div className="mt-4 flex items-start gap-2.5 rounded-xl bg-white/10 p-3 ring-1 ring-inset ring-white/15">
-            <Flame className="mt-0.5 h-4 w-4 shrink-0 text-white/80" strokeWidth={2.2} />
-            <div className="min-w-0">
-              <p className="text-sm text-white/90">{idea.scaledSide.instruction}</p>
-              <div className="mt-2 empty:hidden">
-                <ServingPhotoButton
-                  food={{ ...idea.scaledSide.food, portionGuidance: idea.scaledSide.instruction }}
-                  grams={idea.scaledSide.grams}
-                  size="md"
-                />
-              </div>
-              <MeasureChips
-                text={idea.scaledSide.instruction}
-                forFood={idea.scaledSide.name}
-                tone="dark"
-                className="mt-2"
-              />
             </div>
           </div>
         )}
