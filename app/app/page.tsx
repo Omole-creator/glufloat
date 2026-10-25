@@ -741,24 +741,29 @@ export default function AppPage() {
 
               <VarietyNudge onOpenFood={openInSearch} />
 
-              {/* The sugar test and HbA1c buttons. The nudge stays right after
-                  them, because it says "tap ... above". */}
-              <div id="log-reading" className="scroll-mt-24">
+              {/* One sugar card (founder, 2026-10-25): the green "I tested my
+                  sugar" button, the nudge as one line inside it (it says "tap
+                  ... above"), and the HbA1c test as a small link at the foot.
+                  It was three separate blocks for one idea. */}
+              <section
+                id="log-reading"
+                aria-label="Sugar tests"
+                className="scroll-mt-24 space-y-3 rounded-[28px] bg-white p-3 shadow-[0_14px_40px_-24px_rgba(12,42,71,0.4)] ring-1 ring-line"
+              >
                 <LogReading />
-                <div className="mt-2.5">
-                  <LogHbA1c />
+                <div className="empty:hidden">
+                  <ReadingNudge
+                    plain
+                    onOpenReport={() => {
+                      setActiveTab("report");
+                      scrollToPanel();
+                    }}
+                  />
                 </div>
-              </div>
-
-              {/* Their own average when it is high, else where to spend the
-                  next strip. Sits with the sugar test button because it is
-                  about the same scarce thing. */}
-              <ReadingNudge
-                onOpenReport={() => {
-                  setActiveTab("report");
-                  scrollToPanel();
-                }}
-              />
+                <div className="px-1 pb-1">
+                  <LogHbA1c link />
+                </div>
+              </section>
 
               {/* Invite a friend: 5 free days when they pay (lib/referral.ts).
                   Also ties a newly invited account to its inviter. At the

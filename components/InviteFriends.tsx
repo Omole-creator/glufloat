@@ -3,10 +3,39 @@
 import { useEffect, useState } from "react";
 import { Check, Copy, Gift } from "lucide-react";
 import { showToast } from "./Toast";
+import { recentChecks } from "@/lib/history";
+import { localDayKey } from "@/lib/mealtime";
 
 type Info = { ready: true; link: string; rewarded: number; daysEarned: number; days: number };
 
 const ATTACH_TRIED = "gf_invite_attach_tried";
+/** The day the card last showed ("YYYY-MM-DD"), so it shows one day a week. */
+const SHOWN_DAY = "gf_invite_shown_day";
+/** Meals someone must have saved before the card shows at all. */
+const MIN_MEALS = 3;
+const EVERY_DAYS = 7;
+
+/**
+ * Shown less often (founder, 2026-10-25: the Today tab is opened every meal, so
+ * a card there every time becomes furniture). Only once they have saved
+ * MIN_MEALS meals (GluFloat has been useful to them), and then on one day in
+ * every EVERY_DAYS, all of that day.
+ */
+function dueToday(): boolean {
+  const today = localDayKey();
+  try {
+    const last = localStorage.getItem(SHOWN_DAY);
+    if (last === today) return true;
+    if (last) {
+      const gap = (Date.parse(today) - Date.parse(last)) / 86_400_000;
+      if (gap < EVERY_DAYS) return false;
+    }
+    localStorage.setItem(SHOWN_DAY, today);
+  } catch {
+    /* storage blocked: show it */
+  }
+  return true;
+}
 
 /**
  * "Invite a friend, get 5 free days" (lib/referral.ts). Green because it is an
@@ -21,6 +50,7 @@ const ATTACH_TRIED = "gf_invite_attach_tried";
 export default function InviteFriends() {
   const [info, setInfo] = useState<Info | null>(null);
   const [copied, setCopied] = useState(false);
+  const [due, setDue] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -33,6 +63,10 @@ export default function InviteFriends() {
       } catch {
         /* storage blocked or offline: try again next visit */
       }
+      // The account tie above always runs; the card itself waits its turn.
+      const meals = await recentChecks(MIN_MEALS).catch(() => []);
+      if (!alive || meals.length < MIN_MEALS || !dueToday()) return;
+      setDue(true);
       try {
         const r = await fetch("/api/referral", { cache: "no-store" });
         const j = await r.json();
@@ -46,7 +80,7 @@ export default function InviteFriends() {
     };
   }, []);
 
-  if (!info) return null;
+  if (!due || !info) return null;
 
   const message = `I use GluFloat to know which Nigerian foods are good for my sugar. Try it free for 7 days: ${info.link}`;
   const copy = async () => {

@@ -15,7 +15,7 @@ import { showToast } from "@/components/Toast";
  * sugar" button, because most people get this test a few times a year at most.
  * Like every sugar number in the app, it is saved and shown back, never graded.
  */
-export default function LogHbA1c() {
+export default function LogHbA1c({ link = false }: { link?: boolean } = {}) {
   const [open, setOpen] = useState(false);
   const [typed, setTyped] = useState("");
   const [testedOn, setTestedOn] = useState(localDayKey());
@@ -68,7 +68,11 @@ export default function LogHbA1c() {
     return (
       <button
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1.5 rounded-full border-2 border-brand/30 bg-white px-3.5 py-1.5 text-xs font-bold text-brand transition-colors hover:border-brand hover:bg-brand/5"
+        className={
+          link
+            ? "inline-flex items-center gap-1 rounded-lg px-1 py-1 text-xs font-bold sm:text-sm text-brand underline decoration-brand/30 underline-offset-4 transition-colors hover:decoration-brand"
+            : "inline-flex items-center gap-1.5 rounded-full border-2 border-brand/30 bg-white px-3.5 py-1.5 text-xs font-bold text-brand transition-colors hover:border-brand hover:bg-brand/5"
+        }
       >
         <Plus className="h-3.5 w-3.5" strokeWidth={3} />
         Add your 3-month sugar test (HbA1c) if any

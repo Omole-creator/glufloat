@@ -61,9 +61,15 @@ function monthKey(): string {
  */
 export default function ReadingNudge({
   onOpenReport,
+  plain = false,
 }: {
   onOpenReport?: () => void;
+  /** Inside the sugar test card (2026-10-25): a line, not a box of its own. */
+  plain?: boolean;
 }) {
+  const box = plain
+    ? "relative rounded-2xl bg-mist/70 px-3.5 py-3 pr-9"
+    : "relative rounded-2xl bg-white px-4 py-3.5 pr-9 shadow-[0_4px_20px_-12px_rgba(12,42,71,0.2)] ring-1 ring-ink/[0.04]";
   const [avg, setAvg] = useState<{ text: string } | null>(null);
   const [food, setFood] = useState<{ name: string; times: number } | null>(null);
   const [neverTested, setNeverTested] = useState(false);
@@ -134,7 +140,7 @@ export default function ReadingNudge({
       load();
     };
     return (
-      <div className="relative rounded-2xl bg-white px-4 py-3.5 pr-9 shadow-[0_4px_20px_-12px_rgba(12,42,71,0.2)] ring-1 ring-ink/[0.04]">
+      <div className={box}>
         <p className="flex items-start gap-2 text-sm text-ink">
           <TrendingUp className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
           <span className="font-semibold">{avg.text}</span>
@@ -174,7 +180,7 @@ export default function ReadingNudge({
       setNeverTested(false);
     };
     return (
-      <div className="relative rounded-2xl bg-white px-4 py-3.5 pr-9 shadow-[0_4px_20px_-12px_rgba(12,42,71,0.2)] ring-1 ring-ink/[0.04]">
+      <div className={box}>
         <p className="flex items-start gap-2 text-sm text-ink">
           <Droplet className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
           <span>
@@ -202,7 +208,7 @@ export default function ReadingNudge({
   };
 
   return (
-    <div className="relative rounded-2xl bg-white px-4 py-3.5 pr-9 shadow-[0_4px_20px_-12px_rgba(12,42,71,0.2)] ring-1 ring-ink/[0.04]">
+    <div className={box}>
       <p className="flex items-start gap-2 text-sm text-ink">
         <Target className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
         <span>
