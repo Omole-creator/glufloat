@@ -138,6 +138,15 @@ const rightSize: [string, string[], "green" | "yellow" | "red"][] = [
   // A green non-beans helper still works.
   ["right size: wheat bread + egg + moi moi", ["whole-wheat-bread", "eggs", "moi-moi"], "green"],
   ["right size: beans + ripe plantain + efo riro", ["cooked-beans", "boiled-plantain-ripe", "efo-riro"], "green"],
+  // A yellow beans or body-building food never makes a plate green (2026-10-26).
+  ["right size: amala (plantain) + ewa agoyin", ["amala-plantain", "ewa-agoyin"], "yellow"],
+  ["right size: amala (plantain) + kilishi", ["amala-plantain", "kilishi"], "yellow"],
+  ["right size: oats + akara (oats green alone)", ["oats", "akara"], "green"],
+  // A red food that is not a starch makes the plate red (2026-10-26).
+  ["right size: dates + amala (plantain)", ["dates", "amala-plantain"], "red"],
+  ["right size: eba + egusi + fish + condensed milk", ["garri-eba", "egusi-soup", "fish", "condensed-milk"], "red"],
+  ["right size: oat swallow + okra + fish + local gin", ["oat-swallow", "okra-soup", "fish", "local-gin"], "red"],
+  ["right size: sweetened yogurt + groundnut", ["sweetened-yogurt", "groundnut"], "red"],
 ];
 
 let failed = 0;

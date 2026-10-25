@@ -146,6 +146,25 @@ export function scoreMeal(items: MealItem[]): MealResult {
     };
   }
 
+  // A red food that is not a starch (dates, dried or canned fruit, condensed
+  // milk, sweetened yogurt, local gin) cannot be fixed by what is beside it,
+  // just like a sweet drink. Before 2026-10-26 it did not count at all next to
+  // a starch, so dates + amala read better than dates alone.
+  const redOthers = items.filter((i) => i.food.baseVerdict === "red" && !isStarch(i.food));
+  if (redOthers.length > 0) {
+    const names = redOthers.map((i) => cleanFoodName(i.food.name)).join(", ");
+    return {
+      verdict: "red",
+      score: 0,
+      locked: true,
+      headline: "This one makes it red.",
+      fixes: [
+        `Best to skip the ${cleanFoodName(redOthers[0].food.name)}. Nothing else on the plate can make it safe.`,
+      ],
+      breakdown: [`${names} is better to skip, so the whole plate is better to skip.`],
+    };
+  }
+
   const starches = items.filter((i) => isStarch(i.food));
   const worstStarch = starches.reduce<MealItem | null>((worst, i) => {
     if (!worst) return i;
@@ -231,6 +250,20 @@ export function scoreMeal(items: MealItem[]): MealResult {
       );
     }
   }
+
+  // A yellow body-building or beans food (akara, ewa agoyin, kilishi) still
+  // helps, but it may never be what turns a plate GREEN (2026-10-26). Before,
+  // amala (plantain) + ewa agoyin, two "eat with care" foods, read green.
+  // It keeps akara + pap yellow (Favour) and akara + oats green (green alone).
+  const greenOf = (pick: (f: Food) => boolean) =>
+    items.some((i) => pick(i.food) && i.food.baseVerdict === "green");
+  let fromYellow = 0;
+  if (hasProtein && !greenOf(isProtein)) fromYellow += 0.5;
+  if (hasBeans && worstStarch && worstStarch.food.baseVerdict !== "red" && !greenOf((f) => f.role === "legume"))
+    fromYellow += 0.5;
+  // Checked before the clamp to 2, so a plate already green without the yellow
+  // food (oats, green alone) keeps its green.
+  if (score >= GREEN_AT && score - fromYellow < GREEN_AT) score = GREEN_AT - 0.25;
 
   score = Math.max(0, Math.min(2, score));
 
