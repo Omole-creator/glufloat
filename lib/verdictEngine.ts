@@ -81,8 +81,12 @@ function seedScore(v: Verdict): number {
   return 0;
 }
 
+// Only a GREEN vegetable counts as the vegetable that slows the sugar. Carrot,
+// pumpkin and beetroot are yellow (dietitian: starchy, they push sugar up in
+// big amounts), so they must not turn a plate green (found 2026-10-25: carrot
+// alone read green in "Check a meal" while its own card said yellow).
 const isVeg = (f: Food) =>
-  f.role === "vegetable" || (f.role === "soup" && f.baseVerdict === "green");
+  (f.role === "vegetable" || f.role === "soup") && f.baseVerdict === "green";
 const isProtein = (f: Food) =>
   f.role === "protein" || f.role === "legume" || f.role === "dairy";
 const isStarch = (f: Food) => f.role === "starch";
@@ -193,11 +197,26 @@ export function scoreMeal(items: MealItem[]): MealResult {
     breakdown.push("The beans slow the sugar down a lot. That helps here.");
   }
 
+  // The right size only lifts a plate that also holds a GREEN food that slows
+  // the sugar (a green vegetable or soup, or green fish, meat, egg, beans or
+  // milk, or green nuts like the groundnut eaten with Weetabix). Every
+  // blue-card plate has one. Without it, a starch at the right size turned
+  // green on its own with palm oil, and akara + pap (Favour: yellow) went
+  // green, so more food gave a better colour (2026-10-25). Kola nut and
+  // bitter kola are chewed, not eaten with a meal, so they do not count.
+  const greenHelper = items.some(
+    (i) =>
+      i.food.baseVerdict === "green" &&
+      (isVeg(i.food) ||
+        isProtein(i.food) ||
+        (i.food.category === "nut" && i.food.id !== "kola-nut" && i.food.id !== "bitter-kola")),
+  );
+
   if (worstStarch) {
-    if (worstStarch.portion === "half") {
+    if (worstStarch.portion === "half" && greenHelper) {
       score += 1;
       breakdown.push(
-        `You chose a small size of ${cleanFoodName(worstStarch.food.name)}. That helps a lot.`,
+        `This is for the right size of ${cleanFoodName(worstStarch.food.name)}, shown below. That helps a lot.`,
       );
     } else if (worstStarch.portion === "large") {
       score -= 0.5;
@@ -267,6 +286,13 @@ export function scoreMeal(items: MealItem[]): MealResult {
       );
     }
   }
+
+  // One food on its own reads exactly its own card's colour, the same as
+  // search (founder, 2026-10-25: eba alone was red in "Check a meal" and
+  // yellow in search). Pairing and size are what move a PLATE; a single food
+  // has nothing to pair with.
+  const distinctFoods = new Set(items.map((i) => i.food.id));
+  if (distinctFoods.size === 1) score = seedScore(items[0].food.baseVerdict);
 
   const verdict = toVerdict(score);
 

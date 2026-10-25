@@ -827,7 +827,21 @@ function filterBySwallows<T extends { idea: { index: number } }>(
   return kept.length > 0 ? kept : rows;
 }
 
+/**
+ * How "Check a meal" and the blue card score a food: a GluFloat-size starch at
+ * the size on its card (the engine's "half"), everything else at its normal
+ * size. The ONE place this is decided, so a plate built by hand gets the same
+ * colour as the same plate on the blue card (founder, 2026-10-25: eba + soup +
+ * fish was green on the blue card and yellow when built by hand).
+ */
+export function rightSizePortion(id: string): "half" | "normal" {
+  return GLUFLOAT_SIZE_STARCHES.has(id) ? "half" : "normal";
+}
+
 /** The plain line that makes a GluFloat-size plate green: the starch at its card's size. */
+export function rightSizeNote(foods: Food[]): string | undefined {
+  return sizeNoteFor(foods);
+}
 function sizeNoteFor(foods: Food[]): string | undefined {
   const starch = foods.find((f) => GLUFLOAT_SIZE_STARCHES.has(f.id));
   if (!starch) return undefined;
@@ -1599,7 +1613,7 @@ function swapsFor(meal: NamedMeal, idea: MealIdea, fromId: string, ctx: SwapCont
       if (meal === "dinner" && to.gi !== "low" && !SWALLOW_IDS.has(swap.to)) continue;
       const items = target.map((id) => {
         const f = getFood(id)!;
-        return { food: f, portion: GLUFLOAT_SIZE_STARCHES.has(id) ? ("half" as const) : ("normal" as const) };
+        return { food: f, portion: rightSizePortion(id) };
       });
       if (scoreMeal(items).verdict !== "green") continue;
     }

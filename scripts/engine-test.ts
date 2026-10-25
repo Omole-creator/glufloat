@@ -1,3 +1,4 @@
+import { rightSizePortion } from "../lib/nextMeal";
 import { scoreMeal } from "../lib/verdictEngine";
 import { searchFoods, getFood } from "../lib/search";
 
@@ -84,8 +85,13 @@ const expected: [string, string[], "green" | "yellow" | "red"][] = [
   // White bread is red on its own, so beans do not lift it either.
   ["white bread + beans (red starch)", ["agege-bread", "cooked-beans"], "red"],
   ["beans alone", ["cooked-beans"], "green"],
-  ["boiled ripe plantain alone (no beans)", ["boiled-plantain-ripe"], "red"],
-  ["eba alone (no beans)", ["garri-eba"], "red"],
+  // One food on its own reads its own card's colour, the same as search
+  // (founder, 2026-10-25). Before, a fast-sugar starch alone read red here.
+  ["boiled ripe plantain alone (no beans)", ["boiled-plantain-ripe"], "yellow"],
+  ["eba alone (no beans)", ["garri-eba"], "yellow"],
+  ["carrot alone (starchy vegetable, yellow card)", ["carrot"], "yellow"],
+  // A yellow vegetable is not the vegetable that slows the sugar.
+  ["eba + carrot + fish (carrot is not a green vegetable)", ["garri-eba", "carrot", "fish"], "red"],
   // Stacking (co-founder dietitian, 2026-10-08): more food never makes a plate
   // better. Two starches are red; three "eat with care" foods drop one colour.
   ["jollof + boiled yam", ["jollof-rice", "boiled-yam"], "red"],
@@ -108,8 +114,29 @@ const expected: [string, string[], "green" | "yellow" | "red"][] = [
   ["pounded yam + egusi + beef (ordinary plate)", ["pounded-yam", "egusi-soup", "beef"], "yellow"],
 ];
 
+// "Check a meal" scores a GluFloat-size starch at its card's size, exactly like
+// the blue card (founder, 2026-10-25). The red rules still hold at that size.
+const rightSize: [string, string[], "green" | "yellow" | "red"][] = [
+  ["right size: eba + egusi + fish", ["garri-eba", "egusi-soup", "fish"], "green"],
+  ["right size: eba + egusi", ["garri-eba", "egusi-soup"], "green"],
+  ["right size: eba + fish (no soup)", ["garri-eba", "fish"], "yellow"],
+  ["right size: eba alone", ["garri-eba"], "yellow"],
+  ["right size: sweet potato alone (card colour)", ["sweet-potato"], "yellow"],
+  ["right size: beans + dodo", ["cooked-beans", "dodo"], "red"],
+  ["right size: white bread + beans", ["agege-bread", "cooked-beans"], "red"],
+  ["right size: eba + pounded yam + soup + fish", ["garri-eba", "pounded-yam", "egusi-soup", "fish"], "red"],
+  ["right size: white rice + boiled yam", ["white-rice", "boiled-yam"], "red"],
+  ["right size: eba + egusi + soft drink", ["garri-eba", "egusi-soup", "soft-drink"], "red"],
+];
+
 let failed = 0;
 console.log("\nassertions:");
+for (const [label, ids, want] of rightSize) {
+  const got = scoreMeal(ids.map((id) => ({ food: f(id), portion: rightSizePortion(id) })));
+  const ok = got.verdict === want;
+  if (!ok) failed++;
+  console.log(`  ${ok ? "ok  " : "FAIL"} ${label} -> ${got.verdict} (want ${want}, score ${got.score})`);
+}
 for (const [label, ids, want] of expected) {
   const got = scoreMeal(ids.map((id) => ({ food: f(id), portion: "normal" as const })));
   const ok = got.verdict === want;

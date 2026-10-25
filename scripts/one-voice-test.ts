@@ -5,8 +5,10 @@
  *
  *   npx tsx scripts/one-voice-test.ts
  */
-import { planForDay, platesWithFood, ideasFor, mealIdeaCalories, mealIdeaCarbs, mealIdeaFoodsForBuilder, GLUFLOAT_SIZE_STARCHES, SIZE_GROUP_LIMIT, SWALLOW_IDS, SWALLOW_WEEKLY_LIMIT, LEAN_RED_MEAT_IDS } from "../lib/nextMeal";
+import { planForDay, platesWithFood, ideasFor, rightSizePortion, rightSizeNote, mealIdeaCalories, mealIdeaCarbs, mealIdeaFoodsForBuilder, GLUFLOAT_SIZE_STARCHES, SIZE_GROUP_LIMIT, SWALLOW_IDS, SWALLOW_WEEKLY_LIMIT, LEAN_RED_MEAT_IDS } from "../lib/nextMeal";
 import { scoreMeal } from "../lib/verdictEngine";
+import foodsData from "../data/foods.json";
+import type { Food } from "../lib/types";
 import type { NamedMeal } from "../lib/mealtime";
 import type { Condition } from "../lib/personalization";
 
@@ -77,6 +79,40 @@ check(MEALS.every((m) => none[m].length === 0), "dodo (red) should be in no plat
 const lunch = platesWithFood("oat-swallow", { lunch: 900 }).lunch;
 for (let i = 1; i < lunch.length; i++)
   check(Math.abs(900 - mealIdeaCalories(lunch[i - 1])) <= Math.abs(900 - mealIdeaCalories(lunch[i])), "oat swallow lunch plates not closest-first");
+
+// 3b. "Check a meal" built BY HAND (foods typed in one by one, the raw data,
+//     no blue-card copy) gives every blue-card plate the same colour as
+//     "View details" does, and says the starch's size (founder, 2026-10-25:
+//     eba + soup + fish was green on the card and yellow by hand).
+{
+  const byId = new Map((foodsData as Food[]).map((f) => [f.id, f]));
+  const hand = (ids: string[]) => scoreMeal(ids.map((id) => ({ food: byId.get(id)!, portion: rightSizePortion(id) })));
+  let plates = 0;
+  for (const m of MEALS)
+    ideasFor(m).forEach((ids, index) => {
+      plates++;
+      const raw = ids.map((id) => byId.get(id)!);
+      const seeded = mealIdeaFoodsForBuilder({ foods: raw, names: [], index, count: 0 } as never);
+      const seededVerdict = scoreMeal(seeded.map((f) => ({ food: f, portion: rightSizePortion(f.id) }))).verdict;
+      check(hand(ids).verdict === seededVerdict, `${m} plate ${index} (${ids.join("+")}): by hand ${hand(ids).verdict}, from the card ${seededVerdict}`);
+      check(hand(ids).verdict === "green", `${m} plate ${index} (${ids.join("+")}) is ${hand(ids).verdict} when built by hand`);
+      if (ids.some((id) => GLUFLOAT_SIZE_STARCHES.has(id)))
+        check(Boolean(rightSizeNote(raw)), `${m} plate ${index}: no size line in Check a meal`);
+    });
+  check(plates > 100, `only ${plates} plates checked by hand`);
+  // A fast-sugar swallow on its own reads the same as its search card.
+  for (const id of SWALLOW_IDS) {
+    const f = byId.get(id)!;
+    check(hand([id]).verdict === f.baseVerdict, `${id} alone: Check a meal ${hand([id]).verdict}, search ${f.baseVerdict}`);
+  }
+  // Eba + soup + fish, the exact report.
+  check(hand(["garri-eba", "egusi-soup", "fish"]).verdict === "green", "eba + egusi + fish not green by hand");
+  // The right size never rescues a stacked plate or a fried starch.
+  check(hand(["garri-eba", "pounded-yam", "egusi-soup", "fish"]).verdict === "red", "two swallows should stay red");
+  check(hand(["white-rice", "boiled-yam", "efo-riro", "fish"]).verdict === "red", "rice + yam should stay red");
+  check(hand(["dodo", "cooked-beans", "fish"]).verdict === "red", "beans + dodo should stay red");
+  check(hand(["agege-bread", "cooked-beans"]).verdict === "red", "white bread + beans should stay red");
+}
 
 console.log(`${compared} blue-card plates compared with search across ${allIds.size} foods.`);
 if (fails) {

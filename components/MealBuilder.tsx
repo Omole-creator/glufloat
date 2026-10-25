@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Check, AlertTriangle, X, Plus, Utensils, Sparkles, Scale, CalendarDays, Wheat, Flame, Pointer } from "lucide-react";
 import { matchedAlias, searchFoods } from "@/lib/search";
 import { scoreMeal } from "@/lib/verdictEngine";
+import { rightSizeNote, rightSizePortion } from "@/lib/nextMeal";
 import type { Food, MealItem } from "@/lib/types";
 import { PortionMini } from "./PortionVisual";
 import FoodIcon from "./FoodIcon";
@@ -79,7 +80,7 @@ export default function MealBuilder({
   // so we replace what is there (the person chose to start from this meal).
   useEffect(() => {
     if (initialFoods && initialFoods.length > 0) {
-      setItems(initialFoods.map((f) => ({ food: f, portion: f.gluFloatSize ? ("half" as const) : ("normal" as const) })));
+      setItems(initialFoods.map((f) => ({ food: f, portion: rightSizePortion(f.id) })));
       setSeeded(true);
       setQuery("");
     }
@@ -158,7 +159,10 @@ export default function MealBuilder({
 
   const add = (food: Food) => {
     if (items.some((i) => i.food.id === food.id)) return;
-    setItems([...items, { food, portion: "normal" }]);
+    // Scored at the size its card gives, exactly like the blue card, so a
+    // plate built by hand never gets a different colour from the same plate
+    // there (founder, 2026-10-25).
+    setItems([...items, { food, portion: rightSizePortion(food.id) }]);
     setSeeded(false);
     setQuery("");
   };
@@ -173,6 +177,10 @@ export default function MealBuilder({
   // blue-card plate is green, so "View details" always opens this way. A
   // yellow or red plate keeps its fixes first.
   const portionsFirst = showVerdict && result.verdict === "green";
+  // The colour of a plate with a fast-sugar swallow, rice, yam or bread is for
+  // that starch at its card's size, so that size is said right where the
+  // amounts are, in the same words as the blue card.
+  const sizeLine = rightSizeNote(items.map((i) => i.food));
   const portions = (
     <section>
       <p className="flex items-center gap-2.5 font-display text-base font-bold text-ink">
@@ -181,6 +189,12 @@ export default function MealBuilder({
         </span>
         How much of each to eat
       </p>
+      {sizeLine && (
+        <p className="mt-3 flex gap-2.5 rounded-2xl bg-brand/[0.07] p-3.5 text-sm font-semibold leading-relaxed text-ink ring-1 ring-inset ring-brand/15">
+          <Scale aria-hidden className="mt-0.5 h-4 w-4 shrink-0 text-brand" strokeWidth={2.4} />
+          {sizeLine}
+        </p>
+      )}
       <div className="mt-3 space-y-2.5">
         {items.map((i) => (
           <PortionMini key={i.food.id} food={i.food} />
