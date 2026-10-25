@@ -442,8 +442,8 @@ export default function TodaysMeal({
   return (
     /* Brand blue, the same canvas as the landing hero, because this card IS the
        hero of /app. Redesigned 2026-10-25 with the same words: the plate is a
-       list of foods (each with its own "I don't have" button, so it is plain
-       that tapping it swaps that food), the numbers are large, and "View
+       list of foods (each swappable one has its own "Change" button; the words
+       were "I don't have", which read as "leave it out", founder 2026-10-25), the numbers are large, and "View
        details" is one big white button that clearly opens the rest. */
     <section className="relative isolate overflow-hidden rounded-[28px] bg-gradient-to-b from-[#0d3568] via-[#134b85] to-[#1b5faa] shadow-[0_24px_60px_-22px_rgba(12,42,71,0.65)]">
       <div className="dots-light pointer-events-none absolute inset-x-0 top-0 h-48 opacity-30" aria-hidden />
@@ -503,6 +503,12 @@ export default function TodaysMeal({
 
         {/* The plate: one row per food, with its numbers at the foot. */}
         <div className="mt-5 overflow-hidden rounded-3xl bg-white/[0.07] ring-1 ring-inset ring-white/15">
+          {!idea.swapped && canSwap.size > 0 && (
+            <p className="flex items-center gap-1.5 border-b border-white/10 px-4 py-2.5 text-xs font-semibold text-white/80">
+              <ArrowLeftRight className="h-3.5 w-3.5 shrink-0" strokeWidth={2.6} aria-hidden />
+              Don&apos;t have a food? Tap Change to get another one.
+            </p>
+          )}
           <ul className="divide-y divide-white/10">
             {idea.foods.map((f, i) => {
               const isNew = idea.swapped?.to.id === f.id;
@@ -523,11 +529,11 @@ export default function TodaysMeal({
                     <button
                       type="button"
                       onClick={() => swap(f)}
-                      aria-label={`I don't have ${cleanName(f)}`}
-                      className="group flex shrink-0 items-center gap-1.5 rounded-full bg-white/10 py-2 pl-2.5 pr-3 text-xs font-bold text-white ring-1 ring-inset ring-white/30 transition-all hover:bg-white hover:text-brand active:scale-95"
+                      aria-label={`Change ${cleanName(f)} if you don't have it`}
+                      className="group flex shrink-0 items-center gap-1.5 rounded-full bg-white py-2 pl-2.5 pr-3.5 text-xs font-bold text-brand shadow-[0_6px_14px_-8px_rgba(0,0,0,0.6)] transition-all hover:bg-mint active:scale-95"
                     >
                       <ArrowLeftRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:rotate-180" strokeWidth={2.6} aria-hidden />
-                      I don&apos;t have
+                      Change
                     </button>
                   )}
                 </li>

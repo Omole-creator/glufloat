@@ -31,7 +31,7 @@ for (const [tag, viewport] of [["phone", { width: 390, height: 844 }], ["desk", 
   await page.locator("#todays-meal").screenshot({ path: `${OUT}/card-${tag}.png` }).catch(async () => {
     await page.screenshot({ path: `${OUT}/card-${tag}.png`, fullPage: false });
   });
-  const swapBtn = page.getByRole("button", { name: /^I don't have / }).first();
+  const swapBtn = page.getByRole("button", { name: /^Change .* if you don't have it$/ }).first();
   if (await swapBtn.isVisible().catch(() => false)) {
     await swapBtn.click();
     await page.waitForTimeout(800);
