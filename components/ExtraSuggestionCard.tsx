@@ -13,8 +13,8 @@ import { showToast } from "@/components/Toast";
 import { FoodPhotoButton, MeasureChips } from "@/components/MeasurePhoto";
 
 /** One food's row — shared between the typical set and any automatic top-up. */
-function ExtraRow({ item, meal, snack }: { item: ExtraOption; meal: NamedMeal; snack: boolean }) {
-  const timing = !snack ? extraTimingFor(item.food.id, meal) : null;
+function ExtraRow({ item, meal, snack, hideTiming }: { item: ExtraOption; meal: NamedMeal; snack: boolean; hideTiming?: boolean }) {
+  const timing = !snack && !hideTiming ? extraTimingFor(item.food.id, meal) : null;
   return (
     <li className="px-4 py-3.5">
       <div className="flex items-start gap-3">
@@ -98,6 +98,12 @@ export default function ExtraSuggestionCard({
 }) {
   const [index, setIndex] = useState(0);
   const variant = set.variants[index % set.variants.length];
+  // When every food shares the same "eat this before your meal" line, say it
+  // once under the heading instead of under each food (2026-10-25: the same
+  // sentence twice made the card look busy).
+  const timings = set.snack ? [] : variant.items.map((o) => extraTimingFor(o.food.id, set.meal));
+  const sharedTiming =
+    timings.length > 1 && timings[0] && timings.every((t) => t === timings[0]) ? timings[0] : null;
 
   const tryAnother = () => {
     setIndex((i) => (i + 1) % set.variants.length);
@@ -148,6 +154,12 @@ export default function ExtraSuggestionCard({
             )}
           </div>
         </div>
+        {sharedTiming && (
+          <p className="relative mt-3 flex items-start gap-1.5 text-xs font-semibold leading-snug text-white/90">
+            <Clock className="mt-0.5 h-3.5 w-3.5 shrink-0" strokeWidth={2.4} />
+            {sharedTiming}
+          </p>
+        )}
         {set.variants.length > 1 && (
           <button
             type="button"
@@ -161,7 +173,7 @@ export default function ExtraSuggestionCard({
 
       <ul className="divide-y divide-line">
         {variant.items.slice(0, variant.coreCount).map((item) => (
-          <ExtraRow key={item.food.id} item={item} meal={set.meal} snack={!!set.snack} />
+          <ExtraRow key={item.food.id} item={item} meal={set.meal} snack={!!set.snack} hideTiming={!!sharedTiming} />
         ))}
       </ul>
 
@@ -172,7 +184,7 @@ export default function ExtraSuggestionCard({
           </p>
           <ul className="divide-y divide-line">
             {variant.items.slice(variant.coreCount).map((item) => (
-              <ExtraRow key={item.food.id} item={item} meal={set.meal} snack={!!set.snack} />
+              <ExtraRow key={item.food.id} item={item} meal={set.meal} snack={!!set.snack} hideTiming={!!sharedTiming} />
             ))}
           </ul>
         </>

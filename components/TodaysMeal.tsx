@@ -506,7 +506,7 @@ export default function TodaysMeal({
           {!idea.swapped && canSwap.size > 0 && (
             <p className="flex items-center gap-1.5 border-b border-white/10 px-4 py-2.5 text-xs font-semibold text-white/80">
               <ArrowLeftRight className="h-3.5 w-3.5 shrink-0" strokeWidth={2.6} aria-hidden />
-              Don&apos;t have a food? Tap Change to get another one.
+              Don&apos;t have one of the foods? Tap Change to swap it.
             </p>
           )}
           <ul className="divide-y divide-white/10">
@@ -632,7 +632,7 @@ export default function TodaysMeal({
 
         {/* One big white button that plainly opens the rest; "Try another
             meal" is the quiet second choice under it. */}
-        <div className="mt-5 space-y-1.5">
+        <div className="mt-5 space-y-2.5">
           <button
             onClick={() => {
               void trackUsage("check_this_meal");
@@ -651,9 +651,9 @@ export default function TodaysMeal({
           </button>
           <button
             onClick={another}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-bold text-white/85 transition-colors hover:bg-white/10 hover:text-white"
+            className="group flex w-full items-center justify-center gap-2 rounded-2xl bg-white/10 px-5 py-3.5 text-base font-bold text-white ring-2 ring-inset ring-white/50 transition-all hover:bg-white/20 hover:ring-white active:scale-[0.99]"
           >
-            <RefreshCw className="h-4 w-4" /> Try another meal
+            <RefreshCw className="h-5 w-5 transition-transform duration-500 group-hover:rotate-180" strokeWidth={2.4} /> Try another meal
           </button>
         </div>
       </div>

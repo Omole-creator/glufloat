@@ -741,10 +741,10 @@ export default function MonthReport({
     // no sense once the report got a tab of its own: there was nothing to fold.
     <section
       aria-label={readOnly ? "Report" : "Your report"}
-      className="rounded-3xl bg-white p-5 shadow-[0_4px_24px_-12px_rgba(12,42,71,0.22)] ring-1 ring-ink/[0.04] sm:p-6"
+      className="rounded-[28px] bg-white p-5 shadow-[0_16px_44px_-24px_rgba(12,42,71,0.4)] ring-1 ring-line sm:p-6"
     >
       <div className="flex items-start gap-3">
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand/10 text-brand">
+        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-brand to-brand-deep text-white shadow-[0_10px_20px_-10px_rgba(27,95,170,0.9)]">
           <ClipboardList className="h-5 w-5" strokeWidth={2.2} />
         </span>
         <div className="min-w-0">
@@ -764,7 +764,10 @@ export default function MonthReport({
       </div>
 
       {!hasData ? (
-        <div className="mt-5 rounded-2xl bg-mist/70 px-4 py-8 text-center">
+        <div className="mt-5 flex flex-col items-center rounded-3xl border-2 border-dashed border-line px-4 py-9 text-center">
+          <span aria-hidden className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-brand/[0.08] text-brand">
+            <ClipboardList className="h-6 w-6" strokeWidth={2} />
+          </span>
           <p className="font-display text-base font-bold text-ink">{readOnly ? (items === null ? "Loading..." : "Nothing saved this month") : "Nothing saved yet"}</p>
           {!readOnly && (
             <p className="mx-auto mt-1.5 max-w-xs text-sm leading-relaxed text-ink-soft">
@@ -780,7 +783,7 @@ export default function MonthReport({
             <button
               onClick={sendToDoctor}
               disabled={busy}
-              className="flex items-center justify-center gap-2 rounded-full bg-[#25D366] px-5 py-3 text-sm font-bold text-white shadow-[0_8px_20px_-8px_rgba(37,211,102,0.8)] transition-transform hover:-translate-y-0.5 disabled:opacity-60"
+              className="flex items-center justify-center gap-2 rounded-2xl bg-[#25D366] px-5 py-3.5 text-sm font-bold text-white shadow-[0_8px_20px_-8px_rgba(37,211,102,0.8)] transition-transform hover:-translate-y-0.5 disabled:opacity-60"
             >
               <WhatsAppIcon />
               {busy ? "Getting it ready..." : readOnly ? "Send on WhatsApp" : "Send to my doctor on WhatsApp"}
@@ -790,7 +793,7 @@ export default function MonthReport({
                 if (!readOnly) void trackUsage("doctor_report");
                 buildDoc().save(fileName);
               }}
-              className="flex items-center justify-center gap-2 rounded-full border-2 border-line bg-white px-5 py-3 text-sm font-bold text-ink transition-colors hover:border-brand"
+              className="flex items-center justify-center gap-2 rounded-2xl border-2 border-line bg-white px-5 py-3.5 text-sm font-bold text-ink transition-colors hover:border-brand"
             >
               <Download className="h-4 w-4" /> Save the PDF
             </button>

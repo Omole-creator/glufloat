@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowLeft, Check, ChevronRight, UserRound } from "lucide-react";
+import { Activity, ArrowLeft, Check, ChevronRight, Clock, HeartPulse, Pill, Ruler, Target, UserRound, Utensils, type LucideIcon } from "lucide-react";
 import {
   GOALS,
   ACTIVITY_LEVELS,
@@ -152,6 +152,20 @@ function NumberField({
     </div>
   );
 }
+
+/** A picture chip for each answer on the summary. Decoration only. */
+const STEP_ICON: Record<StepId, LucideIcon> = {
+  conditions: HeartPulse,
+  medDoses: Pill,
+  medTimes: Clock,
+  medRelation: Utensils,
+  medTypes: Pill,
+  swallows: Utensils,
+  goals: Target,
+  activity: Activity,
+  sex: UserRound,
+  body: Ruler,
+};
 
 type StepId =
   | "conditions"
@@ -586,26 +600,26 @@ export default function PersonalizationSettings({
 
   // ---- The summary -------------------------------------------------------------
   return (
-    <div className="step-in rounded-3xl bg-brand p-5 shadow-[0_18px_44px_-20px_rgba(12,42,71,0.6)] sm:p-6">
+    <div className="step-in rounded-[28px] bg-gradient-to-b from-[#0d3568] via-[#134b85] to-[#1b5faa] p-5 shadow-[0_24px_60px_-22px_rgba(12,42,71,0.65)] sm:p-6">
       {header}
 
       {targetValue != null && (
-        <div className="mt-5 overflow-hidden rounded-2xl bg-white/15 p-4 text-white ring-1 ring-inset ring-white/25">
-          <p className="text-xs font-semibold uppercase tracking-wide text-white/80">Your daily calorie target</p>
-          <p className="font-display text-3xl font-bold leading-tight">
-            {targetValue} <span className="text-base font-semibold text-white/80">kcal a day</span>
+        <div className="mt-5 overflow-hidden rounded-3xl bg-white/[0.12] p-5 text-white ring-1 ring-inset ring-white/25">
+          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-white/75">Your daily calorie target</p>
+          <p className="mt-1 font-display text-5xl font-bold leading-none tracking-tight">
+            {targetValue} <span className="text-base font-semibold tracking-normal text-white/80">kcal a day</span>
           </p>
-          <div className="mt-3 flex flex-wrap gap-x-6 gap-y-2 border-t border-white/25 pt-3 text-xs text-white/85">
-            <p>
-              Resting energy <strong className="block text-sm text-white">{Math.round(bmrValue!)} kcal</strong>
+          <div className={`mt-4 grid gap-2 text-xs text-white/80 ${bmiValue != null ? "grid-cols-3" : "grid-cols-2"}`}>
+            <p className="rounded-2xl bg-white/10 px-3 py-2.5">
+              Resting energy <strong className="mt-0.5 block font-display text-sm text-white">{Math.round(bmrValue!)} kcal</strong>
             </p>
-            <p>
-              Full daily need <strong className="block text-sm text-white">{Math.round(tdeeValue!)} kcal</strong>
+            <p className="rounded-2xl bg-white/10 px-3 py-2.5">
+              Full daily need <strong className="mt-0.5 block font-display text-sm text-white">{Math.round(tdeeValue!)} kcal</strong>
             </p>
             {bmiValue != null && (
-              <p>
+              <p className="rounded-2xl bg-white/10 px-3 py-2.5">
                 Weight status{" "}
-                <strong className="block text-sm text-white">{BMI_CATEGORY_LABEL[bmiCategory(bmiValue)]}</strong>
+                <strong className="mt-0.5 block font-display text-sm text-white">{BMI_CATEGORY_LABEL[bmiCategory(bmiValue)]}</strong>
               </p>
             )}
           </div>
@@ -667,24 +681,28 @@ export default function PersonalizationSettings({
         </p>
       )}
 
-      <ul className="mt-5 divide-y divide-line overflow-hidden rounded-2xl bg-white">
+      <ul className="mt-5 divide-y divide-line overflow-hidden rounded-3xl bg-white shadow-[0_12px_30px_-18px_rgba(0,0,0,0.45)]">
         {steps.map((s) => {
           const a = ANSWERS[s];
+          const StepIcon = STEP_ICON[s];
           return (
             <li key={s}>
               <button
                 type="button"
                 onClick={() => goTo(s)}
                 aria-label={`Change: ${a.label}`}
-                className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-mist"
+                className="group flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-mist"
               >
+                <span aria-hidden className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${a.value ? "bg-brand/[0.08] text-brand" : "bg-verdict-yellow/20 text-ink"}`}>
+                  <StepIcon className="h-[18px] w-[18px]" strokeWidth={2.2} />
+                </span>
                 <span className="min-w-0 flex-1">
                   <span className="block text-xs font-semibold text-ink-soft">{a.label}</span>
                   <span className={`block text-sm font-semibold ${a.value ? "text-ink" : "text-brand"}`}>
                     {a.value ?? "Tap to answer"}
                   </span>
                 </span>
-                <ChevronRight className="h-5 w-5 shrink-0 text-ink-soft/60" />
+                <ChevronRight className="h-5 w-5 shrink-0 text-ink-soft/60 transition-transform group-hover:translate-x-0.5" />
               </button>
             </li>
           );
@@ -701,7 +719,7 @@ export default function PersonalizationSettings({
           surface is blue or green, so its one action is the other colour. */}
       <button
         onClick={save}
-        className="mt-5 flex w-full items-center justify-center gap-2 rounded-full bg-leaf px-5 py-3 text-sm font-bold text-white shadow-[0_12px_26px_-12px_rgba(46,204,113,0.95)] transition-colors hover:bg-leaf-deep"
+        className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-leaf to-leaf-deep px-5 py-4 text-base font-bold text-white shadow-[0_12px_26px_-12px_rgba(46,204,113,0.95)] transition-transform hover:-translate-y-0.5"
       >
         {saved ? (
           <>

@@ -199,7 +199,7 @@ export default function Home() {
                     </li>
                   ))}
                 </ul>
-                <TrialCta className="group flex w-full items-center justify-center gap-2 rounded-full bg-leaf px-8 py-4 text-base font-bold text-white shadow-[0_14px_30px_-10px_rgba(62,155,79,0.6)] transition-all hover:-translate-y-0.5 hover:bg-leaf-deep" />
+                <TrialCta className="group flex w-full items-center justify-center gap-2 whitespace-nowrap rounded-full bg-leaf px-4 py-4 text-base font-bold text-white shadow-[0_14px_30px_-10px_rgba(62,155,79,0.6)] transition-all hover:-translate-y-0.5 hover:bg-leaf-deep" />
               </div>
             </Reveal>
           </div>

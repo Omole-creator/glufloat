@@ -61,27 +61,29 @@ export default function InviteFriends() {
   };
 
   return (
+    /* White, not solid green (2026-10-25): it sat in a row of solid green
+       cards. Green is kept for its one action. Same words. */
     <section
       aria-label="Invite a friend"
-      className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#1f7a3a] via-[#2e9b4f] to-[#3eb35f] p-5 text-white shadow-[0_14px_36px_-18px_rgba(31,122,58,0.8)]"
+      className="relative overflow-hidden rounded-[28px] bg-white p-5 shadow-[0_14px_40px_-22px_rgba(12,42,71,0.4)] ring-1 ring-line sm:p-6"
     >
-      <div aria-hidden className="pointer-events-none absolute -right-14 -top-16 h-44 w-44 rounded-full bg-white/10 blur-2xl" />
-      <div className="relative flex items-start gap-3">
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/15 ring-1 ring-white/25">
-          <Gift className="h-5 w-5" />
+      <div aria-hidden className="pointer-events-none absolute -right-12 -top-14 h-40 w-40 rounded-full bg-leaf/10 blur-2xl" />
+      <div className="relative flex items-start gap-3.5">
+        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-leaf to-leaf-deep text-white shadow-[0_10px_20px_-10px_rgba(62,155,79,0.9)]">
+          <Gift className="h-6 w-6" strokeWidth={2.2} />
         </span>
         <div className="min-w-0">
-          <h2 className="font-display text-lg font-bold leading-snug">
+          <h2 className="font-display text-lg font-bold leading-snug text-ink">
             Invite a friend, get {info.days} free days
           </h2>
-          <p className="mt-1 text-sm leading-relaxed text-white/85">
+          <p className="mt-1 text-sm leading-relaxed text-ink-soft">
             Send your link to someone who needs it. When they pay for GluFloat, you get {info.days} more days free.
           </p>
         </div>
       </div>
 
       {info.daysEarned > 0 && (
-        <p className="relative mt-4 rounded-2xl bg-white/15 px-4 py-2.5 text-sm font-semibold ring-1 ring-inset ring-white/20">
+        <p className="relative mt-4 rounded-2xl bg-mint px-4 py-2.5 text-sm font-semibold text-leaf-deep ring-1 ring-inset ring-leaf/20">
           You have earned {info.daysEarned} free days so far. Thank you.
         </p>
       )}
@@ -91,20 +93,20 @@ export default function InviteFriends() {
           href={`https://wa.me/?text=${encodeURIComponent(message)}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center justify-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-bold text-leaf-deep transition-colors hover:bg-white/90"
+          className="flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-leaf to-leaf-deep px-5 py-3.5 text-sm font-bold text-white shadow-[0_10px_22px_-12px_rgba(62,155,79,0.9)] transition-transform hover:-translate-y-0.5"
         >
           Invite a friend on WhatsApp
         </a>
         <button
           type="button"
           onClick={copy}
-          className="flex items-center justify-center gap-2 rounded-full bg-white/15 px-5 py-3 text-sm font-bold text-white ring-1 ring-inset ring-white/30 transition-colors hover:bg-white/25"
+          className="flex items-center justify-center gap-2 rounded-2xl bg-white px-5 py-3.5 text-sm font-bold text-ink ring-1 ring-inset ring-line transition-colors hover:bg-mist"
         >
-          {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+          {copied ? <Check className="h-4 w-4 text-leaf" /> : <Copy className="h-4 w-4" />}
           {copied ? "Copied" : "Copy my invite link"}
         </button>
       </div>
-      <p className="relative mt-3 break-all text-center text-xs text-white/70">{info.link}</p>
+      <p className="relative mt-3 break-all rounded-xl bg-mist px-3 py-2 text-center text-xs text-ink-soft">{info.link}</p>
     </section>
   );
 }
