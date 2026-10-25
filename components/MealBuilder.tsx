@@ -69,12 +69,18 @@ export default function MealBuilder({
 } = {}) {
   const [query, setQuery] = useState("");
   const [items, setItems] = useState<MealItem[]>([]);
+  // Opened with a plate (the blue card's "View details", a search plate): on a
+  // phone the answer comes first and the add-a-food box goes under it, since
+  // they came to read about this plate, not to build one. Typing a food in
+  // puts the box back on top.
+  const [seeded, setSeeded] = useState(false);
 
   // Seed the plate from outside. A new array identity means a fresh seed action,
   // so we replace what is there (the person chose to start from this meal).
   useEffect(() => {
     if (initialFoods && initialFoods.length > 0) {
       setItems(initialFoods.map((f) => ({ food: f, portion: f.gluFloatSize ? ("half" as const) : ("normal" as const) })));
+      setSeeded(true);
       setQuery("");
     }
   }, [initialFoods]);
@@ -153,6 +159,7 @@ export default function MealBuilder({
   const add = (food: Food) => {
     if (items.some((i) => i.food.id === food.id)) return;
     setItems([...items, { food, portion: "normal" }]);
+    setSeeded(false);
     setQuery("");
   };
   const remove = (id: string) =>
@@ -160,6 +167,27 @@ export default function MealBuilder({
 
   const ui = VERDICT_UI[result.verdict];
   const showVerdict = items.length > 0;
+  // A green plate has nothing to fix, so the photos and the amount to eat come
+  // straight after the answer band instead of under the reasons (founder,
+  // 2026-10-25: "make the photos patients want to see appear sooner"). Every
+  // blue-card plate is green, so "View details" always opens this way. A
+  // yellow or red plate keeps its fixes first.
+  const portionsFirst = showVerdict && result.verdict === "green";
+  const portions = (
+    <section>
+      <p className="flex items-center gap-2.5 font-display text-base font-bold text-ink">
+        <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-brand text-white">
+          <Scale className="h-4 w-4" strokeWidth={2.4} aria-hidden />
+        </span>
+        How much of each to eat
+      </p>
+      <div className="mt-3 space-y-2.5">
+        {items.map((i) => (
+          <PortionMini key={i.food.id} food={i.food} />
+        ))}
+      </div>
+    </section>
+  );
   const healthNotes = [...new Set(items.map((i) => i.food.healthNote).filter(Boolean))];
   const medicineNotes = [...new Set(items.map((i) => i.food.medicineNote).filter(Boolean))];
 
@@ -243,7 +271,7 @@ export default function MealBuilder({
       {/* right: the answer, made obvious. Redesigned 2026-10-25 with the same
           words: colour only in the answer band and the main button, every
           section below under the same quiet heading style. */}
-      <div>
+      <div className={seeded ? "order-first lg:order-none" : ""}>
         <div
           key={`${result.verdict}-${items.length}`}
           className={`overflow-hidden rounded-[28px] bg-white shadow-[0_28px_70px_-30px_rgba(12,42,71,0.5)] ring-1 ${
@@ -320,6 +348,8 @@ export default function MealBuilder({
           </div>
 
           <div className="answer-rise space-y-5 p-5 sm:p-6">
+            {portionsFirst && portions}
+
             {/* Warns before a rule is broken, e.g. a second fast-sugar meal today. */}
             <div className="empty:hidden">
               {showVerdict && (
@@ -442,21 +472,7 @@ export default function MealBuilder({
               </div>
             )}
 
-            {showVerdict && (
-              <section>
-                <p className="flex items-center gap-2.5 font-display text-base font-bold text-ink">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-brand text-white">
-                    <Scale className="h-4 w-4" strokeWidth={2.4} aria-hidden />
-                  </span>
-                  How much of each to eat
-                </p>
-                <div className="mt-3 space-y-2.5">
-                  {items.map((i) => (
-                    <PortionMini key={i.food.id} food={i.food} />
-                  ))}
-                </div>
-              </section>
-            )}
+            {showVerdict && !portionsFirst && portions}
 
             {showVerdict && often && (
               <section className="flex gap-3.5 rounded-3xl bg-brand/[0.06] p-4 ring-1 ring-inset ring-brand/15">
