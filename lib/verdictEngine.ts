@@ -204,11 +204,17 @@ export function scoreMeal(items: MealItem[]): MealResult {
   // green on its own with palm oil, and akara + pap (Favour: yellow) went
   // green, so more food gave a better colour (2026-10-25). Kola nut and
   // bitter kola are chewed, not eaten with a meal, so they do not count.
+  // Beans and moi moi do NOT count here either (senior-dietitian ruling,
+  // founder approved, 2026-10-26). They already earn the beans lift, and no
+  // study shows them taming a fast starch: Favour ruled beans + ripe plantain
+  // "yellow, keep the plantain small", pap with them measures 92, and beans
+  // porridge + garri 96. So beans + plantain, beans + white rice, bread +
+  // beans and pap + moi moi stay yellow at the right size.
   const greenHelper = items.some(
     (i) =>
       i.food.baseVerdict === "green" &&
       (isVeg(i.food) ||
-        isProtein(i.food) ||
+        (isProtein(i.food) && i.food.role !== "legume") ||
         (i.food.category === "nut" && i.food.id !== "kola-nut" && i.food.id !== "bitter-kola")),
   );
 

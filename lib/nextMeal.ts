@@ -619,9 +619,10 @@ const SIZE_PLATES_BREAKFAST: string[][] = [
   ["boiled-water-yam", "egg-sauce"],
   ["sweet-potato", "egg-sauce"],
   ["cocoyam", "egg-sauce"],
-  ["pap", "moi-moi"],
-  ["custard", "moi-moi"],
-  ["eko-agidi", "moi-moi"],
+  // Pap, custard and eko with moi moi were here until 2026-10-26. They are
+  // yellow even at the right size: pap measures 92, and beans or moi moi on
+  // their own have no measured effect on a fast starch (docs/EVIDENCE.md §2,
+  // founder chose this as dietitian's ruling). The blue card serves green only.
   ["golden-morn", "eggs"],
   ["weetabix", "groundnut"],
   ["masa", "miyan-taushe", "chicken"],

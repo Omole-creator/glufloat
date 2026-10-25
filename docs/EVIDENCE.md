@@ -954,3 +954,32 @@ Known: efo riro, edikang ikong, editan and vegetable soup carry 21-27g fat per
 **Lean beef** corrected the same day: 190 kcal, 29g protein, 8g fat per 100g
 cooked lean (was 250/26/17, regular beef). **Fish** is counted as Titus or
 mackerel (the numbers were already oily fish) and shown under that name.
+
+## 16. Beans do not make a fast starch green, even at the right size (2026-10-26)
+
+Ruled by Claude as senior dietitian, approved by the founder, when "Check a
+meal" started scoring swallows, rice, yam and bread at their card's size
+(the same size the blue card serves).
+
+**The rule.** At the right size, a plate turns green only with a green helper
+that is NOT beans: a green vegetable or soup, green fish, meat, egg or milk,
+or a green nut. Beans and moi moi keep their own lift (`+0.5`, §8 Q7),
+but they cannot also unlock the right-size step.
+
+**Why.**
+- Favour's own answer (Q7, §8): beans with ripe plantain is **yellow, keep the
+  plantain small**, which is yellow even at the small size.
+- What moves a swallow is measured: the soup, about 20 GI points (eba +
+  efo-egusi 99 to 74), and an egg, 10 (yam 94 to 84). For beans with a fast
+  starch the only measured plate is the warning case, beans porridge + soaked
+  garri at **96**. The asymmetry rule (§0) needs two sources to mark a food
+  better, and there are none.
+- Beans + white rice green would contradict the rice-and-beans card (yellow),
+  which is the same food cooked in one pot.
+
+**What moved.** Yellow at the right size: beans + boiled ripe plantain, beans
++ white rice, whole wheat bread + beans, pap + moi moi, custard + moi moi, eko
++ moi moi, akara + pap. **Pap, custard and eko with moi moi left the blue card**
+(breakfast 33 to 30 plates); their swaps stay in the swap table, unused. Still
+green: wheat bread + egg + moi moi (the egg), and any of the above with a green
+soup or vegetable added.

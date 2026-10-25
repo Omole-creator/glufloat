@@ -127,6 +127,17 @@ const rightSize: [string, string[], "green" | "yellow" | "red"][] = [
   ["right size: eba + pounded yam + soup + fish", ["garri-eba", "pounded-yam", "egusi-soup", "fish"], "red"],
   ["right size: white rice + boiled yam", ["white-rice", "boiled-yam"], "red"],
   ["right size: eba + egusi + soft drink", ["garri-eba", "egusi-soup", "soft-drink"], "red"],
+  // Beans or moi moi alone never make a fast starch green, even at the right
+  // size (Favour: beans + ripe plantain "yellow, keep the plantain small";
+  // senior-dietitian ruling, founder approved, 2026-10-26).
+  ["right size: beans + boiled ripe plantain", ["cooked-beans", "boiled-plantain-ripe"], "yellow"],
+  ["right size: beans + white rice", ["cooked-beans", "white-rice"], "yellow"],
+  ["right size: wheat bread + beans", ["whole-wheat-bread", "cooked-beans"], "yellow"],
+  ["right size: pap + moi moi", ["pap", "moi-moi"], "yellow"],
+  ["right size: akara + pap", ["akara", "pap"], "yellow"],
+  // A green non-beans helper still works.
+  ["right size: wheat bread + egg + moi moi", ["whole-wheat-bread", "eggs", "moi-moi"], "green"],
+  ["right size: beans + ripe plantain + efo riro", ["cooked-beans", "boiled-plantain-ripe", "efo-riro"], "green"],
 ];
 
 let failed = 0;

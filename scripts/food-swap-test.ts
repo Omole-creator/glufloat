@@ -52,6 +52,7 @@ for (const [from, to] of ONE_WAY_BACK) {
 check("eggs are never resized", !FOOD_SWAPS.some((s) => s.to === "eggs" && s.grams));
 
 // 2. Every swap is green the way the card serves it (a blue-card plate, or a new green plate).
+const unused: string[] = [];
 for (const s of FOOD_SWAPS) {
   let landed = 0;
   for (const meal of MEALS) {
@@ -81,8 +82,15 @@ for (const s of FOOD_SWAPS) {
       }
     });
   }
-  check(`${s.from} -> ${s.to} lands on at least one plate`, landed > 0);
+  // A swap can only land where its food is served. Pap, custard and eko left
+  // the blue card on 2026-10-26 (yellow even at the right size), so their
+  // swaps stay in Favour's table, unused, until one of them is served again.
+  const served = MEALS.some((m) => ideasFor(m).some((p) => p.includes(s.from)));
+  if (!served) unused.push(`${s.from} -> ${s.to}`);
+  else check(`${s.from} -> ${s.to} lands on at least one plate`, landed > 0);
 }
+if (unused.length) console.log(`Unused (food not on any blue-card plate): ${unused.join(", ")}`);
+check("only the pap, custard and eko swaps are unused", unused.every((u) => /^(pap|custard|eko-agidi) ->/.test(u)), unused.join(", "));
 
 // 3. The person's rules.
 function anySwapInto(conditions: Condition[], to: Set<string>, extra: Parameters<typeof swapInPlate>[3] = {}): string | null {
