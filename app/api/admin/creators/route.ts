@@ -57,7 +57,7 @@ export async function POST(request: Request) {
   const step = Number(sent?.step);
   if (!email || !name) return NextResponse.json({ error: "Name and a valid email are needed." }, { status: 400 });
   if (!sent || !Number.isInteger(step) || step < 1 || step > OUTREACH_STEPS)
-    return NextResponse.json({ error: "sent.step must be 1 to 5." }, { status: 400 });
+    return NextResponse.json({ error: `sent.step must be 1 to ${OUTREACH_STEPS}.` }, { status: 400 });
 
   const admin = createAdminClient();
   const { data: found, error: readErr } = await admin.from("creator_outreach").select("*").eq("email", email).maybeSingle();

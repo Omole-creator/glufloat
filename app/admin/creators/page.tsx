@@ -5,7 +5,7 @@ import AdminLogin from "../AdminLogin";
 import AdminShell from "../AdminShell";
 import AdminHero from "../AdminHero";
 import FoldCard from "@/components/FoldCard";
-import { gmailThreadUrl, OUTREACH_DAYS, OUTREACH_STEPS, STATUS_LABEL, type Creator, type OutreachStatus } from "@/lib/creatorOutreach";
+import { gmailThreadUrl, KIT_EMAIL, OUTREACH_DAYS, OUTREACH_STEPS, STATUS_LABEL, type Creator, type OutreachStatus } from "@/lib/creatorOutreach";
 import CreatorControls from "./CreatorControls";
 
 export const dynamic = "force-dynamic";
@@ -72,6 +72,7 @@ export default async function CreatorsAdminPage() {
                 <span>
                   Email {c.step} of {OUTREACH_STEPS}
                   {c.status === "emailing" && c.next_due_at ? ` · next ${day(c.next_due_at)}` : ""}
+                  {c.status === "emailing" && !c.next_due_at && c.step >= OUTREACH_STEPS ? " · all sent, no reply" : ""}
                 </span>
               </span>
             }
@@ -114,7 +115,7 @@ export default async function CreatorsAdminPage() {
               {c.emails.map((e) => (
                 <li key={e.step} className="flex flex-wrap items-baseline justify-between gap-2 px-3 py-2 text-sm">
                   <span className="min-w-0 text-ink">
-                    <span className="font-semibold">Email {e.step}</span> (day {OUTREACH_DAYS[e.step - 1]}): {e.subject}
+                    <span className="font-semibold">Email {KIT_EMAIL[e.step - 1]}</span> (day {OUTREACH_DAYS[e.step - 1]}): {e.subject}
                   </span>
                   <span className="text-xs text-ink-soft">{day(e.sent_at)}</span>
                 </li>

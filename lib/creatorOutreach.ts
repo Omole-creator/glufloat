@@ -2,10 +2,15 @@
  * Creator partnership emails (founder, 2026-10-26). Pure rules shared by the
  * admin page and /api/admin/creators.
  *
- * The Outreach Kit sends 5 emails on days 1, 4, 8, 13 and 19, and any reply
- * stops them. Day N is counted from the first email.
+ * The Outreach Kit has 5 emails on days 1, 4, 8, 13 and 19, and any reply
+ * stops them. Email 2 needs a real user's story and there is none yet, so the
+ * kit's own rule applies ("send Email 3 instead"): 4 emails, the kit's
+ * Emails 1, 3, 4 and 5, on days 1, 4, 8 and 13. Day N counts from the first.
+ * When a real story exists, add Email 2 back here and in the job's prompt.
  */
-export const OUTREACH_DAYS = [1, 4, 8, 13, 19] as const;
+export const OUTREACH_DAYS = [1, 4, 8, 13] as const;
+/** Which email of the Outreach Kit each step sends. */
+export const KIT_EMAIL = [1, 3, 4, 5] as const;
 export const OUTREACH_STEPS = OUTREACH_DAYS.length;
 
 export type OutreachStatus = "emailing" | "replied" | "yes" | "no" | "stopped" | "bounced";
@@ -47,7 +52,7 @@ export function canEmail(status: OutreachStatus): boolean {
   return status === "emailing";
 }
 
-/** When the next email is due after `step` emails, or null when all 5 went. */
+/** When the next email is due after `step` emails, or null when all went. */
 export function nextDue(firstSentAt: string, step: number): string | null {
   if (step >= OUTREACH_STEPS) return null;
   const days = OUTREACH_DAYS[step] - OUTREACH_DAYS[0];

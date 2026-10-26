@@ -1,8 +1,8 @@
 -- #36  Creator outreach: every health creator we have emailed (2026-10-26).
 --
 -- Founder: creator partnership emails go out automatically from
--- glufloat@gmail.com (a scheduled Claude job, 5 emails on days 1, 4, 8, 13
--- and 19, stopped by any reply). Each creator emailed is one row here, shown
+-- glufloat@gmail.com (a scheduled Claude job, the Outreach Kit's Emails 1,
+-- 3, 4 and 5 on days 1, 4, 8 and 13, stopped by any reply). Each creator emailed is one row here, shown
 -- folded on /admin/creators with Edit and Delete.
 --
 -- Written and read only by the server (service role), through
