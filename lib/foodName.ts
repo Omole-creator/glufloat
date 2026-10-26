@@ -38,6 +38,11 @@ const PREFIX_STATES = new Set([
  */
 const NAME_DISPLAY: Record<string, string> = {
   "Fish (Titus / Mackerel / Tilapia / Catfish)": "Fish (Titus or Mackerel)",
+  // The slash rule below drops "(unripe / green)", so both plantains read
+  // "Boiled Plantain" and a swap from one to the other looked like nothing
+  // happened (founder, 2026-10-26).
+  "Boiled Plantain (unripe / green)": "Boiled Unripe Plantain",
+  "Boiled Plantain (ripe / yellow)": "Boiled Ripe Plantain",
 };
 
 export function cleanFoodName(name: string): string {

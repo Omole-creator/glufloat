@@ -19,6 +19,8 @@ import {
 } from "../lib/nextMeal";
 import { scoreMeal } from "../lib/verdictEngine";
 import { getFood } from "../lib/search";
+import { cleanFoodName } from "../lib/foodName";
+import allFoods from "../data/foods.json";
 import type { NamedMeal } from "../lib/mealtime";
 import type { Condition } from "../lib/personalization";
 
@@ -50,6 +52,19 @@ for (const [from, to] of ONE_WAY_BACK) {
   check(`one-way row never runs backwards (${from} -> ${to})`, !FOOD_SWAPS.some((s) => s.from === from && s.to === to));
 }
 check("eggs are never resized", !FOOD_SWAPS.some((s) => s.to === "eggs" && s.grams));
+// A swap must LOOK like a change: both plantains once showed as "Boiled
+// Plantain", so swapping one for the other seemed to do nothing (2026-10-26).
+for (const s of FOOD_SWAPS) {
+  check(`${s.from} -> ${s.to} shows two different names`, cleanFoodName(getFood(s.from)!.name) !== cleanFoodName(getFood(s.to)!.name));
+}
+{
+  const seen = new Map<string, string>();
+  for (const f of allFoods as { id: string; name: string }[]) {
+    const shown = cleanFoodName(f.name).toLowerCase();
+    check(`${f.id} has its own shown name`, !seen.has(shown), `same as ${seen.get(shown)}: "${shown}"`);
+    seen.set(shown, f.id);
+  }
+}
 
 // 2. Every swap is green the way the card serves it (a blue-card plate, or a new green plate).
 const unused: string[] = [];
