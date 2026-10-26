@@ -211,16 +211,19 @@ for (const q of ["white rice", "efo riro", "fish"]) {
   await page.waitForTimeout(250);
 }
 await page.screenshot({ path: `${OUT}/meal-before-fix.png` });
-await check("meal starts yellow (normal rice + veg + fish)", async () =>
-  visible(page.getByText("Almost there. One small change makes it green.")),
+// "Check a meal" scores the rice at its card's size, like the blue card
+// (founder, 2026-10-25), so rice + efo riro + fish is green, as it is there.
+await check("rice + veg + fish is green at the right size", async () =>
+  visible(page.getByText("This food is good. Enjoy it.")),
 );
 // There is no Small/Normal/Large picker any more (dietitian, 2026-10-07):
 // one real size per food. The fix tells them the size instead.
 await check("no size picker in the meal builder", async () =>
   (await page.getByRole("button", { name: "Small" }).filter({ visible: true }).count()) === 0,
 );
-await check("yellow meal names the safe size as its fix", async () =>
-  visible(page.getByText("Eat less", { exact: false }).filter({ visible: true }).first()),
+// The green rests on that size, so the size line is said beside the amounts.
+await check("green rice meal names the size it depends on", async () =>
+  visible(page.getByText("Eat only this much", { exact: false }).filter({ visible: true }).first()),
 );
 
 // The meal builder answers "how often", the way a single food card does. The
