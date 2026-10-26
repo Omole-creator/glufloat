@@ -17,6 +17,7 @@ import {
   Hospital,
   Handshake,
   Wallet,
+  Megaphone,
 } from "lucide-react";
 
 /**
@@ -48,6 +49,7 @@ const GROUPS = [
       { href: "/admin/dietitians", label: "Dietitians", icon: Stethoscope },
       { href: "/admin/doctors", label: "Doctors", icon: Stethoscope },
       { href: "/admin/agents", label: "Doctor acquisition reps", icon: Handshake },
+      { href: "/admin/creators", label: "Creators", icon: Megaphone },
       { href: "/admin/email", label: "Email", icon: Mail },
     ],
   },
