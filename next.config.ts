@@ -13,6 +13,16 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // The creator partnership summary is shared by link in outreach emails. It
+  // is not linked from any page; keep search engines from listing it.
+  async headers() {
+    return [
+      {
+        source: "/creators/:path*",
+        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
+      },
+    ];
+  },
 };
 
 export default nextConfig;
