@@ -3,7 +3,7 @@ import Image from "next/image";
 import { createAdminClient } from "@/lib/supabase/server";
 import { doctorsReady } from "@/lib/careFeesServer";
 import { loadFieldTeam, moneyFor, type DoctorStats, type FieldAgent } from "@/lib/fieldTeam";
-import { ADVISOR_DIRECT_RATE, ADVISOR_RATE, AGENT_RATE, maskAccount, nairaFromKobo } from "@/lib/careFees";
+import { ADVISOR_DIRECT_RATE, ADVISOR_RATE, AGENT_RATE, REP_PATIENT_SHARE, maskAccount, nairaFromKobo } from "@/lib/careFees";
 import { PREMIUM_MONTHLY } from "@/lib/hospitalPlans";
 import { SITE_URL } from "@/lib/site";
 import AgentShare from "./AgentShare";
@@ -44,6 +44,26 @@ export default async function AgentDashboard({ params }: { params: Promise<{ tok
   const thisMonth = money.earnings.filter((e) => e.earned_at >= monthStart).reduce((n, e) => n + e.amount, 0);
   const fee = (rate: number) => nairaFromKobo(Math.floor(PREMIUM_MONTHLY * 100 * rate));
   const first = agent.name.split(/\s+/)[0];
+
+  // Patients who came through this rep's own PATIENT link (lib/repPatients.ts).
+  // Counts only, never a name. Empty before rep-patients-schema.sql (#38).
+  let linkPatients = 0;
+  let linkPaying = 0;
+  {
+    const { data: rp } = await admin.from("rep_patients").select("user_id").eq("agent_id", agent.id);
+    const ids = (rp ?? []).map((r) => r.user_id as string);
+    linkPatients = ids.length;
+    const now = new Date().toISOString();
+    for (let i = 0; i < ids.length; i += 100) {
+      const { count } = await admin
+        .from("subscriptions")
+        .select("user_id", { count: "exact", head: true })
+        .in("user_id", ids.slice(i, i + 100))
+        .in("status", ["active", "non-renewing"])
+        .gt("current_period_end", now);
+      linkPaying += count ?? 0;
+    }
+  }
 
   const tiles = [
     { label: "To be paid", value: nairaFromKobo(money.owed + money.sending), sub: "paid to your bank every week" },
@@ -97,6 +117,10 @@ export default async function AgentDashboard({ params }: { params: Promise<{ tok
             <p className="mb-2 text-xs font-bold uppercase tracking-[0.1em] text-white/70">Your link for doctors</p>
             <AgentShare link={`${SITE_URL}/d/${agent.ref_code}`} />
           </div>
+          <div className="mt-5">
+            <p className="mb-2 text-xs font-bold uppercase tracking-[0.1em] text-white/70">Your link for patients</p>
+            <AgentShare link={`${SITE_URL}/p/${agent.ref_code}`} forPatients />
+          </div>
         </div>
       </header>
 
@@ -119,6 +143,24 @@ export default async function AgentDashboard({ params }: { params: Promise<{ tok
             ? `Paid every week to ${agent.account_name ?? ""} (${agent.bank_name ?? ""} ${maskAccount(agent.account_number)}).`
             : "Send GluFloat your bank details so we can pay you."}
         </p>
+
+        <section className="mt-6 rounded-2xl border border-[#e3e9f1] bg-white">
+          <h2 className="border-b border-[#eef2f7] px-5 py-4 font-display text-lg font-bold text-ink">Patients from your patient link</h2>
+          <div className="flex items-center justify-between gap-3 px-5 py-4 text-sm">
+            <p className="text-ink-soft">
+              You earn {fee(REP_PATIENT_SHARE)} each month for each patient who joins with your patient link and pays for GluFloat
+              Premium, for their first 12 months. On other plans, you earn a third of what they pay.
+            </p>
+            <div className="shrink-0 text-right text-xs text-ink-soft">
+              <p>
+                <span className="font-display text-base font-bold text-ink">{linkPatients}</span> joined
+              </p>
+              <p>
+                <span className="font-bold text-leaf-deep">{linkPaying}</span> paying
+              </p>
+            </div>
+          </div>
+        </section>
 
         {advisor && (
           <section className="mt-6 rounded-2xl border border-[#e3e9f1] bg-white">

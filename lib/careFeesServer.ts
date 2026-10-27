@@ -10,7 +10,8 @@
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { TRIAL_DAYS } from "@/lib/trial";
-import { COLLEAGUE_BONUS_KOBO, REVIEW_FEE_KOBO, reviewReference, splitPayment } from "@/lib/careFees";
+import { COLLEAGUE_BONUS_KOBO, REVIEW_FEE_KOBO, reviewReference, splitPayment, splitRepPatientPayment } from "@/lib/careFees";
+import { repPatientLink } from "@/lib/repPatients";
 
 type DoctorPractice = {
   id: string;
@@ -43,6 +44,14 @@ export async function earnCareFees(
   p: { uid: string; reference: string; amount: number; paidAt: string },
 ): Promise<void> {
   try {
+    // A patient a rep brought with their PATIENT link (/p/<code>): the rep
+    // gets a third for the patient's first 12 months. This link wins over a
+    // doctor's rep shares (the rep found the patient first), so the two can
+    // never both be paid on one payment. A doctor's colleague bonus below is
+    // separate and still runs.
+    const repLink = await repPatientLink(admin, p.uid);
+    if (repLink) await earnRepPatientFee(admin, p, repLink);
+
     const link = await patientsDoctor(admin, p.uid);
     if (!link) return;
     const practice = link.practice;
@@ -84,7 +93,7 @@ export async function earnCareFees(
       firstPaidAt,
     });
 
-    const rows = shares.map((s) => ({
+    const rows = (repLink ? [] : shares).map((s) => ({
       reference: p.reference,
       kind: s.kind,
       hospital_id: s.kind === "care" ? practice.id : null,
@@ -124,6 +133,49 @@ export async function earnCareFees(
     }
   } catch {
     /* never block a patient's access over a care fee */
+  }
+}
+
+async function earnRepPatientFee(
+  admin: SupabaseClient,
+  p: { uid: string; reference: string; amount: number; paidAt: string },
+  repLink: { agentId: string; attachedAt: string },
+): Promise<void> {
+  try {
+    const paidAt = new Date(p.paidAt || Date.now());
+    const { data: rep } = await admin.from("field_agents").select("id,status").eq("id", repLink.agentId).maybeSingle();
+    // The 12 months start at the patient's first payment since they were tied
+    // to the rep. This payment is already in payments, so a first payment
+    // finds itself.
+    const { data: first } = await admin
+      .from("payments")
+      .select("paid_at")
+      .eq("user_id", p.uid)
+      .eq("status", "success")
+      .not("paid_at", "is", null)
+      .gte("paid_at", repLink.attachedAt)
+      .order("paid_at", { ascending: true })
+      .limit(1);
+    const firstPaidAt = first && first.length ? new Date(first[0].paid_at as string) : null;
+    const shares = splitRepPatientPayment({ amountKobo: p.amount, agentActive: rep?.status === "active", paidAt, firstPaidAt });
+    if (!shares.length) return;
+    await admin.from("clinician_earnings").upsert(
+      shares.map((s) => ({
+        reference: p.reference,
+        kind: s.kind,
+        hospital_id: null,
+        agent_id: repLink.agentId,
+        source_hospital_id: null,
+        patient_user_id: p.uid,
+        payment_amount: p.amount,
+        rate: s.rate,
+        amount: s.amount,
+        earned_at: paidAt.toISOString(),
+      })),
+      { onConflict: "reference,kind", ignoreDuplicates: true },
+    );
+  } catch {
+    /* never block a patient's access over a rep's fee */
   }
 }
 

@@ -7,6 +7,8 @@ import {
   fileProblem,
   htmlToText,
   isEmail,
+  isSendKey,
+  newSendKey,
   sendDirectEmail,
   senderFor,
   type DirectAttachment,
@@ -58,6 +60,9 @@ export async function POST(request: Request) {
     })),
   );
 
+  const givenKey = str("sendKey").toUpperCase();
+  const sendKey = isSendKey(givenKey) ? givenKey : newSendKey();
+
   const html = directEmailHtml(subject, sender.name, body);
   const sent = await sendDirectEmail({
     from: sender.email,
@@ -67,6 +72,7 @@ export async function POST(request: Request) {
     html,
     text: htmlToText(body),
     attachments,
+    sendKey,
   });
   if (!sent.ok) {
     const notSender = /verified sender|from address/i.test(sent.detail);
@@ -74,7 +80,9 @@ export async function POST(request: Request) {
       {
         error: notSender
           ? `${sender.email} is not a verified sender in Mailyte yet. Add it in Mailyte (Sending, Senders), confirm the email Mailyte sends to it, then try again.`
-          : `Mailyte did not send it: ${sent.detail}`,
+          : sent.status === 409 || sent.status === null
+            ? sent.detail
+            : `Mailyte did not send it: ${sent.detail}`,
       },
       { status: 502 },
     );
@@ -82,9 +90,19 @@ export async function POST(request: Request) {
 
   // The list. The email has already gone; a list that is not ready yet
   // (#33 not run) must never turn a sent email into an error.
+  // A retry of an email that already went gets Mailyte's first answer back
+  // (same message id): it is already on the list, so it is not added twice.
+  // The database sometimes stalls for many seconds; the list must never keep
+  // the page on "Sending..." after the email has gone, so it gets 8 seconds.
   let saved = false;
   try {
-    const { error } = await createAdminClient()
+    const db = createAdminClient();
+    const write = async () => {
+      if (sent.messageId) {
+        const { data: had } = await db.from("direct_emails").select("id").eq("message_id", sent.messageId).limit(1);
+        if (had && had.length) return true;
+      }
+      const { error } = await db
       .from("direct_emails")
       .insert({
         from_email: sender.email,
@@ -96,7 +114,9 @@ export async function POST(request: Request) {
         attachments: attachments.map((a) => a.name),
         message_id: sent.messageId,
       });
-    saved = !error;
+      return !error;
+    };
+    saved = await Promise.race([write(), new Promise<boolean>((r) => setTimeout(() => r(false), 8000))]);
   } catch {
     saved = false;
   }

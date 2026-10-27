@@ -1,10 +1,10 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Paperclip, Send, X, RotateCcw, Trash2, ChevronDown } from "lucide-react";
+import { Paperclip, Send, X, RotateCcw, Trash2, ChevronDown, MessageCircleReply } from "lucide-react";
 import RichEditor from "./RichEditor";
-import { MAX_TOTAL_BYTES, fileProblem, mb } from "@/lib/directEmail";
+import { MAX_TOTAL_BYTES, fileProblem, mb, newSendKey } from "@/lib/directEmail";
 
 export type DirectFrom = { email: string; name: string; ready: boolean | null };
 export type DirectSent = {
@@ -17,6 +17,10 @@ export type DirectSent = {
   subject: string;
   html: string;
   attachments: string[];
+  /** Set by the reply-checking job, or by hand (#37). Missing before #37 runs. */
+  replied_at?: string | null;
+  reply_from?: string | null;
+  reply_snippet?: string | null;
 };
 
 const field =
@@ -61,6 +65,13 @@ export default function DirectEmail({
   const [removing, setRemoving] = useState(false);
   const picker = useRef<HTMLInputElement>(null);
   const formTop = useRef<HTMLDivElement>(null);
+  // One key per email (lib/directEmail.ts newSendKey): a new one whenever the
+  // email changes, the SAME one when Send is pressed again after a slow or
+  // stuck try, so Mailyte never sends a second copy.
+  const sendKey = useRef("");
+  useEffect(() => {
+    sendKey.current = newSendKey();
+  }, [from, toName, toEmail, cc, subject, html, files]);
 
   const sender = senders.find((s) => s.email === from);
   const fileError = fileProblem(files);
@@ -102,9 +113,14 @@ export default function DirectEmail({
     body.set("cc", cc);
     body.set("subject", subject);
     body.set("html", html);
+    body.set("sendKey", sendKey.current);
     for (const f of files) body.append("files", f, f.name);
+    // Never wait for ever: a slow or dropped connection used to leave the
+    // button on "Sending..." with no way out. Two minutes covers a slow upload.
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 120_000);
     try {
-      const res = await fetch("/api/admin/email/direct", { method: "POST", body });
+      const res = await fetch("/api/admin/email/direct", { method: "POST", body, signal: ctrl.signal });
       const out = await res.json().catch(() => ({}));
       if (res.ok) {
         setMsg({
@@ -119,9 +135,16 @@ export default function DirectEmail({
           text: res.status === 413 ? `The files are too big. Keep them under ${mb(MAX_TOTAL_BYTES)} in total.` : (out.error ?? "It did not send. Try again."),
         });
       }
-    } catch {
-      setMsg({ ok: false, text: "No connection. Nothing was sent. Try again." });
+    } catch (e) {
+      setMsg({
+        ok: false,
+        text:
+          e instanceof Error && e.name === "AbortError"
+            ? "This took too long, so we stopped waiting. Your internet may be slow. Press Send again: the same email will not go twice."
+            : "The connection dropped. Press Send again: the same email will not go twice.",
+      });
     }
+    clearTimeout(timer);
     setBusy(false);
   };
 
@@ -139,6 +162,22 @@ export default function DirectEmail({
     setResetKey((k) => k + 1);
     setMsg(null);
     formTop.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const replies = sent.filter((e) => e.replied_at).length;
+  const markReply = async (e: DirectSent, replied: boolean) => {
+    try {
+      const res = await fetch("/api/admin/email/replies", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: e.id, replied }),
+      });
+      const out = await res.json().catch(() => ({}));
+      if (res.ok) router.refresh();
+      else setMsg({ ok: false, text: out.error ?? "Could not change it." });
+    } catch {
+      setMsg({ ok: false, text: "No connection. Try again." });
+    }
   };
 
   const remove = async () => {
@@ -283,7 +322,13 @@ export default function DirectEmail({
       <details className="group border-t border-line pt-4">
         <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-bold text-ink">
           <span>
-            Sent to one person or organisation {listReady && <span className="font-normal text-ink-soft">· {sent.length}</span>}
+            Sent to one person or organisation{" "}
+            {listReady && (
+              <span className="font-normal text-ink-soft">
+                · {sent.length}
+                {replies > 0 && <span className="font-bold text-leaf-deep"> · {replies} replied</span>}
+              </span>
+            )}
           </span>
           <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" />
         </summary>
@@ -306,8 +351,31 @@ export default function DirectEmail({
                       {e.attachments.join(", ")}
                     </p>
                   )}
+                  {e.replied_at ? (
+                    <div className="mt-2 rounded-xl bg-leaf/10 px-3 py-2 text-xs text-ink ring-1 ring-inset ring-leaf/20">
+                      <p className="font-bold text-leaf-deep">
+                        <MessageCircleReply className="mr-1 inline h-3.5 w-3.5" />
+                        Replied {when(e.replied_at)}
+                        {e.reply_from ? ` by ${e.reply_from}` : ""}. Read it in glufloat@gmail.com.
+                      </p>
+                      {e.reply_snippet && <p className="mt-1 text-ink-soft">&ldquo;{e.reply_snippet}&rdquo;</p>}
+                    </div>
+                  ) : (
+                    e.replied_at === null && <p className="mt-1 text-xs font-semibold text-ink-soft">No reply yet</p>
+                  )}
                 </div>
-                <div className="flex shrink-0 gap-2">
+                <div className="flex shrink-0 flex-wrap gap-2">
+                  {e.replied_at !== undefined && (
+                    <button
+                      type="button"
+                      onClick={() => markReply(e, !e.replied_at)}
+                      aria-label={`${e.replied_at ? "Not replied" : "Mark as replied"}: ${e.subject} to ${e.to_name}, ${when(e.sent_at)}`}
+                      className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold text-ink ring-1 ring-line hover:bg-mist"
+                    >
+                      <MessageCircleReply className="h-3.5 w-3.5" />
+                      {e.replied_at ? "Not replied" : "Mark as replied"}
+                    </button>
+                  )}
                   <button
                     type="button"
                     onClick={() => sendAgain(e)}

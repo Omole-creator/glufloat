@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { createAdminClient, createClient } from "@/lib/supabase/server";
 import { INVITE_COOKIE, REFERRAL_DAYS, attachInvite, inviteCodeFor } from "@/lib/referral";
 import { SITE_URL } from "@/lib/site";
+import { REP_PATIENT_COOKIE, attachRepPatient } from "@/lib/repPatients";
 
 export const dynamic = "force-dynamic";
 
@@ -45,7 +46,9 @@ export async function GET() {
 export async function POST() {
   const jar = await cookies();
   const inviter = jar.get(INVITE_COOKIE)?.value;
-  if (!inviter) return NextResponse.json({ ok: false });
+  // A rep's patient link (/p/<code>, lib/repPatients.ts) is tied on the same call.
+  const rep = jar.get(REP_PATIENT_COOKIE)?.value;
+  if (!inviter && !rep) return NextResponse.json({ ok: false });
 
   const supabase = await createClient();
   const {
@@ -53,9 +56,12 @@ export async function POST() {
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ ok: false }, { status: 401 });
 
-  const attached = await attachInvite(createAdminClient(), user.id, inviter);
-  const res = NextResponse.json({ ok: attached });
-  // Either way the cookie has done its job on this device.
-  res.cookies.set(INVITE_COOKIE, "", { path: "/", maxAge: 0 });
+  const admin = createAdminClient();
+  const attached = inviter ? await attachInvite(admin, user.id, inviter) : false;
+  const repAttached = rep ? await attachRepPatient(admin, user.id, rep) : false;
+  const res = NextResponse.json({ ok: attached, rep: repAttached });
+  // Either way each cookie has done its job on this device.
+  if (inviter) res.cookies.set(INVITE_COOKIE, "", { path: "/", maxAge: 0 });
+  if (rep) res.cookies.set(REP_PATIENT_COOKIE, "", { path: "/", maxAge: 0 });
   return res;
 }

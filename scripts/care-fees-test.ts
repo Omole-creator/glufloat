@@ -13,6 +13,7 @@ import {
   reviewMonthWAT,
   reviewReference,
   splitPayment,
+  splitRepPatientPayment,
   weekStartWAT,
 } from "../lib/careFees";
 
@@ -95,6 +96,20 @@ const wk = weekStartWAT(new Date("2026-10-18T22:30:00Z")); // Sunday 23:30 WAT
 check("week starts Monday 00:00 WAT", wk.toISOString() === "2026-10-11T23:00:00.000Z", wk.toISOString());
 const wk2 = weekStartWAT(new Date("2026-10-18T23:30:00Z")); // Monday 00:30 WAT
 check("Monday 00:30 WAT is a new week", wk2.toISOString() === "2026-10-18T23:00:00.000Z", wk2.toISOString());
+
+// A rep's patient link: a third of each payment, first 12 months, no advisor.
+const rp = (amountKobo: number, firstPaidAt: Date | null = null, agentActive = true) =>
+  splitRepPatientPayment({ amountKobo, agentActive, paidAt: now, firstPaidAt });
+check("rep patient: Premium N4,500 pays the rep N1,500", by(rp(450_000), "agent") === 150_000, rp(450_000));
+check("rep patient: GluFloat keeps N3,000", glufloatShare(450_000, rp(450_000)) === 300_000);
+check("rep patient: no advisor share", by(rp(450_000), "advisor") === 0);
+check("rep patient: Basic N1,500 pays N500", by(rp(150_000), "agent") === 50_000);
+check("rep patient: Plus N2,500 pays N833.33", by(rp(250_000), "agent") === 83_333);
+check("rep patient: Premium yearly N43,200 pays N14,400", by(rp(4_320_000), "agent") === 1_440_000);
+check("rep patient: month 12 still pays", by(rp(450_000, new Date(now.getTime() - 364 * DAY)), "agent") === 150_000);
+check("rep patient: after 12 months pays nothing", rp(450_000, new Date(now.getTime() - 366 * DAY)).length === 0);
+check("rep patient: switched-off rep paid nothing", rp(450_000, null, false).length === 0);
+check("rep patient: never more than the payment", rp(1).length === 0 && by(rp(2), "agent") === 0);
 
 console.log(fails ? `\n${fails} FAILED` : "\nall passed");
 process.exit(fails ? 1 : 0);

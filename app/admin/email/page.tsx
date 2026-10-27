@@ -53,14 +53,15 @@ export default async function EmailPage() {
   let directSent: DirectSent[] = [];
   let directReady = false;
   try {
-    const { data, error } = await createAdminClient()
-      .from("direct_emails")
-      .select("id, sent_at, from_email, to_name, to_email, cc, subject, html, attachments")
-      .order("sent_at", { ascending: false })
-      .limit(100);
+    const cols = "id, sent_at, from_email, to_name, to_email, cc, subject, html, attachments";
+    const read = (c: string) =>
+      createAdminClient().from("direct_emails").select(c).order("sent_at", { ascending: false }).limit(100);
+    // The reply columns come with #37; before it runs, the list still shows.
+    let { data, error } = await read(`${cols}, replied_at, reply_from, reply_snippet`);
+    if (error) ({ data, error } = await read(cols));
     if (!error) {
       directReady = true;
-      directSent = (data ?? []) as DirectSent[];
+      directSent = (data ?? []) as unknown as DirectSent[];
     }
   } catch {
     directReady = false;

@@ -3,10 +3,13 @@
 import { useState } from "react";
 import { Copy, Send } from "lucide-react";
 
-/** The agent's link for doctors, to copy or send on WhatsApp. */
-export default function AgentShare({ link }: { link: string }) {
+/** The agent's link for doctors (or for patients), to copy or send on WhatsApp. */
+export default function AgentShare({ link, forPatients = false }: { link: string; forPatients?: boolean }) {
   const [copied, setCopied] = useState(false);
-  const text = `Doctor, GluFloat helps your patients with diabetes know what to eat and how much, and lets you see their meals, sugar tests and reports between visits. It is free for doctors. Sign up here:\n${link}`;
+  // Patient wording is the home page's own (app/page.tsx hero and checklist).
+  const text = forPatients
+    ? `Not sure what to eat with diabetes? GluFloat tells you, every meal. You still eat the food you love. You just eat it the right way. 7-day free trial, no card required:\n${link}`
+    : `Doctor, GluFloat helps your patients with diabetes know what to eat and how much, and lets you see their meals, sugar tests and reports between visits. It is free for doctors. Sign up here:\n${link}`;
   return (
     <div>
       <p className="break-all rounded-2xl bg-white/12 px-4 py-3 font-mono text-sm text-white ring-1 ring-inset ring-white/20">{link}</p>
@@ -17,7 +20,7 @@ export default function AgentShare({ link }: { link: string }) {
           rel="noopener noreferrer"
           className="inline-flex items-center gap-2 rounded-full bg-[#25D366] px-5 py-2.5 text-sm font-bold text-white hover:brightness-95"
         >
-          <Send className="h-4 w-4" /> Send to a doctor on WhatsApp
+          <Send className="h-4 w-4" /> {forPatients ? "Send to a patient on WhatsApp" : "Send to a doctor on WhatsApp"}
         </a>
         <button
           type="button"
@@ -32,7 +35,7 @@ export default function AgentShare({ link }: { link: string }) {
           }}
           className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-bold text-brand hover:bg-white/90"
         >
-          <Copy className="h-4 w-4" /> {copied ? "Copied" : "Copy link"}
+          <Copy className="h-4 w-4" /> {copied ? "Copied" : forPatients ? "Copy patient link" : "Copy link"}
         </button>
       </div>
     </div>

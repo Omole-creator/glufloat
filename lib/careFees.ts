@@ -17,6 +17,10 @@
  *  - A doctor who invites a colleague gets N3,000 once, when the colleague's
  *    first patient pays. Agents earn nothing from a colleague's referral.
  *  - Paid weekly, no minimum.
+ *  - A rep's link for PATIENTS (/p/<ref_code>, founder, 2026-10-27): a third
+ *    of each payment by that patient for their first 12 months (N1,500 of
+ *    Premium's N4,500, GluFloat keeps N3,000), any plan, monthly or yearly.
+ *    No advisor share.
  *
  * Everything is in kobo. Shares are rounded DOWN, so the parts can never add
  * up to more than the payment.
@@ -31,6 +35,8 @@ export const ADVISOR_RATE = 0.1;
 export const ADVISOR_DIRECT_RATE = 0.15;
 /** Agent and advisor shares stop this long after the patient's first payment. */
 export const AGENT_WINDOW_DAYS = 365;
+/** A rep's share of a patient they brought with their patient link: a third. */
+export const REP_PATIENT_SHARE = 1 / 3;
 /** N3,000 to a doctor when a colleague they invited gets their first paying patient. */
 export const COLLEAGUE_BONUS_KOBO = 300_000;
 
@@ -72,6 +78,22 @@ export function splitPayment(opts: {
     }
   }
   return out.filter((s) => s.amount > 0);
+}
+
+/**
+ * One payment by a patient a rep brought with their patient link. Kind
+ * "agent", so it is owed and paid out exactly like the rep's doctor shares.
+ */
+export function splitRepPatientPayment(opts: {
+  amountKobo: number;
+  agentActive: boolean;
+  paidAt: Date;
+  firstPaidAt: Date | null;
+}): Share[] {
+  const amount = Math.max(0, Math.floor(opts.amountKobo));
+  if (amount <= 0 || !opts.agentActive || !agentWindowOpen(opts.firstPaidAt, opts.paidAt)) return [];
+  const share = Math.floor(amount / 3);
+  return share > 0 ? [{ kind: "agent", rate: REP_PATIENT_SHARE, amount: share }] : [];
 }
 
 /** "2026-10": the calendar month (WAT) a review falls in. */

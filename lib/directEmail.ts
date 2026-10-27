@@ -92,6 +92,28 @@ export interface DirectAttachment {
 
 export type DirectSendResult = { ok: boolean; status: number | null; detail: string; messageId: string | null };
 
+/**
+ * One key per email, made in the browser before the first try and sent again
+ * on every retry of it. Mailyte's Idempotency-Key ("glufloat-<ULID>") then
+ * returns the first answer instead of sending a second copy, so pressing Send
+ * again after a slow connection can never email a hospital twice.
+ */
+const ULID_CHARS = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+export function newSendKey(): string {
+  let t = Date.now();
+  let time = "";
+  for (let i = 0; i < 10; i++) {
+    time = ULID_CHARS[t % 32] + time;
+    t = Math.floor(t / 32);
+  }
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  let rand = "";
+  for (const b of bytes) rand += ULID_CHARS[b % 32];
+  return time + rand;
+}
+export const isSendKey = (k: string) => /^[0-9A-HJKMNP-TV-Z]{26}$/.test(k);
+
 /** Send it. Never throws. */
 export async function sendDirectEmail(args: {
   from: string;
@@ -101,15 +123,22 @@ export async function sendDirectEmail(args: {
   html: string;
   text: string;
   attachments: DirectAttachment[];
+  /** newSendKey(), the same on every retry of one email. */
+  sendKey: string;
 }): Promise<DirectSendResult> {
   const key = process.env.MAILYTE_SEND_KEY;
   if (!key) return { ok: false, status: null, detail: "MAILYTE_SEND_KEY is not set on the server.", messageId: null };
   try {
     const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), 30000);
+    const t = setTimeout(() => ctrl.abort(), 25000);
     const res = await fetch("https://app.mailyte.com/api/v1/messages", {
       method: "POST",
-      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json", Accept: "application/json" },
+      headers: {
+        Authorization: `Bearer ${key}`,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        "Idempotency-Key": `glufloat-${args.sendKey}`,
+      },
       body: JSON.stringify({
         to: [args.to],
         ...(args.cc.length ? { cc: args.cc } : {}),
@@ -127,8 +156,16 @@ export async function sendDirectEmail(args: {
     clearTimeout(t);
     const j = (await res.json().catch(() => ({}))) as { message?: string; data?: { message_id?: string } };
     if (res.ok) return { ok: true, status: res.status, detail: "Sent.", messageId: j.data?.message_id ?? null };
+    if (res.status === 409)
+      return { ok: false, status: 409, detail: "This email is still being sent. Wait a minute, then press Send again.", messageId: null };
     return { ok: false, status: res.status, detail: j.message ?? res.statusText, messageId: null };
   } catch (e) {
-    return { ok: false, status: null, detail: e instanceof Error ? e.message : "Could not reach Mailyte.", messageId: null };
+    const slow = e instanceof Error && e.name === "AbortError";
+    return {
+      ok: false,
+      status: null,
+      detail: slow ? "Mailyte took too long to answer. Press Send again: the same email will not go twice." : e instanceof Error ? e.message : "Could not reach Mailyte.",
+      messageId: null,
+    };
   }
 }
