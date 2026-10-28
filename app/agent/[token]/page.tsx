@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { createAdminClient } from "@/lib/supabase/server";
 import { doctorsReady } from "@/lib/careFeesServer";
-import { loadFieldTeam, moneyFor, type DoctorStats, type FieldAgent } from "@/lib/fieldTeam";
+import { REP_PATIENT_STATUS, earningPaid, earningSource, loadFieldTeam, loadRepPatients, moneyFor, type DoctorStats, type FieldAgent } from "@/lib/fieldTeam";
 import { ADVISOR_DIRECT_RATE, ADVISOR_RATE, AGENT_RATE, REP_PATIENT_SHARE, maskAccount, nairaFromKobo } from "@/lib/careFees";
 import { PREMIUM_MONTHLY } from "@/lib/hospitalPlans";
 import { SITE_URL } from "@/lib/site";
@@ -45,25 +45,10 @@ export default async function AgentDashboard({ params }: { params: Promise<{ tok
   const fee = (rate: number) => nairaFromKobo(Math.floor(PREMIUM_MONTHLY * 100 * rate));
   const first = agent.name.split(/\s+/)[0];
 
-  // Patients who came through this rep's own PATIENT link (lib/repPatients.ts).
-  // Counts only, never a name. Empty before rep-patients-schema.sql (#38).
-  let linkPatients = 0;
-  let linkPaying = 0;
-  {
-    const { data: rp } = await admin.from("rep_patients").select("user_id").eq("agent_id", agent.id);
-    const ids = (rp ?? []).map((r) => r.user_id as string);
-    linkPatients = ids.length;
-    const now = new Date().toISOString();
-    for (let i = 0; i < ids.length; i += 100) {
-      const { count } = await admin
-        .from("subscriptions")
-        .select("user_id", { count: "exact", head: true })
-        .in("user_id", ids.slice(i, i + 100))
-        .in("status", ["active", "non-renewing"])
-        .gt("current_period_end", now);
-      linkPaying += count ?? 0;
-    }
-  }
+  // Patients from this rep's own PATIENT link (lib/fieldTeam.ts). Never a name.
+  const myPatients = await loadRepPatients(admin, team, [agent.id]);
+  const linkPaying = myPatients.filter((p) => p.status === "paying").length;
+  const day = (iso: string) => new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 
   const tiles = [
     { label: "To be paid", value: nairaFromKobo(money.owed + money.sending), sub: "paid to your bank every week" },
@@ -144,23 +129,6 @@ export default async function AgentDashboard({ params }: { params: Promise<{ tok
             : "Send GluFloat your bank details so we can pay you."}
         </p>
 
-        <section className="mt-6 rounded-2xl border border-[#e3e9f1] bg-white">
-          <h2 className="border-b border-[#eef2f7] px-5 py-4 font-display text-lg font-bold text-ink">Patients from your patient link</h2>
-          <div className="flex items-center justify-between gap-3 px-5 py-4 text-sm">
-            <p className="text-ink-soft">
-              You earn {fee(REP_PATIENT_SHARE)} each month for each patient who joins with your patient link and pays for GluFloat
-              Premium, for their first 12 months. On other plans, you earn a third of what they pay.
-            </p>
-            <div className="shrink-0 text-right text-xs text-ink-soft">
-              <p>
-                <span className="font-display text-base font-bold text-ink">{linkPatients}</span> joined
-              </p>
-              <p>
-                <span className="font-bold text-leaf-deep">{linkPaying}</span> paying
-              </p>
-            </div>
-          </div>
-        </section>
 
         {advisor && (
           <section className="mt-6 rounded-2xl border border-[#e3e9f1] bg-white">
@@ -194,6 +162,65 @@ export default async function AgentDashboard({ params }: { params: Promise<{ tok
             {advisor ? "Your doctors and your reps' doctors" : "Your doctors"}
           </h2>
           <DoctorList list={advisor ? myDoctors : own} />
+        </section>
+
+        <section className="mt-6 rounded-2xl border border-[#e3e9f1] bg-white">
+          <div className="flex items-center justify-between gap-3 border-b border-[#eef2f7] px-5 py-4">
+            <h2 className="font-display text-lg font-bold text-ink">Your patients</h2>
+            <p className="text-xs text-ink-soft">
+              <span className="font-bold text-ink">{myPatients.length}</span> joined ·{" "}
+              <span className="font-bold text-leaf-deep">{linkPaying}</span> paying
+            </p>
+          </div>
+          <p className="border-b border-[#eef2f7] px-5 py-3 text-xs text-ink-soft">
+            Patients who joined with your patient link. You earn {fee(REP_PATIENT_SHARE)} each month for each one who pays for GluFloat
+            Premium, for their first 12 months. On other plans, you earn a third of what they pay. Names are kept private.
+          </p>
+          {myPatients.length === 0 ? (
+            <p className="px-5 py-6 text-center text-sm text-ink-soft">No patients yet. Send your patient link to someone with diabetes.</p>
+          ) : (
+            <ul className="divide-y divide-[#eef2f7]">
+              {myPatients.map((p, i) => (
+                <li key={p.userId} className="flex items-center justify-between gap-3 px-5 py-3 text-sm">
+                  <div className="min-w-0">
+                    <p className="font-semibold text-ink">Patient {i + 1}</p>
+                    <p className="text-xs text-ink-soft">Joined {day(p.joinedAt)}</p>
+                  </div>
+                  <div className="shrink-0 text-right text-xs">
+                    <p className={p.status === "paying" ? "font-bold text-leaf-deep" : "text-ink-soft"}>{REP_PATIENT_STATUS[p.status]}</p>
+                    <p className="text-ink-soft">
+                      <span className="font-display text-base font-bold text-ink">{nairaFromKobo(p.earned)}</span> earned
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <section className="mt-6 rounded-2xl border border-[#e3e9f1] bg-white">
+          <h2 className="border-b border-[#eef2f7] px-5 py-4 font-display text-lg font-bold text-ink">Your earnings</h2>
+          {money.earnings.length === 0 ? (
+            <p className="px-5 py-6 text-center text-sm text-ink-soft">Nothing earned yet. You earn when a patient pays.</p>
+          ) : (
+            <ul className="divide-y divide-[#eef2f7]">
+              {money.earnings.slice(0, 100).map((e) => (
+                <li key={e.id} className="flex items-center justify-between gap-3 px-5 py-3 text-sm">
+                  <div className="min-w-0">
+                    <p className="font-semibold text-ink">{earningSource(e, team)}</p>
+                    <p className="text-xs text-ink-soft">
+                      {day(e.earned_at)}
+                      {e.payment_amount ? ` · paid ${nairaFromKobo(Number(e.payment_amount))}` : ""}
+                    </p>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <p className="font-display font-bold text-ink">{nairaFromKobo(e.amount)}</p>
+                    <p className={`text-xs ${earningPaid(e, team) ? "text-leaf-deep" : "text-ink-soft"}`}>{earningPaid(e, team) ? "Paid to you" : "To be paid"}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
 
         <section className="mt-6 rounded-2xl border border-[#e3e9f1] bg-white">

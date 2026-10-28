@@ -7,7 +7,7 @@ import AdminHero from "../AdminHero";
 import BankDetailsForm from "@/components/BankDetailsForm";
 import FoldCard from "@/components/FoldCard";
 import { doctorsReady } from "@/lib/careFeesServer";
-import { loadFieldTeam, moneyFor } from "@/lib/fieldTeam";
+import { REP_PATIENT_STATUS, earningPaid, earningSource, loadFieldTeam, loadRepPatients, moneyFor } from "@/lib/fieldTeam";
 import { nairaFromKobo } from "@/lib/careFees";
 import { listBanks } from "@/lib/paystackBanks";
 import { SITE_URL } from "@/lib/site";
@@ -37,6 +37,9 @@ export default async function AgentsAdminPage() {
   const advisors = team.agents.filter((a) => a.role === "advisor");
   const nameOf = new Map(team.agents.map((a) => [a.id, a.name]));
   const owed = team.agents.reduce((n, a) => n + moneyFor(team, { agentId: a.id }).owed, 0);
+  // Patients each person brought with their own patient link (/p/<code>).
+  const repPatients = await loadRepPatients(admin, team, team.agents.map((a) => a.id));
+  const day = (iso: string) => new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 
   // A person's doctors: their own for an agent; their agents' for an advisor.
   const doctorsOf = (id: string, role: "agent" | "advisor") => {
@@ -71,6 +74,7 @@ export default async function AgentsAdminPage() {
         {people.map((a) => {
           const docs = doctorsOf(a.id, a.role);
           const m = moneyFor(team, { agentId: a.id });
+          const pats = repPatients.filter((p) => p.agentId === a.id);
           const off = a.status === "off";
           return (
             // One row per person, folded: name, who they are, doctors and money
@@ -82,13 +86,15 @@ export default async function AgentsAdminPage() {
               sub={`${a.role === "advisor" ? "Advisor" : "Doctor acquisition rep"}${a.manager_id ? ` · advisor: ${nameOf.get(a.manager_id) ?? "-"}` : ""}${a.phone ? ` · ${a.phone}` : ""}${off ? " · Switched off" : ""}`}
               meta={
                 <>
-                  <span className="block font-semibold text-ink">{docs.length} {docs.length === 1 ? "doctor" : "doctors"}</span>
+                  <span className="block font-semibold text-ink">
+                    {docs.length} {docs.length === 1 ? "doctor" : "doctors"} · {pats.length} {pats.length === 1 ? "patient" : "patients"}
+                  </span>
                   <span className="block">{nairaFromKobo(m.owed)} owed</span>
                 </>
               }
             >
               <div className="flex flex-wrap items-start justify-between gap-3">
-                <div className="grid grid-cols-3 gap-4 text-sm">
+                <div className="grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
                   <div>
                     <p className="text-[11px] font-bold uppercase tracking-[0.06em] text-ink/50">Doctors</p>
                     <p className="font-display text-xl font-bold text-ink">{docs.length}</p>
@@ -96,6 +102,12 @@ export default async function AgentsAdminPage() {
                   <div>
                     <p className="text-[11px] font-bold uppercase tracking-[0.06em] text-ink/50">Paying patients</p>
                     <p className="font-display text-xl font-bold text-ink">{docs.reduce((n, d) => n + d.paying, 0)}</p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-bold uppercase tracking-[0.06em] text-ink/50">Their own patients</p>
+                    <p className="font-display text-xl font-bold text-ink">
+                      {pats.length} <span className="text-sm text-ink-soft">/ {pats.filter((p) => p.status === "paying").length} paying</span>
+                    </p>
                   </div>
                   <div>
                     <p className="text-[11px] font-bold uppercase tracking-[0.06em] text-ink/50">Owed / paid</p>
@@ -115,6 +127,7 @@ export default async function AgentsAdminPage() {
                   managerId={a.manager_id ?? null}
                   advisors={advisors.filter((x) => x.status === "active").map((x) => ({ id: x.id, name: x.name }))}
                   doctorLink={`${SITE_URL}/d/${a.ref_code}`}
+                  patientLink={`${SITE_URL}/p/${a.ref_code}`}
                   dashLink={`${SITE_URL}/agent/${a.dash_token}`}
                   off={off}
                 />
@@ -131,6 +144,33 @@ export default async function AgentsAdminPage() {
                   Doctors: {docs.map((d) => `${d.name} (${d.paying} paying)`).join(", ")}
                 </p>
               )}
+              {pats.length > 0 && (
+                <p className="mt-2 text-xs text-ink-soft">
+                  Patients from their patient link:{" "}
+                  {pats.map((p, i) => `Patient ${i + 1} (joined ${day(p.joinedAt)}, ${REP_PATIENT_STATUS[p.status].toLowerCase()}, ${nairaFromKobo(p.earned)} earned)`).join(", ")}
+                </p>
+              )}
+              <div className="mt-4">
+                <p className="text-[11px] font-bold uppercase tracking-[0.06em] text-ink/50">Earnings</p>
+                {m.earnings.length === 0 ? (
+                  <p className="mt-1 text-xs text-ink-soft">Nothing earned yet.</p>
+                ) : (
+                  <ul className="mt-1 divide-y divide-[#eef2f7] rounded-xl border border-[#eef2f7] text-xs">
+                    {m.earnings.slice(0, 50).map((e) => (
+                      <li key={e.id} className="flex items-center justify-between gap-3 px-3 py-2">
+                        <span className="min-w-0 text-ink">
+                          {day(e.earned_at)} · {earningSource(e, team).replace("your patient link", "their patient link").replace("one of your doctors", "one of their doctors")}
+                          {e.payment_amount ? <span className="text-ink-soft"> · paid {nairaFromKobo(Number(e.payment_amount))}</span> : null}
+                        </span>
+                        <span className="shrink-0 text-right">
+                          <span className="font-bold text-ink">{nairaFromKobo(e.amount)}</span>{" "}
+                          <span className={earningPaid(e, team) ? "text-leaf-deep" : "text-ink-soft"}>{earningPaid(e, team) ? "paid" : "owed"}</span>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             </FoldCard>
           );
         })}

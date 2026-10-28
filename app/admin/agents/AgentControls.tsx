@@ -95,6 +95,7 @@ export function AgentLinks({
   managerId = null,
   advisors = [],
   doctorLink,
+  patientLink,
   dashLink,
   off,
 }: {
@@ -107,6 +108,8 @@ export function AgentLinks({
   /** Advisors an agent can be moved under (never themselves). */
   advisors?: Advisor[];
   doctorLink: string;
+  /** Their link for patients (/p/<code>), optional so older callers still build. */
+  patientLink?: string;
   dashLink: string;
   off: boolean;
 }) {
@@ -182,6 +185,7 @@ export function AgentLinks({
     <div className="space-y-2 text-sm">
       {[
         { label: "Link for doctors", value: doctorLink, key: "d" },
+        ...(patientLink ? [{ label: "Link for patients", value: patientLink, key: "p" }] : []),
         { label: "Their dashboard (private)", value: dashLink, key: "a" },
       ].map((l) => (
         <div key={l.key} className="flex flex-wrap items-center gap-2 rounded-xl bg-mist/60 px-3 py-2">
