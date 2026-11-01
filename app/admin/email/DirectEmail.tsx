@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Paperclip, Send, X, RotateCcw, Trash2, ChevronDown, MessageCircleReply } from "lucide-react";
 import RichEditor from "./RichEditor";
+import SentPopup from "./SentPopup";
 import { MAX_TOTAL_BYTES, fileProblem, mb, newSendKey } from "@/lib/directEmail";
 
 export type DirectFrom = { email: string; name: string; ready: boolean | null };
@@ -63,6 +64,7 @@ export default function DirectEmail({
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [pending, setPending] = useState<DirectSent | null>(null);
   const [removing, setRemoving] = useState(false);
+  const [popup, setPopup] = useState<string | null>(null);
   const picker = useRef<HTMLInputElement>(null);
   const formTop = useRef<HTMLDivElement>(null);
   // One key per email (lib/directEmail.ts newSendKey): a new one whenever the
@@ -127,6 +129,7 @@ export default function DirectEmail({
           ok: true,
           text: out.saved || !listReady ? out.message : `${out.message} It was sent, but it could not be added to the list below.`,
         });
+        setPopup(out.message ?? "Your email has gone.");
         clear();
         router.refresh();
       } else {
@@ -318,6 +321,7 @@ export default function DirectEmail({
         </button>
       </div>
       {msg && <p className={`text-sm font-semibold ${msg.ok ? "text-leaf-deep" : "text-verdict-red"}`}>{msg.text}</p>}
+      {popup && <SentPopup text={popup} onClose={() => setPopup(null)} />}
 
       <details className="group border-t border-line pt-4">
         <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-bold text-ink">

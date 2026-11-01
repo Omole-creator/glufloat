@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Send, FlaskConical } from "lucide-react";
 import RichEditor from "./RichEditor";
+import SentPopup from "./SentPopup";
 import { EDIT_EMAIL_EVENT, type EditEmailDetail } from "./SentEmails";
 
 type Sender = { id: string; name: string; email: string; verified: boolean };
@@ -32,6 +33,7 @@ export default function Compose({
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [initialHtml, setInitialHtml] = useState("");
   const [editingCopy, setEditingCopy] = useState(false);
+  const [popup, setPopup] = useState<{ title: string; text: string } | null>(null);
 
   // "Edit" on a sent email: fill the form with a copy. A sent email cannot be
   // changed, so sending this makes a new email.
@@ -67,6 +69,7 @@ export default function Compose({
       });
       const out = await res.json();
       setMsg(res.ok ? { ok: true, text: out.message } : { ok: false, text: out.error ?? "It did not work." });
+      if (res.ok) setPopup({ title: action === "test" ? "Test email sent" : "Email sent", text: out.message ?? "Your email has gone." });
       if (res.ok && action === "send") {
         setSubject("");
         setHtml("");
@@ -172,6 +175,7 @@ export default function Compose({
         </button>
       </div>
       {msg && <p className={`text-sm font-semibold ${msg.ok ? "text-leaf-deep" : "text-verdict-red"}`}>{msg.text}</p>}
+      {popup && <SentPopup title={popup.title} text={popup.text} onClose={() => setPopup(null)} />}
     </div>
   );
 }
