@@ -14,6 +14,7 @@ import SentEmails from "./SentEmails";
 import DirectEmail, { type DirectFrom, type DirectSent } from "./DirectEmail";
 import { DIRECT_SENDERS } from "@/lib/directEmail";
 import { hiddenCampaigns } from "@/lib/hiddenCampaigns";
+import type { ThreadMessage } from "@/lib/emailThread";
 
 export const dynamic = "force-dynamic";
 
@@ -52,16 +53,32 @@ export default async function EmailPage() {
   });
   let directSent: DirectSent[] = [];
   let directReady = false;
+  let threadReady = false;
   try {
     const cols = "id, sent_at, from_email, to_name, to_email, cc, subject, html, attachments";
     const read = (c: string) =>
       createAdminClient().from("direct_emails").select(c).order("sent_at", { ascending: false }).limit(100);
-    // The reply columns come with #37; before it runs, the list still shows.
-    let { data, error } = await read(`${cols}, replied_at, reply_from, reply_snippet`);
+    // The reply columns come with #37 and done_at with #39; before they run,
+    // the list still shows.
+    let { data, error } = await read(`${cols}, replied_at, reply_from, reply_snippet, done_at`);
+    if (error) ({ data, error } = await read(`${cols}, replied_at, reply_from, reply_snippet`));
     if (error) ({ data, error } = await read(cols));
     if (!error) {
       directReady = true;
       directSent = (data ?? []) as unknown as DirectSent[];
+      // Each email's conversation (#39). Missing table = no conversations yet.
+      const ids = directSent.map((e) => e.id);
+      if (ids.length) {
+        const { data: msgs, error: tErr } = await createAdminClient()
+          .from("direct_email_messages")
+          .select("id, email_id, direction, at, from_email, from_name, to_email, cc, subject, body_text, html, message_id")
+          .in("email_id", ids)
+          .order("at", { ascending: true });
+        if (!tErr) {
+          threadReady = true;
+          for (const e of directSent) e.thread = ((msgs ?? []) as ThreadMessage[]).filter((m) => m.email_id === e.id);
+        }
+      }
     }
   } catch {
     directReady = false;
@@ -97,7 +114,7 @@ export default async function EmailPage() {
       </div>
 
       <AdminCard className="mt-4" title="Email one person or organisation" sub="A hospital, an HMO, or anyone. You can attach files.">
-        <DirectEmail senders={directFrom} sent={directSent} listReady={directReady} />
+        <DirectEmail senders={directFrom} sent={directSent} listReady={directReady} threadReady={threadReady} />
       </AdminCard>
 
       <SentEmails sent={sent} />

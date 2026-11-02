@@ -6,6 +6,8 @@ import { Paperclip, Send, X, RotateCcw, Trash2, ChevronDown, MessageCircleReply 
 import RichEditor from "./RichEditor";
 import SentPopup from "./SentPopup";
 import { MAX_TOTAL_BYTES, fileProblem, mb, newSendKey } from "@/lib/directEmail";
+import type { ThreadMessage } from "@/lib/emailThread";
+import EmailConversation, { isWaiting } from "./EmailConversation";
 
 export type DirectFrom = { email: string; name: string; ready: boolean | null };
 export type DirectSent = {
@@ -22,6 +24,10 @@ export type DirectSent = {
   replied_at?: string | null;
   reply_from?: string | null;
   reply_snippet?: string | null;
+  /** "No answer needed" (#39). */
+  done_at?: string | null;
+  /** Their replies and our answers (#39), oldest first. */
+  thread?: ThreadMessage[];
 };
 
 const field =
@@ -42,11 +48,14 @@ export default function DirectEmail({
   senders,
   sent,
   listReady,
+  threadReady = false,
 }: {
   senders: DirectFrom[];
   sent: DirectSent[];
   /** False until direct-email-schema.sql (#33) is run. */
   listReady: boolean;
+  /** False until direct-email-thread-schema.sql (#39) is run: no Reply box. */
+  threadReady?: boolean;
 }) {
   const router = useRouter();
   const [from, setFrom] = useState(senders.find((s) => s.ready)?.email ?? senders[0].email);
@@ -168,6 +177,9 @@ export default function DirectEmail({
   };
 
   const replies = sent.filter((e) => e.replied_at).length;
+  const waitingCount = sent.filter(isWaiting).length;
+  // Conversations waiting for an answer come first; the rest stay newest first.
+  const ordered = [...sent].sort((a, b) => Number(isWaiting(b)) - Number(isWaiting(a)));
   const markReply = async (e: DirectSent, replied: boolean) => {
     try {
       const res = await fetch("/api/admin/email/replies", {
@@ -323,7 +335,7 @@ export default function DirectEmail({
       {msg && <p className={`text-sm font-semibold ${msg.ok ? "text-leaf-deep" : "text-verdict-red"}`}>{msg.text}</p>}
       {popup && <SentPopup text={popup} onClose={() => setPopup(null)} />}
 
-      <details className="group border-t border-line pt-4">
+      <details id="conversations" className="group scroll-mt-24 border-t border-line pt-4" open={waitingCount > 0 || undefined}>
         <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-bold text-ink">
           <span>
             Sent to one person or organisation{" "}
@@ -331,6 +343,11 @@ export default function DirectEmail({
               <span className="font-normal text-ink-soft">
                 · {sent.length}
                 {replies > 0 && <span className="font-bold text-leaf-deep"> · {replies} replied</span>}
+                {waitingCount > 0 && (
+                  <span className="ml-1 rounded-full bg-verdict-yellow/30 px-2 py-0.5 font-bold text-ink">
+                    {waitingCount} waiting for your answer
+                  </span>
+                )}
               </span>
             )}
           </span>
@@ -342,9 +359,9 @@ export default function DirectEmail({
           <p className="mt-3 text-sm text-ink-soft">Nothing sent yet.</p>
         ) : (
           <ul className="mt-3 divide-y divide-line">
-            {sent.map((e) => (
+            {ordered.map((e) => (
               <li key={e.id} className="flex flex-wrap items-start justify-between gap-3 py-3">
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1 basis-72">
                   <p className="font-semibold text-ink">{e.subject}</p>
                   <p className="text-xs text-ink-soft">
                     To {e.to_name} ({e.to_email}){e.cc ? `, copy to ${e.cc}` : ""} · from {e.from_email} · {when(e.sent_at)}
@@ -355,20 +372,12 @@ export default function DirectEmail({
                       {e.attachments.join(", ")}
                     </p>
                   )}
-                  {e.replied_at ? (
-                    <div className="mt-2 rounded-xl bg-leaf/10 px-3 py-2 text-xs text-ink ring-1 ring-inset ring-leaf/20">
-                      <p className="font-bold text-leaf-deep">
-                        <MessageCircleReply className="mr-1 inline h-3.5 w-3.5" />
-                        Replied {when(e.replied_at)}
-                        {e.reply_from ? ` by ${e.reply_from}` : ""}. Read it in glufloat@gmail.com.
-                      </p>
-                      {e.reply_snippet && <p className="mt-1 text-ink-soft">&ldquo;{e.reply_snippet}&rdquo;</p>}
-                    </div>
-                  ) : (
-                    e.replied_at === null && <p className="mt-1 text-xs font-semibold text-ink-soft">No reply yet</p>
+                  {!e.replied_at && !(e.thread ?? []).length && e.replied_at === null && (
+                    <p className="mt-1 text-xs font-semibold text-ink-soft">No reply yet</p>
                   )}
+                  <EmailConversation e={e} threadReady={threadReady} />
                 </div>
-                <div className="flex shrink-0 flex-wrap gap-2">
+                <div className="flex max-w-full flex-wrap gap-2">
                   {e.replied_at !== undefined && (
                     <button
                       type="button"

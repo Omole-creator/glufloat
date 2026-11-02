@@ -59,6 +59,11 @@ export function nextDue(firstSentAt: string, step: number): string | null {
   return new Date(new Date(firstSentAt).getTime() + days * 86_400_000).toISOString();
 }
 
+/**
+ * The Gmail page for one conversation, in the form Gmail itself uses
+ * (#all/thread-f:<the API's hex thread id, in decimal>).
+ */
 export function gmailThreadUrl(threadId: string): string {
-  return `https://mail.google.com/mail/u/?authuser=glufloat@gmail.com#all/${threadId}`;
+  const base = "https://mail.google.com/mail/?authuser=glufloat@gmail.com#all/";
+  return /^[0-9a-f]{1,16}$/i.test(threadId) ? `${base}thread-f:${BigInt(`0x${threadId}`).toString()}` : `${base}${threadId}`;
 }

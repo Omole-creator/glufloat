@@ -1,4 +1,4 @@
-import { Megaphone } from "lucide-react";
+import { Megaphone, MessageCircleReply } from "lucide-react";
 import { isAdmin } from "@/lib/adminSession";
 import { createAdminClient } from "@/lib/supabase/server";
 import AdminLogin from "../AdminLogin";
@@ -41,7 +41,8 @@ export default async function CreatorsAdminPage() {
       </AdminShell>
     );
 
-  const creators = (data ?? []) as Creator[];
+  // Anyone who replied comes first, so a reply is never lost below the fold.
+  const creators = ((data ?? []) as Creator[]).sort((a, b) => Number(b.status === "replied") - Number(a.status === "replied"));
   const count = (s: OutreachStatus) => creators.filter((c) => c.status === s).length;
 
   return (
@@ -64,6 +65,7 @@ export default async function CreatorsAdminPage() {
         {creators.map((c) => (
           <FoldCard
             key={c.id}
+            open={c.status === "replied"}
             title={c.name}
             sub={[c.email, c.platform].filter(Boolean).join(" · ")}
             meta={
@@ -123,9 +125,21 @@ export default async function CreatorsAdminPage() {
             </ol>
 
             {c.thread_id && (
-              <a href={gmailThreadUrl(c.thread_id)} target="_blank" rel="noreferrer" className="mt-3 inline-block text-xs font-semibold text-brand underline">
-                Open the emails in Gmail
+              <a
+                href={gmailThreadUrl(c.thread_id)}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={`Open the conversation with ${c.name} in Gmail`}
+                className={`mt-4 inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold ${c.status === "replied" ? "bg-leaf text-white hover:bg-leaf-deep" : "text-brand ring-1 ring-line hover:bg-mist"}`}
+              >
+                <MessageCircleReply className="h-3.5 w-3.5" aria-hidden />
+                {c.status === "replied" ? "Read and reply in Gmail" : "Open the conversation in Gmail"}
               </a>
+            )}
+            {c.thread_id && (
+              <p className="mt-1 text-xs text-ink-soft">
+                Our emails and their replies are one conversation in glufloat@gmail.com. Reply there and it stays together.
+              </p>
             )}
 
             <CreatorControls c={c} />

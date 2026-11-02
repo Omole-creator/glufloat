@@ -125,6 +125,8 @@ export async function sendDirectEmail(args: {
   attachments: DirectAttachment[];
   /** newSendKey(), the same on every retry of one email. */
   sendKey: string;
+  /** In-Reply-To and References for an answer in a conversation (lib/emailThread.ts). */
+  headers?: Record<string, string>;
 }): Promise<DirectSendResult> {
   const key = process.env.MAILYTE_SEND_KEY;
   if (!key) return { ok: false, status: null, detail: "MAILYTE_SEND_KEY is not set on the server.", messageId: null };
@@ -150,6 +152,7 @@ export async function sendDirectEmail(args: {
         tags: ["direct-email"],
         tracking: false,
         ...(args.attachments.length ? { attachments: args.attachments } : {}),
+        ...(args.headers && Object.keys(args.headers).length ? { headers: args.headers } : {}),
       }),
       signal: ctrl.signal,
     });
