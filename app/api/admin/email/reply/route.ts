@@ -104,6 +104,11 @@ export async function POST(request: Request) {
     sendKey: isSendKey(givenKey) ? givenKey : newSendKey(),
     headers,
   });
+  // A retry after the first try went: the conversation (and so the headers)
+  // has changed, Mailyte sees the same key on a different request and
+  // refuses it. Nothing went twice; say so plainly.
+  if (!sent.ok && /idempotency-key was already used/i.test(sent.detail))
+    return NextResponse.json({ error: "This answer has already gone. Refresh the page to see it." }, { status: 409 });
   if (!sent.ok)
     return NextResponse.json(
       { error: sent.status === 409 || sent.status === null ? sent.detail : `Mailyte did not send it: ${sent.detail}` },
