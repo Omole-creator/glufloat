@@ -23,10 +23,10 @@ export type Access =
   // deliberately carries no `tier`, because the ONE thing trial never grants is
   // the dietitian tier. See canUseDietitianChat below.
   | { status: "trial"; daysLeft: number }
-  // `hospital` is set when a hospital pays for this person (GluFloat for
+  // `hospital` is set when a hospital pays for this person (Glufloat for
   // hospitals). They get everything in Premium; the renew banner and every
-  // "pay" link are hidden, because the patient never pays GluFloat; and the
-  // Chat tab reaches their hospital's own dietitian or doctor, not GluFloat's.
+  // "pay" link are hidden, because the patient never pays Glufloat; and the
+  // Chat tab reaches their hospital's own dietitian or doctor, not Glufloat's.
   | { status: "subscribed"; daysLeft: number; tier: Tier; yearly: boolean; hospital?: HospitalCover }
   // Trial ended, no active subscription. `lapsed` means they have paid before, so
   // this is a renewal and not a first sale. The screen has to say "your month is
@@ -37,7 +37,7 @@ export type Access =
   //
   // `practice` is set for a dietitian's patient whose time with her has run
   // out (or who she paused): the app then shows ONLY her price and a Pay
-  // button, never GluFloat's own plans (founder, 2026-10-17).
+  // button, never Glufloat's own plans (founder, 2026-10-17).
   | { status: "expired"; lapsed: boolean; previousTier: Tier | null; previousYearly: boolean; practice?: PracticeDue };
 
 /** A dietitian's patient who must pay her to keep going (patient-pays-schema.sql). */
@@ -50,7 +50,7 @@ export type CareNote = { name: string; role: "doctor" | "dietitian"; note: strin
 
 export type HospitalCover = {
   name: string;
-  /** "dietitian" when a dietitian's practice pays (GluFloat for dietitians): every screen then says "your dietitian". */
+  /** "dietitian" when a dietitian's practice pays (Glufloat for dietitians): every screen then says "your dietitian". */
   kind: "hospital" | "dietitian";
   /** Her note and food rules for this patient (lib/practiceRules.ts), or null. */
   rules: { note: string | null; avoid: string[]; prefer: string[] } | null;
@@ -65,7 +65,7 @@ export type HospitalCover = {
 };
 
 /**
- * A GluFloat doctor this person is a patient of (GluFloat for doctors). It
+ * A Glufloat doctor this person is a patient of (Glufloat for doctors). It
  * never gives access: the patient's own trial or plan does. It only changes
  * who their Chat tab reaches (their doctor, once they are on Premium) and
  * shows their doctor's notes above the blue card.
@@ -86,7 +86,7 @@ type HospitalMe = {
     price?: number | null;
   };
   staff: { id: string; name: string; role: string; kind?: "hospital" | "dietitian" | "doctor" }[];
-  /** A GluFloat Premium dietitian who answers chats at /inbox (chat-schema.sql). */
+  /** A Glufloat Premium dietitian who answers chats at /inbox (chat-schema.sql). */
   inbox?: boolean;
 };
 
@@ -145,7 +145,7 @@ export async function getAccess(): Promise<{
   hospitalStaff?: { id: string; name: string; role: string; kind?: "hospital" | "dietitian" | "doctor" }[];
   /** Answers Premium members' chats at /inbox. */
   inbox?: boolean;
-  /** Their GluFloat doctor, if they joined one. Never changes access. */
+  /** Their Glufloat doctor, if they joined one. Never changes access. */
   doctor?: DoctorLink;
 }> {
   const supabase = createClient();
@@ -243,9 +243,9 @@ export async function getAccess(): Promise<{
   }
 
   // A dietitian's patient whose time with her ran out (or who she paused),
-  // and who has no paid GluFloat plan of their own: only her Pay button.
-  // Before the trial on purpose, so they are never offered a GluFloat trial
-  // or GluFloat's plans instead of her (founder, 2026-10-17).
+  // and who has no paid Glufloat plan of their own: only her Pay button.
+  // Before the trial on purpose, so they are never offered a Glufloat trial
+  // or Glufloat's plans instead of her (founder, 2026-10-17).
   if (hosp.patient && hosp.patient.due && hosp.patient.kind === "dietitian" && typeof hosp.patient.price === "number")
     return {
       email: user.email ?? null,

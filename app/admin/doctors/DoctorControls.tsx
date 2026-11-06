@@ -92,7 +92,7 @@ export function AddDoctorForm({ agents }: { agents: Agent[] }) {
         <label className="text-xs font-semibold text-ink-soft">
           Brought by
           <select value={v.agentId} onChange={set("agentId")} className={box}>
-            <option value="">Nobody (GluFloat)</option>
+            <option value="">Nobody (Glufloat)</option>
             {agents.map((a) => (
               <option key={a.id} value={a.id}>
                 {a.name} ({a.role === "advisor" ? "advisor" : "doctor acquisition rep"})
@@ -191,7 +191,7 @@ export function DoctorActions({
         disabled={busy}
         onClick={async () => {
           const typed = prompt(
-            `This deletes ${name}'s practice and patient list. Patients keep their own GluFloat accounts.\n\nA doctor with care fees on record cannot be deleted: switch them off instead.\n\nType the name to delete:`,
+            `This deletes ${name}'s practice and patient list. Patients keep their own Glufloat accounts.\n\nA doctor with care fees on record cannot be deleted: switch them off instead.\n\nType the name to delete:`,
           );
           if (typed == null) return;
           if (await call("DELETE", { confirmName: typed })) router.refresh();

@@ -28,7 +28,7 @@ export default async function DoctorSetupPage({ params }: { params: Promise<{ to
 
   if (!invite)
     return (
-      <AuthShell side="hospital" sideTitle="GluFloat for doctors" title="This link does not work" subtitle={bad}>
+      <AuthShell side="hospital" sideTitle="Glufloat for doctors" title="This link does not work" subtitle={bad}>
         <a href="/signin" className="font-semibold text-brand hover:underline">
           Log in
         </a>
@@ -38,7 +38,7 @@ export default async function DoctorSetupPage({ params }: { params: Promise<{ to
   return (
     <AuthShell
       side="hospital"
-      sideTitle="GluFloat for doctors"
+      sideTitle="Glufloat for doctors"
       title={`Welcome, ${invite.name}`}
       subtitle="Choose your password. Then add your patients, or show them your QR code."
     >

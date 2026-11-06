@@ -12,7 +12,7 @@ export default function TypeCodePage() {
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   return (
-    <AuthShell title="Join with your code" subtitle="Type the code printed under your hospital or dietitian's GluFloat QR code.">
+    <AuthShell title="Join with your code" subtitle="Type the code printed under your hospital or dietitian's Glufloat QR code.">
       <form
         onSubmit={(e) => {
           e.preventDefault();

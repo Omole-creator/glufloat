@@ -22,14 +22,14 @@ export const metadata: Metadata = { alternates: { canonical: "/" } };
 const PLANS: PricingPlan[] = [
   {
     tier: "basic",
-    name: "GluFloat",
+    name: "Glufloat",
     price: "N1,500",
     isPopular: false,
     description: "7 days free. No card needed. Stop anytime.",
     features: [
       "Get your breakfast, lunch and dinner picked for you every day",
       "Want something else? Check any of 1,500+ Nigerian foods first",
-      "Build a meal and get personalized guidance on it",
+      "Check a meal and get personalized guidance on it",
       "Test your sugar before and 2 hours after a meal, and see the change",
       "Generate a monthly meal report to share with your doctor",
       "Get a gentle reminder before each meal",
@@ -37,11 +37,11 @@ const PLANS: PricingPlan[] = [
   },
   {
     tier: "plus",
-    name: "GluFloat Plus",
+    name: "Glufloat Plus",
     price: "N2,500",
     isPopular: true,
-    intro: "Everything in GluFloat, plus:",
-    description: "Everything in GluFloat, with meals picked around you.",
+    intro: "Everything in Glufloat, plus:",
+    description: "Everything in Glufloat, with meals picked around you.",
     features: [
       "Get meals tailored to your personal goals",
       "Get meal recommendations that fit your lifestyle",
@@ -51,11 +51,11 @@ const PLANS: PricingPlan[] = [
   },
   {
     tier: "dietitian",
-    name: "GluFloat Premium",
+    name: "Glufloat Premium",
     price: "N4,500",
     isPopular: false,
-    intro: "Everything in GluFloat Plus, plus:",
-    description: "Your own dietitian, plus everything in GluFloat Plus.",
+    intro: "Everything in Glufloat Plus, plus:",
+    description: "Your own dietitian, plus everything in Glufloat Plus.",
     features: [
       "Get direct, personal access to your own dietitian",
       "Get help making better food choices from the meals you already love",
@@ -105,7 +105,7 @@ export default function Home() {
 
       <HeroLanding
         title="Eat Right With Diabetes. Enjoy Food Again."
-        description="Not sure what to eat with diabetes? GluFloat tells you, every meal. You still eat the food you love. You just eat it the right way."
+        description="Not sure what to eat with diabetes? Glufloat tells you, every meal. You still eat the food you love. You just eat it the right way."
         announcementBanner={{
           text: "Reviewed by 7 registered dietitians",
           icon: <ShieldCheck className="h-4 w-4 text-leaf-bright" />,
@@ -119,7 +119,7 @@ export default function Home() {
             {/* Food, not a phone screen (founder, 2026-10-07): the day cards
                 further down already show the app, so the first picture can
                 show what it is all for. Two small notes float on it so it
-                still reads as GluFloat. */}
+                still reads as Glufloat. */}
             <div className="overflow-hidden rounded-[28px] shadow-[0_30px_70px_-30px_rgba(6,26,50,0.8)] ring-1 ring-white/20">
               <Image
                 src="/img/hero-jollof-fish.jpg"
@@ -151,7 +151,7 @@ export default function Home() {
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <Reveal className="text-center">
             <Label>How it works</Label>
-            <h2 className={H2}>How GluFloat Fits Into Your Day</h2>
+            <h2 className={H2}>How Glufloat Fits Into Your Day</h2>
             <p className={LEAD}>
               A few taps around each meal. You keep eating the food you love, and you finally see
               what it does to your sugar.
@@ -184,7 +184,7 @@ export default function Home() {
             <Reveal className="text-center">
               <Label dark>Try it free</Label>
               <h2 className="mt-4 font-display text-3xl font-bold tracking-tight text-white sm:text-4xl">
-                Let GluFloat Pick Your Next Meal
+                Let Glufloat Pick Your Next Meal
               </h2>
               <p className="mx-auto mt-4 max-w-md text-lg leading-relaxed text-white/75">
                 Make a free account. Use it free for 7 days. No card needed.
@@ -225,13 +225,13 @@ export default function Home() {
       <section className="bg-white py-20 sm:py-28">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <Reveal className="text-center">
-            <Label>Why GluFloat</Label>
+            <Label>Why Glufloat</Label>
             <h2 className={H2}>
-              Other Apps Don&apos;t Know Our Food. GluFloat Does.
+              Other Apps Don&apos;t Know Our Food. Glufloat Does.
             </h2>
             <p className={LEAD}>
               Most food apps were made abroad. They don&apos;t know what we cook or how we eat it.
-              GluFloat was made for our food. It knows over 1,500 of them.
+              Glufloat was made for our food. It knows over 1,500 of them.
             </p>
           </Reveal>
 
@@ -253,7 +253,7 @@ export default function Home() {
                 <div className="grid grid-cols-[1.6fr_1fr_1fr] border-b border-ink/[0.06] text-sm font-bold">
                   <div className="px-5 py-4" />
                   <div className="px-2 py-4 text-center text-ink-soft">Other apps</div>
-                  <div className="bg-brand px-2 py-4 text-center text-white">GluFloat</div>
+                  <div className="bg-brand px-2 py-4 text-center text-white">Glufloat</div>
                 </div>
                 {[
                   "Tells you what to eat, every meal",
@@ -357,10 +357,10 @@ export default function Home() {
           </Reveal>
           <Reveal delay={150} className="mt-8 text-center">
             <p className="text-sm text-ink-soft">
-              One visit to the clinic costs more than a whole year of GluFloat.
+              One visit to the clinic costs more than a whole year of Glufloat.
             </p>
           </Reveal>
-          {/* GluFloat for hospitals (founder, 2026-10-12): right under the
+          {/* Glufloat for hospitals (founder, 2026-10-12): right under the
               personal plans, where a clinic owner reading prices for one
               person asks "and for my clinic?". */}
           <Reveal delay={200} className="mt-12">
@@ -375,7 +375,7 @@ export default function Home() {
                     Run A Hospital Or Clinic?
                   </h3>
                   <p className="mt-2 leading-relaxed text-white/85">
-                    Give your diabetes patients GluFloat Premium, and let your doctors and dietitians see every meal and sugar
+                    Give your diabetes patients Glufloat Premium, and let your doctors and dietitians see every meal and sugar
                     test they save. Start with a free 30-day pilot.
                   </p>
                 </div>
@@ -383,12 +383,12 @@ export default function Home() {
                   href="/hospitals"
                   className="inline-flex h-13 shrink-0 items-center justify-center gap-2 rounded-full bg-leaf px-7 py-3.5 text-base font-bold text-white shadow-[0_14px_30px_-14px_rgba(62,155,79,0.9)] transition-transform hover:-translate-y-0.5"
                 >
-                  See GluFloat for hospitals <ArrowRight className="h-4 w-4" />
+                  See Glufloat for hospitals <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
             </div>
           </Reveal>
-          {/* GluFloat for dietitians (founder, 2026-10-13): its own card, right
+          {/* Glufloat for dietitians (founder, 2026-10-13): its own card, right
               under the hospital one, the same shape. */}
           <Reveal delay={260} className="mt-5">
             <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#0B2E5C] via-[#124A8C] to-[#1B5FAA] px-6 py-9 text-white sm:px-10">
@@ -402,15 +402,15 @@ export default function Home() {
                     Are You A Dietitian?
                   </h3>
                   <p className="mt-2 leading-relaxed text-white/85">
-                    Give your patients GluFloat Premium, and see every meal and sugar test they save from your own dashboard.
-                    Set your own price. Your patients pay you inside GluFloat.
+                    Give your patients Glufloat Premium, and see every meal and sugar test they save from your own dashboard.
+                    Set your own price. Your patients pay you inside Glufloat.
                   </p>
                 </div>
                 <Link
                   href="/dietitians"
                   className="inline-flex h-13 shrink-0 items-center justify-center gap-2 rounded-full bg-leaf px-7 py-3.5 text-base font-bold text-white shadow-[0_14px_30px_-14px_rgba(62,155,79,0.9)] transition-transform hover:-translate-y-0.5"
                 >
-                  See GluFloat for dietitians <ArrowRight className="h-4 w-4" />
+                  See Glufloat for dietitians <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
             </div>
@@ -440,7 +440,7 @@ export default function Home() {
               Know What To Eat Before You Eat It
             </h2>
             <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-white/75">
-              GluFloat tells you what to eat and shows you what each meal does to your sugar. It
+              Glufloat tells you what to eat and shows you what each meal does to your sugar. It
               takes a few seconds.
             </p>
             <TrialCta className="group mt-8 inline-flex items-center gap-2 rounded-full bg-leaf px-8 py-4 text-base font-bold text-white shadow-[0_14px_30px_-10px_rgba(62,155,79,0.6)] transition-all hover:-translate-y-0.5 hover:bg-leaf-deep" />

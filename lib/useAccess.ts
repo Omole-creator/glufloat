@@ -14,11 +14,11 @@ type Result = {
   email: string | null;
   name: string | null;
   access: Access;
-  /** Hospitals this person works for (GluFloat for hospitals). */
+  /** Hospitals this person works for (Glufloat for hospitals). */
   hospitalStaff?: { id: string; name: string; role: string; kind?: "hospital" | "dietitian" | "doctor" }[];
   /** Answers Premium members' chats at /inbox. */
   inbox?: boolean;
-  /** Their GluFloat doctor, if any (never changes access). */
+  /** Their Glufloat doctor, if any (never changes access). */
   doctor?: DoctorLink;
 };
 

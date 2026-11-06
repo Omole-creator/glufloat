@@ -1,6 +1,6 @@
 // npx tsx scripts/practice-rules-test.ts
 //
-// GluFloat for dietitians: a dietitian's food rules for one patient
+// Glufloat for dietitians: a dietitian's food rules for one patient
 // (lib/nextMeal.ts applyPracticeRules). Run after ANY edit to planForDay,
 // suggestExtras or suggestSnack.
 //   - a left-out food is never on the blue card, at any meal, on any day;

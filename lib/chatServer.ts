@@ -142,7 +142,7 @@ export async function patientTeam(admin: SupabaseClient, uid: string): Promise<P
     new Date(sub.current_period_end as string).getTime() > Date.now();
   type Joined = { id: string; joined_at: string | null; hospitals: HospitalRow | null };
   const live = ((pats ?? []) as unknown as Joined[])
-    // A GluFloat doctor's patient chats with their doctor only once they are on
+    // A Glufloat doctor's patient chats with their doctor only once they are on
     // Premium (they pay for it themselves; the doctor answers).
     .filter((p) => p.hospitals && hospitalLive(p.hospitals) && (p.hospitals.kind !== "doctor" || premium))
     // A hospital or dietitian that pays for them comes before their doctor.

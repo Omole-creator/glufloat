@@ -462,7 +462,7 @@ export default async function AdminPage({
                         {c.whatsapp && (
                           <a
                             href={`https://wa.me/${c.whatsapp}?text=${encodeURIComponent(
-                              `Hello ${c.name}, ${c.waiting} ${c.waiting === 1 ? "patient is" : "patients are"} waiting for your reply in GluFloat. Please open your GluFloat chats when you can. Thank you.`,
+                              `Hello ${c.name}, ${c.waiting} ${c.waiting === 1 ? "patient is" : "patients are"} waiting for your reply in Glufloat. Please open your Glufloat chats when you can. Thank you.`,
                             )}`}
                             target="_blank"
                             rel="noopener noreferrer"

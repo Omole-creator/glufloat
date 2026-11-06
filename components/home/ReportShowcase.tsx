@@ -64,14 +64,14 @@ export default function ReportShowcase() {
           </span>
           <h3 className="relative mt-5 font-display text-2xl font-bold leading-tight">Want Someone To Talk To?</h3>
           <p className="relative mt-3 max-w-xs text-base leading-relaxed text-white/80">
-            On GluFloat Premium you get your own dietitian. Ask about your meals, your report, or
+            On Glufloat Premium you get your own dietitian. Ask about your meals, your report, or
             the food you love.
           </p>
           <div className="relative mt-6 w-full rounded-2xl bg-white/10 p-4 ring-1 ring-inset ring-white/20">
             <p className="flex items-center justify-center gap-2 text-sm font-semibold">
               <MessageCircle className="h-4 w-4 text-leaf-bright" /> Chat with your dietitian
             </p>
-            <p className="mt-1 text-xs text-white/70">Inside GluFloat. The same dietitian every time you message.</p>
+            <p className="mt-1 text-xs text-white/70">Inside Glufloat. The same dietitian every time you message.</p>
           </div>
           <a
             href="#pricing"

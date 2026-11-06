@@ -7,7 +7,7 @@ import { buildDocumentPdf, ngn, type DocumentForPdf } from "@/lib/hospitalPdf";
 import type { InvoiceSettings } from "@/lib/invoiceSettings";
 import type { HospitalRow } from "@/lib/hospitalServer";
 
-// GluFloat's own WhatsApp, the same number as the "Chat with us" bubble.
+// Glufloat's own WhatsApp, the same number as the "Chat with us" bubble.
 const GLUFLOAT_WHATSAPP = "2348132097317";
 
 function niceDate(iso: string | null): string {
@@ -29,7 +29,7 @@ export default function PlanPanel({
   bank: InvoiceSettings;
 }) {
   const pct = hospital.seats ? Math.min(100, Math.round((used / hospital.seats) * 100)) : 0;
-  const ask = encodeURIComponent(`Hello GluFloat, this is ${hospital.name}. We would like to talk about our plan.`);
+  const ask = encodeURIComponent(`Hello Glufloat, this is ${hospital.name}. We would like to talk about our plan.`);
 
   return (
     <div className="mt-6 grid gap-6 lg:grid-cols-[1.2fr_1fr]">
@@ -52,7 +52,7 @@ export default function PlanPanel({
             </div>
           </div>
           <p className="mt-5 text-sm text-white/80">
-            Every patient gets everything in GluFloat Premium. Your doctors and dietitians are free.
+            Every patient gets everything in Glufloat Premium. Your doctors and dietitians are free.
           </p>
           <a
             href={`https://wa.me/${GLUFLOAT_WHATSAPP}?text=${ask}`}
@@ -67,7 +67,7 @@ export default function PlanPanel({
         <section className="rounded-2xl border border-[#e3e9f1] bg-white p-5 sm:p-6">
           <h2 className="font-display text-lg font-bold text-ink">Quotes and invoices</h2>
           {documents.length === 0 ? (
-            <p className="mt-2 text-sm text-ink-soft">GluFloat&apos;s quotes and invoices for you will be here.</p>
+            <p className="mt-2 text-sm text-ink-soft">Glufloat&apos;s quotes and invoices for you will be here.</p>
           ) : (
             <ul className="mt-3 divide-y divide-[#eef2f7]">
               {documents.map((d) => (

@@ -11,7 +11,7 @@ import { isUserType } from "@/lib/userType";
  * Direct users stay on the lists for who they said they are (Diabetic,
  * Health professional, Caregiver, Not set). Four groups are taken OFF those
  * lists and kept on their own, so an email to direct users never reaches them:
- *   - Dietitians       run a practice on GluFloat for dietitians
+ *   - Dietitians       run a practice on Glufloat for dietitians
  *   - Hospital staff   a hospital's admin, doctor or dietitian
  *   - Dietitian patients / Hospital patients   a practice or a hospital
  *                      covers them right now (active or waiting)
@@ -52,14 +52,14 @@ export async function emailAudience(admin: SupabaseClient): Promise<AudienceRow[
   // Missing hospital tables just mean nobody is in the four new groups.
   const role = new Map<string, AudienceKey>();
   for (const p of (pats.data ?? []) as unknown as { user_id: string | null; hospitals: Org }[]) {
-    // A GluFloat doctor's patients pay GluFloat themselves: they stay on the
+    // A Glufloat doctor's patients pay Glufloat themselves: they stay on the
     // direct lists, like any other member.
     if (!p.user_id || !open(p.hospitals) || p.hospitals?.kind === "doctor") continue;
     if (p.hospitals?.kind === "dietitian") role.set(p.user_id, "dietitian_patients");
     else if (role.get(p.user_id) !== "dietitian_patients") role.set(p.user_id, "hospital_patients");
   }
   for (const s of (staff.data ?? []) as unknown as { user_id: string; hospitals: Org }[]) {
-    // A GluFloat doctor stays on the list for who they said they are (Health professional).
+    // A Glufloat doctor stays on the list for who they said they are (Health professional).
     if (!open(s.hospitals) || s.hospitals?.kind === "doctor") continue;
     if (s.hospitals?.kind === "dietitian") role.set(s.user_id, "dietitians");
     else if (role.get(s.user_id) !== "dietitians") role.set(s.user_id, "hospital_staff");

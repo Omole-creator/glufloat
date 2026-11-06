@@ -82,7 +82,7 @@ export async function POST(request: Request) {
   const subjectOut = subject.split(NAME_TOKEN).join(NAME_TAG);
 
   const html = emailHtml(subject, message);
-  const plain = `${toText(message)}\n\n--\nGluFloat. www.glufloat.com\nStop these emails: ${UNSUB_HREF}`;
+  const plain = `${toText(message)}\n\n--\nGlufloat. www.glufloat.com\nStop these emails: ${UNSUB_HREF}`;
 
   try {
     if (b.action === "test") {

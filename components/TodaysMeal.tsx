@@ -239,7 +239,7 @@ export default function TodaysMeal({
         personalRotationKey(profileRef.current),
         week,
         profileRef.current.swallows,
-        // Her dietitian's food rules (GluFloat for dietitians); null for everyone else.
+        // Her dietitian's food rules (Glufloat for dietitians); null for everyone else.
         rules,
       );
       const ctx: SwapContext = {

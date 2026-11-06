@@ -1,5 +1,5 @@
 /**
- * The household measures GluFloat uses, each with a REAL photo (co-founder
+ * The household measures Glufloat uses, each with a REAL photo (co-founder
  * dietitian, 2026-10-08: "a cup" or "a fist" means a different size in every
  * home, and drawings did not work for her patients, so every measure the app
  * names is shown as a photo the person can open full size).
@@ -53,7 +53,7 @@ export const MEASURES: Measure[] = [
     name: "One cup",
     size: "250ml",
     badge: "250ml",
-    how: "Every cup in GluFloat is a normal drinking glass like this one, filled to one finger below the top. That is 250ml. Do not fill it to the brim: a full glass holds more. Half a cup is 125ml: fill the glass to just under halfway.",
+    how: "Every cup in Glufloat is a normal drinking glass like this one, filled to one finger below the top. That is 250ml. Do not fill it to the brim: a full glass holds more. Half a cup is 125ml: fill the glass to just under halfway.",
     photo: "/img/measures/cup-glass-250ml.jpg",
     alt: "A plain drinking glass",
     match: /\bcups?\b/i,

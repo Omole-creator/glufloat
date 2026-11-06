@@ -51,7 +51,7 @@ function SignInForm() {
         const res = await fetch("/api/hospital/me", { cache: "no-store" });
         const j = (await res.json()) as { staff?: unknown[]; inbox?: boolean };
         if (Array.isArray(j.staff) && j.staff.length > 0) to = "/hospital";
-        // A GluFloat Premium dietitian goes to the chats she answers.
+        // A Glufloat Premium dietitian goes to the chats she answers.
         else if (j.inbox) to = "/inbox";
       } catch {
         /* fall through to the app */
@@ -113,7 +113,7 @@ function SignInForm() {
 
 export default function SignInPage() {
   return (
-    <AuthShell title="Welcome back" subtitle="Sign in to open your food checks and your meal builder.">
+    <AuthShell title="Welcome back" subtitle="Sign in to open your food checks and Check a meal.">
       {/* useSearchParams needs a Suspense boundary to prerender. */}
       <Suspense fallback={<div className="h-80" />}>
         <SignInForm />

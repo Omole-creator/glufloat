@@ -8,10 +8,10 @@ type FoodOpt = { id: string; name: string };
 const NOTE_MAX = 300;
 
 /**
- * GluFloat for dietitians (founder, 2026-10-13): her own advice for one
+ * Glufloat for dietitians (founder, 2026-10-13): her own advice for one
  * patient, about two minutes' work. A note the patient sees on their Today
  * screen as "From <her name>", foods to leave out, and foods to eat more of.
- * GluFloat's meal picks follow her rules and still fit the patient's own My
+ * Glufloat's meal picks follow her rules and still fit the patient's own My
  * details (lib/nextMeal.ts applyPracticeRules); she never has to choose the
  * replacement meals herself.
  */
@@ -50,7 +50,7 @@ export default function PracticeRulesEditor({
     if (!res.ok) return setMsg({ ok: false, text: j.error ?? "This did not save. Please try again." });
     setAvoid(j.avoid ?? avoid);
     setPrefer(j.prefer ?? prefer);
-    setMsg({ ok: true, text: `Saved. ${firstName} sees it the next time they open GluFloat.` });
+    setMsg({ ok: true, text: `Saved. ${firstName} sees it the next time they open Glufloat.` });
   };
 
   return (
@@ -79,7 +79,7 @@ export default function PracticeRulesEditor({
       <div className="mt-4 grid gap-5 lg:grid-cols-2">
         <FoodPicker
           title="Leave out these foods"
-          hint="GluFloat will not suggest them."
+          hint="Glufloat will not suggest them."
           icon={Ban}
           tone="red"
           chosen={avoid}
@@ -93,7 +93,7 @@ export default function PracticeRulesEditor({
         />
         <FoodPicker
           title="Eat more of these foods"
-          hint="GluFloat will suggest meals with them more often."
+          hint="Glufloat will suggest meals with them more often."
           icon={ThumbsUp}
           tone="green"
           chosen={prefer}

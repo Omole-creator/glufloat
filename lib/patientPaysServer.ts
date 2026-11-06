@@ -1,9 +1,9 @@
 /**
- * The server half of "patients pay their dietitian through GluFloat"
+ * The server half of "patients pay their dietitian through Glufloat"
  * (2026-10-17, supabase/patient-pays-schema.sql). Rules are in
  * lib/patientPays.ts.
  *
- * How a price GluFloat never set up on Paystack gets paid: there is no
+ * How a price Glufloat never set up on Paystack gets paid: there is no
  * Paystack payment page for it. When the patient taps Pay, the server asks
  * Paystack to start a payment for exactly her price (Transaction Initialize),
  * with a hidden note (metadata) saying who it is for. Paystack hands back a
@@ -11,7 +11,7 @@
  * comes back to /unlock. The claim route and the webhook verify the payment
  * with Paystack and send it here.
  *
- * The metadata can be trusted: only GluFloat's secret key can start a
+ * The metadata can be trusted: only Glufloat's secret key can start a
  * Paystack payment that carries it, and the amount is read back from Paystack,
  * never from the browser.
  */
@@ -72,8 +72,8 @@ export async function startPatientPayment(admin: SupabaseClient, uid: string, em
   if (!secret) return { error: "Payments are not set up yet.", status: 500 };
   if (!(await patientPaysReady(admin))) return { error: "This is not ready yet. Please try again soon.", status: 503 };
   const row = await patientPaysRow(admin, uid);
-  if (!row || !row.hospitals) return { error: "You are not with a dietitian on GluFloat.", status: 404 };
-  if (!email) return { error: "Your account has no email. Please contact GluFloat.", status: 400 };
+  if (!row || !row.hospitals) return { error: "You are not with a dietitian on Glufloat.", status: 404 };
+  if (!email) return { error: "Your account has no email. Please contact Glufloat.", status: 400 };
 
   const price = patientPrice(row.hospitals);
   const reference = `gf-pp-${randomBytes(9).toString("hex")}`;
@@ -175,7 +175,7 @@ export async function grantPatientPayment(
     const { data: existing } = await admin.from("patient_payments").select("user_id").eq("reference", p.reference).maybeSingle();
     return existing?.user_id && existing.user_id !== p.uid ? "conflict" : "already";
   }
-  // Kept with no patient, so GluFloat can see a payment that found nobody
+  // Kept with no patient, so Glufloat can see a payment that found nobody
   // (they left her between tapping Pay and paying) and refund or place it.
   if (!row || !row.hospitals) return "no_patient";
 
@@ -207,7 +207,7 @@ export async function grantPatientPayment(
       { onConflict: "reference,kind", ignoreDuplicates: true },
     );
 
-  // The whole payment is money a customer paid GluFloat, counted on
+  // The whole payment is money a customer paid Glufloat, counted on
   // /admin/finance; her share is counted there as a cost (above).
   await admin.from("finance_income").insert({
     received_on: watDay(p.paidAt),

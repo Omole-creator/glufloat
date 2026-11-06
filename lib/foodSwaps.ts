@@ -89,6 +89,16 @@ export const FOOD_SWAPS: FoodSwap[] = [
   },
   {
     "from": "acha",
+    "to": "fufu-akpu",
+    "row": 21
+  },
+  {
+    "from": "fufu-akpu",
+    "to": "acha",
+    "row": 21
+  },
+  {
+    "from": "acha",
     "to": "oat-swallow",
     "row": 23,
     "grams": 150,
@@ -147,14 +157,13 @@ export const FOOD_SWAPS: FoodSwap[] = [
     "row": 28
   },
   {
-    "from": "cocoyam-fufu",
-    "to": "fufu-akpu",
-    "row": 29
-  },
-  {
     "from": "fufu-akpu",
     "to": "cocoyam-fufu",
-    "row": 29
+    "row": 29,
+    "grams": 150,
+    "calories": 177,
+    "carbG": 40.5,
+    "instruction": "One and a half balls of cocoyam fufu, each the size of your fist (150g in total)."
   },
   {
     "from": "cocoyam-fufu",
@@ -175,26 +184,6 @@ export const FOOD_SWAPS: FoodSwap[] = [
     "from": "semovita",
     "to": "cocoyam-fufu",
     "row": 31
-  },
-  {
-    "from": "fufu-akpu",
-    "to": "garri-eba",
-    "row": 32
-  },
-  {
-    "from": "garri-eba",
-    "to": "fufu-akpu",
-    "row": 32
-  },
-  {
-    "from": "fufu-akpu",
-    "to": "semovita",
-    "row": 33
-  },
-  {
-    "from": "semovita",
-    "to": "fufu-akpu",
-    "row": 33
   },
   {
     "from": "garri-eba",

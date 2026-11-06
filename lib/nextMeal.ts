@@ -570,7 +570,7 @@ function pepperSoupPlates(): string[][] {
  * real Nigerian plate built from that starch's own "Eat it with" line, and
  * each scores green in the real engine:
  *
- * - `SIZE_PLATES_*`: green only at the GluFloat size of the starch (the size
+ * - `SIZE_PLATES_*`: green only at the Glufloat size of the starch (the size
  *   on its card, the engine's "small size"). The blue card and search say so
  *   (`MealIdea.sizeNote`), and "Check a meal" opened from them scores the
  *   starch at that size (`gluFloatSize` on the copy). Each starch at most 2
@@ -699,12 +699,12 @@ const SWALLOW_PLATES: string[][] = [
   ["starch-delta", "owho-soup", "chicken"],
 ];
 
-/** The starch on each GluFloat-size plate: the foods that must be eaten at the card's size. */
+/** The starch on each Glufloat-size plate: the foods that must be eaten at the card's size. */
 export const GLUFLOAT_SIZE_STARCHES: ReadonlySet<string> = new Set([
   ...[...SIZE_PLATES_LUNCH, ...SIZE_PLATES_BREAKFAST].map((p) => p[0]),
   ...[...SWALLOW_IDS].filter((id) => !STEADY_SWALLOWS.has(id)),
 ]);
-/** At most this many GluFloat-size plates (not swallows, they have their own count) eaten in 7 days. */
+/** At most this many Glufloat-size plates (not swallows, they have their own count) eaten in 7 days. */
 export const SIZE_GROUP_LIMIT = 2;
 
 /** Foods a plate may hold only a set number of times in 7 days. */
@@ -742,7 +742,7 @@ const LOW_WEEKLY_LIMIT: Record<string, number> = {
   ukwa: 4,
 };
 
-/** A plate that would take a limited food, the GluFloat-size group, or the week's non-low-GI meals past its count. */
+/** A plate that would take a limited food, the Glufloat-size group, or the week's non-low-GI meals past its count. */
 function overWeeklyLimit(ids: string[], weekCounts: Map<string, number>): boolean {
   if (ids.some((id) => LOW_WEEKLY_LIMIT[id] != null && (weekCounts.get(id) ?? 0) >= LOW_WEEKLY_LIMIT[id])) return true;
   if (ids.some((id) => WEEKLY_PLATE_LIMIT[id] != null && (weekCounts.get(id) ?? 0) >= WEEKLY_PLATE_LIMIT[id])) return true;
@@ -832,7 +832,7 @@ function filterBySwallows<T extends { idea: { index: number } }>(
 }
 
 /**
- * How "Check a meal" and the blue card score a food: a GluFloat-size starch at
+ * How "Check a meal" and the blue card score a food: a Glufloat-size starch at
  * the size on its card (the engine's "half"), everything else at its normal
  * size. The ONE place this is decided, so a plate built by hand gets the same
  * colour as the same plate on the blue card (founder, 2026-10-25: eba + soup +
@@ -842,7 +842,7 @@ export function rightSizePortion(id: string): "half" | "normal" {
   return GLUFLOAT_SIZE_STARCHES.has(id) ? "half" : "normal";
 }
 
-/** The plain line that makes a GluFloat-size plate green: the starch at its card's size. */
+/** The plain line that makes a Glufloat-size plate green: the starch at its card's size. */
 export function rightSizeNote(foods: Food[]): string | undefined {
   return sizeNoteFor(foods);
 }
@@ -941,8 +941,8 @@ export interface MealIdea {
    *  after `scaledProtein` — see `scaleMainSide`'s own doc. Only ever set
    *  by `planForDay` under the same conditions as `scaledProtein`. */
   scaledSide?: ScaledPortion | null;
-  /** On a GluFloat-size plate: the line that keeps it green ("Keep the eba
-   *  to the GluFloat size: one ball the size of your fist."). */
+  /** On a Glufloat-size plate: the line that keeps it green ("Keep the eba
+   *  to the Glufloat size: one ball the size of your fist."). */
   sizeNote?: string;
   /** Set when the person swapped one food ("I don't have this"). `serving` is
    *  the countable size of the new food when it is not its card size. */
@@ -1037,7 +1037,7 @@ export function mealIdeaFoodsForBuilder(idea: MealIdea): Food[] {
   if (idea.scaledProtein) overrides.set(idea.scaledProtein.food.id, idea.scaledProtein);
   if (idea.scaledSide) overrides.set(idea.scaledSide.food.id, idea.scaledSide);
   if (idea.swapped?.serving) overrides.set(idea.swapped.serving.food.id, idea.swapped.serving);
-  // The starch of a GluFloat-size plate is scored at that size in "Check a
+  // The starch of a Glufloat-size plate is scored at that size in "Check a
   // meal", because that is the size the blue card told them to eat.
   if (overrides.size === 0 && !idea.foods.some((f) => GLUFLOAT_SIZE_STARCHES.has(f.id))) return idea.foods;
   // The copy carries the bigger serving's calories and carbs too, not only
@@ -1267,7 +1267,7 @@ export function planForDay(
     const within = base.filter((s) => !overWeeklyLimit(list[s.idea.index], weekCounts));
     if (within.length > 0) base = within;
   }
-  // The patient's dietitian (GluFloat for dietitians, applyPracticeRules).
+  // The patient's dietitian (Glufloat for dietitians, applyPracticeRules).
   base = applyPracticeRules(base, list, rules, `${dayKey}#${meal}#${personalKey}`);
 
   // A calorie target (Plus/Dietitian tier) is NOT a minor tiebreak added on
@@ -2038,7 +2038,7 @@ const MEAL_WORD: Record<NamedMeal, string> = {
  * starch. Research on eating something fatty or body-building shortly ahead
  * of a carbohydrate meal (whey and nut "preload" studies) shows it slows the
  * stomach down, so the meal that follows pushes sugar up more slowly than it
- * would on its own — the same reason GluFloat always pairs a starch with
+ * would on its own — the same reason Glufloat always pairs a starch with
  * vegetables and body-building food, used here ahead of time instead of
  * alongside. Studies test this in a 15-to-30-minute window before the meal,
  * which is why the copy gives that range. Because each option now sits
@@ -2146,7 +2146,7 @@ const MIN_ADD_KCAL = 20;
  *    number, and two very different people were found producing identical
  *    extras (both saturating this same 2-item stop), a first fix tried an
  *    honest-shortfall message instead ("ask your dietitian") — rejected on
- *    direct instruction: GluFloat runs automated, and a human referral is
+ *    direct instruction: Glufloat runs automated, and a human referral is
  *    reserved for the paid dietitian-chat tier, not a stand-in for the
  *    app's own job.
  * 2. **An automatic top-up past 2 items (2026-09-08).** `buildVariant()`

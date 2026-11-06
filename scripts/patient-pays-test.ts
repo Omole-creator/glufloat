@@ -1,5 +1,5 @@
 /**
- * Patients pay their dietitian through GluFloat (lib/patientPays.ts,
+ * Patients pay their dietitian through Glufloat (lib/patientPays.ts,
  * supabase/patient-pays-schema.sql). Run after ANY edit to lib/patientPays.ts:
  *   npx tsx scripts/patient-pays-test.ts
  */
@@ -31,7 +31,7 @@ const now = Date.UTC(2026, 9, 17, 10);
 
 // The founder's numbers.
 check("minimum price is N4,500", PATIENT_PRICE_MIN === 4_500);
-check("GluFloat keeps N2,000", GLUFLOAT_SHARE === 2_000);
+check("Glufloat keeps N2,000", GLUFLOAT_SHARE === 2_000);
 check("14 free days per patient", PATIENT_FREE_DAYS === 14);
 
 // Her price.
@@ -39,18 +39,18 @@ check("no price set reads as N4,500", patientPrice({ patient_price: null }) === 
 check("a set price is kept", patientPrice({ patient_price: 6_000 }) === 6_000);
 check("a price under the minimum reads as the minimum", patientPrice({ patient_price: 3_000 }) === 4_500);
 
-// The split: she gets exactly price minus N2,000 (Paystack's fee is GluFloat's).
+// The split: she gets exactly price minus N2,000 (Paystack's fee is Glufloat's).
 check("N4,500 gives her N2,500", dietitianShareNaira(4_500) === 2_500);
 check("N6,000 gives her N4,000", dietitianShareNaira(6_000) === 4_000);
 check("kobo split matches naira split", dietitianShareKobo(600_000) === 400_000);
-check("an amount at GluFloat's share gives her nothing", dietitianShareKobo(200_000) === 0);
-check("an amount under GluFloat's share never goes negative", dietitianShareKobo(100_000) === 0);
-check("her share plus GluFloat's is the whole price", [4_500, 5_000, 7_250, 10_000].every((p) => dietitianShareNaira(p) + GLUFLOAT_SHARE === p));
+check("an amount at Glufloat's share gives her nothing", dietitianShareKobo(200_000) === 0);
+check("an amount under Glufloat's share never goes negative", dietitianShareKobo(100_000) === 0);
+check("her share plus Glufloat's is the whole price", [4_500, 5_000, 7_250, 10_000].every((p) => dietitianShareNaira(p) + GLUFLOAT_SHARE === p));
 check("percentage at N6,000 is 67%", dietitianPercent(6_000) === 67);
 check("percentage at N4,500 is 56%", dietitianPercent(4_500) === 56);
 
 // The volume discount (founder, 2026-10-17): over 25 paying patients in 30
-// days, GluFloat keeps N1,750 on every payment.
+// days, Glufloat keeps N1,750 on every payment.
 check("25 paying patients: still N2,000", glufloatShareFor(25) === 2_000);
 check("26 paying patients: N1,750", glufloatShareFor(26) === 1_750 && GLUFLOAT_SHARE_VOLUME === 1_750 && VOLUME_PATIENTS === 25);
 check("no count given: N2,000", glufloatShareFor() === 2_000);

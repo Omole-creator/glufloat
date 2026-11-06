@@ -79,7 +79,7 @@ export function nairaLabel(amountKobo: number): string {
 // Display names only. The stored enum value stays "dietitian" (it is already
 // live in the database) — only what a person READS changed to "Premium".
 export const TIER_LABEL: Record<Tier, string> = {
-  basic: "GluFloat",
-  plus: "GluFloat Plus",
-  dietitian: "GluFloat Premium",
+  basic: "Glufloat",
+  plus: "Glufloat Plus",
+  dietitian: "Glufloat Premium",
 };

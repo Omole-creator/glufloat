@@ -1,5 +1,5 @@
 /**
- * Field agents, advisors and GluFloat doctors, read once for the admin pages
+ * Field agents, advisors and Glufloat doctors, read once for the admin pages
  * and the agent dashboard (server only). Counts and money only: nothing here
  * carries a patient's name or health data, because an agent's dashboard must
  * never show one.
@@ -44,7 +44,7 @@ export type DoctorRow = {
 export type DoctorStats = DoctorRow & {
   /** Patients with them now. */
   patients: number;
-  /** Of those, on GluFloat Premium right now. */
+  /** Of those, on Glufloat Premium right now. */
   paying: number;
   /** Has the doctor finished setting up (a login)? */
   setUp: boolean;

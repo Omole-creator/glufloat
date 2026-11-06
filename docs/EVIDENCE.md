@@ -990,8 +990,8 @@ soup or vegetable added.
 
 Fermented, smoke-dried cassava, from the Ikale and Ilaje people of Ondo State. Also
 called Ikale fufu, cassava poundo and ikwurikwu (Adejuyitan 2018 confirms
-ikwurikwu). **Kpukpuru** is the founder's own name for it; no source was found, and
-it is kept as a search name only. "Poundo" alone still goes to Pounded Yam.
+ikwurikwu). **Kpukpuru is the same food as ikwurikwu**, on the founder's word
+(2026-11-06), so the same findings apply. "Poundo" alone still goes to Pounded Yam.
 
 **Sugar speed: high, confidence low on the number, high on the class.**
 
@@ -1010,13 +1010,35 @@ cooked swallow, so it is read as the dry flour: carbohydrate 80.67, protein 5.34
 fat 0.65, fibre 1.67. [Adejuyitan et al., Haya Saudi J Life Sci 3.6 (2018)](https://saudijournals.com/media/articles/SJLS-36-481-488.pdf),
 four cassava varieties, dry: moisture 8.74-9.79, protein 1.52-1.70, fibre 1.27-2.03,
 carbohydrate 84.16-86.94. **Adejuyitan's lower protein was used**: four varieties
-against one sample, and in line with other cassava products. Flour works out to
-about 355 kcal/100g, close to the founder's 367.
+against one sample, and in line with other cassava products.
+
+**The 2016 Nigeria Food Composition Table has its own flour row, and it wins**
+(02_03_10, "Pupuru flour 100%"): 366.99 kcal, water 5.90, protein 1.85, fat 1.19,
+carbohydrate 85.32, fibre 3.80. That is the founder's 367. It has no cooked row.
 
 **Cooked, per 100g ball:** 150 kcal, the middle of the founder's 130-170, which means
-about 42% solids. Carbohydrate 36g, protein 0.7g, fat 0.3g, fibre 0.7g. Potassium and
-sodium are estimates from lafun. Note this is well above eba (98) and fufu (106) in
-the data for a similar food; those two were not re-checked here.
+about 41% of the table's flour. Carbohydrate 35g, protein 0.8g, fat 0.5g, fibre 1.6g.
+Potassium and sodium are estimates from lafun. This cooked figure is derived, not
+measured; cooked fufu in the same table is 142 kcal.
+
+### Eba and fufu re-checked against the table, 2026-11-06
+
+Read directly from `food.pdf.pdf`, rows 02_03_06 and 02_03_03 (the rows the header
+of `food-composition.mjs` calls ambiguous extract cleanly once the spaced text is
+joined).
+
+| Food | Table per 100g | Was | Now |
+|---|---|---|---|
+| Eba | 98.74 kcal, water 76.42, protein 0.68, fat 0.10, carbohydrate 22.94, fibre 1.70 | 98 kcal, 23g carbs, protein 1.6, fat 0.5, fibre 1.2 | calories and carbs were right; protein, fat, fibre now match |
+| Fufu | 142.45 kcal, water 70.04, protein 0.52, fat 0.08, carbohydrate 34.74, fibre 0.36 | 106 kcal, 25g carbs | 142 kcal, 34.7g carbs, now `table` |
+
+**Not taken from the table:** its potassium and sodium for these two. Eba's sodium
+319.85 and potassium 332.05 sit oddly against dry garri, and fufu's potassium 0.57 is
+not believable. The earlier estimates stay. Cooked lafun in the table is 100.42 kcal,
+24.39g carbs, against 110 and 26 in the data; it was not asked about and was left.
+
+Recomputing the swaps with these numbers dropped eba and fufu as a pair, because
+the two no longer meet the co-founder dietitian's "equivalent" limits.
 
 **Plates:** egusi, bitterleaf and okra soup, with fish or chicken. Served this way in
 Ondo ([First Daily, 2025](https://firstdaily.ng/?p=144007)). Shares the swallows'

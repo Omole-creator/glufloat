@@ -12,7 +12,7 @@ import StaffChat from "@/components/chat/StaffChat";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Chat", robots: { index: false, follow: false } };
 
-/** One Premium member's chat, for their GluFloat dietitian. */
+/** One Premium member's chat, for their Glufloat dietitian. */
 export default async function InboxThreadPage({ params }: { params: Promise<{ thread: string }> }) {
   const { thread: id } = await params;
   const user = await sessionUser();
@@ -38,7 +38,7 @@ export default async function InboxThreadPage({ params }: { params: Promise<{ th
   const first = name.split(/\s+/)[0];
 
   return (
-    <InboxShell name={mine[0].name} title={name} subtitle="GluFloat Premium member">
+    <InboxShell name={mine[0].name} title={name} subtitle="Glufloat Premium member">
       <Link href="/inbox" className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:underline">
         <ArrowLeft className="h-4 w-4" /> All chats
       </Link>
@@ -48,7 +48,7 @@ export default async function InboxThreadPage({ params }: { params: Promise<{ th
           apiUrl="/api/inbox/chat"
           ids={{ thread: thread.id }}
           canSend
-          note={`${first} chats with you from their GluFloat app.`}
+          note={`${first} chats with you from their Glufloat app.`}
         />
       </div>
     </InboxShell>

@@ -21,14 +21,14 @@ import PilotSheet, { PilotButton } from "@/components/hospital/PilotSheet";
 import { PILOT_DAYS, PILOT_SEATS } from "@/lib/hospitalPlans";
 
 export const metadata: Metadata = {
-  title: "GluFloat for Hospitals and Clinics | Diabetes Food Care in Nigeria",
+  title: "Glufloat for Hospitals and Clinics | Diabetes Food Care in Nigeria",
   description:
-    "Give your diabetes patients GluFloat Premium and see every meal and sugar test they save, from one dashboard. Free 30-day pilot for 20 patients.",
+    "Give your diabetes patients Glufloat Premium and see every meal and sugar test they save, from one dashboard. Free 30-day pilot for 20 patients.",
   alternates: { canonical: "/hospitals" },
 };
 
 /**
- * GluFloat for hospitals, the page a hospital lands on (2026-10-12). Same
+ * Glufloat for hospitals, the page a hospital lands on (2026-10-12). Same
  * design language as the home page: Title Case centred headings, a cool
  * off-white canvas, white cards, deep-blue panels set into the page. Static,
  * with two small client islands (the plan switch and the pilot form).
@@ -117,8 +117,8 @@ export default function HospitalsPage() {
     },
     {
       icon: Utensils,
-      title: "They use GluFloat every day",
-      text: "Each patient gets everything in GluFloat Premium: what to eat, how much and how often, for Nigerian food, and a place to save each sugar test.",
+      title: "They use Glufloat every day",
+      text: "Each patient gets everything in Glufloat Premium: what to eat, how much and how often, for Nigerian food, and a place to save each sugar test.",
     },
     {
       icon: Stethoscope,
@@ -133,7 +133,7 @@ export default function HospitalsPage() {
     { icon: MessageCircle, text: "Chat with your doctors and dietitians in the app" },
   ];
   const teamGets = [
-    { icon: Users, text: "See all your patients in one list, and the last day each one used GluFloat" },
+    { icon: Users, text: "See all your patients in one list, and the last day each one used Glufloat" },
     { icon: FileText, text: "A report for each patient every month, ready to print" },
     { icon: Stethoscope, text: "Add all your doctors and dietitians for free" },
     { icon: MessageCircle, text: "Read and answer your patients' messages. Only the patient and your team can see them" },
@@ -143,7 +143,7 @@ export default function HospitalsPage() {
   const faqs = [
     {
       q: "Who pays?",
-      a: "Your hospital pays GluFloat one price for the plan. Your patients do not pay GluFloat anything. How you charge your patients for the programme is up to you.",
+      a: "Your hospital pays Glufloat one price for the plan. Your patients do not pay Glufloat anything. How you charge your patients for the programme is up to you.",
     },
     {
       q: "Do our patients need an email address?",
@@ -154,12 +154,12 @@ export default function HospitalsPage() {
       a: "Only the doctors, dietitians and admins your hospital adds. Your admin adds and removes them at any time.",
     },
     {
-      q: "Does GluFloat tell the patient if a sugar test is good or bad?",
-      a: "No. GluFloat shows the number as it is and leaves the judgement to your doctors. If a number is very low or very high, it tells the patient to contact their doctor.",
+      q: "Does Glufloat tell the patient if a sugar test is good or bad?",
+      a: "No. Glufloat shows the number as it is and leaves the judgement to your doctors. If a number is very low or very high, it tells the patient to contact their doctor.",
     },
     {
       q: "What happens after the free pilot?",
-      a: `The pilot gives ${PILOT_SEATS} patients ${PILOT_DAYS} days of everything. Then you choose a plan, we send you an invoice, and you pay by bank transfer. If you do not continue, your patients keep their own GluFloat account.`,
+      a: `The pilot gives ${PILOT_SEATS} patients ${PILOT_DAYS} days of everything. Then you choose a plan, we send you an invoice, and you pay by bank transfer. If you do not continue, your patients keep their own Glufloat account.`,
     },
     {
       q: "We have more than 200 patients, or several branches.",
@@ -177,12 +177,12 @@ export default function HospitalsPage() {
           <div aria-hidden className="pointer-events-none absolute -bottom-40 left-10 h-96 w-96 rounded-full bg-leaf/20 blur-3xl" />
           <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-[1.1fr_1fr]">
             <div>
-              <Label dark>GluFloat for hospitals and clinics</Label>
+              <Label dark>Glufloat for hospitals and clinics</Label>
               <h1 className="mt-5 text-balance font-display text-4xl font-bold leading-[1.08] tracking-tight sm:text-5xl lg:text-[3.4rem]">
                 Care For Your Diabetes Patients Between Visits
               </h1>
               <p className="mt-5 max-w-xl text-lg leading-relaxed text-white/85">
-                Your patients get GluFloat Premium to guide every meal. Your doctors and dietitians see every meal and sugar
+                Your patients get Glufloat Premium to guide every meal. Your doctors and dietitians see every meal and sugar
                 test they save, from one dashboard.
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -237,7 +237,7 @@ export default function HospitalsPage() {
             </div>
             <div className="relative mt-10 grid gap-5 lg:grid-cols-2">
               {[
-                { title: "Each patient gets", sub: "Everything in GluFloat Premium (N4,500 a month on its own)", items: patientGets },
+                { title: "Each patient gets", sub: "Everything in Glufloat Premium (N4,500 a month on its own)", items: patientGets },
                 { title: "Your team gets", sub: "Your hospital's own dashboard", items: teamGets },
               ].map((col) => (
                 <div key={col.title} className="rounded-3xl bg-white/[0.07] p-6 ring-1 ring-inset ring-white/15 sm:p-7">
@@ -282,7 +282,7 @@ export default function HospitalsPage() {
                   Try It With {PILOT_SEATS} Patients For {PILOT_DAYS} Days
                 </h2>
                 <p className="mt-4 max-w-lg text-lg leading-relaxed text-white/80">
-                  No payment to start. If you like it, choose a plan. If not, your patients keep their own GluFloat account.
+                  No payment to start. If you like it, choose a plan. If not, your patients keep their own Glufloat account.
                 </p>
                 <PilotButton className="mt-8 inline-flex h-14 items-center justify-center gap-2 rounded-full bg-leaf px-8 text-base font-bold text-white shadow-[0_16px_34px_-14px_rgba(62,155,79,0.9)] transition-transform hover:-translate-y-0.5">
                   Start my free pilot <ArrowRight className="h-4 w-4" />

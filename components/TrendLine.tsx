@@ -9,7 +9,7 @@ import { useEffect, useRef, useState } from "react";
  *
  * One series, one colour (the brand blue), one axis. Deliberately NO target
  * band, no shading and no red/green zones: drawing a "normal range" would be
- * grading the person's numbers, which GluFloat never does (lib/glucose.ts).
+ * grading the person's numbers, which Glufloat never does (lib/glucose.ts).
  * The numbers are shown; the doctor or dietitian reads them. Tap or hover a
  * point for its value.
  */

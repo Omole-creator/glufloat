@@ -5,13 +5,13 @@
  *
  * Founder's decisions (advisor's model, 2026-10-16, revised the same day):
  *  - Doctor: N1,000 for each patient they mark as reviewed, once a calendar
- *    month (WAT), only while that patient has a paid GluFloat plan. Credited
+ *    month (WAT), only while that patient has a paid Glufloat plan. Credited
  *    the moment they press "Mark as reviewed" (founder, 2026-10-20). This
  *    replaced 22.23% of every payment, which doctors read as a referral fee.
  *    A payment itself no longer earns the doctor anything.
  *  - Agent 11.12% and their advisor 10%, only for the patient's first 12
  *    months. An agent with no advisor still gets 11.12%; the 10% stays with
- *    GluFloat.
+ *    Glufloat.
  *  - A doctor the advisor brought HIMSELF: the advisor gets 15% for the
  *    patient's first 12 months, and nobody else but the doctor.
  *  - A doctor who invites a colleague gets N3,000 once, when the colleague's
@@ -19,7 +19,7 @@
  *  - Paid weekly, no minimum.
  *  - A rep's link for PATIENTS (/p/<ref_code>, founder, 2026-10-27): a third
  *    of each payment by that patient for their first 12 months (N1,500 of
- *    Premium's N4,500, GluFloat keeps N3,000), any plan, monthly or yearly.
+ *    Premium's N4,500, Glufloat keeps N3,000), any plan, monthly or yearly.
  *    No advisor share.
  *
  * Everything is in kobo. Shares are rounded DOWN, so the parts can never add
@@ -116,7 +116,7 @@ export function agentWindowOpen(firstPaidAt: Date | null, paidAt: Date): boolean
   return paidAt.getTime() - firstPaidAt.getTime() < AGENT_WINDOW_DAYS * DAY_MS;
 }
 
-/** What GluFloat keeps, before Paystack's fee. */
+/** What Glufloat keeps, before Paystack's fee. */
 export function glufloatShare(amountKobo: number, shares: Share[]): number {
   return Math.floor(amountKobo) - shares.reduce((n, s) => n + s.amount, 0);
 }

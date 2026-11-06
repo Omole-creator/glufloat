@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 export async function POST() {
   if (!(await isAdmin())) return NextResponse.json({ error: "Not allowed" }, { status: 401 });
   const r = await notifyFounder(
-    "Test: GluFloat hospital alerts work",
+    "Test: Glufloat hospital alerts work",
     [["What this is", "A test from Admin → Hospitals. When a hospital asks for a pilot or a quote, you get an email like this."]],
     `${SITE_URL}/admin/hospitals`,
   );

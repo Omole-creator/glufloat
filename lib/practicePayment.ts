@@ -1,6 +1,6 @@
 /**
  * Turn ONE successful Paystack payment from a dietitian into a month on her
- * practice's plan, exactly once (GluFloat for dietitians, 2026-10-13).
+ * practice's plan, exactly once (Glufloat for dietitians, 2026-10-13).
  *
  * Shared by /api/paystack/claim and /api/paystack/webhook, which both see the
  * same payment. They send a payment here INSTEAD of lib/paymentGrant.ts when
@@ -63,7 +63,7 @@ export async function grantPracticePayment(
     const { data: existing } = await admin.from("practice_payments").select("user_id").eq("reference", p.reference).maybeSingle();
     return existing?.user_id && existing.user_id !== p.uid ? "conflict" : "already";
   }
-  // Kept with no practice, so GluFloat can see a payment that found nobody.
+  // Kept with no practice, so Glufloat can see a payment that found nobody.
   if (!practice) return "no_practice";
 
   // 1 month, or 12 for a yearly amount (12 months for the price of 10).

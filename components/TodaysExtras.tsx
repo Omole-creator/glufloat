@@ -20,7 +20,7 @@ import ExtraSuggestionCard from "@/components/ExtraSuggestionCard";
  * honest messaging is not good for glufloat as it is meant to be automated
  * without help except they want to speak with a dietician in the premium
  * offer... do what is best to always ensure they meet the calorie intake
- * daily."** GluFloat runs automated; a human referral is what the paid
+ * daily."** Glufloat runs automated; a human referral is what the paid
  * dietitian-chat tier is for, not a stand-in for the app's own job. The
  * real fix now lives in `lib/nextMeal.ts`'s `buildVariant()`, which keeps
  * adding more real, distinct, safely-capped food past the typical 1-2 items

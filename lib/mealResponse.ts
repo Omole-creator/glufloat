@@ -201,12 +201,12 @@ export function beforeToLink(loose: Reading[], mealTime: string): Reading | null
 /* ---- How much was eaten --------------------------------------------------- */
 
 /**
- * How much less or more, when somebody did not eat the GluFloat size
+ * How much less or more, when somebody did not eat the Glufloat size
  * (founder + dietitian, 2026-10-07: "More" alone could not tell a doctor
  * whether it was a little more rice or three times as much, and the calorie
  * count kept the normal size). Asked in plain words, never in grams, because
  * most people have no kitchen scale. Stored in `meal_checks.sizes` as the
- * key below; the number after the colon is how many times the GluFloat size.
+ * key below; the number after the colon is how many times the Glufloat size.
  * This is a record of what was eaten. It is never advice.
  */
 export const LESS_AMOUNTS = [
@@ -219,7 +219,7 @@ export const MORE_AMOUNTS = [
   { key: "more:3", label: "More than double", words: "more than double the right size" },
 ] as const;
 
-/** How many times the GluFloat size a saved size is. Unknown or grams: 1. */
+/** How many times the Glufloat size a saved size is. Unknown or grams: 1. */
 export function sizeFactor(size: string | null | undefined): number {
   const m = /^(less|more):(\d+(\.\d+)?)$/.exec((size ?? "").trim());
   return m ? Number(m[2]) : 1;
@@ -251,7 +251,7 @@ export function firstSentence(text: string): string {
   return i === -1 ? t : t.slice(0, i + 1);
 }
 
-/** Did the person eat more than the GluFloat size of anything on this plate? */
+/** Did the person eat more than the Glufloat size of anything on this plate? */
 export function ateMore(sizes: string[] | null | undefined): boolean {
   return (sizes ?? []).some((s) => s === "large" || s.startsWith("more:"));
 }
@@ -282,9 +282,9 @@ export interface ObservedTest {
   shown: string;
   mealTime: string;
   change: number;
-  /** Starch on the plate, in grams of carbohydrate at the GluFloat size. */
+  /** Starch on the plate, in grams of carbohydrate at the Glufloat size. */
   carbG: number | null;
-  /** Ate more than the GluFloat size of something on the plate. */
+  /** Ate more than the Glufloat size of something on the plate. */
   more: boolean;
 }
 
@@ -337,7 +337,7 @@ export function observations(tests: ObservedTest[]): string[] {
     `The largest recorded change was ${signed(top.change)}, after ${top.shown} on ${dayLabel(top.mealTime)}.`,
   );
 
-  // 2. Bigger than the GluFloat size against at or under it.
+  // 2. Bigger than the Glufloat size against at or under it.
   const more = tests.filter((t) => t.more);
   const usual = tests.filter((t) => !t.more);
   if (more.length >= 2 && usual.length >= 2) {

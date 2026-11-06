@@ -12,11 +12,11 @@ import { isInternalEmail } from "@/lib/internalAccounts";
 export const dynamic = "force-dynamic";
 
 /**
- * A dietitian starts GluFloat for dietitians, from /dietitians/start
+ * A dietitian starts Glufloat for dietitians, from /dietitians/start
  * (founder's decisions, 2026-10-13):
  *
  *  - She signs up herself and her practice opens at once. She gives her DCN
- *    registration number; GluFloat checks it afterwards and can switch her off
+ *    registration number; Glufloat checks it afterwards and can switch her off
  *    in /admin/dietitians. The founder is emailed about every new one.
  *  - 14 free days for 5 patients. The practice starts with no end date
  *    (access_until null); the first patient who joins starts the 14 days
@@ -50,7 +50,7 @@ export async function POST(request: Request) {
   // The dietitian tables must exist (supabase/dietitian-practice-schema.sql).
   const ready = await admin.from("hospitals").select("kind").limit(1);
   if (ready.error)
-    return NextResponse.json({ error: "GluFloat for dietitians is not open yet. Please try again soon." }, { status: 503 });
+    return NextResponse.json({ error: "Glufloat for dietitians is not open yet. Please try again soon." }, { status: 503 });
 
   let uid: string;
   let email: string | null;
@@ -74,7 +74,7 @@ export async function POST(request: Request) {
     if (error || !created.user) {
       if (/already|registered|exists/i.test(error?.message ?? ""))
         return NextResponse.json(
-          { needLogin: true, error: "You already have a GluFloat account with this email. Log in first, then open this page again." },
+          { needLogin: true, error: "You already have a Glufloat account with this email. Log in first, then open this page again." },
           { status: 409 },
         );
       return NextResponse.json({ error: "We could not make your account just now. Please try again." }, { status: 503 });

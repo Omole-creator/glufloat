@@ -3,7 +3,7 @@ import Link from "next/link";
 import { HospitalLogOut } from "@/components/hospital/HospitalNav";
 
 /**
- * The frame of a GluFloat Premium dietitian's inbox (/inbox): the same deep
+ * The frame of a Glufloat Premium dietitian's inbox (/inbox): the same deep
  * blue as the hospital dashboard, without its sidebar, because there is one
  * thing to do here: answer members' chats.
  */
@@ -27,13 +27,13 @@ export default function InboxShell({
               <Image src="/logo-mark.png" alt="" width={24} height={24} className="h-6 w-6" />
             </span>
             <span className="min-w-0">
-              <span className="block font-display text-base font-bold leading-tight text-white">GluFloat</span>
+              <span className="block font-display text-base font-bold leading-tight text-white">Glufloat</span>
               <span className="block truncate text-[10px] font-bold uppercase tracking-[0.16em] text-white/55">Dietitian inbox · {name}</span>
             </span>
           </Link>
           <div className="flex items-center gap-4">
             <Link href="/app" className="hidden text-xs font-bold text-white/80 hover:text-white sm:block">
-              My GluFloat
+              My Glufloat
             </Link>
             <HospitalLogOut compact />
           </div>

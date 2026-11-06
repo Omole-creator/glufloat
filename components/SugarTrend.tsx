@@ -7,7 +7,7 @@ import TrendLine from "./TrendLine";
 /**
  * Every sugar test as one line (components/TrendLine.tsx): on the report, the
  * last 3 months; on a patient's page for hospitals and dietitians, the last
- * 90 days. No target band and no colours on any number: GluFloat never
+ * 90 days. No target band and no colours on any number: Glufloat never
  * grades a sugar test (lib/glucose.ts).
  */
 export default function SugarTrend({

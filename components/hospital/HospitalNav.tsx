@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 type Role = "admin" | "doctor" | "dietitian";
 
 function tabs(role: Role, practice: boolean, doctor = false) {
-  // A GluFloat doctor: no staff and no plan to pay for. Their QR code, and
+  // A Glufloat doctor: no staff and no plan to pay for. Their QR code, and
   // what they have earned looking after their patients.
   if (doctor)
     return [
@@ -102,7 +102,7 @@ export function HospitalSidebarNav({
  * The phone's nav: a bar fixed to the BOTTOM of the screen, icon over a short
  * label, every tab visible at once (2026-10-16, replacing a sideways-scrolling
  * row that hid the last tabs, so a doctor's Earnings sat off-screen). The same
- * pattern patients use in the GluFloat app. At most 5 tabs, which the tab
+ * pattern patients use in the Glufloat app. At most 5 tabs, which the tab
  * lists above keep to. Hidden from lg up, where the sidebar shows.
  */
 const MOBILE_LABEL: Record<string, string> = {

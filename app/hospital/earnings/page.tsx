@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Earnings", robots: { index: false, follow: false } };
 
 /**
- * A GluFloat doctor's care fees: what they have earned looking after their
+ * A Glufloat doctor's care fees: what they have earned looking after their
  * patients, what is still to be paid, and the bank account it goes to. Only
  * the doctor sees this. Nothing here names a field agent.
  */
@@ -26,7 +26,7 @@ export default async function EarningsPage({ searchParams }: { searchParams: Pro
   if (!isDoctorPractice(h) || ctx.staff.role !== "admin")
     return (
       <HospitalShell ctx={ctx} title="Earnings">
-        <p className="mt-6 rounded-2xl border border-[#e3e9f1] bg-white p-6 text-sm text-ink-soft">This page is for GluFloat doctors.</p>
+        <p className="mt-6 rounded-2xl border border-[#e3e9f1] bg-white p-6 text-sm text-ink-soft">This page is for Glufloat doctors.</p>
       </HospitalShell>
     );
   if (!(await doctorsReady(ctx.admin)))
@@ -69,7 +69,7 @@ export default async function EarningsPage({ searchParams }: { searchParams: Pro
   ];
 
   return (
-    <HospitalShell ctx={ctx} title="Earnings" subtitle="Your care fees for looking after your patients on GluFloat">
+    <HospitalShell ctx={ctx} title="Earnings" subtitle="Your care fees for looking after your patients on Glufloat">
       <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
         {tiles.map((t) => (
           <div key={t.label} className="min-w-0 rounded-2xl border border-[#e3e9f1] bg-white p-4 sm:p-5">
@@ -82,7 +82,7 @@ export default async function EarningsPage({ searchParams }: { searchParams: Pro
 
       <p className="mt-4 rounded-2xl bg-brand/[0.06] px-4 py-3 text-sm text-ink ring-1 ring-inset ring-brand/10">
         You earn a care fee of <span className="font-semibold">{perReview}</span> each month for each patient you mark as reviewed,
-        while they are on a paid GluFloat plan. It is added as soon as you mark them, and paid to your bank every week.
+        while they are on a paid Glufloat plan. It is added as soon as you mark them, and paid to your bank every week.
       </p>
 
       <div className="mt-6 grid gap-4 lg:grid-cols-2">

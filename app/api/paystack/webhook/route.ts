@@ -60,7 +60,7 @@ export async function POST(request: Request) {
 
   const meta = readMetadata(data.metadata);
   if (type === "charge.success" && isPatientPayment(meta)) {
-    // A patient paying their dietitian: the person is the one GluFloat's own
+    // A patient paying their dietitian: the person is the one Glufloat's own
     // server named when it started the payment (lib/patientPaysServer.ts).
     if (typeof meta.user_id === "string" && meta.user_id)
       await grantPatientPayment(admin, {

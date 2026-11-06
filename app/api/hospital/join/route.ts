@@ -32,14 +32,14 @@ export async function POST(request: Request) {
 
   const admin = createAdminClient();
   const { data: hospital, error: hErr } = await admin.from("hospitals").select("*").eq("code", code).maybeSingle();
-  if (hErr) return NextResponse.json({ error: "GluFloat could not open this just now. Please try again." }, { status: 503 });
+  if (hErr) return NextResponse.json({ error: "Glufloat could not open this just now. Please try again." }, { status: 503 });
   if (!hospital) return NextResponse.json({ error: "This link is not right. Please ask your hospital for it again." }, { status: 404 });
   const h = hospital as HospitalRow;
   const w = orgWords(h);
   // A dietitian with no patient yet is open too: her 14 free days start with
   // the first patient who joins (below), not when she signed up.
   if (!acceptsPatients(h))
-    return NextResponse.json({ error: `${w.Yours}'s GluFloat is not open right now. Please speak to ${w.yours}.` }, { status: 410 });
+    return NextResponse.json({ error: `${w.Yours}'s Glufloat is not open right now. Please speak to ${w.yours}.` }, { status: 410 });
 
   let invite: PatientRow | null = null;
   if (token) {
@@ -88,7 +88,7 @@ export async function POST(request: Request) {
     if (cErr || !created.user) {
       if (/already|registered|exists/i.test(cErr?.message ?? ""))
         return NextResponse.json(
-          { needLogin: true, error: "You already have a GluFloat account. Log in first, then open this link again." },
+          { needLogin: true, error: "You already have a Glufloat account. Log in first, then open this link again." },
           { status: 409 },
         );
       return NextResponse.json({ error: "We could not make your account just now. Please try again." }, { status: 503 });
@@ -124,7 +124,7 @@ export async function POST(request: Request) {
 
   const used = await seatsUsed(admin, h.id);
   const status: "active" | "waiting" = used < h.seats ? "active" : "waiting";
-  // A GluFloat doctor's patient is linked, not covered: they keep paying for
+  // A Glufloat doctor's patient is linked, not covered: they keep paying for
   // their own plan, so no paid days are set aside.
   const doctorPractice = isDoctorPractice(h);
   const carried = status === "active" && !doctorPractice ? await ownPaidMsLeft(admin, uid) : 0;

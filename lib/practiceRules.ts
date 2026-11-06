@@ -4,7 +4,7 @@ import { accessOnce } from "@/lib/useAccess";
 import type { PracticeRules } from "@/lib/nextMeal";
 
 /**
- * The patient's dietitian's food rules (GluFloat for dietitians), from the
+ * The patient's dietitian's food rules (Glufloat for dietitians), from the
  * access answer the app already has, so it costs no extra request. Null for
  * everyone else. Read by BOTH components/TodaysMeal.tsx and
  * lib/useTodaysCalories.ts, so the plate shown and the plate the calories are

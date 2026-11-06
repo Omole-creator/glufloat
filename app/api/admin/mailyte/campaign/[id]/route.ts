@@ -30,7 +30,7 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
   if (!ID.test(id)) return NextResponse.json({ error: "Bad id." }, { status: 400 });
   try {
     // Mailyte refuses to delete a campaign that has already gone out, so a
-    // sent email is taken off GluFloat's list instead.
+    // sent email is taken off Glufloat's list instead.
     if (await deleteCampaign(id)) return NextResponse.json({ ok: true });
     if (await hideCampaign(id)) return NextResponse.json({ ok: true });
     return NextResponse.json({ error: "It did not delete. Try again." }, { status: 500 });

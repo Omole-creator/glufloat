@@ -46,7 +46,7 @@ export const FOUNDERS: { key: Founder; name: string; role: string }[] = [
 ];
 
 export const PAYER_LABEL: Record<Payer, string> = {
-  company: "GluFloat account",
+  company: "Glufloat account",
   omole: "Omole (Founder A)",
   favour: "Favour (Founder B)",
 };
@@ -63,8 +63,8 @@ export const INCOME_LABEL: Record<IncomeKind, string> = {
 export type LoanKind = "cash_in" | "repaid";
 
 export const LOAN_KIND_LABEL: Record<LoanKind, string> = {
-  cash_in: "Put cash into GluFloat",
-  repaid: "GluFloat paid back",
+  cash_in: "Put cash into Glufloat",
+  repaid: "Glufloat paid back",
 };
 
 // ---- Rows as they come back from the database --------------------------------

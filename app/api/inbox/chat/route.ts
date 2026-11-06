@@ -19,7 +19,7 @@ async function access(threadId: string) {
   const admin = createAdminClient();
   if (!(await chatReady(admin))) return { error: NextResponse.json({ ready: false }, { headers: NO_STORE }) } as const;
   const mine = await inboxDietitians(admin, user.id);
-  if (mine.length === 0) return { error: NextResponse.json({ error: "This inbox is for GluFloat dietitians." }, { status: 403 }) } as const;
+  if (mine.length === 0) return { error: NextResponse.json({ error: "This inbox is for Glufloat dietitians." }, { status: 403 }) } as const;
   const { data } = await admin
     .from("chat_threads")
     .select(THREAD_COLS)
@@ -68,7 +68,7 @@ export async function POST(request: Request) {
   if (!id) return NextResponse.json({ error: "This did not send. Please try again." }, { status: 500 });
   after(() => pushTo(a.admin, [a.thread.patient_id], {
     title: `New message from ${a.me.name}`,
-    body: "Tap to read it on GluFloat.",
+    body: "Tap to read it on Glufloat.",
     url: "/app?chat=1",
     tag: "glufloat-chat",
   }));

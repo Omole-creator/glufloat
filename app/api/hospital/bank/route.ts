@@ -7,7 +7,7 @@ import { isPatientPays } from "@/lib/patientPays";
 export const dynamic = "force-dynamic";
 
 /**
- * A GluFloat doctor saves the bank account their care fees are paid to, or a
+ * A Glufloat doctor saves the bank account their care fees are paid to, or a
  * dietitian the account her patients' payments are paid to
  * (patient-pays-schema.sql). Only the person who runs the practice. Paystack reads the name on the
  * account before it is saved.

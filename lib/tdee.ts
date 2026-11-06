@@ -126,7 +126,7 @@ export function calorieTarget(tdeeValue: number, goals: Goal[], floor = 1200): n
 }
 
 /**
- * The lowest daily target GluFloat will ever set (2026-10-12, senior-dietitian
+ * The lowest daily target Glufloat will ever set (2026-10-12, senior-dietitian
  * decision approved by the founder): 1,200kcal for women and 1,500kcal for men,
  * the bottom of the weight-loss ranges in the AHA/ACC/TOS 2013 obesity
  * guideline. Below these, a diet needs a clinician watching it. Men used to

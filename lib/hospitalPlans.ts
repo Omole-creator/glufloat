@@ -1,15 +1,15 @@
 /**
- * GluFloat for hospitals: the plans, in ONE place. Pure (no "use client", no
- * I/O), so the public /hospitals page, the hospital dashboard, the GluFloat
+ * Glufloat for hospitals: the plans, in ONE place. Pure (no "use client", no
+ * I/O), so the public /hospitals page, the hospital dashboard, the Glufloat
  * admin and the quote/invoice PDF all read the same numbers.
  * `npx tsx scripts/hospital-plans-test.ts` proves the maths.
  *
  * Founder's decisions, 2026-10-12:
- *  - Every hospital patient gets everything in GluFloat Premium. The dashboard
+ *  - Every hospital patient gets everything in Glufloat Premium. The dashboard
  *    for the hospital's doctors and dietitians is free.
  *  - Named by patient count (Care 50 / 100 / 200), because every plan has the
  *    same features. A big clinic and a small hospital can sit on either.
- *  - Paid by bank transfer, against a GluFloat invoice.
+ *  - Paid by bank transfer, against a Glufloat invoice.
  *  - Yearly: 12 months for the price of 10.
  *  - A free 30-day pilot for 20 patients before any money.
  *  - No VAT for now (a switch in /admin turns it on later).
@@ -52,14 +52,14 @@ export function planById(id: string | null | undefined): HospitalPlan | undefine
 export function planName(id: string | null | undefined): string {
   if (id === "custom") return CUSTOM_PLAN_NAME;
   if (id === "pilot") return "Free pilot";
-  if (id === "doctor") return "GluFloat for doctors";
+  if (id === "doctor") return "Glufloat for doctors";
   // A dietitian whose patients pay her in the app (patient-pays-schema.sql).
   if (id === "patient_pays") return "Patients pay you";
   return planById(id)?.name ?? practicePlanById(id)?.name ?? "No plan";
 }
 
 /* ---------------------------------------------------------------------------
- * GluFloat for dietitians (2026-10-13). A dietitian's practice is a hospital
+ * Glufloat for dietitians (2026-10-13). A dietitian's practice is a hospital
  * row with kind = 'dietitian' (supabase/dietitian-practice-schema.sql), so it
  * reuses the patients, the QR code, the dashboard and the report. Founder's
  * decisions:
@@ -67,7 +67,7 @@ export function planName(id: string | null | undefined): string {
  *    N40,000 a month. N2,400, N2,200, N2,000 a patient: never cheaper per
  *    patient than a hospital's Care 50 (N2,000), so a clinic gains nothing by
  *    buying dietitian plans. More than 20 patients is a hospital plan.
- *  - She sets her own price for her patients. GluFloat never sees it.
+ *  - She sets her own price for her patients. Glufloat never sees it.
  *  - 14 free days for 5 patients. The 14 days start when her FIRST patient
  *    joins, not when she signs up, so she never spends them waiting.
  *  - Paid by Paystack, monthly. The amount tells the plan, the same way
@@ -112,7 +112,7 @@ export const PRACTICE_PAYSTACK_YEARLY_URLS: Record<PracticePlanId, string> = {
 
 /**
  * A dietitian with more than 20 patients gets a custom plan (founder,
- * 2026-10-13): she messages GluFloat on WhatsApp, GluFloat sets her places
+ * 2026-10-13): she messages Glufloat on WhatsApp, Glufloat sets her places
  * and sends an invoice from /admin/hospitals/[id], she pays by transfer.
  * Stored as plan 'custom'. N1,600 a patient a month by default, above a
  * hospital's custom N1,300, because a hospital cannot tell how many patients
@@ -153,9 +153,9 @@ export function isPractice(h: Kinded | null | undefined): boolean {
 }
 
 /* ---------------------------------------------------------------------------
- * GluFloat for doctors (2026-10-16, supabase/doctors-schema.sql). A doctor's
+ * Glufloat for doctors (2026-10-16, supabase/doctors-schema.sql). A doctor's
  * practice is a hospital row with kind = 'doctor'. The doctor pays nothing;
- * each patient pays GluFloat Premium themselves after the 7-day trial, and
+ * each patient pays Glufloat Premium themselves after the 7-day trial, and
  * the doctor earns a care fee from it (lib/careFees.ts). So a doctor's
  * patients are LINKED, never covered: their own trial or plan decides their
  * access, exactly as for anybody else. The practice never runs out and has

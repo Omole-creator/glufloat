@@ -1,5 +1,5 @@
 // The standard recipe behind every soup card (co-founder dietitian's rule,
-// 2026-10-24: "GluFloat needs a standardized recipe and serving definition.
+// 2026-10-24: "Glufloat needs a standardized recipe and serving definition.
 // The system must account for ingredients, cooking yield and the distribution
 // of ingredients in the finished dish.").
 //

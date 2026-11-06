@@ -44,7 +44,7 @@ export async function loadFinance(): Promise<{ input: FinanceInput; ready: boole
         .select("id,founder,kind,happened_on,amount,note")
         .order("happened_on", { ascending: false }),
     ),
-    // Care fees to GluFloat doctors, field agents and advisors
+    // Care fees to Glufloat doctors, field agents and advisors
     // (supabase/doctors-schema.sql). A cost, exactly like a partner
     // commission. Empty until that SQL runs.
     fetchAll<{ patient_user_id: string | null; amount: number; earned_at: string }>(() =>

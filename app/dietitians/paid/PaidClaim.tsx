@@ -60,7 +60,7 @@ export default function PaidClaim() {
       </div>
     );
 
-  const help = encodeURIComponent(`Hello GluFloat, I paid for my dietitian plan. My payment reference is ${reference || "(none)"}.`);
+  const help = encodeURIComponent(`Hello Glufloat, I paid for my dietitian plan. My payment reference is ${reference || "(none)"}.`);
   return (
     <div className="space-y-4 text-center text-sm text-ink">
       <p>
@@ -76,7 +76,7 @@ export default function PaidClaim() {
         rel="noopener noreferrer"
         className="flex h-12 w-full items-center justify-center rounded-full bg-leaf text-sm font-bold text-white hover:bg-leaf-deep"
       >
-        Message GluFloat on WhatsApp
+        Message Glufloat on WhatsApp
       </a>
       <Link href="/hospital/plan" className="block font-semibold text-brand hover:underline">
         Back to my plan

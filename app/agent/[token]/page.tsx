@@ -10,14 +10,14 @@ import AgentShare from "./AgentShare";
 import DoctorFlyerButton from "@/components/hospital/DoctorFlyerButton";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "My GluFloat dashboard", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "My Glufloat dashboard", robots: { index: false, follow: false } };
 
 /**
  * A field agent's or advisor's own dashboard (founder, 2026-10-16). They do
  * not sign up, so there is no login: the secret link is the key, made in
  * /admin/agents, where a new one can replace it at any time. Counts and money
  * only. It never shows a patient's name or anything about their health, and
- * it can never change where the money goes (only GluFloat admin can).
+ * it can never change where the money goes (only Glufloat admin can).
  */
 export default async function AgentDashboard({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
@@ -28,7 +28,7 @@ export default async function AgentDashboard({ params }: { params: Promise<{ tok
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#f2f5f9] px-4">
         <p className="max-w-sm rounded-2xl bg-white p-6 text-center text-sm text-ink-soft shadow-sm">
-          This link does not work. Please ask GluFloat for your dashboard link.
+          This link does not work. Please ask Glufloat for your dashboard link.
         </p>
       </main>
     );
@@ -94,7 +94,7 @@ export default async function AgentDashboard({ params }: { params: Promise<{ tok
             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white">
               <Image src="/logo-mark.png" alt="" width={24} height={24} className="h-6 w-6" />
             </span>
-            <span className="font-display text-lg font-bold">GluFloat</span>
+            <span className="font-display text-lg font-bold">Glufloat</span>
           </div>
           <h1 className="mt-6 font-display text-2xl font-bold sm:text-3xl">Hello, {first}</h1>
           <p className="mt-1 text-sm text-white/80">{advisor ? "Advisor" : "Doctor acquisition rep"} · your doctors and your money</p>
@@ -126,7 +126,7 @@ export default async function AgentDashboard({ params }: { params: Promise<{ tok
             : `You earn ${fee(AGENT_RATE)} for each paying patient of the doctors you bring, every month, for the patient's first 12 months.`}{" "}
           {agent.account_number
             ? `Paid every week to ${agent.account_name ?? ""} (${agent.bank_name ?? ""} ${maskAccount(agent.account_number)}).`
-            : "Send GluFloat your bank details so we can pay you."}
+            : "Send Glufloat your bank details so we can pay you."}
         </p>
 
 
@@ -134,7 +134,7 @@ export default async function AgentDashboard({ params }: { params: Promise<{ tok
           <section className="mt-6 rounded-2xl border border-[#e3e9f1] bg-white">
             <h2 className="border-b border-[#eef2f7] px-5 py-4 font-display text-lg font-bold text-ink">Your reps</h2>
             {myAgents.length === 0 ? (
-              <p className="px-5 py-6 text-center text-sm text-ink-soft">No reps yet. GluFloat adds them for you.</p>
+              <p className="px-5 py-6 text-center text-sm text-ink-soft">No reps yet. Glufloat adds them for you.</p>
             ) : (
               <ul className="divide-y divide-[#eef2f7]">
                 {myAgents.map((a) => {
@@ -173,7 +173,7 @@ export default async function AgentDashboard({ params }: { params: Promise<{ tok
             </p>
           </div>
           <p className="border-b border-[#eef2f7] px-5 py-3 text-xs text-ink-soft">
-            Patients who joined with your patient link. You earn {fee(REP_PATIENT_SHARE)} each month for each one who pays for GluFloat
+            Patients who joined with your patient link. You earn {fee(REP_PATIENT_SHARE)} each month for each one who pays for Glufloat
             Premium, for their first 12 months. On other plans, you earn a third of what they pay. Names are kept private.
           </p>
           {myPatients.length === 0 ? (
@@ -242,7 +242,7 @@ export default async function AgentDashboard({ params }: { params: Promise<{ tok
             </ul>
           )}
         </section>
-        <p className="mt-6 text-center text-xs text-ink-soft">Keep this link private. Need help? Call or WhatsApp GluFloat on 0813 209 7317.</p>
+        <p className="mt-6 text-center text-xs text-ink-soft">Keep this link private. Need help? Call or WhatsApp Glufloat on 0813 209 7317.</p>
       </div>
     </main>
   );

@@ -34,7 +34,7 @@ export interface MealTestRow {
   time: string;
   /** The meal as the person reads it ("Jollof Rice, Chicken"). */
   shown: string;
-  /** How much of each food, in words ("Jollof Rice: more than the GluFloat size"). */
+  /** How much of each food, in words ("Jollof Rice: more than the Glufloat size"). */
   portion: string;
   before: number | null;
   after: number | null;
@@ -77,7 +77,7 @@ function portionOf(m: CheckedMeal): string {
   return parts.join("; ");
 }
 
-/** Starch on the plate at the GluFloat size, from each food's own carbG. */
+/** Starch on the plate at the Glufloat size, from each food's own carbG. */
 function carbsOf(m: CheckedMeal): number | null {
   const names = m.kind === "single" ? [m.label] : m.label.split(",").map((s) => s.trim());
   let total = 0;

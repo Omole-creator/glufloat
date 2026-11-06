@@ -9,15 +9,15 @@ export default function NotStaff() {
         <Image src="/logo-mark.png" alt="" width={48} height={48} className="mx-auto h-12 w-12" />
         <h1 className="mt-4 font-display text-xl font-bold text-ink">This page is for hospital staff</h1>
         <p className="mt-2 text-sm leading-relaxed text-ink-soft">
-          Your account is not part of a hospital on GluFloat. If your hospital uses GluFloat, ask your hospital admin for
+          Your account is not part of a hospital on Glufloat. If your hospital uses Glufloat, ask your hospital admin for
           an invite link.
         </p>
         <div className="mt-6 flex flex-col gap-2">
           <Link href="/app" className="rounded-full bg-brand px-5 py-3 text-sm font-bold text-white hover:bg-brand-deep">
-            Open my GluFloat
+            Open my Glufloat
           </Link>
           <Link href="/hospitals" className="text-sm font-semibold text-brand hover:underline">
-            Bring GluFloat to your hospital
+            Bring Glufloat to your hospital
           </Link>
         </div>
       </div>

@@ -48,14 +48,14 @@ const MEAL_CHOICE: Record<NamedMeal, { label: string; icon: typeof Sun }> = {
  *   1b. Which meal was this?       only after "already ate" (founder,
  *                                  2026-10-23): a lunch saved at 7pm counts
  *                                  as lunch, so dinner stays its normal size
- *   2. How much is on your plate?  less / same / more than the GluFloat size
+ *   2. How much is on your plate?  less / same / more than the Glufloat size
  *   3. Test your sugar first       only when about to eat; skippable
  *   4. Enjoy your meal             when to test again, and a phone reminder
  *
  * "I already ate it" stops after step 2 and saves, like the old one-tap log.
  *
  * Step 2 is what keeps the record honest: somebody who ate more than the size
- * GluFloat gave says so, and the meal is saved as eaten, so a sugar rise is not
+ * Glufloat gave says so, and the meal is saved as eaten, so a sugar rise is not
  * later blamed on a food when the cause was the amount. It never offers a bigger
  * size as advice; the app still gives one size per food.
  *
@@ -205,7 +205,7 @@ export default function StartMealSheet({
       return;
     }
     if (before && needConsent && !agreed) {
-      setProblem("Tick the box so GluFloat can save your sugar test.");
+      setProblem("Tick the box so Glufloat can save your sugar test.");
       return;
     }
     setBusy(true);
@@ -655,7 +655,7 @@ export default function StartMealSheet({
                 )}
                 {pushState === "offer" && (
                   <p className="mt-1.5 text-center text-xs text-ink-soft">
-                    On an iPhone, add GluFloat to your home screen first.
+                    On an iPhone, add Glufloat to your home screen first.
                   </p>
                 )}
                 {pushState === "on" && (

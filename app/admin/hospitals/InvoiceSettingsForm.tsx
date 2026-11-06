@@ -136,7 +136,7 @@ export default function InvoiceSettingsForm({ initial }: { initial: InvoiceSetti
       </div>
       <label className="flex items-center gap-2 text-sm text-ink sm:col-span-2">
         <input type="checkbox" checked={s.vatOn} onChange={(e) => setS({ ...s, vatOn: e.target.checked })} className="h-4 w-4" />
-        Add 7.5% VAT to new quotes and invoices (only once GluFloat is VAT-registered)
+        Add 7.5% VAT to new quotes and invoices (only once Glufloat is VAT-registered)
       </label>
       <div className="flex items-center justify-end gap-3">
         {msg && <span className="text-sm text-verdict-red">{msg}</span>}

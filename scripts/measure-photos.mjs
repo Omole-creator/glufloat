@@ -2,7 +2,7 @@ import sharp from "sharp";
 
 /**
  * The real photos for the "How to measure" guide (co-founder dietitian,
- * 2026-10-08: every household measure GluFloat names must have a real photo,
+ * 2026-10-08: every household measure Glufloat names must have a real photo,
  * because "a fist" or "a cup" means a different size in every home, and
  * drawings did not work for her patients).
  *

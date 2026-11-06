@@ -23,7 +23,7 @@ function readNum(key: string): number | null {
 
 /**
  * Once a month, on the Today tab: "Step on a scale today and update your
- * weight info on GluFloat." (founder's words). Only for someone who has
+ * weight info on Glufloat." (founder's words). Only for someone who has
  * already given a weight in My details. Saving updates the profile, so the
  * calorie target follows straight away (lib/weighIn.ts).
  */
@@ -114,7 +114,7 @@ export default function WeighInReminder() {
         </span>
         <div>
           <h2 className="font-display text-base font-bold leading-snug text-ink">
-            Step on a scale today and update your weight info on GluFloat.
+            Step on a scale today and update your weight info on Glufloat.
           </h2>
           {lastKg != null && (
             <p className="mt-1 text-sm text-ink-soft">

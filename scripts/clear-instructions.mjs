@@ -186,7 +186,7 @@ const COOKED = {
  * Water is the one exception: more water is never the risk.
  *
  * "Big spoon" stays (founder, 2026-10-08), but it is ONE size now: 125ml, a
- * soup ladle, half a GluFloat cup. Soups used to say "one to two big spoons,
+ * soup ladle, half a Glufloat cup. Soups used to say "one to two big spoons,
  * about one cup" (a 125ml spoon) while stews said "two to three big spoons,
  * about half a cup" (a 50ml spoon). Every big spoon now carries its ml, and the
  * app shows a photo of it.
@@ -200,7 +200,7 @@ const SOUP_CUP = "Two big spoons of soup (250ml).";
 const LEAFY_SOUP = "Eat as much as you like. Two big spoons of soup (250ml) is a good start.";
 // The ONE cup. "Small cup", "small glass" and "tea cup" were three more
 // cups, each a different size in each home. Everything is now said against
-// the GluFloat cup (250ml), which the app shows in a picture.
+// the Glufloat cup (250ml), which the app shows in a picture.
 const ALMOST_FULL = "One cup, almost full (200ml).";
 const EXACT = {
   pap: `${ALMOST_FULL} Make it with water. Add no sugar.`,
@@ -651,7 +651,7 @@ for (const f of foods) {
     const v = f[k];
     if (typeof v !== "string") continue;
     if (RANGE.test(v)) problems.push(`${f.id}.${k}: a range, give one number -> ${v}`);
-    if (/small cup|small glass|tea ?cup/i.test(v)) problems.push(`${f.id}.${k}: one cup only, say it against the GluFloat cup -> ${v}`);
+    if (/small cup|small glass|tea ?cup/i.test(v)) problems.push(`${f.id}.${k}: one cup only, say it against the Glufloat cup -> ${v}`);
     if (/big spoon/i.test(v) && !/big spoons?( of [\w ]+?)? \(\d+(ml|g)\)/i.test(v))
       problems.push(`${f.id}.${k}: a big spoon must say its ml (one big spoon is 125ml) -> ${v}`);
   }

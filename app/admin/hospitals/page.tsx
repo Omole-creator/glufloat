@@ -81,7 +81,7 @@ export default async function HospitalsAdminPage() {
   }, 0);
 
   return (
-    <AdminShell title="Hospitals" subtitle="GluFloat for hospitals" icon={<Hospital className="h-5 w-5" />} actions={<AddHospital />}>
+    <AdminShell title="Hospitals" subtitle="Glufloat for hospitals" icon={<Hospital className="h-5 w-5" />} actions={<AddHospital />}>
       <div className="mt-6">
         <AdminHero
           items={[

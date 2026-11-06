@@ -25,7 +25,7 @@ function niceDate(iso: string | null): string {
 }
 
 /**
- * The Plan page for a dietitian (GluFloat for dietitians, 2026-10-13). She
+ * The Plan page for a dietitian (Glufloat for dietitians, 2026-10-13). She
  * pays by Paystack, one month at a time, on one of three fixed-amount pages.
  * Paystack sends her back to /dietitians/paid, which links the payment to her
  * practice. Paying adds a month after whatever she has left, free days
@@ -91,7 +91,7 @@ export default function PracticePlanPanel({
             </div>
           </div>
           <p className="mt-5 text-sm text-white/80">
-            Every patient gets everything in GluFloat Premium. You set your own price for your patients.
+            Every patient gets everything in Glufloat Premium. You set your own price for your patients.
           </p>
         </section>
 
@@ -153,7 +153,7 @@ export default function PracticePlanPanel({
           </div>
           <p className="mt-4 text-xs text-ink-soft">
             Need more than 20 patients?{" "}
-            <a href="https://wa.me/2348132097317?text=Hello%20GluFloat%2C%20I%20am%20a%20dietitian%20on%20GluFloat%20and%20I%20need%20more%20than%2020%20patients.%20I%20would%20like%20a%20custom%20plan." target="_blank" rel="noopener noreferrer" className="font-semibold text-brand hover:underline">
+            <a href="https://wa.me/2348132097317?text=Hello%20Glufloat%2C%20I%20am%20a%20dietitian%20on%20Glufloat%20and%20I%20need%20more%20than%2020%20patients.%20I%20would%20like%20a%20custom%20plan." target="_blank" rel="noopener noreferrer" className="font-semibold text-brand hover:underline">
               Ask us for a custom plan
             </a>
             .
@@ -163,7 +163,7 @@ export default function PracticePlanPanel({
         <section className="rounded-2xl border border-[#e3e9f1] bg-white p-5 sm:p-6">
           <h2 className="font-display text-lg font-bold text-ink">Your payments</h2>
           {payments.length === 0 ? (
-            <p className="mt-2 text-sm text-ink-soft">Your payments to GluFloat will be here.</p>
+            <p className="mt-2 text-sm text-ink-soft">Your payments to Glufloat will be here.</p>
           ) : (
             <ul className="mt-3 divide-y divide-[#eef2f7]">
               {payments.map((p) => (

@@ -51,7 +51,7 @@ function describe(table: LedgerTable, r: AnyRow) {
   const f = FOUNDERS.find((x) => x.key === l.founder)!;
   return {
     when: l.happened_on,
-    title: l.kind === "cash_in" ? `${f.name} put cash into GluFloat` : `GluFloat paid ${f.name} back`,
+    title: l.kind === "cash_in" ? `${f.name} put cash into Glufloat` : `Glufloat paid ${f.name} back`,
     meta: l.note ?? "",
     amount: l.amount,
     sign: l.kind === "repaid" ? -1 : 1,

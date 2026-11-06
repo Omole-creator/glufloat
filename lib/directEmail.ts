@@ -50,7 +50,7 @@ export const isEmail = (s: string) => /^[^\s@,;<>]+@[^\s@,;<>]+\.[^\s@,;<>]+$/.t
 const esc = (s: string) =>
   s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c] as string);
 
-/** A plain business email: GluFloat bar, the message, the company details. */
+/** A plain business email: Glufloat bar, the message, the company details. */
 export function directEmailHtml(subject: string, senderName: string, bodyHtml: string): string {
   return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(subject)}</title></head>
 <body style="margin:0;background:#f4f7fb;font-family:Arial,Helvetica,sans-serif;color:#0c2a47">
@@ -59,7 +59,7 @@ export function directEmailHtml(subject: string, senderName: string, bodyHtml: s
 <tr><td style="background:#1b5faa;padding:18px 24px;color:#ffffff;font-size:20px;font-weight:bold">${esc(senderName)}</td></tr>
 <tr><td style="padding:24px;font-size:16px;line-height:1.6">${bodyHtml}</td></tr>
 <tr><td style="padding:16px 24px 24px;font-size:12px;line-height:1.6;color:#5b6b7e;border-top:1px solid #e3e9f1">
-GluFloat &middot; 11 Idris Ogunlaja Drive, Majek, Lagos, Nigeria<br>
+Glufloat &middot; 11 Idris Ogunlaja Drive, Majek, Lagos, Nigeria<br>
 support@glufloat.com &middot; <a href="https://www.glufloat.com" style="color:#5b6b7e">glufloat.com</a>
 </td></tr></table></td></tr></table></body></html>`;
 }

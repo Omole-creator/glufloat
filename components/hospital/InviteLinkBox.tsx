@@ -33,7 +33,7 @@ export default function InviteLinkBox({
   const [copied, setCopied] = useState(false);
   const url = `${SITE_URL}/hospital/join/${token}`;
   const first = (name ?? "").trim().split(/\s+/)[0];
-  const text = `Hello${first ? ` ${first}` : ""}, here is your link to join ${hospitalName} on GluFloat as ${
+  const text = `Hello${first ? ` ${first}` : ""}, here is your link to join ${hospitalName} on Glufloat as ${
     role === "admin" ? "an" : "a"
   } ${ROLE_WORD[role]}: ${url}\n\nIt works once, for 14 days.`;
   const number = wa(phone);

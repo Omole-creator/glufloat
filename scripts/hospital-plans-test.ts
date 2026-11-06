@@ -71,7 +71,7 @@ check("phone looks like phone", looksLikePhone("0813 209 7317") && looksLikePhon
 check("email is not a phone", !looksLikePhone("ada@gmail.com") && !looksLikePhone("12345"));
 check("normalise still works", normalizePhone("2348132097317") === "08132097317");
 
-// ---- GluFloat for dietitians (2026-10-13) ----
+// ---- Glufloat for dietitians (2026-10-13) ----
 const [d5, d10, d20] = PRACTICE_PLANS;
 check("5 Patients is N12,000", d5.seats === 5 && d5.monthly === 12000 && d5.name === "5 Patients");
 check("10 Patients is N22,000", d10.seats === 10 && d10.monthly === 22000);

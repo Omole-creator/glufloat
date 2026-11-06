@@ -29,9 +29,9 @@ export default async function AddPage({ searchParams }: { searchParams: Promise<
       title="Add patients"
       subtitle={
         isDoctorPractice(ctx.hospital)
-          ? `${used} ${used === 1 ? "patient has" : "patients have"} joined. Each patient you add gets an invite to join you on GluFloat.`
+          ? `${used} ${used === 1 ? "patient has" : "patients have"} joined. Each patient you add gets an invite to join you on Glufloat.`
           : isPatientPays(ctx.hospital)
-            ? `${used} ${used === 1 ? "patient has" : "patients have"} joined. Each new patient gets 14 free days, then pays you inside GluFloat.`
+            ? `${used} ${used === 1 ? "patient has" : "patients have"} joined. Each new patient gets 14 free days, then pays you inside Glufloat.`
             : `${used} of ${ctx.hospital.seats} places used. Added patients get a place when they join.`
       }
     >

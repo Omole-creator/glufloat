@@ -4,7 +4,7 @@ import { addContact, mailyteConfigured, GROUP_NAME } from "@/lib/mailyte";
 
 export const dynamic = "force-dynamic";
 
-/** Add one person by hand onto a Mailyte list. They are not added to GluFloat's user list. */
+/** Add one person by hand onto a Mailyte list. They are not added to Glufloat's user list. */
 export async function POST(request: Request) {
   if (!(await isAdmin())) return NextResponse.json({ error: "Not signed in." }, { status: 401 });
   if (!mailyteConfigured()) {

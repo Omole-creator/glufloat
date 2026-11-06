@@ -17,7 +17,7 @@ export const dynamic = "force-dynamic";
 
 /**
  * Field agents and advisors (founder, 2026-10-16). They do not sign up:
- * GluFloat adds them here, and each gets a link for doctors and a private
+ * Glufloat adds them here, and each gets a link for doctors and a private
  * dashboard link, sent to them on WhatsApp from this page.
  */
 export default async function AgentsAdminPage() {

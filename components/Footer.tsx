@@ -129,7 +129,7 @@ export default function Footer() {
 
         <div className="mt-10 border-t border-line pt-6">
           <p className="text-xs leading-relaxed text-ink-soft">
-            GluFloat provides food guidance for people living with diabetes. It
+            Glufloat provides food guidance for people living with diabetes. It
             is not a substitute for medical advice and does not diagnose, treat,
             cure, or prevent any medical condition. Always consult your doctor
             or other qualified healthcare professional about your individual
@@ -143,7 +143,7 @@ export default function Footer() {
             .
           </p>
           <p className="mt-3 text-xs text-ink-soft">
-            © 2026 GluFloat. 11 Idris Ogunlaja Drive, Majek, Lagos, Nigeria.
+            © 2026 Glufloat. 11 Idris Ogunlaja Drive, Majek, Lagos, Nigeria.
           </p>
         </div>
       </div>

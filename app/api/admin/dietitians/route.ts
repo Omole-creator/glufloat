@@ -7,7 +7,7 @@ import { parsePatientPrice } from "@/lib/patientPays";
 export const dynamic = "force-dynamic";
 
 /**
- * GluFloat's own hands on a dietitian's practice (founder, 2026-10-13: she
+ * Glufloat's own hands on a dietitian's practice (founder, 2026-10-13: she
  * signs up herself, we check her DCN number afterwards).
  *
  *   off  her DCN number did not check out. Status 'declined': her dashboard

@@ -30,9 +30,9 @@ export default function HospitalPricing() {
   const billing = yearly ? "annual" : "monthly";
 
   const included = [
-    "Everything in GluFloat Premium for each patient",
+    "Everything in Glufloat Premium for each patient",
     "Dashboard for all your doctors and dietitians",
-    "Patients chat with your own team inside GluFloat",
+    "Patients chat with your own team inside Glufloat",
     "Your own QR code for patients to join",
   ];
 

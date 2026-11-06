@@ -8,8 +8,8 @@ export default function AgentShare({ link, forPatients = false }: { link: string
   const [copied, setCopied] = useState(false);
   // Patient wording is the home page's own (app/page.tsx hero and checklist).
   const text = forPatients
-    ? `Not sure what to eat with diabetes? GluFloat tells you, every meal. You still eat the food you love. You just eat it the right way. 7-day free trial, no card required:\n${link}`
-    : `Doctor, GluFloat helps your patients with diabetes know what to eat and how much, and lets you see their meals, sugar tests and reports between visits. It is free for doctors. Sign up here:\n${link}`;
+    ? `Not sure what to eat with diabetes? Glufloat tells you, every meal. You still eat the food you love. You just eat it the right way. 7-day free trial, no card required:\n${link}`
+    : `Doctor, Glufloat helps your patients with diabetes know what to eat and how much, and lets you see their meals, sugar tests and reports between visits. It is free for doctors. Sign up here:\n${link}`;
   return (
     <div>
       <p className="break-all rounded-2xl bg-white/12 px-4 py-3 font-mono text-sm text-white ring-1 ring-inset ring-white/20">{link}</p>

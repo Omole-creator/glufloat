@@ -347,7 +347,7 @@ export default function MealTestDue({ onOpenReport }: { onOpenReport: () => void
       return;
     }
     if (needConsent && !agreed) {
-      setProblem("Tick the box so GluFloat can save your sugar test.");
+      setProblem("Tick the box so Glufloat can save your sugar test.");
       return;
     }
     setBusy(true);

@@ -664,7 +664,7 @@ export default function PersonalizationSettings({
                       href={dietitian.premiumUrl}
                       className="mt-2.5 inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-sm font-bold text-brand transition-colors hover:bg-white/90"
                     >
-                      Get GluFloat Premium to chat with our dietitian
+                      Get Glufloat Premium to chat with our dietitian
                     </a>
                   )
                 )}

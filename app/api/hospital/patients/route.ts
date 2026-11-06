@@ -123,14 +123,14 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ ok: true, ...update });
   }
 
-  // A GluFloat doctor marks a patient as reviewed: N1,000 once a month. Only
+  // A Glufloat doctor marks a patient as reviewed: N1,000 once a month. Only
   // for a patient on a paid plan; an unpaid one has no button and no record
   // for the doctor (founder, 2026-10-20).
   if (action === "reviewed") {
-    if (!isDoctorPractice(ctx.hospital)) return NextResponse.json({ error: "This is for GluFloat doctors." }, { status: 403 });
+    if (!isDoctorPractice(ctx.hospital)) return NextResponse.json({ error: "This is for Glufloat doctors." }, { status: 403 });
     if (p.status !== "active" || !p.user_id) return NextResponse.json({ error: "This patient is not with you right now." }, { status: 409 });
     if (!(await payingNow(ctx.admin, p.user_id)))
-      return NextResponse.json({ error: "This patient has not paid for GluFloat yet." }, { status: 402 });
+      return NextResponse.json({ error: "This patient has not paid for Glufloat yet." }, { status: 402 });
     try {
       const r = await creditReview(ctx.admin, { practiceId: ctx.hospital.id, patientRowId: p.id, uid: p.user_id, reviewer: ctx.staff.name });
       return NextResponse.json({ ok: true, ...r });
@@ -169,7 +169,7 @@ export async function PATCH(request: Request) {
 
   if (ctx.staff.role !== "admin") return NextResponse.json({ error: "Only the hospital admin can do this." }, { status: 403 });
 
-  // A dietitian's note and food rules for this patient (GluFloat for
+  // A dietitian's note and food rules for this patient (Glufloat for
   // dietitians, supabase/practice-rules-schema.sql). Only real foods the
   // blue card or the extras can serve are kept; a food cannot be both left
   // out and eaten more (left out wins).
@@ -200,7 +200,7 @@ export async function PATCH(request: Request) {
   if (action === "activate") {
     if (p.status !== "waiting") return NextResponse.json({ error: "This patient is not waiting." }, { status: 400 });
     if ((await seatsUsed(ctx.admin, ctx.hospital.id)) >= ctx.hospital.seats)
-      return NextResponse.json({ error: "Every place on your plan is in use. Remove a patient, or ask GluFloat for a bigger plan." }, { status: 409 });
+      return NextResponse.json({ error: "Every place on your plan is in use. Remove a patient, or ask Glufloat for a bigger plan." }, { status: 409 });
     await ctx.admin.from("hospital_patients").update({ status: "active" }).eq("id", p.id);
     // Their 30 days start now (patient-paid-schema.sql); its own write, so a
     // database without the column still gives the place.
@@ -208,7 +208,7 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ ok: true });
   }
 
-  // The patient paid their dietitian or hospital (outside GluFloat). Months
+  // The patient paid their dietitian or hospital (outside Glufloat). Months
   // are added after whatever time is left. A paused patient is resumed, if a
   // place is free.
   // Founder's rules (2026-10-13), so a pause can never make free days:
@@ -223,15 +223,15 @@ export async function PATCH(request: Request) {
   const savedMs = () =>
     p.paused_left_ms != null ? Math.max(0, Number(p.paused_left_ms)) : p.paid_until ? Math.max(0, new Date(p.paid_until).getTime() - Date.now()) : 0;
 
-  // A doctor's patients pay GluFloat themselves: no payment countdown or pause.
+  // A doctor's patients pay Glufloat themselves: no payment countdown or pause.
   if ((action === "paid" || action === "pause" || action === "unpause") && isDoctorPractice(ctx.hospital))
-    return NextResponse.json({ error: "Your patients pay for GluFloat themselves." }, { status: 400 });
+    return NextResponse.json({ error: "Your patients pay for Glufloat themselves." }, { status: 400 });
 
   // A dietitian's patients pay her inside the app (patient-pays-schema.sql,
   // founder 2026-10-17): every month goes through Paystack, so a payment is
   // never recorded by hand. Hospitals keep "Record payment".
   if (action === "paid" && isPatientPays(ctx.hospital))
-    return NextResponse.json({ error: "Your patients pay you inside GluFloat. Their months are added when they pay." }, { status: 400 });
+    return NextResponse.json({ error: "Your patients pay you inside Glufloat. Their months are added when they pay." }, { status: 400 });
 
   if (action === "paid") {
     const months = Number(body.months);
@@ -253,7 +253,7 @@ export async function PATCH(request: Request) {
   // rules, history), not covered, not using a place, the countdown frozen.
   // Any paid days of their own come back to them.
   if (action === "pause") {
-    if (p.status !== "active") return NextResponse.json({ error: "Only a patient using GluFloat can be paused." }, { status: 400 });
+    if (p.status !== "active") return NextResponse.json({ error: "Only a patient using Glufloat can be paused." }, { status: 400 });
     const left = p.paid_until ? Math.max(0, new Date(p.paid_until).getTime() - Date.now()) : 0;
     const { error } = await ctx.admin.from("hospital_patients").update({ status: "paused", paused_left_ms: left }).eq("id", p.id);
     if (error) return NextResponse.json({ error: "This is not ready yet. Please try again later." }, { status: 503 });

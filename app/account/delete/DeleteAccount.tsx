@@ -78,7 +78,7 @@ export default function DeleteAccount() {
 
   if (done) {
     return (
-      <AuthShell title="Your account is deleted" subtitle="Thank you for using GluFloat. We wish you good health.">
+      <AuthShell title="Your account is deleted" subtitle="Thank you for using Glufloat. We wish you good health.">
         <button
           type="button"
           onClick={() => router.push("/")}
@@ -106,7 +106,7 @@ export default function DeleteAccount() {
   const blocked = pre != null && (pre.internal || pre.owedKobo > 0);
 
   return (
-    <AuthShell title="Delete my account" subtitle="This deletes your GluFloat account for good. You cannot undo it.">
+    <AuthShell title="Delete my account" subtitle="This deletes your Glufloat account for good. You cannot undo it.">
       {!pre ? (
         <p className="text-center text-sm text-ink-soft">{problem || "Loading..."}</p>
       ) : (
@@ -131,20 +131,20 @@ export default function DeleteAccount() {
 
           {pre.practices.length > 0 && pre.owedKobo === 0 && (
             <p className="rounded-2xl bg-mist p-4 text-ink-soft">
-              Your patient list will close. Each patient keeps their own GluFloat account.
+              Your patient list will close. Each patient keeps their own Glufloat account.
             </p>
           )}
 
           {pre.internal && (
             <p className="rounded-2xl bg-mist p-4 font-semibold text-ink">
-              This is a GluFloat team or test account. It cannot be deleted here.
+              This is a Glufloat team or test account. It cannot be deleted here.
             </p>
           )}
 
           {pre.owedKobo > 0 && (
             <div className="rounded-2xl bg-mist p-4">
               <p className="font-semibold text-ink">
-                GluFloat still owes you {naira(pre.owedKobo)}. Message us so we can pay you first. Then you can delete
+                Glufloat still owes you {naira(pre.owedKobo)}. Message us so we can pay you first. Then you can delete
                 your account.
               </p>
               <a

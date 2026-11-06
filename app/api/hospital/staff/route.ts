@@ -56,7 +56,7 @@ export async function PATCH(request: Request) {
     patch[field] = id;
   }
   const { error } = await ctx.admin.from("hospitals").update({ ...patch, updated_at: new Date().toISOString() }).eq("id", ctx.hospital.id);
-  if (error) return NextResponse.json({ error: "This needs a GluFloat update. Please contact GluFloat." }, { status: 503 });
+  if (error) return NextResponse.json({ error: "This needs a Glufloat update. Please contact Glufloat." }, { status: 503 });
   return NextResponse.json({ ok: true });
 }
 

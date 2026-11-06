@@ -28,9 +28,9 @@ export default function JoinForm({
   hospitalName: string;
   knownName: string | null;
   tokenWasBad: boolean;
-  /** A dietitian's practice (GluFloat for dietitians): say "your dietitian", not "your hospital". */
+  /** A dietitian's practice (Glufloat for dietitians): say "your dietitian", not "your hospital". */
   practice?: boolean;
-  /** A GluFloat doctor: the patient is linked to them and starts their own 7 free days. */
+  /** A Glufloat doctor: the patient is linked to them and starts their own 7 free days. */
   doctor?: boolean;
 }) {
   const router = useRouter();
@@ -97,13 +97,13 @@ export default function JoinForm({
             <p className="mt-1 text-sm text-ink">
               {done === "active"
                 ? doctor
-                  ? `${hospitalName} can now see your meals and sugar tests on GluFloat. Start your 7 free days to begin.`
+                  ? `${hospitalName} can now see your meals and sugar tests on Glufloat. Start your 7 free days to begin.`
                   : practice
-                  ? `${hospitalName} now looks after your diabetes on GluFloat. Your dietitian can see your meals and sugar tests. Your first 14 days are free.`
-                  : `${hospitalName} now looks after your GluFloat. Your doctors and dietitians can see your meals and sugar tests.`
+                  ? `${hospitalName} now looks after your diabetes on Glufloat. Your dietitian can see your meals and sugar tests. Your first 14 days are free.`
+                  : `${hospitalName} now looks after your Glufloat. Your doctors and dietitians can see your meals and sugar tests.`
                 : practice
-                  ? `Every place with ${hospitalName} is in use right now. Your dietitian will give you a place. Until then, you can use GluFloat free for 7 days.`
-                  : `Every place at ${hospitalName} is in use right now. Your hospital will give you a place. Until then, you can use GluFloat free for 7 days.`}
+                  ? `Every place with ${hospitalName} is in use right now. Your dietitian will give you a place. Until then, you can use Glufloat free for 7 days.`
+                  : `Every place at ${hospitalName} is in use right now. Your hospital will give you a place. Until then, you can use Glufloat free for 7 days.`}
             </p>
           </div>
         </div>
@@ -114,7 +114,7 @@ export default function JoinForm({
           }}
           className="flex h-14 w-full items-center justify-center rounded-full bg-leaf text-base font-bold text-white shadow-[0_14px_30px_-14px_rgba(62,155,79,0.9)] hover:bg-leaf-deep"
         >
-          {done === "active" && !doctor ? "Open GluFloat" : "Start my 7 free days"}
+          {done === "active" && !doctor ? "Open Glufloat" : "Start my 7 free days"}
         </button>
       </div>
     );
@@ -211,7 +211,7 @@ export default function JoinForm({
         </SubmitButton>
       </div>
       <p className="text-center text-sm text-ink-soft">
-        Already use GluFloat?{" "}
+        Already use Glufloat?{" "}
         <Link href={`/signin?next=${encodeURIComponent(here)}`} className="font-semibold text-brand hover:underline">
           Log in first
         </Link>

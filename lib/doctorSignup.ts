@@ -7,8 +7,8 @@ import { SITE_URL } from "@/lib/site";
 
 /**
  * Making a doctor's practice, shared by the public sign-up (/doctors/start)
- * and GluFloat adding a doctor by hand (/admin/doctors, founder 2026-10-17:
- * "GluFloat should be able to add doctors themselves without field agents").
+ * and Glufloat adding a doctor by hand (/admin/doctors, founder 2026-10-17:
+ * "Glufloat should be able to add doctors themselves without field agents").
  * One place, so the two can never make a different kind of doctor.
  */
 type Admin = ReturnType<typeof createAdminClient>;
@@ -20,7 +20,7 @@ export type DoctorInput = { name: string; email: string; mdcn: string };
 /**
  * Clean and check a doctor's details. Returns an error sentence, or the clean
  * values. "self" is the doctor typing (their sign-up keeps its own words);
- * "admin" is GluFloat typing for them.
+ * "admin" is Glufloat typing for them.
  */
 export function cleanDoctor(body: Record<string, unknown>, who: "self" | "admin"): DoctorInput | { error: string } {
   const your = who === "self" ? "your" : "the doctor's";

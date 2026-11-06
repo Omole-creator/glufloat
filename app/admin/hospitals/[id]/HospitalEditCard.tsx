@@ -59,7 +59,7 @@ export default function HospitalEditCard({ hospital }: { hospital: HospitalRow }
   };
 
   const remove = async () => {
-    const typed = prompt(`This deletes ${hospital.name}, its staff list, patient list and invoices. Patients keep their own GluFloat accounts.\n\nType the hospital's name to delete it:`);
+    const typed = prompt(`This deletes ${hospital.name}, its staff list, patient list and invoices. Patients keep their own Glufloat accounts.\n\nType the hospital's name to delete it:`);
     if (!typed) return;
     setBusy(true);
     const res = await fetch("/api/admin/hospitals", {

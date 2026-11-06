@@ -53,7 +53,7 @@ export async function POST(request: Request) {
     if (error || !created.user) {
       if (/already|registered|exists/i.test(error?.message ?? ""))
         return NextResponse.json(
-          { needLogin: true, error: "You already have a GluFloat account with this email. Log in first, then open this link again." },
+          { needLogin: true, error: "You already have a Glufloat account with this email. Log in first, then open this link again." },
           { status: 409 },
         );
       return NextResponse.json({ error: "We could not make your account just now. Please try again." }, { status: 503 });

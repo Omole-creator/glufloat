@@ -126,7 +126,7 @@ export default function StaffPanel({
           </ul>
         </section>
 
-        {/* Patients chat with the whole care team inside GluFloat (2026-10-15):
+        {/* Patients chat with the whole care team inside Glufloat (2026-10-15):
             every doctor and dietitian here reads and answers, so there is no
             one person to pick any more. */}
         <section className="flex items-start gap-3 rounded-2xl border border-[#e3e9f1] bg-white p-5">
@@ -136,7 +136,7 @@ export default function StaffPanel({
           <div>
             <h2 className="font-display text-base font-bold text-ink">How your patients reach you</h2>
             <p className="mt-1 text-sm text-ink-soft">
-              Your patients chat with your doctors and dietitians inside GluFloat. Every doctor and dietitian here can read
+              Your patients chat with your doctors and dietitians inside Glufloat. Every doctor and dietitian here can read
               and answer each chat. New messages show under Messages. For anything urgent, patients are asked to call
               {" "}{hospitalName}.
             </p>

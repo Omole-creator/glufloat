@@ -128,9 +128,9 @@ try {
 // the evergreen membership badge rather than a day count. The badge names the
 // actual tier (see lib/pricing.ts TIER_LABEL). The QA account was moved to
 // the dietitian tier on 2026-08-30 so this suite (and a manual check) can
-// exercise every paid feature at once — it reads "GluFloat Premium: active".
+// exercise every paid feature at once — it reads "Glufloat Premium: active".
 await check("membership badge shows for a subscriber", async () =>
-  visible(page.getByText("GluFloat Premium: active", { exact: true })),
+  visible(page.getByText("Glufloat Premium: active", { exact: true })),
 );
 
 // ---- 3b. the sugar reading box ---------------------------------------------

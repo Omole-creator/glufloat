@@ -12,7 +12,7 @@ export type SavedBank = { bankName: string | null; accountShown: string | null; 
  * Bank details for care fees: pick the bank, type the 10-digit account
  * number, and the server reads the name on the account from Paystack before
  * saving it, so a typo is caught now and not when money is sent. Used by a
- * doctor (/hospital/earnings) and by GluFloat admin for a field agent.
+ * doctor (/hospital/earnings) and by Glufloat admin for a field agent.
  */
 export default function BankDetailsForm({
   banks,

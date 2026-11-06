@@ -65,7 +65,7 @@ export default async function PatientPage({
         </Link>
         <p className="mt-6 rounded-2xl border border-[#e3e9f1] bg-white p-6 text-sm text-ink-soft">
           {closed
-            ? "Your GluFloat plan has ended, so patient records are closed."
+            ? "Your Glufloat plan has ended, so patient records are closed."
             : "This patient is not using one of your places right now."}
         </p>
       </HospitalShell>
@@ -73,7 +73,7 @@ export default async function PatientPage({
   }
 
   const uid = row.user_id as string;
-  // A GluFloat doctor sees a patient's record while the patient pays or is on
+  // A Glufloat doctor sees a patient's record while the patient pays or is on
   // their free trial; the review button (and its N1,000) only while they pay
   // (founder, 2026-10-20).
   const doctorPractice = isDoctorPractice(ctx.hospital);
@@ -86,12 +86,12 @@ export default async function PatientPage({
           <ArrowLeft className="h-4 w-4" /> All patients
         </Link>
         <p className="mt-6 rounded-2xl border border-[#e3e9f1] bg-white p-6 text-sm text-ink-soft">
-          {first} has not paid for GluFloat yet. You can see their meals and sugar tests once they pay.
+          {first} has not paid for Glufloat yet. You can see their meals and sugar tests once they pay.
         </p>
       </HospitalShell>
     );
   }
-  // GluFloat for dietitians: her note and food rules for this patient. Its own
+  // Glufloat for dietitians: her note and food rules for this patient. Its own
   // read, so a database without practice-rules-schema.sql (#26) only hides the editor.
   const practice = isPractice(ctx.hospital) && ctx.staff.role === "admin";
   const rulesRead = practice
@@ -146,7 +146,7 @@ export default async function PatientPage({
     .map((s) => ({ name: s.name, role: s.role, whatsapp: whatsappNumber(s.phone) as string }));
 
   const firstName = (profile.name || (row.name as string)).split(/\s+/)[0];
-  // A GluFloat doctor's monthly review (N1,000 once a month), only for a
+  // A Glufloat doctor's monthly review (N1,000 once a month), only for a
   // paying patient: none during the free trial. reviewed_at is its own read: without doctor-review-schema.sql the
   // button still works, the last date is just not shown.
   const review = doctorPractice && paying
@@ -232,7 +232,7 @@ export default async function PatientPage({
               isPractice(ctx.hospital)
                 ? `${firstName} chats with you here.`
                 : isDoctorPractice(ctx.hospital)
-                  ? `${firstName} can chat with you here on GluFloat Premium.`
+                  ? `${firstName} can chat with you here on Glufloat Premium.`
                 : canAnswer(ctx.staff.role, ctx.hospital)
                   ? "Every doctor and dietitian here can read and answer this chat."
                   : "Your doctors and dietitians answer this chat."

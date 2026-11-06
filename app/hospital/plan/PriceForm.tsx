@@ -60,7 +60,7 @@ export default function PriceForm({
     <section className="rounded-2xl border border-[#e3e9f1] bg-white p-5 sm:p-6">
       <h2 className="font-display text-lg font-bold text-ink">Your price</h2>
       <p className="mt-1 text-sm text-ink-soft">
-        What each patient pays you every month, inside GluFloat. At least {naira(PATIENT_PRICE_MIN)}.
+        What each patient pays you every month, inside Glufloat. At least {naira(PATIENT_PRICE_MIN)}.
       </p>
       <form
         onSubmit={(e) => {
@@ -101,7 +101,7 @@ export default function PriceForm({
           <dd className="font-display text-lg font-bold text-ink">{naira(shown)}</dd>
         </div>
         <div className="rounded-xl bg-[#f3f6fa] px-2 py-3">
-          <dt className="text-[11px] font-semibold text-ink-soft">GluFloat keeps</dt>
+          <dt className="text-[11px] font-semibold text-ink-soft">Glufloat keeps</dt>
           <dd className="font-display text-lg font-bold text-ink">{naira(glufloatShareFor(nextCount))}</dd>
         </div>
         <div className="rounded-xl bg-leaf/10 px-2 py-3 ring-1 ring-inset ring-leaf/20">
@@ -112,7 +112,7 @@ export default function PriceForm({
         </div>
       </dl>
       <p className="mt-3 text-xs text-ink-soft">
-        For each patient, every month they pay. Paystack&apos;s fee comes out of GluFloat&apos;s share, never yours. Each new
+        For each patient, every month they pay. Paystack&apos;s fee comes out of Glufloat&apos;s share, never yours. Each new
         patient gets 14 free days first.
       </p>
       <p
@@ -122,8 +122,8 @@ export default function PriceForm({
       >
         {payingPatients} {payingPatients === 1 ? "patient has" : "patients have"} paid you in the last 30 days.{" "}
         {volume
-          ? `You are over ${VOLUME_PATIENTS}, so GluFloat keeps ${naira(GLUFLOAT_SHARE_VOLUME)} instead of ${naira(GLUFLOAT_SHARE)} on every payment.`
-          : `Over ${VOLUME_PATIENTS}, GluFloat keeps ${naira(GLUFLOAT_SHARE_VOLUME)} instead of ${naira(GLUFLOAT_SHARE)} on every payment.`}
+          ? `You are over ${VOLUME_PATIENTS}, so Glufloat keeps ${naira(GLUFLOAT_SHARE_VOLUME)} instead of ${naira(GLUFLOAT_SHARE)} on every payment.`
+          : `Over ${VOLUME_PATIENTS}, Glufloat keeps ${naira(GLUFLOAT_SHARE_VOLUME)} instead of ${naira(GLUFLOAT_SHARE)} on every payment.`}
       </p>
     </section>
   );

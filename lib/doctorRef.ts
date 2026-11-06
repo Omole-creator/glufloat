@@ -1,5 +1,5 @@
 /**
- * Who brought a doctor to GluFloat, remembered between the link they opened
+ * Who brought a doctor to Glufloat, remembered between the link they opened
  * (/d/<code>) and their sign-up (/doctors/start). Founder's rules, 2026-10-16:
  *  - The doctor never types or sees an agent code. The link sets a hidden,
  *    httpOnly cookie and the sign-up reads it on the server.

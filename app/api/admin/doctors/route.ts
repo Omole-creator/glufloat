@@ -8,7 +8,7 @@ import { cleanDoctor, doctorByEmail, insertDoctorPractice, sendDoctorSetupLink }
 export const dynamic = "force-dynamic";
 
 /**
- * GluFloat's own hands on a doctor.
+ * Glufloat's own hands on a doctor.
  *
  * POST   add a doctor by hand (founder, 2026-10-17: without a field agent).
  *        { name, email, mdcn, agentId? }. agentId credits a field agent or
@@ -40,7 +40,7 @@ export async function POST(request: Request) {
   const admin = createAdminClient();
   if (!(await doctorsReady(admin))) return NextResponse.json({ error: "Run doctors-schema.sql first." }, { status: 503 });
   if (await doctorByEmail(admin, c.email))
-    return NextResponse.json({ error: "A doctor with this email is already on GluFloat. Use New set-up link on their row." }, { status: 409 });
+    return NextResponse.json({ error: "A doctor with this email is already on Glufloat. Use New set-up link on their row." }, { status: 409 });
 
   let agentId: string | null = null;
   if (typeof body.agentId === "string" && body.agentId) {

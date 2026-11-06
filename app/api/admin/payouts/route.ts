@@ -6,7 +6,7 @@ import { createAdminClient } from "@/lib/supabase/server";
 export const dynamic = "force-dynamic";
 
 /**
- * "Mark as paid": GluFloat has sent this week's money to one doctor or field
+ * "Mark as paid": Glufloat has sent this week's money to one doctor or field
  * agent, and records it. By id, never "everything pending": the earning ids
  * the admin page showed are the ones stamped, so a care fee earned in the
  * seconds between loading the page and pressing the button stays owed and

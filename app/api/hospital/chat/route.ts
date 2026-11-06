@@ -75,7 +75,7 @@ export async function POST(request: Request) {
 
   after(() => pushTo(ctx.admin, [p.userId], {
     title: `New message from ${ctx.staff.name}`,
-    body: "Tap to read it on GluFloat.",
+    body: "Tap to read it on Glufloat.",
     url: "/app?chat=1",
     tag: "glufloat-chat",
   }));

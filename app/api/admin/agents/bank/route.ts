@@ -6,7 +6,7 @@ import { listBanks, resolveAccount } from "@/lib/paystackBanks";
 export const dynamic = "force-dynamic";
 
 /**
- * A field agent's or advisor's bank account, typed in by GluFloat admin only
+ * A field agent's or advisor's bank account, typed in by Glufloat admin only
  * (their dashboard is a link with no login, so it can never change where the
  * money goes). Paystack reads the name on the account before it is saved.
  */

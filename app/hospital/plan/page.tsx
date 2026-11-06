@@ -35,7 +35,7 @@ export default async function PlanPage({ searchParams }: { searchParams: Promise
     );
   const h = ctx.hospital;
 
-  // GluFloat for doctors: nothing to pay. Their QR code for patients, and
+  // Glufloat for doctors: nothing to pay. Their QR code for patients, and
   // their link for colleagues.
   if (isDoctorPractice(h))
     return (
@@ -58,7 +58,7 @@ export default async function PlanPage({ searchParams }: { searchParams: Promise
       </HospitalShell>
     );
 
-  // GluFloat for dietitians (2026-10-17): her patients pay her inside the
+  // Glufloat for dietitians (2026-10-17): her patients pay her inside the
   // app, so this is her price, her money and her QR code. Nothing to pay us.
   if (isPatientPays(h)) {
     const [{ data: earn }, { data: pays }, { data: pats }, banks, paying] = await Promise.all([
@@ -86,7 +86,7 @@ export default async function PlanPage({ searchParams }: { searchParams: Promise
       { label: "Paid to you", value: nairaFromKobo(totals.paid), sub: "all time" },
     ];
     return (
-      <HospitalShell ctx={ctx} title="Price and earnings" subtitle="Your patients pay you inside GluFloat">
+      <HospitalShell ctx={ctx} title="Price and earnings" subtitle="Your patients pay you inside Glufloat">
         <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
           {tiles.map((t) => (
             <div key={t.label} className="min-w-0 rounded-2xl border border-[#e3e9f1] bg-white p-4 sm:p-5">
@@ -138,7 +138,7 @@ export default async function PlanPage({ searchParams }: { searchParams: Promise
     );
   }
 
-  // GluFloat for dietitians before #32 ran: she paid by Paystack, not by invoice.
+  // Glufloat for dietitians before #32 ran: she paid by Paystack, not by invoice.
   if (isPractice(h)) {
     const [used, paid, { data: pdocs }, pbank] = await Promise.all([
       seatsUsed(ctx.admin, h.id),

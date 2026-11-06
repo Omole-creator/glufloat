@@ -54,7 +54,7 @@ export default function FinanceExport({ data, csvHref }: { data: FinanceExportDa
     doc.setFont("helvetica", "bold");
     doc.setFontSize(18);
     doc.setTextColor(12, 42, 71);
-    doc.text("GluFloat: finance report", 14, y);
+    doc.text("Glufloat: finance report", 14, y);
     y += 7;
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);

@@ -157,7 +157,7 @@ export default function StaffJoinForm({
         </SubmitButton>
       </div>
       <p className="text-center text-sm text-ink-soft">
-        Already have a GluFloat login?{" "}
+        Already have a Glufloat login?{" "}
         <Link href={`/signin?next=${encodeURIComponent(here)}`} className="font-semibold text-brand hover:underline">
           Log in first
         </Link>

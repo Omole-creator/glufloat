@@ -123,7 +123,7 @@ export function AgentLinks({
   const wa = phone ? (phone.startsWith("0") && phone.length === 11 ? "234" + phone.slice(1) : phone) : "";
   // ONE link to send: their dashboard, which carries their link for doctors
   // with its own copy and WhatsApp buttons.
-  const message = `Hello ${first}, welcome to GluFloat.\n\nThis is your own GluFloat dashboard. Keep it private:\n${dashLink}\n\nOpen it to get your link for doctors (copy it, or send it to a doctor on WhatsApp in one tap), and to see your doctors and your money.`;
+  const message = `Hello ${first}, welcome to Glufloat.\n\nThis is your own Glufloat dashboard. Keep it private:\n${dashLink}\n\nOpen it to get your link for doctors (copy it, or send it to a doctor on WhatsApp in one tap), and to see your doctors and your money.`;
 
   const act = async (action: string, ask?: string) => {
     if (ask && !confirm(ask)) return;

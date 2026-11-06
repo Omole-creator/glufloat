@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 const INVITE_DAYS = 14;
 
 /**
- * GluFloat's own hands on a hospital (founder: hospitals are approved by hand).
+ * Glufloat's own hands on a hospital (founder: hospitals are approved by hand).
  *
  *   approve  a request becomes a free 30-day pilot for 20 patients, and the
  *            contact gets a link to set up their admin login.
@@ -139,7 +139,7 @@ export async function POST(request: Request) {
         city: clip(body.city, 80),
         state: clip(body.state, 80),
         status: "requested",
-        message: "Added by GluFloat admin.",
+        message: "Added by Glufloat admin.",
       })
       .select("id")
       .single();
@@ -152,7 +152,7 @@ export async function POST(request: Request) {
 /**
  * Delete a hospital for good (founder: some will try the pilot and not go on).
  * Its staff list, invites, patient list and quotes/invoices go with it. The
- * patients' and staff's OWN GluFloat accounts and records are untouched, and a
+ * patients' and staff's OWN Glufloat accounts and records are untouched, and a
  * patient who brought paid days gets them back first. Money already received
  * stays on /admin/finance, because it really was received.
  */

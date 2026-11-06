@@ -16,7 +16,7 @@ type Filter = "all" | "messages" | "safety" | "active" | "due" | "quiet" | "wait
 
 /**
  * The patient's own payment to their dietitian or hospital, which happens
- * outside GluFloat (patient-paid-schema.sql): the countdown starts at 30 days
+ * outside Glufloat (patient-paid-schema.sql): the countdown starts at 30 days
  * when they join, and "Record payment" adds months when they pay again.
  */
 /** A paused patient's countdown is frozen: say what they will have when unpaused. */
@@ -26,7 +26,7 @@ function pausedLine(r: { pausedLeftMs: number | null; paidUntil: string | null }
   return days > 0 ? `Paused · ${days} ${days === 1 ? "day" : "days"} kept` : "Paused · payment due";
 }
 
-/** A GluFloat doctor's patient pays GluFloat themselves: show their own plan. */
+/** A Glufloat doctor's patient pays Glufloat themselves: show their own plan. */
 const PLAN_LABEL: Record<NonNullable<RosterRow["plan"]>, string> = {
   premium: "Premium",
   plus: "Plus",
@@ -112,7 +112,7 @@ function wa(phone: string): string {
 }
 
 const STATUS = {
-  active: { label: "Using GluFloat", tone: "bg-leaf/10 text-leaf-deep" },
+  active: { label: "Using Glufloat", tone: "bg-leaf/10 text-leaf-deep" },
   waiting: { label: "Waiting for a place", tone: "bg-verdict-yellow/20 text-ink" },
   invited: { label: "Invited", tone: "bg-brand/10 text-brand" },
   removed: { label: "Removed", tone: "bg-ink/5 text-ink-soft" },
@@ -133,7 +133,7 @@ export default function PatientTable({
   hid: string | null;
   hospitalName: string;
   hospitalCode: string;
-  /** A GluFloat doctor's practice: no payment countdown, show each patient's own plan. */
+  /** A Glufloat doctor's practice: no payment countdown, show each patient's own plan. */
   doctor?: boolean;
   /** A dietitian whose patients pay her in the app: no "Record payment" (patient-pays-schema.sql). */
   patientPays?: boolean;
@@ -211,7 +211,7 @@ export default function PatientTable({
 
   const inviteLink = (r: RosterRow) => `${SITE_URL}/j/${hospitalCode}?t=${r.inviteToken}`;
   const inviteText = (r: RosterRow) =>
-    `Hello ${r.name.split(/\s+/)[0]}, ${hospitalName} has added you to GluFloat. It tells you what to eat for your diabetes and how much, and keeps a report for your doctor and dietitian.\n\nOpen this link to join. Use this phone number (${r.phone}):\n${inviteLink(r)}`;
+    `Hello ${r.name.split(/\s+/)[0]}, ${hospitalName} has added you to Glufloat. It tells you what to eat for your diabetes and how much, and keeps a report for your doctor and dietitian.\n\nOpen this link to join. Use this phone number (${r.phone}):\n${inviteLink(r)}`;
 
   const detailHref = (r: RosterRow) => `/hospital/patients/${r.id}${hid ? `?h=${hid}` : ""}`;
 
@@ -219,7 +219,7 @@ export default function PatientTable({
     { id: "all", label: "Everyone" },
     { id: "messages", label: "New messages" },
     { id: "safety", label: "Sugar needs a look" },
-    { id: "active", label: "Using GluFloat" },
+    { id: "active", label: "Using Glufloat" },
     { id: "due", label: "Payment due" },
     { id: "quiet", label: "Not opened in 7 days" },
     { id: "waiting", label: "Waiting" },
@@ -308,7 +308,7 @@ export default function PatientTable({
         <button
           disabled={busy === r.id}
           onClick={() => {
-            if (confirm(`Remove ${r.name} from ${hospitalName}? Their own GluFloat account and records stay theirs.`))
+            if (confirm(`Remove ${r.name} from ${hospitalName}? Their own Glufloat account and records stay theirs.`))
               void patch(r.id, "remove");
           }}
           aria-label={`Remove ${r.name}`}
@@ -375,7 +375,7 @@ export default function PatientTable({
                   <th className="px-3 py-2.5 text-right">Tests</th>
                   <th className="px-3 py-2.5">Latest sugar test</th>
                   <th className="px-3 py-2.5">HbA1c</th>
-                  <th className="px-3 py-2.5">{doctor ? "GluFloat plan" : "Paid"}</th>
+                  <th className="px-3 py-2.5">{doctor ? "Glufloat plan" : "Paid"}</th>
                   <th className="px-5 py-2.5" />
                 </tr>
               </thead>
@@ -499,7 +499,7 @@ export default function PatientTable({
                   </div>
                 )}
                 {doctor
-                  ? r.plan && <p className="mt-2 text-xs text-ink">GluFloat plan: {PLAN_LABEL[r.plan]}</p>
+                  ? r.plan && <p className="mt-2 text-xs text-ink">Glufloat plan: {PLAN_LABEL[r.plan]}</p>
                   : (r.status === "active" || r.status === "paused") && (
                       <p className={`mt-2 text-xs ${isDue(r) ? "font-semibold text-verdict-red" : "text-ink"}`}>
                         Paid: {r.status === "paused" ? pausedLine(r) : paidLine(r.paidUntil).text}

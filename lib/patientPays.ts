@@ -1,14 +1,14 @@
 /**
- * Patients pay their dietitian through GluFloat (2026-10-17,
+ * Patients pay their dietitian through Glufloat (2026-10-17,
  * supabase/patient-pays-schema.sql). Pure rules, no database, so
  * scripts/patient-pays-test.ts proves every one.
  *
  * Founder's decisions, asked one at a time:
  *  - She sets her own monthly price per patient, at least N4,500 (the
- *    Premium price, so a patient never finds GluFloat cheaper by leaving
+ *    Premium price, so a patient never finds Glufloat cheaper by leaving
  *    her). N4,500 until she changes it.
- *  - GluFloat keeps N2,000 of each payment, and Paystack's fee comes out of
- *    GluFloat's N2,000, never out of hers. So her share is exactly
+ *  - Glufloat keeps N2,000 of each payment, and Paystack's fee comes out of
+ *    Glufloat's N2,000, never out of hers. So her share is exactly
  *    "her price minus N2,000", a number she can trust.
  *  - Each patient gets 14 free days from the day they join, then pays one
  *    month at a time.
@@ -18,15 +18,15 @@
 export const PATIENT_PRICE_MIN = 4_500;
 /** The most, in naira: a typo guard, not a business rule. */
 export const PATIENT_PRICE_MAX = 1_000_000;
-/** What GluFloat keeps from each payment, in naira. */
+/** What Glufloat keeps from each payment, in naira. */
 export const GLUFLOAT_SHARE = 2_000;
 /**
  * The volume discount (founder, 2026-10-17): while MORE than this many
- * patients have paid her in the last 30 days, GluFloat keeps the lower share
+ * patients have paid her in the last 30 days, Glufloat keeps the lower share
  * on every new payment. Drop back to this many or fewer and it is N2,000 again.
  */
 export const VOLUME_PATIENTS = 25;
-/** What GluFloat keeps per payment for a practice over VOLUME_PATIENTS, in naira. */
+/** What Glufloat keeps per payment for a practice over VOLUME_PATIENTS, in naira. */
 export const GLUFLOAT_SHARE_VOLUME = 1_750;
 /** The days the paying-patient count looks back over. */
 export const VOLUME_WINDOW_DAYS = 30;
@@ -54,14 +54,14 @@ export function patientPrice(h: PriceHolder | null | undefined): number {
 }
 
 /**
- * What GluFloat keeps per payment, in naira, for a practice with this many
+ * What Glufloat keeps per payment, in naira, for a practice with this many
  * patients who paid her in the last 30 days (this payment's patient counted).
  */
 export function glufloatShareFor(payingPatients = 0): number {
   return payingPatients > VOLUME_PATIENTS ? GLUFLOAT_SHARE_VOLUME : GLUFLOAT_SHARE;
 }
 
-/** Her share of a payment, in kobo. Zero for anything at or under GluFloat's share. */
+/** Her share of a payment, in kobo. Zero for anything at or under Glufloat's share. */
 export function dietitianShareKobo(amountKobo: number, payingPatients = 0): number {
   const a = Math.round(Number(amountKobo) || 0);
   return Math.max(0, a - glufloatShareFor(payingPatients) * 100);

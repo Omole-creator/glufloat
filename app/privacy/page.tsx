@@ -11,11 +11,11 @@ export default function PrivacyPage() {
     <LegalShell
       eyebrow="The serious part"
       title="Privacy Policy"
-      updated="Last updated: 11 July 2026. Written to follow the Nigeria Data Protection Act 2023 (NDPA). GluFloat is the data controller."
+      updated="Last updated: 11 July 2026. Written to follow the Nigeria Data Protection Act 2023 (NDPA). Glufloat is the data controller."
     >
       <h2>1. Who we are</h2>
       <p>
-        Glufloat is run by GluFloat, based in Lagos State, Nigeria. For any
+        Glufloat is run by Glufloat, based in Lagos State, Nigeria. For any
         privacy question, contact us at glufloat@gmail.com.
       </p>
 

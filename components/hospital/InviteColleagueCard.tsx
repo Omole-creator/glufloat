@@ -5,13 +5,13 @@ import { Copy, Send, UserPlus } from "lucide-react";
 import { COLLEAGUE_BONUS_KOBO, nairaFromKobo } from "@/lib/careFees";
 
 /**
- * A GluFloat doctor invites a colleague (founder, 2026-10-16): their own link,
+ * A Glufloat doctor invites a colleague (founder, 2026-10-16): their own link,
  * /d/<their code>. When the colleague's first patient subscribes, the doctor
  * who invited them gets N3,000, once.
  */
 export default function InviteColleagueCard({ link }: { link: string }) {
   const [copied, setCopied] = useState(false);
-  const text = `I use GluFloat to look after my patients' diabetes between visits. They learn what to eat and how much, and I see their meals and sugar tests. It is free for doctors. Sign up here:\n${link}`;
+  const text = `I use Glufloat to look after my patients' diabetes between visits. They learn what to eat and how much, and I see their meals and sugar tests. It is free for doctors. Sign up here:\n${link}`;
   return (
     <section className="h-fit rounded-2xl border border-[#e3e9f1] bg-white p-5 sm:p-6">
       <div className="flex items-center gap-2">

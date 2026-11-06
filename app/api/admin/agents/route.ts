@@ -7,7 +7,7 @@ import { normalizePhone } from "@/lib/phone";
 export const dynamic = "force-dynamic";
 
 /**
- * Field agents and advisors, added by GluFloat (founder, 2026-10-16: they do
+ * Field agents and advisors, added by Glufloat (founder, 2026-10-16: they do
  * not sign up). Each gets two links:
  *   /d/<ref_code>     to give doctors (sign-up, credited to this agent)
  *   /agent/<token>    their own private dashboard (no login)

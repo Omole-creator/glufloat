@@ -12,7 +12,7 @@ export const metadata: Metadata = { title: "Finishing your payment", robots: { i
  */
 export default function PaidPage() {
   return (
-    <AuthShell title="Finishing your payment" sideTitle="GluFloat for dietitians">
+    <AuthShell title="Finishing your payment" sideTitle="Glufloat for dietitians">
       <Suspense fallback={<div className="h-24" />}>
         <PaidClaim />
       </Suspense>

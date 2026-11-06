@@ -6,7 +6,7 @@ import ContactForm from "./ContactForm";
 
 export const metadata: Metadata = {
   title: "Contact Us | Glufloat",
-  description: "Call, WhatsApp or email GluFloat, or send us a message. We are happy to help.",
+  description: "Call, WhatsApp or email Glufloat, or send us a message. We are happy to help.",
   alternates: { canonical: "/contact" },
 };
 

@@ -96,7 +96,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
             </span>
             <p className="mt-3 font-display text-lg font-bold text-ink">No messages yet</p>
             <p className="mx-auto mt-1.5 max-w-sm text-sm text-ink-soft">
-              When a patient writes from their GluFloat app, the chat shows up here and on their page.
+              When a patient writes from their Glufloat app, the chat shows up here and on their page.
             </p>
           </div>
         ) : (

@@ -29,11 +29,11 @@ function initials(name: string): string {
 
 /**
  * The patient's Chat tab (2026-10-15): one chat with their care team, inside
- * GluFloat. Laid out like a messaging app in GluFloat's own colours: the deep
+ * Glufloat. Laid out like a messaging app in Glufloat's own colours: the deep
  * blue of the meal card on top, the conversation in the middle, the box to
  * type in, and under it the "anything urgent" panel. A hospital or
  * dietitian-practice patient calls the hospital or dietitian there, and a
- * Premium member calls their own GluFloat dietitian (founder put that back,
+ * Premium member calls their own Glufloat dietitian (founder put that back,
  * 2026-10-16). With no number, it says to call a doctor or go to a hospital.
  */
 export default function PatientChat({ active }: { active: boolean }) {

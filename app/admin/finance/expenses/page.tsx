@@ -59,7 +59,7 @@ export default async function ExpensesPage({
   const change = prev ? (curLike.totalExpenses && !prev.totalExpenses ? null : (growth(curLike.totalExpenses, prev.totalExpenses) ?? 0)) : undefined;
 
   return (
-    <AdminShell title="Expenses" subtitle={`${period.label}. Everything spent to run GluFloat.`}>
+    <AdminShell title="Expenses" subtitle={`${period.label}. Everything spent to run Glufloat.`}>
       <PeriodPicker period={period} basePath="/admin/finance/expenses" keep={["cat", "by"]} />
       {!ready && <SetupNotice />}
 

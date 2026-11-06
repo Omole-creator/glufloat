@@ -8,7 +8,7 @@ import { HospitalLogOut, HospitalMobileNav, HospitalSidebarNav, HospitalSwitcher
 
 /**
  * The frame of the hospital dashboard: the same deep-blue sidebar language as
- * GluFloat's own admin, carrying the HOSPITAL's name, because this is their
+ * Glufloat's own admin, carrying the HOSPITAL's name, because this is their
  * screen. Navigation in the sidebar, anything a page can do beside its title.
  */
 export default async function HospitalShell({
@@ -27,7 +27,7 @@ export default async function HospitalShell({
   const h = ctx.hospital;
   const hid = ctx.all.length > 1 ? h.id : null;
   const live = hospitalLive(h);
-  // GluFloat for dietitians: same dashboard, her own words.
+  // Glufloat for dietitians: same dashboard, her own words.
   const practice = isPractice(h);
   const doctor = isDoctorPractice(h);
   const words = orgWords(h);
@@ -58,7 +58,7 @@ export default async function HospitalShell({
             <Image src="/logo-mark.png" alt="" width={28} height={28} className="h-7 w-7" />
           </span>
           <span className="font-display text-lg font-bold tracking-tight text-white">
-            GluFloat
+            Glufloat
             <span className="block text-[10px] font-bold uppercase tracking-[0.18em] text-white/55">{words.product}</span>
           </span>
         </Link>
@@ -114,7 +114,7 @@ export default async function HospitalShell({
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-verdict-red" />
               {practice ? (
                 <p>
-                  <span className="font-bold">Your GluFloat plan has ended.</span> Your patients are no longer covered and
+                  <span className="font-bold">Your Glufloat plan has ended.</span> Your patients are no longer covered and
                   their records are closed.{" "}
                   <Link href="/hospital/plan" className="font-bold text-brand underline">
                     Choose a plan to continue
@@ -122,8 +122,8 @@ export default async function HospitalShell({
                 </p>
               ) : (
                 <p>
-                  <span className="font-bold">Your GluFloat plan has ended.</span> Your patients are no longer covered and their
-                  records are closed to your staff. Please contact GluFloat to continue.
+                  <span className="font-bold">Your Glufloat plan has ended.</span> Your patients are no longer covered and their
+                  records are closed to your staff. Please contact Glufloat to continue.
                 </p>
               )}
             </div>
@@ -141,7 +141,7 @@ export default async function HospitalShell({
                     Choose a plan to keep your patients covered
                   </Link>
                 ) : ctx.staff.role === "admin" ? (
-                  "Contact GluFloat to keep your patients covered."
+                  "Contact Glufloat to keep your patients covered."
                 ) : (
                   "Please tell your hospital admin."
                 )}

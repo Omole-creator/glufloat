@@ -21,7 +21,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   if (!ctx) return NextResponse.json({ error: "Please log in again." }, { status: 401 });
   // A hospital whose plan has ended keeps its list, not its patients' records.
   if (!hospitalLive(ctx.hospital))
-    return NextResponse.json({ error: "Your GluFloat plan has ended." }, { status: 402 });
+    return NextResponse.json({ error: "Your Glufloat plan has ended." }, { status: 402 });
 
   const { data: p } = await ctx.admin
     .from("hospital_patients")
@@ -33,10 +33,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     return NextResponse.json({ error: "This patient is not on your list." }, { status: 404 });
 
   const uid = p.user_id as string;
-  // A GluFloat doctor sees a patient's record only while they pay or are on
+  // A Glufloat doctor sees a patient's record only while they pay or are on
   // their free trial (founder, 2026-10-20).
   if (isDoctorPractice(ctx.hospital) && !(await doctorCanSeeRecord(ctx.admin, uid)))
-    return NextResponse.json({ error: "This patient has not paid for GluFloat yet." }, { status: 402 });
+    return NextResponse.json({ error: "This patient has not paid for Glufloat yet." }, { status: 402 });
   const month = watMonth(url.searchParams.get("month"));
   // The report's graphs (founder, 2026-10-17): the sugar line covers the 3
   // months up to the end of the month on screen; the weight line, every

@@ -22,21 +22,21 @@ import { GLUFLOAT_SHARE, GLUFLOAT_SHARE_VOLUME, naira, PATIENT_FREE_DAYS, PATIEN
 import EarningsCalculator from "@/components/dietitian/EarningsCalculator";
 
 export const metadata: Metadata = {
-  title: "GluFloat for Dietitians | Support Your Diabetes Patients Between Visits",
+  title: "Glufloat for Dietitians | Support Your Diabetes Patients Between Visits",
   description:
-    "Give your patients GluFloat Premium and see every meal and sugar test they save. Set your own price: your patients pay you inside GluFloat.",
+    "Give your patients Glufloat Premium and see every meal and sugar test they save. Set your own price: your patients pay you inside Glufloat.",
   alternates: { canonical: "/dietitians" },
 };
 
 /**
- * GluFloat for dietitians, the page a dietitian lands on (2026-10-13). Same
+ * Glufloat for dietitians, the page a dietitian lands on (2026-10-13). Same
  * design language as /hospitals. Static: no client island, every button is a
  * link to /dietitians/start or down the page.
  *
  * The promise this page makes and the product keeps: her patients chat only
  * with her (lib/hospitalServer.ts chatContacts), see only HER price, never
- * GluFloat's plans (lib/account.ts, `practice` on "expired"), and pay her
- * inside the app at the price she sets, with GluFloat keeping N2,000 of each
+ * Glufloat's plans (lib/account.ts, `practice` on "expired"), and pay her
+ * inside the app at the price she sets, with Glufloat keeping N2,000 of each
  * payment (lib/patientPays.ts, founder 2026-10-17). Every number on this
  * page is read from lib/patientPays.ts.
  */
@@ -118,12 +118,12 @@ export default function DietitiansPage() {
     {
       icon: HeartHandshake,
       title: "Your patients stay yours",
-      text: "They chat with you inside GluFloat, and only you. While they are with you, GluFloat never offers them another dietitian.",
+      text: "They chat with you inside Glufloat, and only you. While they are with you, Glufloat never offers them another dietitian.",
     },
     {
       icon: Wallet,
       title: "You set the price",
-      text: `Choose what each patient pays you every month. GluFloat keeps ${naira(GLUFLOAT_SHARE)} of each payment, and the rest is paid to your bank every week.`,
+      text: `Choose what each patient pays you every month. Glufloat keeps ${naira(GLUFLOAT_SHARE)} of each payment, and the rest is paid to your bank every week.`,
     },
     {
       icon: Stethoscope,
@@ -134,7 +134,7 @@ export default function DietitiansPage() {
   const steps = [
     { icon: BadgeCheck, title: "Start free", text: "Give your name, your DCN registration number and your WhatsApp number. It takes 2 minutes." },
     { icon: UserPlus, title: "Invite your patients", text: "Send each patient their own link on WhatsApp, or share your QR code. They join with their phone number." },
-    { icon: ClipboardList, title: "Review before each visit", text: `Each patient gets ${PATIENT_FREE_DAYS} free days, then pays you inside GluFloat. Open any patient to see every meal and sugar test.` },
+    { icon: ClipboardList, title: "Review before each visit", text: `Each patient gets ${PATIENT_FREE_DAYS} free days, then pays you inside Glufloat. Open any patient to see every meal and sugar test.` },
   ];
   const patientGets = [
     { icon: Utensils, text: "A meal picked for them for breakfast, lunch and dinner" },
@@ -143,7 +143,7 @@ export default function DietitiansPage() {
     { icon: MessageCircle, text: "Chat with you in the app, and a button to call you if something is urgent" },
   ];
   const youGet = [
-    { icon: Users, text: "See all your patients in one list, and the last day each one used GluFloat" },
+    { icon: Users, text: "See all your patients in one list, and the last day each one used Glufloat" },
     { icon: FileText, text: "A report for each patient every month, ready to print, with their sugar and weight as graphs" },
     { icon: ShieldCheck, text: "A mark on any patient with a very low or very high sugar test, so you know who to check first" },
     { icon: Stethoscope, text: "Each patient's medicine, weight and how active they are" },
@@ -156,7 +156,7 @@ export default function DietitiansPage() {
   const faqs = [
     {
       q: "Who pays?",
-      a: `Your patients pay you, inside GluFloat, at the price you set. You pay GluFloat nothing. GluFloat keeps ${naira(GLUFLOAT_SHARE)} of each payment and sends the rest to your bank every week.`,
+      a: `Your patients pay you, inside Glufloat, at the price you set. You pay Glufloat nothing. Glufloat keeps ${naira(GLUFLOAT_SHARE)} of each payment and sends the rest to your bank every week.`,
     },
     {
       q: "How much can I charge?",
@@ -164,15 +164,15 @@ export default function DietitiansPage() {
     },
     {
       q: `What happens after a patient's ${PATIENT_FREE_DAYS} free days?`,
-      a: "They pay you one month at a time, by card, bank transfer or USSD, inside GluFloat. If they do not pay, GluFloat asks them to pay you before they can keep going. It never offers them another plan.",
+      a: "They pay you one month at a time, by card, bank transfer or USSD, inside Glufloat. If they do not pay, Glufloat asks them to pay you before they can keep going. It never offers them another plan.",
     },
     {
       q: "Is there a better rate for a big practice?",
-      a: `Yes. When more than ${VOLUME_PATIENTS} patients have paid you in the last 30 days, GluFloat keeps ${naira(GLUFLOAT_SHARE_VOLUME)} instead of ${naira(GLUFLOAT_SHARE)} from every payment. If you go back to ${VOLUME_PATIENTS} or fewer, it goes back to ${naira(GLUFLOAT_SHARE)}.`,
+      a: `Yes. When more than ${VOLUME_PATIENTS} patients have paid you in the last 30 days, Glufloat keeps ${naira(GLUFLOAT_SHARE_VOLUME)} instead of ${naira(GLUFLOAT_SHARE)} from every payment. If you go back to ${VOLUME_PATIENTS} or fewer, it goes back to ${naira(GLUFLOAT_SHARE)}.`,
     },
     {
       q: "Who pays Paystack's fee?",
-      a: `GluFloat does, out of its share. You always get your price minus ${naira(GLUFLOAT_SHARE)}, or minus ${naira(GLUFLOAT_SHARE_VOLUME)} once you have more than ${VOLUME_PATIENTS} paying patients.`,
+      a: `Glufloat does, out of its share. You always get your price minus ${naira(GLUFLOAT_SHARE)}, or minus ${naira(GLUFLOAT_SHARE_VOLUME)} once you have more than ${VOLUME_PATIENTS} paying patients.`,
     },
     {
       q: "Do my patients need an email address?",
@@ -183,16 +183,16 @@ export default function DietitiansPage() {
       a: "Only you. Your patients are told, when they join, that you can see their meals and sugar tests.",
     },
     {
-      q: "Does GluFloat tell my patient if a sugar test is good or bad?",
-      a: "No. GluFloat shows the number as it is and leaves the judgement to you. If a number is very low or very high, it tells the patient to contact their doctor.",
+      q: "Does Glufloat tell my patient if a sugar test is good or bad?",
+      a: "No. Glufloat shows the number as it is and leaves the judgement to you. If a number is very low or very high, it tells the patient to contact their doctor.",
     },
     {
       q: "What if I stop?",
-      a: "Your patients keep their own GluFloat account. Anyone who was paying GluFloat before they joined you gets their unused days back.",
+      a: "Your patients keep their own Glufloat account. Anyone who was paying Glufloat before they joined you gets their unused days back.",
     },
     {
       q: "Why do you ask for my DCN number?",
-      a: "Your patients trust you with their health records. We check that every dietitian on GluFloat is registered with the Dietitians Council of Nigeria.",
+      a: "Your patients trust you with their health records. We check that every dietitian on Glufloat is registered with the Dietitians Council of Nigeria.",
     },
   ];
 
@@ -206,9 +206,9 @@ export default function DietitiansPage() {
           <div aria-hidden className="pointer-events-none absolute -bottom-40 left-10 h-96 w-96 rounded-full bg-leaf/20 blur-3xl" />
           <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-[1.1fr_1fr]">
             <div>
-              <Label dark>GluFloat for dietitians</Label>
+              <Label dark>Glufloat for dietitians</Label>
               <h1 className="mt-5 text-balance font-display text-4xl font-bold leading-[1.08] tracking-tight sm:text-5xl lg:text-[3.4rem]">
-                Double Your Monthly Income While Supporting Your Diabetes Patients With GluFloat
+                Double Your Monthly Income While Supporting Your Diabetes Patients With Glufloat
               </h1>
               <p className="mt-5 max-w-xl text-lg leading-relaxed text-white/85">
                 Give your patients a simple way to follow your food advice every day. You see their meals and sugar tests
@@ -241,7 +241,7 @@ export default function DietitiansPage() {
           <div className="mx-auto max-w-6xl text-center">
             <Label>Your practice</Label>
             <h2 className={H2}>Your Patients. Your Practice. Better Support Between Visits.</h2>
-            <p className={LEAD}>GluFloat does the daily work with your patients. You stay in charge of their care.</p>
+            <p className={LEAD}>Glufloat does the daily work with your patients. You stay in charge of their care.</p>
           </div>
           <div className="mx-auto mt-12 grid max-w-6xl gap-5 md:grid-cols-3">
             {promises.map((s) => (
@@ -288,7 +288,7 @@ export default function DietitiansPage() {
             </div>
             <div className="relative mt-10 grid gap-5 lg:grid-cols-2">
               {[
-                { title: "Each patient gets", sub: "Everything in GluFloat Premium (N4,500 a month on its own)", items: patientGets },
+                { title: "Each patient gets", sub: "Everything in Glufloat Premium (N4,500 a month on its own)", items: patientGets },
                 { title: "You get", sub: "Your own dashboard", items: youGet },
               ].map((col) => (
                 <div key={col.title} className="rounded-3xl bg-white/[0.07] p-6 ring-1 ring-inset ring-white/15 sm:p-7">
@@ -316,7 +316,7 @@ export default function DietitiansPage() {
             <Label>Your money</Label>
             <h2 className={H2}>See What You Earn</h2>
             <p className={LEAD}>
-              Your patients pay you inside GluFloat. GluFloat keeps {naira(GLUFLOAT_SHARE)} of each payment. The rest is yours, paid to
+              Your patients pay you inside Glufloat. Glufloat keeps {naira(GLUFLOAT_SHARE)} of each payment. The rest is yours, paid to
               your bank every week.
             </p>
           </div>
@@ -352,7 +352,7 @@ export default function DietitiansPage() {
             <Glow />
             <div className="relative text-center">
               <h2 className="mx-auto max-w-3xl text-balance font-display text-3xl font-bold leading-tight tracking-tight text-white sm:text-[2.5rem]">
-                GluFloat Provides The Technology. You Provide The Care.
+                Glufloat Provides The Technology. You Provide The Care.
               </h2>
               <Link
                 href={START}

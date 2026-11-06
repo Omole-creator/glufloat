@@ -88,7 +88,7 @@ export async function POST(request: Request) {
   const admin = createAdminClient();
   if (!(await chatReady(admin))) return NextResponse.json({ error: "Chat is not ready yet. Please try again later." }, { status: 503 });
   const team = await patientTeam(admin, user.id);
-  if (!team) return NextResponse.json({ error: "Chat is part of GluFloat Premium." }, { status: 403 });
+  if (!team) return NextResponse.json({ error: "Chat is part of Glufloat Premium." }, { status: 403 });
   const out = teamOut(team);
   if (!out.canSend) return NextResponse.json({ error: "Nobody is here to answer yet. Please try again later." }, { status: 409 });
 
@@ -105,7 +105,7 @@ export async function POST(request: Request) {
       team.members.map((m) => m.userId),
       {
         title: `New message from ${first}`,
-        body: `Tap to read it on GluFloat.`,
+        body: `Tap to read it on Glufloat.`,
         url: `/hospital/patients/${team.patientRowId}?h=${team.hospital.id}#chat`,
         tag: `chat${thread.id}`,
       },
@@ -114,7 +114,7 @@ export async function POST(request: Request) {
     const to = team.dietitianUserId;
     after(() => pushTo(admin, [to], {
       title: `New message from ${first}`,
-      body: "Tap to read it on GluFloat.",
+      body: "Tap to read it on Glufloat.",
       url: `/inbox/${thread.id}`,
       tag: `chat${thread.id}`,
     }));

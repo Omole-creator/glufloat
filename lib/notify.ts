@@ -46,13 +46,13 @@ export async function sendEmail(to: string, subject: string, html: string, text:
 
 /**
  * The email a hospital gets the moment it asks for the free pilot (founder,
- * 2026-10-16: no waiting for GluFloat, no WhatsApp step). The button is its
+ * 2026-10-16: no waiting for Glufloat, no WhatsApp step). The button is its
  * admin invite link, the same one /admin/hospitals makes.
  */
 export function pilotEmail(firstName: string, hospital: string, link: string, days: number, seats: number, inviteDays: number) {
-  const subject = `Set up your GluFloat dashboard for ${hospital}`;
+  const subject = `Set up your Glufloat dashboard for ${hospital}`;
   const html = `<div style="font-family:Arial,sans-serif;color:#0c2a47;max-width:560px">
-<div style="background:#1b5faa;color:#fff;padding:18px 22px;border-radius:14px 14px 0 0;font-size:20px;font-weight:bold">GluFloat for hospitals</div>
+<div style="background:#1b5faa;color:#fff;padding:18px 22px;border-radius:14px 14px 0 0;font-size:20px;font-weight:bold">Glufloat for hospitals</div>
 <div style="border:1px solid #e3e9f1;border-top:0;border-radius:0 0 14px 14px;padding:22px">
 <p style="margin:0 0 12px;font-size:16px">Hello ${esc(firstName)},</p>
 <p style="margin:0 0 12px;font-size:16px;line-height:1.5">Your free ${days}-day pilot for <b>${esc(hospital)}</b> has started. It covers ${seats} patients. You do not pay anything to start.</p>
@@ -81,12 +81,12 @@ Need help? Call or WhatsApp us on 0813 209 7317.`;
  * between visits.
  */
 export function doctorSetupEmail(firstName: string, link: string, inviteDays: number) {
-  const subject = "Finish setting up GluFloat for your patients";
+  const subject = "Finish setting up Glufloat for your patients";
   const html = `<div style="font-family:Arial,sans-serif;color:#0c2a47;max-width:560px">
-<div style="background:#1b5faa;color:#fff;padding:18px 22px;border-radius:14px 14px 0 0;font-size:20px;font-weight:bold">GluFloat for doctors</div>
+<div style="background:#1b5faa;color:#fff;padding:18px 22px;border-radius:14px 14px 0 0;font-size:20px;font-weight:bold">Glufloat for doctors</div>
 <div style="border:1px solid #e3e9f1;border-top:0;border-radius:0 0 14px 14px;padding:22px">
 <p style="margin:0 0 12px;font-size:16px">Hello ${esc(firstName)},</p>
-<p style="margin:0 0 12px;font-size:16px;line-height:1.5">Thank you for joining GluFloat. Your patients will know what to eat for their diabetes, and you will see their meals, sugar tests and reports between visits.</p>
+<p style="margin:0 0 12px;font-size:16px;line-height:1.5">Thank you for joining Glufloat. Your patients will know what to eat for their diabetes, and you will see their meals, sugar tests and reports between visits.</p>
 <p style="margin:0 0 18px;font-size:16px;line-height:1.5">Tap the button to choose your password and open your dashboard.</p>
 <p style="margin:0 0 18px"><a href="${esc(link)}" style="background:#3e9b4f;color:#fff;padding:13px 22px;border-radius:999px;text-decoration:none;font-weight:bold;font-size:16px">Finish setting up</a></p>
 <p style="margin:0 0 8px;font-size:14px;color:#46617a;line-height:1.5">This link works for ${inviteDays} days. Do not share it. It opens your patients' records.</p>
@@ -94,7 +94,7 @@ export function doctorSetupEmail(firstName: string, link: string, inviteDays: nu
 </div></div>`;
   const text = `Hello ${firstName},
 
-Thank you for joining GluFloat. Your patients will know what to eat for their diabetes, and you will see their meals, sugar tests and reports between visits.
+Thank you for joining Glufloat. Your patients will know what to eat for their diabetes, and you will see their meals, sugar tests and reports between visits.
 
 Open this link to choose your password and open your dashboard:
 ${link}
@@ -114,7 +114,7 @@ export async function notifyFounder(subject: string, rows: [string, string | nul
 <table style="border-collapse:collapse">${shown
     .map(([k, v]) => `<tr><td style="padding:4px 14px 4px 0;color:#46617a">${esc(k)}</td><td style="padding:4px 0;font-weight:bold">${esc(String(v))}</td></tr>`)
     .join("")}</table>
-<p style="margin-top:18px"><a href="${esc(link)}" style="background:#3e9b4f;color:#fff;padding:10px 18px;border-radius:999px;text-decoration:none;font-weight:bold">Open in GluFloat admin</a></p>
+<p style="margin-top:18px"><a href="${esc(link)}" style="background:#3e9b4f;color:#fff;padding:10px 18px;border-radius:999px;text-decoration:none;font-weight:bold">Open in Glufloat admin</a></p>
 </div>`;
   const text = `${subject}\n\n${shown.map(([k, v]) => `${k}: ${v}`).join("\n")}\n\n${link}`;
   try {

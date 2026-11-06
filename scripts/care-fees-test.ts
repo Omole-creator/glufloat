@@ -35,7 +35,7 @@ const full = splitPayment({ amountKobo: 450_000, hasAgent: true, hasAdvisor: tru
 check("a payment pays the doctor nothing", by(full, "care") === 0, full);
 check("agent 11.12% = N500.40", by(full, "agent") === 50_040, full);
 check("advisor 10% = N450", by(full, "advisor") === 45_000, full);
-check("GluFloat keeps 78.88%", glufloatShare(450_000, full) === 354_960, glufloatShare(450_000, full));
+check("Glufloat keeps 78.88%", glufloatShare(450_000, full) === 354_960, glufloatShare(450_000, full));
 check("agent + advisor rates add to 21.12%", Math.abs(AGENT_RATE + ADVISOR_RATE - 0.2112) < 1e-9);
 
 // No agent: nobody is paid from the payment.
@@ -101,7 +101,7 @@ check("Monday 00:30 WAT is a new week", wk2.toISOString() === "2026-10-18T23:00:
 const rp = (amountKobo: number, firstPaidAt: Date | null = null, agentActive = true) =>
   splitRepPatientPayment({ amountKobo, agentActive, paidAt: now, firstPaidAt });
 check("rep patient: Premium N4,500 pays the rep N1,500", by(rp(450_000), "agent") === 150_000, rp(450_000));
-check("rep patient: GluFloat keeps N3,000", glufloatShare(450_000, rp(450_000)) === 300_000);
+check("rep patient: Glufloat keeps N3,000", glufloatShare(450_000, rp(450_000)) === 300_000);
 check("rep patient: no advisor share", by(rp(450_000), "advisor") === 0);
 check("rep patient: Basic N1,500 pays N500", by(rp(150_000), "agent") === 50_000);
 check("rep patient: Plus N2,500 pays N833.33", by(rp(250_000), "agent") === 83_333);

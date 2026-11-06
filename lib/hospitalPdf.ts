@@ -106,10 +106,10 @@ export async function buildDocumentPdf(
   pdf.setTextColor(255, 255, 255);
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(18);
-  pdf.text("GluFloat", M + 21, 17);
+  pdf.text("Glufloat", M + 21, 17);
   pdf.setFont("helvetica", "normal");
   pdf.setFontSize(9.5);
-  pdf.text(hospital.kind === "dietitian" ? "GluFloat for dietitians" : "GluFloat for hospitals", M + 21, 23);
+  pdf.text(hospital.kind === "dietitian" ? "Glufloat for dietitians" : "Glufloat for hospitals", M + 21, 23);
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(20);
   pdf.text(isInvoice ? "INVOICE" : "QUOTE", W - M, 18, { align: "right" });
@@ -165,7 +165,7 @@ export async function buildDocumentPdf(
   y += 16;
   pdf.setTextColor(...INK);
   pdf.setFontSize(11);
-  pdf.text(`GluFloat ${hospital.kind === "dietitian" ? practicePlanName(doc.plan) : planName(doc.plan)}`, M + 3, y);
+  pdf.text(`Glufloat ${hospital.kind === "dietitian" ? practicePlanName(doc.plan) : planName(doc.plan)}`, M + 3, y);
   pdf.text(ngn(subtotal), W - M - 3, y, { align: "right" });
   pdf.setFont("helvetica", "normal");
   pdf.setFontSize(9);
@@ -175,7 +175,7 @@ export async function buildDocumentPdf(
       ? `12 months of access, paid yearly (12 months for the price of ${ANNUAL_MONTHS_PAID})`
       : "1 month of access, paid monthly";
   const desc = [
-    `Up to ${doc.seats} patients, each with everything in GluFloat Premium`,
+    `Up to ${doc.seats} patients, each with everything in Glufloat Premium`,
     period,
     "Dashboard for your doctors and dietitians, free",
   ];
@@ -264,7 +264,7 @@ export async function buildDocumentPdf(
     pdf.setTextColor(...INK);
     pdf.setFont("helvetica", "bold");
     pdf.setFontSize(10);
-    pdf.text(bank.signName || "GluFloat", sx, sy + 25.5);
+    pdf.text(bank.signName || "Glufloat", sx, sy + 25.5);
     pdf.setFont("helvetica", "normal");
     pdf.setFontSize(8.5);
     pdf.setTextColor(...SOFT);
@@ -276,7 +276,7 @@ export async function buildDocumentPdf(
   pdf.line(M, 280, W - M, 280);
   pdf.setTextColor(...SOFT);
   pdf.setFontSize(8.5);
-  pdf.text("GluFloat  ·  www.glufloat.com  ·  care@glufloat.com", W / 2, 286, { align: "center" });
+  pdf.text("Glufloat  ·  www.glufloat.com  ·  care@glufloat.com", W / 2, 286, { align: "center" });
   return pdf;
 }
 
@@ -310,7 +310,7 @@ export async function buildPosterPdf(hospital: { name: string; code: string }): 
   pdf.setTextColor(255, 255, 255);
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(18);
-  pdf.text("GluFloat", 41, 30);
+  pdf.text("Glufloat", 41, 30);
 
   pdf.setFontSize(30);
   const title = pdf.splitTextToSize("Know what to eat for your diabetes", W - 36);
@@ -319,7 +319,7 @@ export async function buildPosterPdf(hospital: { name: string; code: string }): 
   pdf.setFontSize(13);
   const sub = pdf.splitTextToSize(
     // Never "free": the hospital may charge its patients for the programme.
-    `${hospital.name} gives you GluFloat. It tells you what to eat and how much, and keeps a report for your doctor and dietitian.`,
+    `${hospital.name} gives you Glufloat. It tells you what to eat and how much, and keeps a report for your doctor and dietitian.`,
     W - 36,
   );
   pdf.text(sub, 18, 56 + title.length * 12 + 4);
@@ -352,7 +352,7 @@ export async function buildPosterPdf(hospital: { name: string; code: string }): 
   pdf.text(joinShort(hospital.code), W / 2, qy + size + 45.5, { align: "center" });
 
   // Steps.
-  const steps = ["Open the link", "Put your name, phone number and a password", "Start using GluFloat"];
+  const steps = ["Open the link", "Put your name, phone number and a password", "Start using Glufloat"];
   // Below the address box (which ends at qy + size + 51 = 255).
   const sy = H - 27;
   const colW = (W - 36) / 3;
@@ -410,7 +410,7 @@ export async function buildDoctorFlyerPdf(doctor: { name: string; code: string }
   pdf.setTextColor(255, 255, 255);
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(12);
-  pdf.text("GluFloat", M + 14, 16.5);
+  pdf.text("Glufloat", M + 14, 16.5);
   pdf.setFont("helvetica", "normal");
   pdf.setFontSize(9.5);
   pdf.text(pdf.splitTextToSize(`From ${doctor.name}`, W - 2 * M - 30), M, 28);
@@ -423,7 +423,7 @@ export async function buildDoctorFlyerPdf(doctor: { name: string; code: string }
   pdf.setFont("helvetica", "italic");
   pdf.setFontSize(10.5);
   const note = pdf.splitTextToSize(
-    "“I will be checking what you eat and your sugar tests on GluFloat. Please use it every day until your next visit.”",
+    "“I will be checking what you eat and your sugar tests on Glufloat. Please use it every day until your next visit.”",
     W - 2 * M - 10,
   );
   const noteH = note.length * 4.8 + 12;
@@ -442,7 +442,7 @@ export async function buildDoctorFlyerPdf(doctor: { name: string; code: string }
   pdf.setTextColor(...BRAND);
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(10.5);
-  pdf.text("What GluFloat does for you", M, y);
+  pdf.text("What Glufloat does for you", M, y);
   y += 5.5;
   const points = [
     "Picks your breakfast, lunch and dinner every day, from the Nigerian food you love.",
@@ -478,7 +478,7 @@ export async function buildDoctorFlyerPdf(doctor: { name: string; code: string }
   const steps = [
     "Point your phone camera at the code.",
     "Sign up.",
-    `Use GluFloat free for 7 days. You do not need a card. After that, it is N${priceNaira.toLocaleString("en-NG")} a month.`,
+    `Use Glufloat free for 7 days. You do not need a card. After that, it is N${priceNaira.toLocaleString("en-NG")} a month.`,
   ];
   let sy = y + 10;
   const stepW = qx - M - 16;
@@ -513,6 +513,6 @@ export async function buildDoctorFlyerPdf(doctor: { name: string; code: string }
   pdf.setTextColor(...SOFT);
   pdf.setFont("helvetica", "normal");
   pdf.setFontSize(8.5);
-  pdf.text("Need help with GluFloat? Call 0813 209 7317", W / 2, H - 8, { align: "center" });
+  pdf.text("Need help with Glufloat? Call 0813 209 7317", W / 2, H - 8, { align: "center" });
   return pdf;
 }

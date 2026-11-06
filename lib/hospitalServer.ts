@@ -6,7 +6,7 @@ import { isPatientPays, patientPrice } from "@/lib/patientPays";
 import { normalizePhone } from "@/lib/phone";
 
 /**
- * Server-only helpers for GluFloat for hospitals. Every hospital table has RLS
+ * Server-only helpers for Glufloat for hospitals. Every hospital table has RLS
  * on with NO policies (supabase/hospitals-schema.sql), so everything goes
  * through here: first work out WHO is asking from their session cookie, then
  * read with the service role, never the other way round.
@@ -352,7 +352,7 @@ export async function hospitalStatusFor(admin: SupabaseClient, uid: string): Pro
     chats: ChatPerson[];
     /**
      * "dietitian" when a dietitian's practice covers them, so the app says "your
-     * dietitian". "doctor" when they are a GluFloat doctor's patient: LINKED,
+     * dietitian". "doctor" when they are a Glufloat doctor's patient: LINKED,
      * not covered, so their own trial or plan decides their access.
      */
     kind: "hospital" | "dietitian" | "doctor";
@@ -406,7 +406,7 @@ export async function hospitalStatusFor(admin: SupabaseClient, uid: string): Pro
     if (!covered) await restoreCarried(admin, r);
   }
   // A patient-pays dietitian's paused patient stays hers: they see her Pay
-  // button (paying brings them back), never GluFloat's own plans.
+  // button (paying brings them back), never Glufloat's own plans.
   const isPausedPayer = (r: Joined) => r.status === "paused" && !!r.hospitals && isPatientPays(r.hospitals);
   const live = rows
     .filter((r) => r.hospitals && hospitalLive(r.hospitals) && (r.status === "active" || r.status === "waiting" || isPausedPayer(r)))

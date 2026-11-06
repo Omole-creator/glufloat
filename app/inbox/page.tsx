@@ -23,7 +23,7 @@ function initials(name: string): string {
 }
 
 /**
- * A GluFloat Premium dietitian's inbox (2026-10-15): every chat with the
+ * A Glufloat Premium dietitian's inbox (2026-10-15): every chat with the
  * Premium members assigned to her, waiting ones first, and below them the
  * members who have not written yet, so she can start a chat herself.
  */
@@ -87,7 +87,7 @@ export default async function InboxPage() {
       subtitle={
         waitingCount > 0
           ? `${waitingCount} ${waitingCount === 1 ? "member is" : "members are"} waiting for your reply`
-          : "GluFloat Premium members write to you here."
+          : "Glufloat Premium members write to you here."
       }
     >
       {!ready ? (
@@ -103,7 +103,7 @@ export default async function InboxPage() {
                   <MessageCircle className="h-6 w-6" />
                 </span>
                 <p className="mt-3 font-display text-lg font-bold text-ink">No messages yet</p>
-                <p className="mx-auto mt-1.5 max-w-sm text-sm text-ink-soft">When a member writes to you from their GluFloat app, the chat shows up here.</p>
+                <p className="mx-auto mt-1.5 max-w-sm text-sm text-ink-soft">When a member writes to you from their Glufloat app, the chat shows up here.</p>
               </div>
             ) : (
               <ul className="divide-y divide-[#eef2f7]">

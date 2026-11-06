@@ -18,7 +18,7 @@ const EVERY_DAYS = 7;
 /**
  * Shown less often (founder, 2026-10-25: the Today tab is opened every meal, so
  * a card there every time becomes furniture). Only once they have saved
- * MIN_MEALS meals (GluFloat has been useful to them), and then on one day in
+ * MIN_MEALS meals (Glufloat has been useful to them), and then on one day in
  * every EVERY_DAYS, all of that day.
  */
 function dueToday(): boolean {
@@ -82,7 +82,7 @@ export default function InviteFriends() {
 
   if (!due || !info) return null;
 
-  const message = `I use GluFloat to know which Nigerian foods are good for my sugar. Try it free for 7 days: ${info.link}`;
+  const message = `I use Glufloat to know which Nigerian foods are good for my sugar. Try it free for 7 days: ${info.link}`;
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(info.link);
@@ -111,7 +111,7 @@ export default function InviteFriends() {
             Invite a friend, get {info.days} free days
           </h2>
           <p className="mt-1 text-sm leading-relaxed text-ink-soft">
-            Send your link to someone who needs it. When they pay for GluFloat, you get {info.days} more days free.
+            Send your link to someone who needs it. When they pay for Glufloat, you get {info.days} more days free.
           </p>
         </div>
       </div>

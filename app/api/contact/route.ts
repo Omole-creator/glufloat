@@ -26,12 +26,12 @@ export async function POST(request: Request) {
 
   const subject = `Contact form: ${name}`;
   const html = `<div style="font-family:Arial,sans-serif;color:#0c2a47;max-width:560px">
-<h2 style="margin:0 0 12px;color:#1b5faa">New message from the GluFloat contact page</h2>
+<h2 style="margin:0 0 12px;color:#1b5faa">New message from the Glufloat contact page</h2>
 <p style="margin:0 0 6px"><b>Name:</b> ${esc(name)}</p>
 <p style="margin:0 0 14px"><b>Email or phone:</b> ${esc(reach)}</p>
 <p style="margin:0;white-space:pre-wrap;line-height:1.5">${esc(message)}</p>
 </div>`;
-  const text = `New message from the GluFloat contact page\n\nName: ${name}\nEmail or phone: ${reach}\n\n${message}`;
+  const text = `New message from the Glufloat contact page\n\nName: ${name}\nEmail or phone: ${reach}\n\n${message}`;
   const sent = await sendEmail(FOUNDER_INBOX, subject, html, text, "contact-form");
   if (!sent.ok)
     return NextResponse.json(

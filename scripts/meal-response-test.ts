@@ -136,8 +136,8 @@ ok("a broken time is over, not due", dueState("not a date") === "over");
 // ---- how much was eaten ----------------------------------------------------
 const guide = "Half a cup of cooked rice (90g). Cook it with one teaspoon of oil.";
 ok("first sentence is the amount", firstSentence(guide) === "Half a cup of cooked rice (90g).");
-ok("normal size prints the GluFloat amount", portionWords("normal", guide) === "Half a cup of cooked rice (90g).");
-ok("missing size is the GluFloat amount", portionWords(undefined, guide) === "Half a cup of cooked rice (90g).");
+ok("normal size prints the Glufloat amount", portionWords("normal", guide) === "Half a cup of cooked rice (90g).");
+ok("missing size is the Glufloat amount", portionWords(undefined, guide) === "Half a cup of cooked rice (90g).");
 ok("half reads as less", portionWords("half", guide) === "less than the right size");
 ok("large reads as more", portionWords("large", guide) === "more than the right size");
 ok("grams stay grams", portionWords("163g", guide) === "163g");

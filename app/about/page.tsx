@@ -9,7 +9,7 @@ import TrialCta from "@/components/TrialCta";
 export const metadata: Metadata = {
   title: "About Us | Glufloat",
   description:
-    "GluFloat is a digital health startup helping people living with diabetes make better food choices without giving up the meals they love.",
+    "Glufloat is a digital health startup helping people living with diabetes make better food choices without giving up the meals they love.",
   alternates: { canonical: "/about" },
 };
 
@@ -18,12 +18,12 @@ const FOUNDERS = [
   {
     name: "Omole Usuangbon",
     photo: "/img/founder.jpg",
-    bio: "Omole Usuangbon is a pharmacist, entrepreneur, and one of the founders of GluFloat. Drawing on his pharmacy background and passion for digital health, he co-founded GluFloat to make diabetes nutrition simple and practical for Africans. He is also the founder of JobMingle, a career development platform that has helped thousands of people access digital skills and employment opportunities.",
+    bio: "Omole Usuangbon is a pharmacist, entrepreneur, and one of the founders of Glufloat. Drawing on his pharmacy background and passion for digital health, he co-founded Glufloat to make diabetes nutrition simple and practical for Africans. He is also the founder of JobMingle, a career development platform that has helped thousands of people access digital skills and employment opportunities.",
   },
   {
     name: "Favour Chiamaka",
     photo: "/img/cofounder-favour.jpg",
-    bio: "Favour Chiamaka is a registered dietitian with four years of practice and one of the founders of GluFloat. Drawing on her expertise in nutrition and diabetes care, she helps people living with diabetes enjoy familiar African foods while making smarter food choices. Through GluFloat, she helps users make practical, personalised food decisions that support steadier blood sugar without giving up the meals they grew up eating.",
+    bio: "Favour Chiamaka is a registered dietitian with four years of practice and one of the founders of Glufloat. Drawing on her expertise in nutrition and diabetes care, she helps people living with diabetes enjoy familiar African foods while making smarter food choices. Through Glufloat, she helps users make practical, personalised food decisions that support steadier blood sugar without giving up the meals they grew up eating.",
   },
 ];
 
@@ -33,13 +33,13 @@ export default function AboutPage() {
       <Navbar />
 
       <main className="flex-1">
-        {/* About GluFloat */}
+        {/* About Glufloat */}
         <section className="relative overflow-hidden bg-gradient-to-b from-mist via-white to-white pb-16 pt-28 sm:pt-32">
           <div className="dots pointer-events-none absolute inset-x-0 top-0 h-72 opacity-60" aria-hidden />
           <div className="relative mx-auto max-w-3xl px-4 text-center sm:px-6">
             <Reveal>
               <span className="inline-flex items-center gap-2 rounded-full bg-leaf/10 px-3 py-1 text-sm font-semibold text-leaf-deep">
-                About GluFloat
+                About Glufloat
               </span>
             </Reveal>
             <Reveal delay={120}>
@@ -49,7 +49,7 @@ export default function AboutPage() {
             </Reveal>
             <Reveal delay={240}>
               <p className="mx-auto mt-6 max-w-2xl font-display text-lg leading-relaxed text-ink-soft">
-                GluFloat is a digital health startup helping people living with
+                Glufloat is a digital health startup helping people living with
                 diabetes make better food choices without giving up the meals
                 they love. We provide practical, culturally relevant guidance
                 that simplifies diabetes nutrition, empowering users to manage
@@ -121,7 +121,7 @@ export default function AboutPage() {
                   <div className="overflow-hidden rounded-3xl shadow-[0_24px_50px_-20px_rgba(12,42,71,0.45)]">
                     <Image
                       src={f.photo}
-                      alt={`${f.name}, one of the founders of GluFloat`}
+                      alt={`${f.name}, one of the founders of Glufloat`}
                       width={320}
                       height={366}
                       className="h-auto w-72 object-cover"

@@ -21,7 +21,7 @@ import DeleteDietitian from "./DeleteDietitian";
 export const dynamic = "force-dynamic";
 
 const STATUS: Record<string, string> = {
-  active: "Using GluFloat",
+  active: "Using Glufloat",
   waiting: "Waiting for a place",
   invited: "Invited",
   paused: "Paused",
@@ -33,7 +33,7 @@ function shortDate(iso: string | null): string {
 }
 
 /**
- * One dietitian, from GluFloat's side (founder, 2026-10-13): her details and
+ * One dietitian, from Glufloat's side (founder, 2026-10-13): her details and
  * every patient in her account. Use, not health: who is using it, how much
  * they log and whether their payment to her is up to date. No sugar numbers
  * here; those are hers and her patients'.
@@ -134,7 +134,7 @@ export default async function DietitianAdminPage({ params }: { params: Promise<{
               </dd>
             </div>
             <div>
-              <dt className="text-ink-soft">Joined GluFloat</dt>
+              <dt className="text-ink-soft">Joined Glufloat</dt>
               <dd className="font-semibold text-ink">{shortDate(p.created_at)}</dd>
             </div>
           </dl>

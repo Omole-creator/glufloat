@@ -54,7 +54,7 @@ export default function Navbar() {
   const { access, hospitalStaff, inbox } = useAccess();
   // A hospital's doctor, dietitian or admin gets their dashboard in the menu.
   const isHospitalStaff = (hospitalStaff?.length ?? 0) > 0;
-  // A dietitian running her own practice (GluFloat for dietitians) and nothing else.
+  // A dietitian running her own practice (Glufloat for dietitians) and nothing else.
   const onlyPractice = isHospitalStaff && hospitalStaff!.every((s) => s.kind === "dietitian");
   const pathname = usePathname();
   const router = useRouter();
@@ -288,12 +288,12 @@ export default function Navbar() {
               className="mt-2.5 flex items-center justify-between rounded-2xl bg-white px-4 py-3 text-sm font-bold text-ink ring-1 ring-ink/[0.05] active:scale-[0.99]"
             >
               <span>
-                For doctors <span className="font-normal text-ink-soft">· join GluFloat</span>
+                For doctors <span className="font-normal text-ink-soft">· join Glufloat</span>
               </span>
               <ChevronRight className="h-4 w-4 text-ink-soft" />
             </Link>
 
-            <p className="mt-5 px-1 text-[11px] font-bold uppercase tracking-[0.14em] text-ink-soft">GluFloat</p>
+            <p className="mt-5 px-1 text-[11px] font-bold uppercase tracking-[0.14em] text-ink-soft">Glufloat</p>
             <div className="mt-2 overflow-hidden rounded-3xl bg-white ring-1 ring-ink/[0.05]">
               {/* Try it and FAQ are left out of the menu (founder, 2026-10-13). */}
               {LINKS.filter((l) => !["/hospitals", "/dietitians", "/#demo", "/#faq"].includes(l.href)).map((l, i) => {

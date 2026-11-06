@@ -15,10 +15,10 @@ import { FOUNDERS, naira, type Founder } from "@/lib/financeConfig";
 export const dynamic = "force-dynamic";
 
 /**
- * What Omole and Favour have put into GluFloat, and what GluFloat still owes
+ * What Omole and Favour have put into Glufloat, and what Glufloat still owes
  * them. Two ways money gets in: a founder pays a bill from their own pocket
  * (recorded as an expense, "Who paid" set to them), or puts cash into the
- * company account. GluFloat paying them back takes it down.
+ * company account. Glufloat paying them back takes it down.
  *
  * "Still owed" ignores the period on purpose, like "owed now" on the partner
  * screen: a debt is owed whatever month you are looking at. The lists and the
@@ -60,7 +60,7 @@ export default async function LoansPage({
   };
 
   return (
-    <AdminShell title="Founder loans" subtitle={`What the founders have put into GluFloat. Lists show ${period.label}.`}>
+    <AdminShell title="Founder loans" subtitle={`What the founders have put into Glufloat. Lists show ${period.label}.`}>
       <PeriodPicker period={period} basePath="/admin/finance/loans" keep={["founder"]} />
       {!ready && <SetupNotice />}
 
@@ -79,7 +79,7 @@ export default async function LoansPage({
                   <p className="text-xs text-ink-soft">{who.role}</p>
                 </div>
               </div>
-              <p className="mt-5 text-[11px] font-bold uppercase tracking-[0.08em] text-ink/50">Still owed by GluFloat</p>
+              <p className="mt-5 text-[11px] font-bold uppercase tracking-[0.08em] text-ink/50">Still owed by Glufloat</p>
               <p className="mt-1 font-display text-3xl font-bold tabular-nums text-ink">{naira(f.owed)}</p>
               <dl className="mt-4 grid grid-cols-3 gap-2 border-t border-[#eef2f7] pt-4 text-sm">
                 <div>
@@ -107,7 +107,7 @@ export default async function LoansPage({
             <p className="mt-1 font-display text-3xl font-bold tabular-nums">{naira(totalOwed)}</p>
           </div>
           <p className="mt-4 text-xs text-white/80">
-            Investors ask for this number. It is money GluFloat owes, not money the founders gave away.
+            Investors ask for this number. It is money Glufloat owes, not money the founders gave away.
           </p>
         </section>
       </div>
@@ -124,7 +124,7 @@ export default async function LoansPage({
             disabled={!ready}
           />
         </AdminCard>
-        <AdminCard title="Cash in, or a repayment" sub="Cash a founder put into the GluFloat account, or money GluFloat paid back.">
+        <AdminCard title="Cash in, or a repayment" sub="Cash a founder put into the Glufloat account, or money Glufloat paid back.">
           <LedgerForm
             table="loan"
             submitLabel="Save"

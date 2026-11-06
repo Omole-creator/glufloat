@@ -2,7 +2,7 @@ import { timingSafeEqual } from "node:crypto";
 import { isAdmin } from "@/lib/adminSession";
 
 /**
- * Who is calling an admin route: the admin (cookie), or one of GluFloat's
+ * Who is calling an admin route: the admin (cookie), or one of Glufloat's
  * scheduled Claude jobs, which send `x-outreach-secret: <CREATOR_OUTREACH_SECRET>`
  * (one secret for every job, kept in Vercel and in each job's prompt).
  */

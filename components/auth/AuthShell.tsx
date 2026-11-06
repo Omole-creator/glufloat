@@ -6,7 +6,7 @@ import Footer from "@/components/Footer";
 /**
  * The frame every sign-in, sign-up and join screen shares.
  *
- * Founder's choice (2026-10-12, second pass): the whole page is GluFloat's
+ * Founder's choice (2026-10-12, second pass): the whole page is Glufloat's
  * deep blue, like the home hero, with ONE clean white card in the middle that
  * holds the form. Green is spent only on the main button. The Navbar sits on
  * the blue in its glass style (Navbar.tsx lists these paths), and the Footer
@@ -26,7 +26,7 @@ export default function AuthShell({
   /** A small line above the title, e.g. the hospital's name. */
   sideTitle?: string;
 }) {
-  const eyebrow = sideTitle ?? (side === "hospital" ? "GluFloat for hospitals" : null);
+  const eyebrow = sideTitle ?? (side === "hospital" ? "Glufloat for hospitals" : null);
   return (
     <>
       <Navbar />

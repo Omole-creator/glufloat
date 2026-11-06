@@ -10,7 +10,7 @@ import { currentUser } from "@/lib/authUser";
 import { clearAccessCache } from "@/lib/useAccess";
 
 /**
- * A dietitian starts GluFloat for dietitians (/api/practice/start). Her name
+ * A dietitian starts Glufloat for dietitians (/api/practice/start). Her name
  * as her patients know her, her DCN registration number, her WhatsApp number,
  * and an email + password unless she is already signed in.
  */
@@ -91,7 +91,7 @@ export default function StartForm() {
         onChange={(e) => setPhone(e.target.value)}
         required
         autoComplete="tel"
-        hint="Your patients can call you on it if something is urgent. They chat with you inside GluFloat."
+        hint="Your patients can call you on it if something is urgent. They chat with you inside Glufloat."
       />
       {/* A box people never see. A bot fills every box it finds. */}
       <input
@@ -184,7 +184,7 @@ export default function StartForm() {
         </SubmitButton>
       </div>
       <p className="text-center text-sm text-ink-soft">
-        Already have a GluFloat login?{" "}
+        Already have a Glufloat login?{" "}
         <Link href={`/signin?next=${encodeURIComponent(here)}`} className="font-semibold text-brand hover:underline">
           Log in first
         </Link>

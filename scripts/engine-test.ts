@@ -114,7 +114,7 @@ const expected: [string, string[], "green" | "yellow" | "red"][] = [
   ["pounded yam + egusi + beef (ordinary plate)", ["pounded-yam", "egusi-soup", "beef"], "yellow"],
 ];
 
-// "Check a meal" scores a GluFloat-size starch at its card's size, exactly like
+// "Check a meal" scores a Glufloat-size starch at its card's size, exactly like
 // the blue card (founder, 2026-10-25). The red rules still hold at that size.
 const rightSize: [string, string[], "green" | "yellow" | "red"][] = [
   ["right size: eba + egusi + fish", ["garri-eba", "egusi-soup", "fish"], "green"],

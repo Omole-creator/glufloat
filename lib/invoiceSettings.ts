@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 /**
- * What a hospital quote or invoice prints about GluFloat: where to send the
+ * What a hospital quote or invoice prints about Glufloat: where to send the
  * money, and whether VAT is added. Typed in /admin/hospitals by the founder,
  * stored in `app_settings`, never in the code (an account number does not
  * belong in a git history).
@@ -10,7 +10,7 @@ export type InvoiceSettings = {
   bankName: string;
   accountName: string;
   accountNumber: string;
-  /** Off until GluFloat is VAT-registered (founder, 2026-10-12). */
+  /** Off until Glufloat is VAT-registered (founder, 2026-10-12). */
   vatOn: boolean;
   /**
    * The signature printed on quotes and invoices, as a PNG data URL. Kept in
@@ -32,7 +32,7 @@ export const EMPTY_INVOICE_SETTINGS: InvoiceSettings = {
   vatOn: false,
   signature: "",
   signName: "Omole Usuangbon",
-  signTitle: "Founder, GluFloat",
+  signTitle: "Founder, Glufloat",
 };
 
 export async function readInvoiceSettings(admin: SupabaseClient): Promise<InvoiceSettings> {

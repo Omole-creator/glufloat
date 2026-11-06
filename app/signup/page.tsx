@@ -94,12 +94,12 @@ export default function SignUpPage() {
 
   return (
     <AuthShell
-      title={path === "me" ? "Start your free trial" : path === "hospital" ? "GluFloat for your hospital" : "GluFloat for dietitians"}
+      title={path === "me" ? "Start your free trial" : path === "hospital" ? "Glufloat for your hospital" : "Glufloat for dietitians"}
       subtitle={
         path === "me"
           ? "Make a quick account so your 7 days, and your food, stay yours on any phone. No card needed."
           : path === "hospital"
-            ? "Give your diabetes patients GluFloat, and see their meals and sugar tests from one place."
+            ? "Give your diabetes patients Glufloat, and see their meals and sugar tests from one place."
             : "Support your patients between visits, and see their meals and sugar tests from your own dashboard."
       }
     >
@@ -129,7 +129,7 @@ export default function SignUpPage() {
         <div className="space-y-4">
           <ul className="space-y-2.5 text-[15px] text-ink">
             {[
-              "Your patients get everything in GluFloat Premium",
+              "Your patients get everything in Glufloat Premium",
               "You see their meals and sugar tests",
               "Set your price. Your patients pay you in the app",
             ].map((t) => (
@@ -155,7 +155,7 @@ export default function SignUpPage() {
         <div className="space-y-4">
           <ul className="space-y-2.5 text-[15px] text-ink">
             {[
-              "Your patients get everything in GluFloat Premium",
+              "Your patients get everything in Glufloat Premium",
               "Your doctors and dietitians see their meals and sugar tests",
               "Free for 30 days, for 20 patients",
             ].map((t) => (

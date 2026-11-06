@@ -51,7 +51,7 @@ const gmailReply = "Good\n\nOn Mon, Oct 19, 2026, 12:17 PM Glufloat for Hospital
 check("cuts the quoted email (wrapped On...wrote)", stripQuoted(gmailReply) === "Good", stripQuoted(gmailReply));
 check("cuts On ... wrote: on one line", stripQuoted("Yes please.\nThanks\nOn Tue, 3 Nov 2026 at 09:00, A <a@b.com> wrote:\n> x") === "Yes please.\nThanks");
 check("cuts Outlook Original Message", stripQuoted("Noted.\n-----Original Message-----\nFrom: x") === "Noted.");
-check("cuts Outlook From/Sent block", stripQuoted("Fine by us.\n\nFrom: GluFloat <hmo@glufloat.com>\nSent: Monday\nTo: us") === "Fine by us.");
+check("cuts Outlook From/Sent block", stripQuoted("Fine by us.\n\nFrom: Glufloat <hmo@glufloat.com>\nSent: Monday\nTo: us") === "Fine by us.");
 check("keeps a reply with no quote", stripQuoted("We are interested. Call 0803 000 0000.") === "We are interested. Call 0803 000 0000.");
 check("all quote: keeps the text", stripQuoted("> only quote") === "> only quote");
 

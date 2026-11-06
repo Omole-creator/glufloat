@@ -75,8 +75,8 @@ export async function POST(request: Request) {
   const admin = createAdminClient();
 
   // A patient paying their dietitian (patient-pays-schema.sql). Told apart by
-  // the metadata GluFloat's server put on it, never by the amount, because
-  // every dietitian sets her own price. Never treated as a GluFloat plan.
+  // the metadata Glufloat's server put on it, never by the amount, because
+  // every dietitian sets her own price. Never treated as a Glufloat plan.
   const meta = readMetadata(tx.metadata);
   if (isPatientPayment(meta)) {
     const r = await grantPatientPayment(admin, {
@@ -91,7 +91,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, patientPay: true, found: r !== "no_patient" });
   }
 
-  // A dietitian paying for her practice (GluFloat for dietitians). Never
+  // A dietitian paying for her practice (Glufloat for dietitians). Never
   // treated as a patient's own subscription (lib/practicePayment.ts).
   if (practicePlanForAmount(tx.amount)) {
     const r = await grantPracticePayment(admin, {

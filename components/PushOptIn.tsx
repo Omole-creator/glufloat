@@ -32,7 +32,7 @@ function readOffers(): { count: number; last: number } {
  * the screen. Now it waits for the moment the app has earned it:
  *
  *  - only once the person has saved at least one meal (they have seen what
- *    GluFloat does), and it can appear the moment that first meal is saved;
+ *    Glufloat does), and it can appear the moment that first meal is saved;
  *  - at most 3 times on this device, at least 3 days apart;
  *  - never again once the phone's permission is "granted" or "denied".
  *

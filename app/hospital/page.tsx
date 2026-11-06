@@ -34,10 +34,10 @@ export default async function HospitalHome({ searchParams }: { searchParams: Pro
   const premium = active.filter((r) => r.plan === "premium").length;
   const tiles = [
     doctor
-      ? { label: "Your patients", value: String(active.length), sub: premium ? `${premium} on GluFloat Premium` : "joined with your QR code or link" }
+      ? { label: "Your patients", value: String(active.length), sub: premium ? `${premium} on Glufloat Premium` : "joined with your QR code or link" }
       : payer
         ? { label: "Your patients", value: String(active.length), sub: `${paidNow} with time left` }
-        : { label: "Places used", value: `${active.length} of ${ctx.hospital.seats}`, sub: waiting ? `${waiting} waiting for a place` : "patients using GluFloat" },
+        : { label: "Places used", value: `${active.length} of ${ctx.hospital.seats}`, sub: waiting ? `${waiting} waiting for a place` : "patients using Glufloat" },
     { label: "Used it this week", value: String(usedThisWeek), sub: `of ${active.length} ${active.length === 1 ? "patient" : "patients"}` },
     { label: "Meals saved", value: meals.toLocaleString(), sub: "last 30 days" },
     { label: "Sugar tests saved", value: tests.toLocaleString(), sub: "last 30 days" },

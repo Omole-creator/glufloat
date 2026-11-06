@@ -98,6 +98,6 @@ export function weightFlagLine(f: WeightFlag): string {
   const [a, b, c] = f.points;
   return (
     `Weight: ${a.kg} kg on ${day(a.at)}, ${b.kg} kg on ${day(b.at)}, ${c.kg} kg on ${day(c.at)}. ` +
-    `It went ${f.moved} 2 months in a row. Goal in GluFloat: ${GOAL_WORDS[f.goal]}.`
+    `It went ${f.moved} 2 months in a row. Goal in Glufloat: ${GOAL_WORDS[f.goal]}.`
   );
 }

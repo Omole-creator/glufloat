@@ -65,7 +65,7 @@ export default function EarningsCalculator() {
             volume ? "bg-leaf/10 font-semibold text-leaf-deep ring-1 ring-inset ring-leaf/20" : "bg-white text-ink ring-1 ring-inset ring-line"
           }`}
         >
-          Over {VOLUME_PATIENTS} paying patients, GluFloat keeps {naira(GLUFLOAT_SHARE_VOLUME)} instead of {naira(GLUFLOAT_SHARE)}. You keep{" "}
+          Over {VOLUME_PATIENTS} paying patients, Glufloat keeps {naira(GLUFLOAT_SHARE_VOLUME)} instead of {naira(GLUFLOAT_SHARE)}. You keep{" "}
           {naira(GLUFLOAT_SHARE - GLUFLOAT_SHARE_VOLUME)} more on every patient.
         </p>
       </div>
@@ -82,7 +82,7 @@ export default function EarningsCalculator() {
               <dd className="font-semibold">{naira(price)}</dd>
             </div>
             <div className="flex justify-between gap-3 border-b border-white/15 pb-2">
-              <dt className="text-white/75">GluFloat keeps</dt>
+              <dt className="text-white/75">Glufloat keeps</dt>
               <dd className="font-semibold">{naira(glufloatShareFor(patients))}</dd>
             </div>
             <div className="flex justify-between gap-3">

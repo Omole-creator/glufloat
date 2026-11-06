@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation";
 import { CheckCircle2 } from "lucide-react";
 
 /**
- * A GluFloat doctor marks this patient as reviewed (lib/careFeesServer.ts
+ * A Glufloat doctor marks this patient as reviewed (lib/careFeesServer.ts
  * creditReview). N1,000 is added to their earnings at once, once a month.
- * Only shown for a patient on a paid GluFloat plan (the page checks).
+ * Only shown for a patient on a paid Glufloat plan (the page checks).
  */
 export default function ReviewButton({
   patientId,

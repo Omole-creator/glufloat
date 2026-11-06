@@ -140,7 +140,7 @@ console.log("One voice: every blue-card plate reads the same in search.");
   if (fails) process.exit(1);
 }
 
-// 5. GluFloat-size plates (white rice, yam, plantain...): at most 2 of each,
+// 5. Glufloat-size plates (white rice, yam, plantain...): at most 2 of each,
 //    and at most 2 of them all together, eaten in 7 days. The swallows have
 //    their own shared count of 4 (founder, 2026-10-12). They tell the person
 //    the size, and "Check a meal" scores the starch at that size.
@@ -158,12 +158,12 @@ console.log("One voice: every blue-card plate reads the same in search.");
         const free = planForDay(meal, day, new Map(), off, [], new Map(), null, null, [], "", new Map());
         if (isSize(free)) {
           sawSize = true;
-          check(Boolean(free.sizeNote), `${meal} plate ${free.index}: GluFloat-size plate without its size line`);
+          check(Boolean(free.sizeNote), `${meal} plate ${free.index}: Glufloat-size plate without its size line`);
           const built = mealIdeaFoodsForBuilder(free);
           check(built.some((f) => f.gluFloatSize), `${meal} plate ${free.index}: builder copy does not keep the right size`);
         }
         const capped = planForDay(meal, day, new Map(), off, [], new Map(), null, null, [], "", group);
-        check(!isSize(capped), `${meal} ${day}: a GluFloat-size plate served after 2 eaten this week`);
+        check(!isSize(capped), `${meal} ${day}: a Glufloat-size plate served after 2 eaten this week`);
         const ebaOut = planForDay(meal, day, new Map(), off, [], new Map(), null, null, [], "", one);
         check(!isSwallow(ebaOut), `${meal} ${day}: a swallow served after eba 4 times this week`);
         const mixOut = planForDay(meal, day, new Map(), off, [], new Map(), null, null, [], "", mixed);
@@ -190,11 +190,11 @@ console.log("One voice: every blue-card plate reads the same in search.");
         check(!other, `${meal} ${day}: ${other?.id} offered to someone who eats only tuwo shinkafa and acha`);
       }
   }
-  check(sawSize, "no GluFloat-size plate ever came up in 28 days");
+  check(sawSize, "no Glufloat-size plate ever came up in 28 days");
   check(platesWithFood("white-rice", {}, [], group).lunch.length === 0, "search should hide white rice once the group is full");
   check(platesWithFood("garri-eba").lunch.length > 0, "search should show eba plates under the limit");
   check(platesWithFood("garri-eba", {}, [], group).lunch.length > 0, "eba keeps its own count, apart from the rice/yam group");
   check(SIZE_GROUP_LIMIT === 2, "group limit should be 2");
   if (fails) process.exit(1);
-  console.log("GluFloat-size plates: size line shown, kept in Check a meal, 2 each and 2 in total a week; swallows 4 a week in total, lunch or dinner, only the ones ticked.");
+  console.log("Glufloat-size plates: size line shown, kept in Check a meal, 2 each and 2 in total a week; swallows 4 a week in total, lunch or dinner, only the ones ticked.");
 }

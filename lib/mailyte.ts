@@ -2,9 +2,9 @@ import type { AudienceKey } from "./emailAudience";
 import { isPhoneLoginEmail } from "@/lib/phoneLogin";
 
 /**
- * Sending GluFloat's marketing emails through Mailyte (mailyte.com). Server only.
+ * Sending Glufloat's marketing emails through Mailyte (mailyte.com). Server only.
  *
- * GluFloat's own addresses are on ImprovMX (free), which can only RECEIVE.
+ * Glufloat's own addresses are on ImprovMX (free), which can only RECEIVE.
  * That does not matter: Mailyte sends from its own servers. It needs (1) each
  * sender address verified, which works because ImprovMX forwards Mailyte's
  * confirmation email, and (2) glufloat.com's SPF/DKIM/DMARC records from
@@ -84,7 +84,7 @@ async function ensureLists(): Promise<Record<string, string>> {
     if (ids[name]) continue;
     const made = await my<ListRow>("/contact-lists", {
       method: "POST",
-      body: JSON.stringify({ name, description: "Kept in step by GluFloat admin > Email." }),
+      body: JSON.stringify({ name, description: "Kept in step by Glufloat admin > Email." }),
     });
     if (!made.data?.id) throw new Error(`Could not make the list "${name}" (${made.status}).`);
     ids[name] = made.data.id;
@@ -114,7 +114,7 @@ export function firstName(name: string | null | undefined): string {
   return w ? w.charAt(0).toUpperCase() + w.slice(1).toLowerCase() : "";
 }
 
-/** The fields every GluFloat contact carries (replaced whole on each write). */
+/** The fields every Glufloat contact carries (replaced whole on each write). */
 const attrs = (name: string | null, who: string) => ({ first_name: firstName(name), who });
 
 /** Run `fn` over `items`, 4 at a time, so 250 contacts finish in seconds. */
@@ -133,7 +133,7 @@ async function eachLimited<T>(items: T[], fn: (t: T, i: number) => Promise<void>
 /**
  * Put EVERY user on the list for who they are (founder, 2026-10-07: "just add
  * all the users to their respective category", no yes/no question), and off
- * the other GluFloat lists, so somebody whose kind was corrected on
+ * the other Glufloat lists, so somebody whose kind was corrected on
  * /admin/users moves across. Each carries `first_name` for "Hello Ada".
  *
  * `status_if_new`, never `status`: somebody who pressed "Stop these emails"
@@ -161,7 +161,7 @@ export async function syncContacts(contacts: Contact[]): Promise<SyncResult> {
         attributes: attrs(c.name, key),
         status_if_new: "subscribed",
         list_ids: [target],
-        source: "GluFloat app",
+        source: "Glufloat app",
       }),
     });
     if (r.status >= 400 || !r.data?.id) {
@@ -180,7 +180,7 @@ export async function syncContacts(contacts: Contact[]): Promise<SyncResult> {
 }
 
 /**
- * Remove a person from Mailyte for good, when they delete their GluFloat
+ * Remove a person from Mailyte for good, when they delete their Glufloat
  * account. The PUT finds the contact by email (or makes it, unsubscribed, if
  * it was never there) so the DELETE has an id. Best effort: false on any
  * failure, and the account is still deleted.
@@ -211,7 +211,7 @@ export async function addContact(email: string, name: string, group: keyof typeo
       attributes: attrs(name, group),
       status_if_new: "subscribed",
       list_ids: [lists[GROUP_NAME[group]]],
-      source: "GluFloat admin",
+      source: "Glufloat admin",
     }),
   });
   if (r.status === 422) throw new Error("Mailyte did not accept that email address.");
@@ -262,10 +262,10 @@ export function emailHtml(subject: string, bodyHtml: string): string {
 <body style="margin:0;background:#f4f7fb;font-family:Arial,Helvetica,sans-serif;color:#0c2a47">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f7fb;padding:24px 12px"><tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background:#ffffff;border-radius:16px;overflow:hidden">
-<tr><td style="background:#1b5faa;padding:18px 24px;color:#ffffff;font-size:20px;font-weight:bold">GluFloat</td></tr>
+<tr><td style="background:#1b5faa;padding:18px 24px;color:#ffffff;font-size:20px;font-weight:bold">Glufloat</td></tr>
 <tr><td style="padding:24px;font-size:16px;line-height:1.6">${bodyHtml}</td></tr>
 <tr><td style="padding:16px 24px 24px;font-size:12px;line-height:1.5;color:#5b6b7e;border-top:1px solid #e3e9f1">
-You get this email because you said yes to GluFloat emails.<br>
+You get this email because you said yes to Glufloat emails.<br>
 <a href="${UNSUB_HREF}" style="color:#5b6b7e">Stop these emails</a> &middot; <a href="https://www.glufloat.com" style="color:#5b6b7e">glufloat.com</a>
 </td></tr></table></td></tr></table></body></html>`;
 }
@@ -378,7 +378,7 @@ export async function deleteCampaign(id: string): Promise<boolean> {
 /**
  * One sent email, ready to be edited as a NEW email in the composer. A sent
  * email cannot be changed (it is already in people's inboxes), so "Edit" opens
- * a copy. The GluFloat frame added by `emailHtml()` is taken off, and the
+ * a copy. The Glufloat frame added by `emailHtml()` is taken off, and the
  * name tag is turned back into the editor's Name token.
  * The field names are read defensively: Mailyte's list endpoint nests the
  * subject under `content`, so the single endpoint is read the same way first.

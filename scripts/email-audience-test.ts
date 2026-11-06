@@ -18,8 +18,8 @@ const profiles = [
   { id: "u8", email: "qa@glufloat.com", name: "QA", user_type: "diabetic" },         // test account
   { id: "u9", email: "08130000000@phone.glufloat.com", name: "Phone", user_type: "diabetic" }, // no mailbox
   { id: "u10", email: "both@gmail.com", name: "Both", user_type: "diabetic" },       // dietitian AND a patient
-  { id: "u11", email: "drdoc@gmail.com", name: "Okafor", user_type: "health_pro" },  // a GluFloat doctor
-  { id: "u12", email: "drpat@gmail.com", name: "Musa", user_type: "diabetic" },      // a GluFloat doctor's patient
+  { id: "u11", email: "drdoc@gmail.com", name: "Okafor", user_type: "health_pro" },  // a Glufloat doctor
+  { id: "u12", email: "drpat@gmail.com", name: "Musa", user_type: "diabetic" },      // a Glufloat doctor's patient
 ];
 const staff = [
   { user_id: "u2", hospitals: { kind: "dietitian", status: "pilot" } },
@@ -56,8 +56,8 @@ check("patient of an ended hospital is a direct user again", key("old@gmail.com"
 check("test account left out", key("qa@glufloat.com") === undefined);
 check("phone-only patient left out", key("08130000000@phone.glufloat.com") === undefined);
 check("staff wins over patient", key("both@gmail.com") === "dietitians");
-check("a GluFloat doctor stays Health professional", key("drdoc@gmail.com") === "health_pro");
-check("a GluFloat doctor's patient (pays themselves) stays Diabetic", key("drpat@gmail.com") === "diabetic");
+check("a Glufloat doctor stays Health professional", key("drdoc@gmail.com") === "health_pro");
+check("a Glufloat doctor's patient (pays themselves) stays Diabetic", key("drpat@gmail.com") === "diabetic");
 console.log(fails ? `\n${fails} FAILED` : "\nall passed");
 process.exit(fails ? 1 : 0);
 })();

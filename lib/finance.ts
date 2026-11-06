@@ -187,7 +187,7 @@ export function comparisons(period: Period, now: number) {
     to: Math.min(p.to!.getTime(), p.from!.getTime() + elapsed),
   });
   // parsePeriod clamps any year before launch up to the launch year, so a
-  // "year ago" from before GluFloat existed would come back as THIS period.
+  // "year ago" from before Glufloat existed would come back as THIS period.
   // There is nothing to compare with then.
   const yearOk = yearP.from!.getTime() < from && yearP.to!.getTime() > LAUNCH.getTime();
   return {
@@ -334,7 +334,7 @@ export function investorMetrics(input: FinanceInput, w: Win) {
 }
 
 /**
- * Money in the GluFloat account, worked out from the records: everything paid
+ * Money in the Glufloat account, worked out from the records: everything paid
  * in, less everything the company itself paid out. Spending a founder did from
  * their own pocket never left the company account, so it is not taken off here
  * (it is a loan instead). It is only as right as what has been typed in.

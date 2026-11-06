@@ -138,7 +138,7 @@ const ALL_DASHBOARD_TABS: (DashboardTabDef & { id: DashboardTabId })[] = [
 /**
  * The patient's own programme with their dietitian or hospital, counting down
  * from the day they joined or last paid (patient-paid-schema.sql). Shown only
- * when there is a date. Never says money: the patient pays them, not GluFloat.
+ * when there is a date. Never says money: the patient pays them, not Glufloat.
  */
 function programmeLine(h: { name: string; paidUntil: string | null }): string | null {
   if (!h.paidUntil) return null;
@@ -152,7 +152,7 @@ export default function AppPage() {
   const [access, setAccess] = useState<Access | null>(null);
   const [email, setEmail] = useState<string | null>(null);
   const [name, setName] = useState<string | null>(null);
-  // Their GluFloat doctor, if they joined one (never changes access).
+  // Their Glufloat doctor, if they joined one (never changes access).
   const [doctor, setDoctor] = useState<DoctorLink | null>(null);
   // Monthly or yearly on the plan picker. Until they tap, a lapsed yearly
   // member sees yearly first, everyone else monthly.
@@ -366,7 +366,7 @@ export default function AppPage() {
     email ? `${url}?email=${encodeURIComponent(email)}` : url;
 
   // A dietitian's patient whose time with her ran out (or who she paused):
-  // ONLY her price and a Pay button, never GluFloat's own plans (founder,
+  // ONLY her price and a Pay button, never Glufloat's own plans (founder,
   // 2026-10-17). Paying her brings them straight back (lib/patientPaysServer.ts).
   if (access.status === "expired" && access.practice) {
     const pr = access.practice;
@@ -380,7 +380,7 @@ export default function AppPage() {
             </span>
             <h1 className="mt-4 font-display text-2xl font-bold text-ink">Your time with {pr.name} has ended.</h1>
             <p className="mt-2 text-sm leading-relaxed text-ink-soft">
-              Pay {naira(pr.price)} for one more month to keep using GluFloat with {pr.name}. Your meals and sugar tests are
+              Pay {naira(pr.price)} for one more month to keep using Glufloat with {pr.name}. Your meals and sugar tests are
               kept safe.
             </p>
             <PayDietitian price={pr.price} className="mt-6" />
@@ -394,12 +394,12 @@ export default function AppPage() {
   // Trial ended and no active subscription. This is the SINGLE paywall — the
   // landing page never links straight to Paystack, it always lands here.
   if (access.status === "expired") {
-    // A GluFloat doctor's patient is offered Premium only: it is the plan
+    // A Glufloat doctor's patient is offered Premium only: it is the plan
     // that keeps their doctor in the chat.
     const TIER_COPY: { tier: "basic" | "plus" | "dietitian"; blurb: string }[] = doctor
-      ? [{ tier: "dietitian", blurb: `Everything in GluFloat, and chat with ${doctor.name}` }]
+      ? [{ tier: "dietitian", blurb: `Everything in Glufloat, and chat with ${doctor.name}` }]
       : [
-          { tier: "basic", blurb: "Every answer and the full Meal Builder" },
+          { tier: "basic", blurb: "Every answer, and Check a meal for your whole plate" },
           { tier: "plus", blurb: "Basic, plus meals picked around your goal" },
           { tier: "dietitian", blurb: "Plus, and a dietitian in your corner" },
         ];
@@ -521,7 +521,7 @@ export default function AppPage() {
               : `${TIER_LABEL[access.tier]}: ${access.daysLeft} ${access.daysLeft === 1 ? "day" : "days"} left`,
           tone: "bg-brand/10 text-brand-deep",
         };
-  // A hospital patient never pays GluFloat, so they are never asked to renew.
+  // A hospital patient never pays Glufloat, so they are never asked to renew.
   const renewSoon = access.status === "subscribed" && !access.hospital && access.daysLeft <= 5;
   // A trial used to run out with no warning at all: a green day count, then a locked
   // door the next morning. daysLeft is TRIAL_DAYS on the start day, so 1 is the last
@@ -633,12 +633,12 @@ export default function AppPage() {
           />
           {/* Said plainly, once (founder agreed, 2026-10-12): the hospital pays,
               and the hospital's doctors and dietitians can see the record. */}
-          {/* A GluFloat doctor's patient: who looks after them, and what the doctor sees. */}
+          {/* A Glufloat doctor's patient: who looks after them, and what the doctor sees. */}
           {!hospital && doctor && (
             <p className="mt-2 flex items-start gap-2 rounded-2xl bg-brand/[0.06] px-3.5 py-2.5 text-sm text-ink ring-1 ring-inset ring-brand/10">
               <Stethoscope className="mt-0.5 h-4 w-4 shrink-0 text-brand" strokeWidth={2.2} />
               <span>
-                <span className="font-semibold">{doctor.name}</span> looks after your diabetes on GluFloat. Your doctor can see
+                <span className="font-semibold">{doctor.name}</span> looks after your diabetes on Glufloat. Your doctor can see
                 your meals and sugar tests.
               </span>
             </p>
@@ -649,12 +649,12 @@ export default function AppPage() {
               <span>
                 {hospital.kind === "dietitian" ? (
                   <>
-                    Your diabetes care on GluFloat comes from <span className="font-semibold">{hospital.name}</span>. Your
+                    Your diabetes care on Glufloat comes from <span className="font-semibold">{hospital.name}</span>. Your
                     dietitian can see your meals and sugar tests.
                   </>
                 ) : (
                   <>
-                    <span className="font-semibold">{hospital.name}</span> pays for your GluFloat. Your hospital can see your
+                    <span className="font-semibold">{hospital.name}</span> pays for your Glufloat. Your hospital can see your
                     meals and sugar tests.
                   </>
                 )}

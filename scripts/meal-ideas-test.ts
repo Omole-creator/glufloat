@@ -52,7 +52,7 @@ for (const meal of MEALS) {
 
     // 2. Every food is green on its own, except the weekly-limited starches
     // (founder, 2026-10-08): ofada/brown rice and the other steady starches
-    // (green at the normal plate), and the GluFloat-size starches (eba, semo,
+    // (green at the normal plate), and the Glufloat-size starches (eba, semo,
     // white rice...; green only at their card's size). Never at dinner.
     for (const f of items) {
       if (f.baseVerdict === "yellow" && f.role === "starch" && meal !== "dinner") continue;
@@ -64,7 +64,7 @@ for (const meal of MEALS) {
     }
 
     // 3. The whole plate scores green through the real engine.
-    // A GluFloat-size starch is scored at the size the card tells them to eat.
+    // A Glufloat-size starch is scored at the size the card tells them to eat.
     const result = scoreMeal(
       items.map((food) => ({ food, portion: GLUFLOAT_SIZE_STARCHES.has(food.id) ? ("half" as const) : ("normal" as const) })),
     );

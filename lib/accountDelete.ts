@@ -5,7 +5,7 @@ import { restoreCarried } from "./hospitalServer";
 import { removeContact } from "./mailyte";
 
 /**
- * A person deleting their own GluFloat account (founder, 2026-10-24). Any
+ * A person deleting their own Glufloat account (founder, 2026-10-24). Any
  * kind of user: a member, a hospital or dietitian patient, hospital staff, a
  * dietitian or a doctor. The founder's four rules:
  *
@@ -18,7 +18,7 @@ import { removeContact } from "./mailyte";
  *     `earning_payouts` keep theirs (they hold no name), and a practice's
  *     name is taken off `finance_income`.
  *  3. Straight away, no undo. The page asks them to type DELETE.
- *  4. A dietitian or doctor GluFloat still owes money cannot delete until
+ *  4. A dietitian or doctor Glufloat still owes money cannot delete until
  *     paid. Their practice closes and each patient keeps their own account,
  *     with any paid days they brought given back (restoreCarried). The
  *     practice row is emptied and switched off, not erased, so its payout
@@ -31,11 +31,11 @@ import { removeContact } from "./mailyte";
 
 export interface DeletePreview {
   internal: boolean;
-  /** Whole days left on their own GluFloat plan or their dietitian's programme. */
+  /** Whole days left on their own Glufloat plan or their dietitian's programme. */
   paidDaysLeft: number;
   /** Practices (dietitian or doctor) this person runs. */
   practices: { id: string; name: string; kind: string }[];
-  /** Kobo GluFloat still owes them (blocks deletion when above 0). */
+  /** Kobo Glufloat still owes them (blocks deletion when above 0). */
   owedKobo: number;
 }
 
@@ -88,9 +88,9 @@ export type DeleteResult = { ok: true } | { ok: false; status: number; error: st
 
 export async function deleteOwnAccount(admin: SupabaseClient, uid: string, email: string | null): Promise<DeleteResult> {
   const pre = await previewDelete(admin, uid, email);
-  if (pre.internal) return { ok: false, status: 403, error: "This is a GluFloat team or test account. It cannot be deleted here." };
+  if (pre.internal) return { ok: false, status: 403, error: "This is a Glufloat team or test account. It cannot be deleted here." };
   if (pre.owedKobo > 0) {
-    return { ok: false, status: 409, error: "GluFloat still owes you money. Message us so we can pay you first." };
+    return { ok: false, status: 409, error: "Glufloat still owes you money. Message us so we can pay you first." };
   }
 
   // Their practices close: patients keep their accounts and get back any paid

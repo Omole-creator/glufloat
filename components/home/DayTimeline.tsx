@@ -3,7 +3,7 @@ import Reveal from "@/components/Reveal";
 import TypingNumber from "./TypingNumber";
 
 /**
- * "How GluFloat Fits Into Your Day": what happens around every meal, in four
+ * "How Glufloat Fits Into Your Day": what happens around every meal, in four
  * cards, in the order it happens. The order is the content, so the cards are a
  * sequence; each carries a small picture of the screen a person sees then.
  *
@@ -37,7 +37,7 @@ const STEPS: {
     when: "Before each meal",
     icon: <Sunrise className="h-3.5 w-3.5" />,
     title: "Know What To Eat",
-    text: "GluFloat picks your breakfast, lunch and dinner. Or check any food you already have.",
+    text: "Glufloat picks your breakfast, lunch and dinner. Or check any food you already have.",
     screen: (
       <Screen>
         <div className="space-y-1.5">
@@ -75,7 +75,7 @@ const STEPS: {
     when: "2 hours later",
     icon: <Timer className="h-3.5 w-3.5" />,
     title: "See What The Meal Did",
-    text: "GluFloat reminds you to test again. You see your sugar before and after, side by side.",
+    text: "Glufloat reminds you to test again. You see your sugar before and after, side by side.",
     screen: (
       <Screen>
         <p className="flex items-center gap-1.5 text-[11px] font-semibold text-leaf-deep">

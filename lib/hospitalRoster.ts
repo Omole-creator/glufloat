@@ -9,7 +9,7 @@ import { beforeMealFlag, mealPatternFlags, safetyEvents, type BeforeFlag, type P
 
 /**
  * The hospital's patient list with what a doctor scans for first: when the
- * patient last used GluFloat, how much they logged in the last 30 days, and
+ * patient last used Glufloat, how much they logged in the last 30 days, and
  * their latest sugar test and HbA1c, as plain numbers.
  *
  * Ordinary numbers carry no colour and no "high" or "low": the doctor judges.
@@ -52,7 +52,7 @@ export type RosterRow = {
   /** The patient wrote in the chat and nobody has answered yet: since when (chat-schema.sql), or null. */
   chatWaitingSince: string | null;
   /**
-   * Their own GluFloat plan right now, for a GluFloat doctor's list (their
+   * Their own Glufloat plan right now, for a Glufloat doctor's list (their
    * patients pay for themselves): "premium", "basic", "plus", "trial",
    * "ended", or null (no account yet).
    */
@@ -60,8 +60,8 @@ export type RosterRow = {
 };
 
 /**
- * `paidOnly` (a GluFloat doctor's list, founder 2026-10-20): a patient with no
- * paid GluFloat plan and no free trial running shows no record (meals, tests,
+ * `paidOnly` (a Glufloat doctor's list, founder 2026-10-20): a patient with no
+ * paid Glufloat plan and no free trial running shows no record (meals, tests,
  * readings, HbA1c, flags) until they pay.
  */
 export async function hospitalRoster(admin: SupabaseClient, hospitalId: string, opts: { paidOnly?: boolean } = {}): Promise<RosterRow[]> {

@@ -18,11 +18,11 @@ import DietitianSwitch from "./DietitianSwitch";
 export const dynamic = "force-dynamic";
 
 /**
- * GluFloat for dietitians, from GluFloat's side (2026-10-13). Dietitians sign
+ * Glufloat for dietitians, from Glufloat's side (2026-10-13). Dietitians sign
  * up themselves at /dietitians/start; this is where their DCN numbers are
  * checked and where one that does not check out is switched off. Since
  * 2026-10-17 (patient-pays-schema.sql) her patients pay her inside the app at
- * her own price; GluFloat keeps N2,000 of each payment. Nothing to invoice.
+ * her own price; Glufloat keeps N2,000 of each payment. Nothing to invoice.
  */
 
 function shortDate(iso: string | null): string {
@@ -94,14 +94,14 @@ export default async function DietitiansAdminPage() {
   const withTime = on.reduce((n, p) => n + (counts.get(p.id)?.paid ?? 0), 0);
 
   return (
-    <AdminShell title="Dietitians" subtitle="GluFloat for dietitians" icon={<Stethoscope className="h-5 w-5" />}>
+    <AdminShell title="Dietitians" subtitle="Glufloat for dietitians" icon={<Stethoscope className="h-5 w-5" />}>
       <div className="mt-6">
         <AdminHero
           items={[
             { label: "Dietitians", value: String(on.length), sub: `${on.filter((p) => (counts.get(p.id)?.all ?? 0) === 0).length} with no patient yet` },
             { label: "Their patients", value: patients.toLocaleString(), sub: `${withTime} with time left` },
             { label: "Paid by patients", value: nairaText(paidIn), sub: `this month, ${monthPays.length} ${monthPays.length === 1 ? "payment" : "payments"}` },
-            { label: "GluFloat kept", value: nairaText(paidIn - toThem), sub: `${nairaText(toThem)} to dietitians` },
+            { label: "Glufloat kept", value: nairaText(paidIn - toThem), sub: `${nairaText(toThem)} to dietitians` },
           ]}
         />
       </div>

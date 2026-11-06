@@ -19,8 +19,8 @@ function shortDate(iso: string): string {
 }
 
 /**
- * GluFloat for doctors, from GluFloat's side (2026-10-16). Doctors sign up
- * through a field agent's or a colleague's link, or GluFloat adds them here
+ * Glufloat for doctors, from Glufloat's side (2026-10-16). Doctors sign up
+ * through a field agent's or a colleague's link, or Glufloat adds them here
  * (2026-10-17, no field agent needed); nothing is approved by hand. This is
  * where to see them, check MDCN numbers, edit, switch off or delete one.
  */
@@ -44,7 +44,7 @@ export default async function DoctorsAdminPage() {
   const on = doctors.filter((d) => d.status !== "declined");
 
   return (
-    <AdminShell title="Doctors" subtitle="GluFloat for doctors" icon={<Stethoscope className="h-5 w-5" />}>
+    <AdminShell title="Doctors" subtitle="Glufloat for doctors" icon={<Stethoscope className="h-5 w-5" />}>
       <div className="mt-6">
         <AdminHero
           items={[

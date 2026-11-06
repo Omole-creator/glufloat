@@ -89,7 +89,7 @@ export default function MealBuilder({
   const results = useMemo(() => searchFoods(query, 6), [query]);
   const result = useMemo(() => scoreMeal(items), [items]);
   const often = useMemo(() => mealFrequency(items, result.stacked), [items, result.stacked]);
-  // Each food's own GluFloat-size figures, summed. There is only one real,
+  // Each food's own Glufloat-size figures, summed. There is only one real,
   // dietitian-sourced size per food, so there is no size picker here: a
   // Small/Normal/Large tap used to sit on the starch and changed the colour
   // but not these numbers, which the co-founder dietitian flagged as the
@@ -524,9 +524,9 @@ export default function MealBuilder({
                   onClose={() => setSheetOpen(false)}
                   items={items.map((i) => ({
                     food: i.food,
-                    // The sheet asks "Less / Same / More than the GluFloat
-                    // size". A GluFloat-size starch is scored "half" here, but
-                    // it IS the GluFloat size, so it starts on "Same".
+                    // The sheet asks "Less / Same / More than the Glufloat
+                    // size". A Glufloat-size starch is scored "half" here, but
+                    // it IS the Glufloat size, so it starts on "Same".
                     portion: "normal",
                     // Keep the blue card's bigger serving instead of "normal".
                     grams: suggested?.scaledGrams[i.food.id],

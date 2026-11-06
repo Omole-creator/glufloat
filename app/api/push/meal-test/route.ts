@@ -116,7 +116,7 @@ export async function POST(request: Request) {
     toRemind.flatMap((m) => {
       const payload = JSON.stringify({
         title: "Time for your 2-hour sugar test",
-        body: `You started eating ${displayLabel(m.label as string)} at ${timeLabel(m.started_at as string)}. Test now and save it in GluFloat.`,
+        body: `You started eating ${displayLabel(m.label as string)} at ${timeLabel(m.started_at as string)}. Test now and save it in Glufloat.`,
         url: "/app?mealtest=1",
         tag: "glufloat-mealtest",
       });

@@ -179,7 +179,7 @@ async function earnRepPatientFee(
   }
 }
 
-/** True while this person has a paid GluFloat plan running (any tier). */
+/** True while this person has a paid Glufloat plan running (any tier). */
 export async function payingNow(admin: SupabaseClient, uid: string): Promise<boolean> {
   const { data } = await admin.from("subscriptions").select("status,current_period_end").eq("user_id", uid).maybeSingle();
   const end = data?.current_period_end ? new Date(data.current_period_end as string).getTime() : 0;
@@ -187,7 +187,7 @@ export async function payingNow(admin: SupabaseClient, uid: string): Promise<boo
 }
 
 /**
- * May a GluFloat doctor see this patient's record (meals, sugar tests, flags,
+ * May a Glufloat doctor see this patient's record (meals, sugar tests, flags,
  * report)? While they pay, and during their free trial (founder, 2026-10-20).
  * The trial is 7 x 24h from trial_start, the same rule as lib/hospitalRoster.ts.
  * The review button and its N1,000 still need payingNow().
@@ -213,7 +213,7 @@ export async function reviewFeeThisMonth(admin: SupabaseClient, practiceId: stri
 /**
  * A doctor pressed "Mark as reviewed" on a patient (founder, 2026-10-20).
  * N1,000 is credited at once, once per patient per calendar month (WAT), and
- * only while the patient has a paid GluFloat plan. The unique (reference,
+ * only while the patient has a paid Glufloat plan. The unique (reference,
  * kind) on clinician_earnings makes a second press, or two at once, pay
  * nothing more. The review itself is remembered on the patient row
  * (doctor-review-schema.sql) whether or not a fee is due; before that SQL

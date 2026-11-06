@@ -18,7 +18,7 @@ export default function DeleteDietitian({ id, name }: { id: string; name: string
   const [msg, setMsg] = useState("");
   const del = async () => {
     const typed = prompt(
-      `This deletes ${name}'s practice, patient list, notes and food rules. Patients keep their own GluFloat accounts, and ${name} keeps their login.\n\nType the name to delete it:`,
+      `This deletes ${name}'s practice, patient list, notes and food rules. Patients keep their own Glufloat accounts, and ${name} keeps their login.\n\nType the name to delete it:`,
     );
     if (typed == null) return;
     setBusy(true);

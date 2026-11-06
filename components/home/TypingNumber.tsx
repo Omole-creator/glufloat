@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
  * A sugar number being typed into the box, one digit at a time, then cleared
  * and typed again with a different number (founder, 2026-10-07: a fixed "108"
  * read as confusing). It TYPES rather than ticks on purpose: a number that
- * counts up and down by itself looks like a live meter reading, and GluFloat
+ * counts up and down by itself looks like a live meter reading, and Glufloat
  * does not measure anybody's sugar. Typing shows what the person actually does:
  * read their meter, then type the number in.
  *

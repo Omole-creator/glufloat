@@ -10,7 +10,7 @@ import { cleanDoctor, doctorByEmail, insertDoctorPractice, sendDoctorSetupLink }
 export const dynamic = "force-dynamic";
 
 /**
- * A doctor signs up for GluFloat for doctors, from /doctors/start (founder's
+ * A doctor signs up for Glufloat for doctors, from /doctors/start (founder's
  * decisions, 2026-10-16):
  *
  *  - Nothing is approved by hand. The practice opens at once and the doctor
@@ -34,7 +34,7 @@ export async function POST(request: Request) {
 
   const admin = createAdminClient();
   if (!(await doctorsReady(admin)))
-    return NextResponse.json({ error: "GluFloat for doctors is not open yet. Please try again soon." }, { status: 503 });
+    return NextResponse.json({ error: "Glufloat for doctors is not open yet. Please try again soon." }, { status: 503 });
 
   // Only off the live site is the link handed back on screen (for testing).
   // On the live site it goes by email only, which is what proves the address.

@@ -56,7 +56,7 @@ export default async function JoinPage({
         title={hospital ? "Not open right now" : "We could not find this link"}
         subtitle={
           hospital
-            ? `${hospital.name}'s GluFloat is not open right now. Please speak to ${hospital.doctor ? "your doctor" : hospital.practice ? "your dietitian" : "your hospital"}.`
+            ? `${hospital.name}'s Glufloat is not open right now. Please speak to ${hospital.doctor ? "your doctor" : hospital.practice ? "your dietitian" : "your hospital"}.`
             : "Please check the address, or ask your hospital or dietitian for it again."
         }
       >
@@ -74,11 +74,11 @@ export default async function JoinPage({
       subtitle={
         hospital.doctor ? (
           <>
-            {`${hospital.name} uses GluFloat to look after your diabetes. It tells you what to eat and how much, and keeps a report for your doctor. Start with 7 days free.`}
-            <span className="mt-2 block">Your doctor is paid by GluFloat to review your meals and sugar tests every month.</span>
+            {`${hospital.name} uses Glufloat to look after your diabetes. It tells you what to eat and how much, and keeps a report for your doctor. Start with 7 days free.`}
+            <span className="mt-2 block">Your doctor is paid by Glufloat to review your meals and sugar tests every month.</span>
           </>
         ) : (
-          `${hospital.name} gives you GluFloat. It tells you what to eat for your diabetes and how much, and keeps a report for your doctor and dietitian.`
+          `${hospital.name} gives you Glufloat. It tells you what to eat for your diabetes and how much, and keeps a report for your doctor and dietitian.`
         )
       }
       sideTitle={hospital.name}

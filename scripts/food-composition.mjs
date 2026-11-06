@@ -32,7 +32,7 @@
 // tomato-stew and the leafy vegetables below for the specific corrections.
 // `nutritionSource` records "table" (grounded in a matched, validated PDF-
 // table row) vs "estimated" (a cross-checked dish-level figure, since most of
-// GluFloat's 327 foods are composite Nigerian dishes the raw-ingredient
+// Glufloat's 327 foods are composite Nigerian dishes the raw-ingredient
 // tables don't carry a row for at all).
 //
 // Fully automated, no manual review gate (founder's explicit instruction):
@@ -54,6 +54,7 @@ const foods = JSON.parse(readFileSync(FILE, "utf8"));
 const TABLE_GROUNDED = new Set([
   "acha",
   "garri-eba",
+  "fufu-akpu",
   "pap",
   "white-rice",
   "cooked-beans",
@@ -75,11 +76,11 @@ const TABLE_GROUNDED = new Set([
 // [kcal, protein_g, fat_g, carb_g, fiber_g, potassium_mg, sodium_mg]
 const PER_100G = {
   // swallows (cooked paste)
-  "garri-eba": [98, 1.6, 0.5, 23, 1.2, 90, 15],
+  "garri-eba": [98, 0.7, 0.1, 23, 1.7, 90, 15],
   "pounded-yam": [130, 1.5, 0.2, 30, 2, 300, 5],
   "amala-yam": [120, 1.5, 0.3, 28, 2, 150, 5],
   "amala-plantain": [110, 1.2, 0.3, 26, 1.5, 300, 5],
-  "fufu-akpu": [106, 0.6, 0.2, 25, 1, 80, 10],
+  "fufu-akpu": [142, 0.5, 0.1, 34.7, 0.4, 80, 10],
   semovita: [115, 3, 0.4, 24, 1, 40, 5],
   "wheat-swallow": [115, 3.5, 0.5, 23, 2, 50, 5],
   "oat-swallow": [110, 3.5, 2, 20, 2.5, 80, 5],
@@ -87,7 +88,7 @@ const PER_100G = {
   "tuwo-masara": [112, 2.3, 0.5, 25, 1, 60, 5],
   "starch-delta": [110, 0.3, 0.1, 27, 0.3, 20, 5],
   lafun: [110, 0.6, 0.2, 26, 1, 70, 10],
-  pupuru: [150, 0.7, 0.3, 36, 0.7, 80, 10],
+  pupuru: [150, 0.8, 0.5, 35, 1.6, 80, 10],
   "cocoyam-fufu": [118, 1.8, 0.3, 27, 2.5, 350, 10],
   "tuwo-dawa": [113, 2.5, 0.6, 24, 1.5, 70, 5],
 

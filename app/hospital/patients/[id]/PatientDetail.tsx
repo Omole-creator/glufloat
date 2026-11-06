@@ -39,7 +39,7 @@ function niceDate(iso: string): string {
  * who they are (age, weight, conditions, medicine), their sugar tests over the
  * last 90 days, HbA1c and weight over time, and the month report the patient
  * hands over themselves, read-only. Numbers are shown as they are: the
- * clinician judges, GluFloat does not.
+ * clinician judges, Glufloat does not.
  */
 export default function PatientDetail({
   patientId,
@@ -145,7 +145,7 @@ export default function PatientDetail({
               <a
                 key={c.whatsapp + c.name}
                 href={`https://wa.me/${c.whatsapp}?text=${encodeURIComponent(
-                  `Hello ${c.name}, please look at ${name}'s record on GluFloat. I think you can help them.
+                  `Hello ${c.name}, please look at ${name}'s record on Glufloat. I think you can help them.
 ${SITE_URL}/hospital/patients/${patientId}`,
                 )}`}
                 target="_blank"

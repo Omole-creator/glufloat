@@ -32,7 +32,7 @@ export default function FoodStrip() {
       {/* The fade sits on the inner row, so the edges fade into the blue,
           not into the white page behind it. */}
       <div className="marquee overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_6%,black_94%,transparent)]">
-      <ul className="marquee-track flex w-max gap-4" aria-label="Some of the Nigerian foods in GluFloat">
+      <ul className="marquee-track flex w-max gap-4" aria-label="Some of the Nigerian foods in Glufloat">
         {[...FOODS, ...FOODS].map((f, i) => (
           <li
             key={i}

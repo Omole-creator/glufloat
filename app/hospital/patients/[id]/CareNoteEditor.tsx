@@ -66,7 +66,7 @@ export default function CareNoteEditor({
         <h2 className="font-display text-base font-bold text-ink">Notes for {firstName}</h2>
       </div>
       <p className="mt-1 text-sm text-ink-soft">
-        {firstName} sees these on top of their meal card in GluFloat, with the name of who wrote each one.
+        {firstName} sees these on top of their meal card in Glufloat, with the name of who wrote each one.
       </p>
 
       {others.length > 0 && (

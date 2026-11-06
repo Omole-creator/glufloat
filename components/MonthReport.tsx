@@ -64,7 +64,7 @@ const DOT = {
 type ReportView = "tests" | "meals" | "sugar";
 
 /**
- * Read-only "doctor view" of somebody else's report (GluFloat for hospitals,
+ * Read-only "doctor view" of somebody else's report (Glufloat for hospitals,
  * 2026-10-12). The hospital's doctors and dietitians open THIS component, fed
  * by /api/hospital/patients/[id]/report, so they see the patient's own report
  * exactly as the patient does. Nothing can be deleted or added from here.
@@ -266,7 +266,7 @@ export default function MonthReport({
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(20);
-    doc.text("GluFloat", M, 13);
+    doc.text("Glufloat", M, 13);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10.5);
     doc.text("Meal and sugar report", M, 20);
@@ -307,11 +307,11 @@ export default function MonthReport({
       doc.text(doc.splitTextToSize(label, sw - 8)[0] as string, x + 4, 64.5);
     });
 
-    // GluFloat's own colour for the meals, as one line rather than three boxes.
+    // Glufloat's own colour for the meals, as one line rather than three boxes.
     doc.setFontSize(8.5);
     doc.setTextColor(100);
     doc.text(
-      `GluFloat food rating of these meals: ${counts.green} good to eat, ${counts.yellow} eat with care, ${counts.red} better to skip.`,
+      `Glufloat food rating of these meals: ${counts.green} good to eat, ${counts.yellow} eat with care, ${counts.red} better to skip.`,
       M,
       76,
     );
@@ -652,7 +652,7 @@ export default function MonthReport({
     doc.setFontSize(8);
     doc.setTextColor(150);
     doc.text(
-      "Made with GluFloat, which gives Nigerian foods a green, yellow or red rating for blood sugar.",
+      "Made with Glufloat, which gives Nigerian foods a green, yellow or red rating for blood sugar.",
       M,
       290,
     );
@@ -679,8 +679,8 @@ export default function MonthReport({
       if (nav.canShare?.(payload) && nav.share) {
         await nav.share({
           files: [file],
-          title: readOnly ? `${patient ?? "Patient"}: GluFloat report` : "My Glufloat food record",
-          text: readOnly ? `${patient ?? "Patient"}'s food and sugar tests, from GluFloat.` : "My food this month, from Glufloat.",
+          title: readOnly ? `${patient ?? "Patient"}: Glufloat report` : "My Glufloat food record",
+          text: readOnly ? `${patient ?? "Patient"}'s food and sugar tests, from Glufloat.` : "My food this month, from Glufloat.",
         } as ShareData);
         return;
       }
@@ -755,7 +755,7 @@ export default function MonthReport({
             {readOnly
               ? items === null
                 ? "Loading..."
-                : "Meals and sugar tests saved in GluFloat."
+                : "Meals and sugar tests saved in Glufloat."
               : hasData
                 ? "Your meals and sugar tests, ready for your doctor."
                 : "Your meals and sugar tests will show up here."}

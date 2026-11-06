@@ -72,7 +72,7 @@ export default function AddPatients({
   if (!open)
     return (
       <p className="mt-6 rounded-2xl border border-[#e3e9f1] bg-white p-6 text-sm text-ink-soft">
-        Your plan has ended, so new patients cannot be added. Please contact GluFloat.
+        Your plan has ended, so new patients cannot be added. Please contact Glufloat.
       </p>
     );
 
@@ -142,7 +142,7 @@ export default function AddPatients({
         <label className="mt-5 flex items-start gap-3 rounded-xl bg-mist/70 p-3.5 text-sm text-ink">
           <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="mt-0.5 h-5 w-5 shrink-0" />
           <span>
-            {mode === "one" ? "This patient agreed" : "These patients agreed"} to join GluFloat, and know that our doctors and
+            {mode === "one" ? "This patient agreed" : "These patients agreed"} to join Glufloat, and know that our doctors and
             dietitians will see their meals and sugar tests.
           </span>
         </label>
@@ -184,8 +184,8 @@ export default function AddPatients({
             "Tap Send invite. Their own link opens in WhatsApp, ready to send.",
             "They open it, check their phone number and choose a password. No email needed.",
             patientPays
-              ? "Their first 14 days are free. Then they pay you inside GluFloat, every month, at your price."
-              : "They get everything in GluFloat Premium, and your doctors and dietitians see their record.",
+              ? "Their first 14 days are free. Then they pay you inside Glufloat, every month, at your price."
+              : "They get everything in Glufloat Premium, and your doctors and dietitians see their record.",
           ].map((s, i) => (
             <li key={i} className="flex gap-3">
               <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-leaf text-xs font-bold text-white">{i + 1}</span>
