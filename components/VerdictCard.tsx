@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import type { Food } from "@/lib/types";
 import { plainFrequency } from "@/lib/frequency";
+import { blockedFoods, nutAllergyNote } from "@/lib/nutAllergy";
+import { useNutAllergies } from "@/lib/useNutAllergies";
 import { cleanFoodName } from "@/lib/foodName";
 import { foodShareMessage } from "@/lib/shareMessage";
 import { isCrossGroupSwap, kunuSweetenTips, nextSwallowSwapTurn, saferSwaps } from "@/lib/variety";
@@ -57,8 +59,11 @@ export default function VerdictCard({
   useEffect(() => {
     if (food.category === "swallow") setSwapTurn(nextSwallowSwapTurn());
   }, [food.id, food.category]);
+  const allergies = useNutAllergies();
+  const nutNote = nutAllergyNote(food, allergies);
+  const blocked = blockedFoods(allergies);
   const swap =
-    food.baseVerdict !== "green" ? saferSwaps(food, 1, swapTurn)[0] : undefined;
+    food.baseVerdict !== "green" ? saferSwaps(food, 6, swapTurn).find((f) => !blocked.has(f.id)) : undefined;
   // Kunu gets fruit to sweeten it instead of a zobo swap (dietitian, 2026-10-12).
   const sweeten = food.baseVerdict !== "green" ? kunuSweetenTips(food) : [];
 
@@ -130,6 +135,18 @@ export default function VerdictCard({
         <div className="empty:hidden">
           <ReadingRecall key={food.id} foods={[food]} onFix={onFix} />
         </div>
+
+        {nutNote && (
+          <div className="flex gap-3 rounded-2xl bg-verdict-red/[0.07] p-3.5 ring-1 ring-inset ring-verdict-red/20">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-verdict-red text-white">
+              <AlertTriangle className="h-4 w-4" strokeWidth={2.4} aria-hidden />
+            </span>
+            <div className="min-w-0">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-verdict-red">Nut allergy</p>
+              <p className="mt-0.5 text-sm font-semibold text-ink">{nutNote}</p>
+            </div>
+          </div>
+        )}
 
         {food.healthNote && (
           <div className="flex gap-3 rounded-2xl bg-verdict-red/[0.07] p-3.5 ring-1 ring-inset ring-verdict-red/20">

@@ -31,6 +31,7 @@ import PushOptIn from "@/components/PushOptIn";
 import InviteFriends from "@/components/InviteFriends";
 import WeighInReminder from "@/components/WeighInReminder";
 import MedicineNamePrompt from "@/components/MedicineNamePrompt";
+import NutAllergyPrompt from "@/components/NutAllergyPrompt";
 import LogHbA1c from "@/components/LogHbA1c";
 import ReadingNudge from "@/components/ReadingNudge";
 import TypewriterHeadline from "@/components/TypewriterHeadline";
@@ -729,6 +730,7 @@ export default function AppPage() {
 
               {/* "I don't know the name" of their medicine: ask calmly to add it
                   (co-founder dietitian, 2026-10-23). */}
+              <NutAllergyPrompt onOpenDetails={() => selectTab("personalize")} />
               <MedicineNamePrompt onOpenDetails={() => selectTab("personalize")} />
 
               <DashboardSnapshot show={canUseGoalPersonalization(access)} />

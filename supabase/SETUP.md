@@ -289,3 +289,5 @@ month; Send 500 emails a day; Mail up to 5 mailboxes.
   and `payments`.
 - `/admin` — one password-protected screen: signups, active trials, trial→paid
   conversion, active subscribers, MRR, churn, and retention by cohort.
+
+**#40 `nut-allergy-schema.sql`**: the nut allergy answer on the account (My details). Until it runs, the answer is kept on the device only.

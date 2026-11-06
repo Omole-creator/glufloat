@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { Sparkles } from "lucide-react";
 import { monthStats } from "@/lib/history";
 import { swapsByName } from "@/lib/variety";
+import { blockedFoods } from "@/lib/nutAllergy";
+import { readPersonalizationProfile } from "@/lib/personalizationProfile";
 import { cleanFoodName } from "@/lib/foodName";
 import type { Food } from "@/lib/types";
 
@@ -29,9 +31,11 @@ export default function VarietyNudge({
   const [data, setData] = useState<{ food: Food; swaps: Food[] } | null>(null);
 
   useEffect(() => {
-    monthStats().then((s) => {
+    Promise.all([monthStats(), readPersonalizationProfile()]).then(([s, p]) => {
       if (s.topRepeat) {
-        const r = swapsByName(s.topRepeat.label);
+        const blocked = blockedFoods(p.nutAllergies);
+        const found = swapsByName(s.topRepeat.label);
+        const r = found ? { ...found, swaps: found.swaps.filter((f) => !blocked.has(f.id)) } : found;
         if (r) setData(r);
       }
     });

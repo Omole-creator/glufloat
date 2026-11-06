@@ -113,6 +113,8 @@ export type PatientProfile = {
   medTimes: string[];
   medRelation: string | null;
   medTypes: string[];
+  /** Their own nut allergy answer (lib/nutAllergy.ts). */
+  nutAllergies: string[] | null;
 };
 
 export async function patientProfile(admin: SupabaseClient, uid: string): Promise<PatientProfile> {
@@ -135,6 +137,7 @@ export async function patientProfile(admin: SupabaseClient, uid: string): Promis
     medTimes: arr(p.med_times),
     medRelation: (p.med_relation_to_food as string | null) ?? null,
     medTypes: arr(p.med_types),
+    nutAllergies: Array.isArray(p.nut_allergies) ? (p.nut_allergies as string[]) : null,
   };
 }
 

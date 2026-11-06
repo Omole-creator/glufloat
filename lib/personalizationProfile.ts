@@ -64,6 +64,40 @@ export const SWALLOW_OPTIONS: { value: string; label: string }[] = [
 ];
 const VALID_SWALLOWS = new Set<string>(SWALLOW_OPTIONS.map((o) => o.value));
 
+const NUT_DEVICE_KEY = "gf_nut_allergies";
+
+function readNutDevice(): string[] | null {
+  try {
+    const v = JSON.parse(localStorage.getItem(NUT_DEVICE_KEY) || "null");
+    return Array.isArray(v) ? v.map(String) : null;
+  } catch {
+    return null;
+  }
+}
+
+/** The account, and the device too, so the answer holds even before the column exists. */
+async function writeNutAllergies(list: string[] | null): Promise<void> {
+  if (list === null) return;
+  try {
+    localStorage.setItem(NUT_DEVICE_KEY, JSON.stringify(list));
+  } catch {
+    /* storage blocked */
+  }
+  try {
+    const user = await currentUser();
+    if (user) await createClient().from("profiles").update({ nut_allergies: list }).eq("id", user.id);
+  } catch {
+    /* column not there yet */
+  }
+}
+
+/** Save just the nut answer (the card on Today), and tell the page. */
+export async function saveNutAllergies(list: string[]): Promise<void> {
+  await writeNutAllergies(list);
+  forget(PROFILE);
+  window.dispatchEvent(new Event(PERSONALIZATION_CHANGED));
+}
+
 export interface PersonalizationProfile {
   goals: Goal[];
   activityLevel: ActivityLevel | null;
@@ -79,6 +113,8 @@ export interface PersonalizationProfile {
   medTypes: MedType[];
   /** The traditional swallows they eat. Empty = all of them. */
   swallows: string[];
+  /** Nut allergy answer (lib/nutAllergy.ts). Null = not answered yet. */
+  nutAllergies: string[] | null;
 }
 
 const EMPTY: PersonalizationProfile = {
@@ -95,6 +131,7 @@ const EMPTY: PersonalizationProfile = {
   medRelationToFood: null,
   medTypes: [],
   swallows: [],
+  nutAllergies: null,
 };
 
 const VALID_GOALS = new Set<string>(["maintain", "lose_weight", "gain_weight", "build_muscle"]);
@@ -191,6 +228,18 @@ async function readPersonalizationProfileFresh(): Promise<PersonalizationProfile
     const goals = (Array.isArray(data.goals) ? data.goals : []).filter(
       (g): g is Goal => VALID_GOALS.has(g),
     );
+    // Its own read, like swallows, and the device copy until
+    // supabase/nut-allergy-schema.sql has been run.
+    let nutAllergies: string[] | null = null;
+    try {
+      const na = !oneRead.error ? oneRead : await supabase.from("profiles").select("nut_allergies").eq("id", user.id).maybeSingle();
+      const raw = (na.data as unknown as { nut_allergies?: unknown } | null)?.nut_allergies;
+      if (Array.isArray(raw)) nutAllergies = raw.map(String);
+    } catch {
+      /* column not there yet */
+    }
+    nutAllergies = nutAllergies ?? readNutDevice();
+
     const conditions = (Array.isArray(data.conditions) ? data.conditions : []).filter(
       (c): c is Condition => VALID_CONDITIONS.has(c),
     );
@@ -215,6 +264,7 @@ async function readPersonalizationProfileFresh(): Promise<PersonalizationProfile
       medRelationToFood,
       medTypes,
       swallows,
+      nutAllergies,
     };
   } catch {
     return EMPTY;
@@ -301,6 +351,7 @@ export async function savePersonalizationProfile(p: PersonalizationProfile): Pro
     } catch {
       /* column not there yet */
     }
+    await writeNutAllergies(p.nutAllergies);
     if (p.weightKg != null && p.weightKg !== previousWeight) {
       try {
         await supabase.from("weight_history").insert({ weight_kg: p.weightKg });

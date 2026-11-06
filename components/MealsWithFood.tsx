@@ -1,5 +1,6 @@
 "use client";
 
+import { blockedFoods } from "@/lib/nutAllergy";
 import { useEffect, useState } from "react";
 import FoodIcon from "./FoodIcon";
 import { ArrowRight, Flame, Moon, Scale, Sun, Sunrise } from "lucide-react";
@@ -44,11 +45,12 @@ async function mealTargets(personalize: boolean): Promise<{
   targets: Partial<Record<NamedMeal, number>>;
   conditions: Condition[];
   highNeed?: boolean;
+  allergies: string[] | null;
 }> {
   const p = await readPersonalizationProfile();
   const conditions = p.conditions ?? [];
   if (!personalize || !p.sex || !p.ageYears || !p.weightKg || !p.heightCm || !p.activityLevel) {
-    return { targets: {}, conditions };
+    return { targets: {}, conditions, allergies: p.nutAllergies };
   }
   const daily = clinicalTarget(p.sex, p.weightKg, p.heightCm, p.ageYears, p.activityLevel, p.goals).target;
   const rows = await todaysEaten();
@@ -61,7 +63,7 @@ async function mealTargets(personalize: boolean): Promise<{
       ? mealShareFor(daily, 0, p.mealPattern, m, conditions)
       : mealShareFor(daily, eaten, p.mealPattern, m, conditions, eatenAtMeal(rows, m));
   }
-  return { targets, conditions, highNeed: daily >= OAT_HIGH_NEED_TARGET };
+  return { targets, conditions, highNeed: daily >= OAT_HIGH_NEED_TARGET, allergies: p.nutAllergies };
 }
 
 /**
@@ -88,7 +90,11 @@ export default function MealsWithFood({
       const [t, week] = await Promise.all([mealTargets(personalize), foodCountsThisWeek()]);
       if (!live) return;
       setTargets(t.targets);
-      setPlates(platesWithFood(food.id, t.targets, t.conditions, week, t.highNeed));
+      // A plate holding a nut they said harms them is not offered here either.
+      const blocked = blockedFoods(t.allergies);
+      const all = platesWithFood(food.id, t.targets, t.conditions, week, t.highNeed);
+      const clear = (list: MealIdea[]) => list.filter((i) => !i.foods.some((f) => blocked.has(f.id)));
+      setPlates({ breakfast: clear(all.breakfast), lunch: clear(all.lunch), dinner: clear(all.dinner) });
     };
     void load();
     window.addEventListener(PERSONALIZATION_CHANGED, load);

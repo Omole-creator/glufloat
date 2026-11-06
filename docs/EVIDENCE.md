@@ -1115,3 +1115,16 @@ scale past their card size there, on purpose.
 weight, 113 overweight, 93 obese; 253 very or extra active. So it is mostly active
 people, not obese ones, because adjusted weight keeps obese targets down. Among real
 users on 2026-11-06, the 3 with full details were all under 2,000kcal.
+
+## 20. Nut allergy (2026-11-06, founder)
+
+Asked in My details after health conditions, on every plan, and once on Today for
+anybody who has not answered. It is the person's own answer, never a diagnosis.
+"Not sure" counts as every nut. Foods leave the blue card, extras, snacks, soup and
+protein changes and swaps as a hard rule, through the left-out foods list. Search
+still shows them with a warning. The food list is `FOODS_WITH` in `lib/nutAllergy.ts`;
+`scripts/nut-allergy-test.ts` fails on a new food with a nut in its name that is not
+listed. Okpa is under groundnut (Bambara groundnut, a close relative) and vegetable
+oil too, because the card is "Groundnut Oil / Vegetable Oil": both are caution, not
+proof. Packaged foods that may hold traces (biscuits, cakes) are not covered: the app
+cannot know what is in a packet.

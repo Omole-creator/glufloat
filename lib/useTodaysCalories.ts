@@ -20,6 +20,7 @@ import { practiceRules } from "@/lib/practiceRules";
 import { currentMeal, localDayKey } from "@/lib/mealtime";
 import { biasVector } from "@/lib/personalization";
 import { oatSkipFor, toAvoid } from "@/lib/mealRotationMemory";
+import { withNutAllergies } from "@/lib/nutAllergy";
 import { withStoredSwap, SWAP_CHANGED } from "@/lib/mealSwapMemory";
 
 export interface TodaysCalories {
@@ -211,7 +212,7 @@ export function useTodaysCalories(show: boolean): TodaysCalories {
     // mealShareFor, the SAME function components/TodaysMeal.tsx uses to pick
     // the plate, so the plate and the extras are sized against one number.
     const mealShare = mealShareFor(dailyTarget, eatenToday, p.mealPattern, meal, p.conditions, eatenThisMeal);
-    const [counts, liked, weekCounts, todayRows, rules] = await Promise.all([
+    const [counts, liked, weekCounts, todayRows, dietitianRules] = await Promise.all([
       loggedFoodCounts(),
       likedFoodCounts(),
       foodCountsThisWeek(),
@@ -220,6 +221,8 @@ export function useTodaysCalories(show: boolean): TodaysCalories {
       // land on the same plate.
       practiceRules(),
     ]);
+    // Nuts they said harm them leave everything, the same way as her left-out foods.
+    const rules = withNutAllergies(dietitianRules, p.nutAllergies);
     const leftOut = new Set(rules?.avoid ?? []);
     const bias = biasVector({ goals: p.goals, activityLevel: p.activityLevel, conditions: p.conditions });
     const personalKey = personalRotationKey(p);

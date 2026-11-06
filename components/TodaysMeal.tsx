@@ -10,6 +10,7 @@ import {
 } from "@/lib/mealtime";
 import { isOatPlate, oatFoodKind, oatNextChoice, oatPlateWith, OAT_HIGH_NEED_TARGET, type OatRules, planForDay, mealShareFor, mealIdeaCalories, mealIdeaCarbs, mealIdeaFoodsForBuilder, ideasFor, isExtraFood, swapInPlate, swappableFoods, type MealIdea, type SwapContext } from "@/lib/nextMeal";
 import { withStoredSwap, writeSwap, shownPlateWithSwap } from "@/lib/mealSwapMemory";
+import { withNutAllergies } from "@/lib/nutAllergy";
 import { differentMealBefore, recoveryLine, followUpLine } from "@/lib/mealRecovery";
 import { getFood } from "@/lib/search";
 import { cleanFoodName } from "@/lib/foodName";
@@ -33,6 +34,7 @@ import { logImpression, rememberSuggested, type ImpressionPlate } from "@/lib/me
 import { MeasureChips, ServingPhotoButton } from "./MeasurePhoto";
 
 const NO_PROFILE: PersonalizationProfile = {
+  nutAllergies: null,
   goals: [],
   activityLevel: null,
   mealPattern: ["breakfast", "lunch", "dinner"],
@@ -237,7 +239,8 @@ export default function TodaysMeal({
     ) => {
       const calTarget = await calorieTargetFor(m);
       calTargetRef.current = calTarget;
-      const [week, rules] = await Promise.all([foodCountsThisWeek(), practiceRules()]);
+      const [week, dietitianRules] = await Promise.all([foodCountsThisWeek(), practiceRules()]);
+      const rules = withNutAllergies(dietitianRules, profileRef.current.nutAllergies);
       const oat = oatFor(m, dk);
       const planned = planForDay(
         m,
@@ -415,8 +418,9 @@ export default function TodaysMeal({
     setPulseDetails(false);
     const n = offset + 1;
     setOffset(n);
-    Promise.all([calorieTargetFor(meal), foodCountsThisWeek(), practiceRules()]).then(([calTarget, week, rules]) => {
+    Promise.all([calorieTargetFor(meal), foodCountsThisWeek(), practiceRules()]).then(([calTarget, week, dietitianRules]) => {
       calTargetRef.current = calTarget;
+      const rules = withNutAllergies(dietitianRules, profileRef.current.nutAllergies);
       const oat = oatFor(meal, dayKey);
       const next = planForDay(
         meal,

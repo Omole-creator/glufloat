@@ -1,5 +1,6 @@
 "use client";
 
+import { nutAllergyLabel } from "@/lib/nutAllergy";
 import FoldCard from "@/components/FoldCard";
 import { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Phone, Pill, Scale, Send, UserRound, Droplet } from "lucide-react";
@@ -188,6 +189,12 @@ ${SITE_URL}/hospital/patients/${patientId}`,
                 <Row k="Which" v={medTypes || "Not given"} />
               </>
             ) : null}
+          </dl>
+        </Card>
+
+        <Card title="Nut allergy" icon={<Pill className="h-4 w-4" />}>
+          <dl className="divide-y divide-[#f0f3f7]">
+            <Row k="Their answer" v={nutAllergyLabel(profile.nutAllergies) ?? "Not answered yet"} />
           </dl>
         </Card>
 

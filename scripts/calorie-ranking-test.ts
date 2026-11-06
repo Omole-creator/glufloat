@@ -828,6 +828,7 @@ for (const meal of MEALS) {
 {
   function personalKeyFor(weightKg: number, activityLevel: string): string {
     return personalRotationKey({
+      nutAllergies: null,
       goals: [], activityLevel: activityLevel as any, mealPattern: ["breakfast", "lunch", "dinner"],
       sex: "male", ageYears: 30, weightKg, heightCm: 180,
       conditions: [], medDosesPerDay: null, medTimes: [], medRelationToFood: null, medTypes: [], swallows: [],

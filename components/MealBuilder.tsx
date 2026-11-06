@@ -10,6 +10,8 @@ import { PortionMini } from "./PortionVisual";
 import FoodIcon from "./FoodIcon";
 import { mealFrequency, withOatFrequency } from "@/lib/frequency";
 import { useOatHighNeed } from "@/lib/useOatHighNeed";
+import { nutAllergyNote } from "@/lib/nutAllergy";
+import { useNutAllergies } from "@/lib/useNutAllergies";
 import { mealShareMessage } from "@/lib/shareMessage";
 import ShareOnWhatsApp from "./ShareOnWhatsApp";
 import IntakeWarning from "./IntakeWarning";
@@ -90,6 +92,7 @@ export default function MealBuilder({
   const results = useMemo(() => searchFoods(query, 6), [query]);
   const result = useMemo(() => scoreMeal(items), [items]);
   const oatHighNeed = useOatHighNeed();
+  const allergies = useNutAllergies();
   const often = useMemo(
     () => mealFrequency(items.map((i) => ({ ...i, food: withOatFrequency(i.food, oatHighNeed) })), result.stacked),
     [items, result.stacked, oatHighNeed],
@@ -207,7 +210,8 @@ export default function MealBuilder({
       </div>
     </section>
   );
-  const healthNotes = [...new Set(items.map((i) => i.food.healthNote).filter(Boolean))];
+  const nutNotes = items.map((i) => nutAllergyNote(i.food, allergies));
+  const healthNotes = [...new Set([...nutNotes, ...items.map((i) => i.food.healthNote)].filter(Boolean))];
   const medicineNotes = [...new Set(items.map((i) => i.food.medicineNote).filter(Boolean))];
 
   return (

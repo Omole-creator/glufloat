@@ -1,7 +1,8 @@
 "use client";
 
+import { NUT_ALL, NUT_NONE, NUT_OPTIONS, nutAllergyLabel } from "@/lib/nutAllergy";
 import { useEffect, useState } from "react";
-import { Activity, ArrowLeft, Check, ChevronRight, Clock, HeartPulse, Pill, Ruler, Target, UserRound, Utensils, type LucideIcon } from "lucide-react";
+import { Activity, ArrowLeft, Check, ChevronRight, Clock, HeartPulse, Pill, ShieldAlert, Ruler, Target, UserRound, Utensils, type LucideIcon } from "lucide-react";
 import {
   GOALS,
   ACTIVITY_LEVELS,
@@ -156,6 +157,7 @@ function NumberField({
 /** A picture chip for each answer on the summary. Decoration only. */
 const STEP_ICON: Record<StepId, LucideIcon> = {
   conditions: HeartPulse,
+  nuts: ShieldAlert,
   medDoses: Pill,
   medTimes: Clock,
   medRelation: Utensils,
@@ -169,6 +171,7 @@ const STEP_ICON: Record<StepId, LucideIcon> = {
 
 type StepId =
   | "conditions"
+  | "nuts"
   | "medDoses"
   | "medTimes"
   | "medRelation"
@@ -230,6 +233,7 @@ export default function PersonalizationSettings({
   const [medRelationToFood, setMedRelationToFood] = useState<"before" | "after" | null>(null);
   const [medTypes, setMedTypes] = useState<MedType[]>([]);
   const [swallows, setSwallows] = useState<string[]>([]);
+  const [nutAllergies, setNutAllergies] = useState<string[] | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [saved, setSaved] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
@@ -253,6 +257,7 @@ export default function PersonalizationSettings({
       setMedRelationToFood(p.medRelationToFood);
       setMedTypes(p.medTypes);
       setSwallows(p.swallows);
+      setNutAllergies(p.nutAllergies);
       // Answered before: open on the summary, not on question 1 again.
       const answeredBefore =
         p.medDosesPerDay != null || p.conditions.length > 0 || p.sex != null || p.activityLevel != null;
@@ -260,7 +265,7 @@ export default function PersonalizationSettings({
       setSavedSnap(
         JSON.stringify([
           p.goals, p.activityLevel, p.sex, p.ageYears, p.weightKg, p.heightCm,
-          p.conditions, p.medDosesPerDay, p.medTimes, p.medRelationToFood, p.medTypes, p.swallows,
+          p.conditions, p.medDosesPerDay, p.medTimes, p.medRelationToFood, p.medTypes, p.swallows, p.nutAllergies,
         ]),
       );
       setLoaded(true);
@@ -271,6 +276,12 @@ export default function PersonalizationSettings({
     setGoals((cur) => (cur.includes(g) ? cur.filter((x) => x !== g) : [...cur, g]));
   const toggleCondition = (c: Condition) =>
     setConditions((cur) => (cur.includes(c) ? cur.filter((x) => x !== c) : [...cur, c]));
+  // Picking a nut clears "no" and "not sure", and the other way round.
+  const toggleNut = (id: string) =>
+    setNutAllergies((cur) => {
+      const picked = (cur ?? []).filter((v) => v !== NUT_NONE && v !== NUT_ALL);
+      return picked.includes(id) ? picked.filter((v) => v !== id) : [...picked, id];
+    });
   const toggleSwallow = (id: string) =>
     setSwallows((cur) => (cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]));
   const toggleMedTime = (t: MedTime) =>
@@ -298,6 +309,7 @@ export default function PersonalizationSettings({
       medRelationToFood,
       medTypes,
       swallows,
+      nutAllergies,
     });
 
   const save = async () => {
@@ -319,7 +331,7 @@ export default function PersonalizationSettings({
 
   const snapshot = JSON.stringify([
     goals, activityLevel, sex, ageYears, weightKg, heightCm,
-    conditions, medDosesPerDay, medTimes, medRelationToFood, medTypes, swallows,
+    conditions, medDosesPerDay, medTimes, medRelationToFood, medTypes, swallows, nutAllergies,
   ]);
   const unsaved = loaded && snapshot !== savedSnap;
 
@@ -328,6 +340,7 @@ export default function PersonalizationSettings({
   const takesMedicine = medDosesPerDay != null && medDosesPerDay > 0;
   const steps: StepId[] = [
     "conditions",
+    "nuts",
     "medDoses",
     ...(takesMedicine ? (["medTimes", "medRelation", "medTypes"] as StepId[]) : []),
     "swallows",
@@ -371,6 +384,30 @@ export default function PersonalizationSettings({
           <OptionRow multi active={conditions.length === 0} onClick={() => setConditions([])}>
             None of these
           </OptionRow>
+        </>
+      ),
+    },
+    nuts: {
+      title: "Has eating any nut ever made your body react?",
+      help: "For example itching, swelling of the lips or face, a rash, vomiting, or trouble breathing.",
+      answered: nutAllergies !== null && nutAllergies.length > 0,
+      body: (
+        <>
+          <OptionRow active={nutAllergies?.includes(NUT_NONE) ?? false} onClick={() => setNutAllergies([NUT_NONE])}>
+            No
+          </OptionRow>
+          <p className="pt-2 text-sm font-semibold text-white">Yes. Which ones? Tick all that apply.</p>
+          {NUT_OPTIONS.map((o) => (
+            <OptionRow key={o.value} multi active={nutAllergies?.includes(o.value) ?? false} onClick={() => toggleNut(o.value)}>
+              {o.label}
+            </OptionRow>
+          ))}
+          <OptionRow active={nutAllergies?.includes(NUT_ALL) ?? false} onClick={() => setNutAllergies([NUT_ALL])}>
+            I am not sure, or I don&apos;t know which
+          </OptionRow>
+          {nutAllergies?.includes(NUT_ALL) && (
+            <p className="pt-1 text-sm text-white/90">We will keep all nuts off your meals. Please ask your doctor.</p>
+          )}
         </>
       ),
     },
@@ -486,6 +523,10 @@ export default function PersonalizationSettings({
     conditions: {
       label: "Health conditions",
       value: conditions.length ? conditions.map((c) => CONDITION_LABEL[c]).join(", ") : "None",
+    },
+    nuts: {
+      label: "Nut allergy",
+      value: nutAllergyLabel(nutAllergies),
     },
     medDoses: {
       label: "Diabetes medicine",
