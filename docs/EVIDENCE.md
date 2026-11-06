@@ -1070,3 +1070,44 @@ palm wine (fresh sap against fermented). Vegetables and fruit with small gaps st
 
 The bands in `food-composition-bands.mjs` were widened for three measured facts:
 tuber to 290 (fried yam), corn to 140, nut down to 140 (fresh kola and bitter kola).
+
+## 19. Oat swallow and the nut cap (2026-11-06, founder and co-founder dietitian)
+
+The co-founder dietitian did not like nearly every plate on "Try another meal" being
+oat swallow: it made Glufloat look as if it only recommends one food.
+
+- **At most one oat swallow card a day**, for everyone. Once shown at a meal it is not
+  offered at another, and once pressed past it does not come back that day.
+- **Variety comes from its soup and protein**, which can be changed on the card, only
+  to foods the blue card already serves with oat swallow, under the same health rules.
+- **7 a week for a daily target of 2,000kcal or more; 3 for everyone else.** The card
+  says "About 1 time a day" for the first group and 3 a week for the rest, on the
+  founder's word. "3-7 times a week" was considered and refused: a range breaks the
+  "one number" rule of 2026-10-08. Awaiting the co-founder dietitian's sign-off.
+- **The daily nut cap rose from 60g to 90g** on the founder's word, after a test.
+  **Sugar:** nuts carry little starch and do not push sugar up. A meta-analysis of 12
+  trials ([PLOS ONE 2014, PubMed 25076495](https://pubmed.ncbi.nlm.nih.gov/25076495/),
+  median 56g a day) found HbA1c and fasting sugar slightly lower; another found no
+  change in either. A 75g-a-day trial in type 2 diabetes was retracted over its
+  statistical model and reanalysed in Diabetologia in 2018, which still
+  reported lower HbA1c; that reanalysis was read only in a press release. **No trial
+  found tested 90g**, so it sits a little past the evidence. **Other risks:** energy
+  (90g is about 540kcal), which is why it applies only when the day's target needs
+  it and is a ceiling, never the aim; kidney disease, where nuts stay at their
+  card size; salted nuts for high blood pressure; and nut allergy. No systematic
+  safety review was found. Awaiting dietitian sign-off.
+
+**Days within 10% of the target, 10-day sweep, 1,080 profiles, no condition:**
+
+| Target | Before | After |
+|---|---|---|
+| Under 2,000 | 99% | 99.5% |
+| 2,000-2,399 | 86% | 99.1% |
+| 2,400-2,799 | 64% | 87% |
+| 2,800-3,199 | 48% | 58.5% |
+| 3,200-3,599 | 17% | 34% |
+| 3,600+ | 0% | 4% |
+
+High blood pressure is about the same. **Kidney disease stays lower** (82% at
+2,000-2,399, 50% at 2,400-2,799, 13% at 2,800-3,199): protein-bearing foods cannot
+scale past their card size there, on purpose.

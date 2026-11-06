@@ -8,7 +8,7 @@ import {
   localDayKey,
   type NamedMeal,
 } from "@/lib/mealtime";
-import { planForDay, mealShareFor, mealIdeaCalories, mealIdeaCarbs, mealIdeaFoodsForBuilder, ideasFor, isExtraFood, swapInPlate, swappableFoods, type MealIdea, type SwapContext } from "@/lib/nextMeal";
+import { isOatPlate, oatFoodKind, oatNextChoice, oatPlateWith, OAT_HIGH_NEED_TARGET, type OatRules, planForDay, mealShareFor, mealIdeaCalories, mealIdeaCarbs, mealIdeaFoodsForBuilder, ideasFor, isExtraFood, swapInPlate, swappableFoods, type MealIdea, type SwapContext } from "@/lib/nextMeal";
 import { withStoredSwap, writeSwap, shownPlateWithSwap } from "@/lib/mealSwapMemory";
 import { differentMealBefore, recoveryLine, followUpLine } from "@/lib/mealRecovery";
 import { getFood } from "@/lib/search";
@@ -28,7 +28,7 @@ import {
 import { biasVector, type PlateAxes } from "@/lib/personalization";
 import { clinicalTarget } from "@/lib/tdee";
 import { medicationAppliesToMeal, medicationTimingCopy } from "@/lib/medicationTiming";
-import { toAvoid, writeShown, writeSkipped, shownToday } from "@/lib/mealRotationMemory";
+import { markOatSkipped, oatSkipFor, toAvoid, writeOatShown, writeShown, writeSkipped, shownToday } from "@/lib/mealRotationMemory";
 import { logImpression, rememberSuggested, type ImpressionPlate } from "@/lib/mealImpressions";
 import { MeasureChips, ServingPhotoButton } from "./MeasurePhoto";
 
@@ -212,6 +212,18 @@ export default function TodaysMeal({
     [personalize],
   );
 
+  // Oat swallow's one card a day, and its higher weekly count for a daily
+  // target of 2,000kcal or more (lib/nextMeal.ts OAT_SWALLOW).
+  const oatFor = useCallback(
+    (m: NamedMeal, dk: string): OatRules => {
+      const p = profileRef.current;
+      const known = personalize && p.sex && p.ageYears && p.weightKg && p.heightCm && p.activityLevel;
+      const daily = known ? clinicalTarget(p.sex!, p.weightKg!, p.heightCm!, p.ageYears!, p.activityLevel!, p.goals).target : 0;
+      return { skip: oatSkipFor(m, dk), highNeed: daily >= OAT_HIGH_NEED_TARGET };
+    },
+    [personalize],
+  );
+
   // This meal's calorie share at the last plan, kept for the impression log.
   const calTargetRef = useRef<number | null>(null);
 
@@ -226,6 +238,7 @@ export default function TodaysMeal({
       const calTarget = await calorieTargetFor(m);
       calTargetRef.current = calTarget;
       const [week, rules] = await Promise.all([foodCountsThisWeek(), practiceRules()]);
+      const oat = oatFor(m, dk);
       const planned = planForDay(
         m,
         dk,
@@ -241,6 +254,7 @@ export default function TodaysMeal({
         profileRef.current.swallows,
         // Her dietitian's food rules (Glufloat for dietitians); null for everyone else.
         rules,
+        oat,
       );
       const ctx: SwapContext = {
         conditions: profileRef.current.conditions,
@@ -248,6 +262,7 @@ export default function TodaysMeal({
         swallows: profileRef.current.swallows,
         rules,
         calorieTargetForMeal: calTarget,
+        oat,
       };
       const next = withStoredSwap(m, dk, planned, ctx);
       setSwapCtx(ctx);
@@ -255,8 +270,9 @@ export default function TodaysMeal({
       setIdea(next);
       setOffset(0);
       writeShown(m, dk, next.index);
+      if (isOatPlate(planned)) writeOatShown(dk, m);
     },
-    [calorieTargetFor],
+    [calorieTargetFor, oatFor],
   );
 
   useEffect(() => {
@@ -386,18 +402,22 @@ export default function TodaysMeal({
   const Icon = MEAL_ICON[meal];
   const mealCalories = mealIdeaCalories(idea);
   const mealCarbs = mealIdeaCarbs(idea);
+  // One swap at a time, only on a food that has an approved swap for them.
+  const base = baseIdea ?? idea;
   const another = () => {
     void trackUsage("meal_reroll");
     logImpression(impressionPlate(meal, dayKey, idea, calTargetRef.current), "skipped");
     // They are walking away from this plate. Remember it, so it is not the one
     // we hand them tomorrow.
     writeSkipped(meal, idea.index);
+    if (isOatPlate(base)) markOatSkipped(dayKey, meal);
     writeSwap(null);
     setPulseDetails(false);
     const n = offset + 1;
     setOffset(n);
     Promise.all([calorieTargetFor(meal), foodCountsThisWeek(), practiceRules()]).then(([calTarget, week, rules]) => {
       calTargetRef.current = calTarget;
+      const oat = oatFor(meal, dayKey);
       const next = planForDay(
         meal,
         dayKey,
@@ -412,18 +432,29 @@ export default function TodaysMeal({
         week,
         profileRef.current.swallows,
         rules,
+        oat,
       );
-      setSwapCtx({ conditions: profileRef.current.conditions, weekCounts: week, swallows: profileRef.current.swallows, rules, calorieTargetForMeal: calTarget });
+      setSwapCtx({ conditions: profileRef.current.conditions, weekCounts: week, swallows: profileRef.current.swallows, rules, calorieTargetForMeal: calTarget, oat });
       setBaseIdea(next);
       setIdea(next);
       writeShown(meal, dayKey, next.index);
+      if (isOatPlate(next)) writeOatShown(dayKey, meal);
     });
   };
 
-  // One swap at a time, only on a food that has an approved swap for them.
-  const base = baseIdea ?? idea;
   const canSwap = idea.swapped ? new Set<string>() : swappableFoods(meal, idea, swapCtx);
   const swap = (food: Food) => {
+    // An oat swallow plate: step to the next soup or protein, as often as they like.
+    const kind = isOatPlate(idea) ? oatFoodKind(food.id) : null;
+    const choice = kind ? oatNextChoice(idea, food.id, swapCtx) : null;
+    if (kind && choice) {
+      const change = { ...idea.changed, [kind]: choice };
+      void trackUsage("meal_swap");
+      writeSwap({ day: dayKey, meal, plate: idea.index, from: "", to: "", turn: 0, oat: change });
+      setIdea(oatPlateWith(base, change, swapCtx));
+      setPulseDetails(true);
+      return;
+    }
     const next = swapInPlate(meal, idea, food.id, swapCtx);
     if (!next) return;
     void trackUsage("meal_swap");
@@ -506,12 +537,12 @@ export default function TodaysMeal({
           {!idea.swapped && canSwap.size > 0 && (
             <p className="flex items-center gap-1.5 border-b border-white/10 px-4 py-2.5 text-xs font-semibold text-white/80">
               <ArrowLeftRight className="h-3.5 w-3.5 shrink-0" strokeWidth={2.6} aria-hidden />
-              Don&apos;t have one of the foods? Tap Change to swap it.
+              {isOatPlate(idea) ? "Want a different soup, fish or meat? Tap Change." : <>Don&apos;t have one of the foods? Tap Change to swap it.</>}
             </p>
           )}
           <ul className="divide-y divide-white/10">
             {idea.foods.map((f, i) => {
-              const isNew = idea.swapped?.to.id === f.id;
+              const isNew = idea.swapped?.to.id === f.id || idea.changed?.soup === f.id || idea.changed?.protein === f.id;
               return (
                 <li key={f.id} className="flex items-center gap-3 px-3.5 py-3 sm:px-4">
                   <span className="relative">
@@ -540,6 +571,18 @@ export default function TodaysMeal({
               );
             })}
           </ul>
+
+          {idea.changed && (
+            <div className="flex items-start gap-2.5 border-t border-white/10 bg-leaf/20 px-4 py-3 text-sm text-white">
+              <ArrowLeftRight className="mt-0.5 h-4 w-4 shrink-0 text-white/80" strokeWidth={2.4} aria-hidden />
+              <p className="min-w-0 leading-relaxed">
+                Tap View details to see how much to eat.{" "}
+                <button type="button" onClick={changeBack} className="font-bold text-white underline decoration-white/50 underline-offset-2">
+                  Change back
+                </button>
+              </p>
+            </div>
+          )}
 
           {idea.swapped && (
             <div className="flex items-start gap-2.5 border-t border-white/10 bg-leaf/20 px-4 py-3 text-sm text-white">

@@ -10,6 +10,7 @@ import {
   mealShareFor,
   stillPlannedToday,
   planForDay,
+  OAT_HIGH_NEED_TARGET,
   mealIdeaCalories,
   gramsEatenToday,
   NUT_GROUP,
@@ -18,7 +19,7 @@ import {
 import { practiceRules } from "@/lib/practiceRules";
 import { currentMeal, localDayKey } from "@/lib/mealtime";
 import { biasVector } from "@/lib/personalization";
-import { toAvoid } from "@/lib/mealRotationMemory";
+import { oatSkipFor, toAvoid } from "@/lib/mealRotationMemory";
 import { withStoredSwap, SWAP_CHANGED } from "@/lib/mealSwapMemory";
 
 export interface TodaysCalories {
@@ -222,6 +223,8 @@ export function useTodaysCalories(show: boolean): TodaysCalories {
     const leftOut = new Set(rules?.avoid ?? []);
     const bias = biasVector({ goals: p.goals, activityLevel: p.activityLevel, conditions: p.conditions });
     const personalKey = personalRotationKey(p);
+    // The same oat swallow rules TodaysMeal passes, so both land on one plate.
+    const oat = { skip: oatSkipFor(meal, dayKey), highNeed: dailyTarget >= OAT_HIGH_NEED_TARGET };
     const planned0 = planForDay(
       meal,
       dayKey,
@@ -236,6 +239,7 @@ export function useTodaysCalories(show: boolean): TodaysCalories {
       weekCounts,
       p.swallows,
       rules,
+      oat,
     );
     // A food swapped on the blue card ("I don't have this") is the plate
     // really being eaten, so the extras are sized against it too.
@@ -245,6 +249,7 @@ export function useTodaysCalories(show: boolean): TodaysCalories {
       swallows: p.swallows,
       rules,
       calorieTargetForMeal: mealShare,
+      oat,
     });
     // mealIdeaCalories() already folds in scaledProtein/scaledSide's own
     // contribution (a bigger, still-safe serving closes part of the gap

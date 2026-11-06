@@ -35,6 +35,15 @@ function canBeEveryday(food: Food): boolean {
   return false;
 }
 
+/**
+ * Oat swallow for somebody on 2,000kcal or more (founder, 2026-11-06): their card
+ * says what the blue card really serves them, one number and never a range.
+ * Everybody else keeps the 3 a week stored on the food.
+ */
+export function withOatFrequency(food: Food, highNeed: boolean): Food {
+  return highNeed && food.id === "oat-swallow" ? { ...food, frequency: "About 1 time a day." } : food;
+}
+
 /** A specific weekly answer for a food that may not be daily. Never vague. */
 function weeklyFallback(food: Food): number {
   if (food.baseVerdict === "green") return 4;
@@ -67,6 +76,8 @@ export function freqRank(food: Food): { tier: number; perWeek: number } {
     return { tier: 2, perWeek: 0 };
   }
 
+  if (f.includes("1 time a day")) return { tier: 3, perWeek: 7 };
+
   const perWeek = f.match(/(\d+)\s*times?\s*a\s*week/);
   if (perWeek) return { tier: 3, perWeek: Number(perWeek[1]) };
 
@@ -89,6 +100,7 @@ function say(food: Food, rank: { tier: number; perWeek: number }): string {
   if (rank.tier === 1) return "Only if your sugar drops too low";
   if (rank.tier === 2) return "About 1 time a month";
   if (rank.tier === 4) return `You can ${verb} this every day`;
+  if (rank.perWeek === 7) return "About 1 time a day";
   return `About ${rank.perWeek} times a week`;
 }
 
@@ -108,6 +120,7 @@ function howOftenPhrase(rank: { tier: number; perWeek: number }): string {
   if (rank.tier === 1) return "only if your sugar drops too low";
   if (rank.tier === 2) return "about 1 time a month";
   if (rank.tier === 4) return "every day";
+  if (rank.perWeek === 7) return "about 1 time a day";
   return `about ${rank.perWeek} times a week`;
 }
 

@@ -91,3 +91,43 @@ export function toAvoid(meal: string, today: string): number[] {
   for (const i of readSkipped(meal)) seen.add(i);
   return [...seen].slice(0, MAX_AVOID);
 }
+
+// Oat swallow's one card a day (founder and co-founder dietitian, 2026-11-06).
+// Once it has been on a card today it is not offered at another meal, and once
+// somebody presses "Try another meal" past it, not on this meal either.
+const OAT_KEY = "gf_oat_card";
+type OatCard = { day: string; meal: string; skipped?: boolean };
+
+function readOat(): OatCard | null {
+  try {
+    return JSON.parse(localStorage.getItem(OAT_KEY) || "null") as OatCard | null;
+  } catch {
+    return null;
+  }
+}
+
+/** Remember that today's oat swallow card was shown at this meal (the first one stands). */
+export function writeOatShown(day: string, meal: string): void {
+  try {
+    if (readOat()?.day === day) return;
+    localStorage.setItem(OAT_KEY, JSON.stringify({ day, meal }));
+  } catch {
+    /* ignore */
+  }
+}
+
+/** They pressed past today's oat swallow card. */
+export function markOatSkipped(day: string, meal: string): void {
+  try {
+    const now = readOat();
+    localStorage.setItem(OAT_KEY, JSON.stringify({ day, meal: now?.day === day ? now.meal : meal, skipped: true }));
+  } catch {
+    /* ignore */
+  }
+}
+
+/** Has oat swallow had its card today, for this meal's purposes? */
+export function oatSkipFor(meal: string, day: string): boolean {
+  const c = readOat();
+  return !!c && c.day === day && (c.meal !== meal || !!c.skipped);
+}

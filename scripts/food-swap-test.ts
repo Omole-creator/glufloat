@@ -16,6 +16,9 @@ import {
   mealIdeaFoodsForBuilder,
   LEAN_RED_MEAT_IDS,
   type MealIdea,
+  isOatPlate,
+  oatFoodKind,
+  oatNextChoice,
 } from "../lib/nextMeal";
 import { scoreMeal } from "../lib/verdictEngine";
 import { getFood } from "../lib/search";
@@ -147,6 +150,12 @@ for (const meal of MEALS) {
     const can = swappableFoods(meal, idea);
     for (const id of can) {
       sawButton = true;
+      // An oat swallow plate's soup and protein step through their own list
+      // (scripts/oat-plates-test.ts), not the approved swap pairs.
+      if (isOatPlate(idea) && oatFoodKind(id)) {
+        check(`${meal} ${day}: oat plate button on ${id} leads somewhere`, oatNextChoice(idea, id) !== null);
+        continue;
+      }
       const next = swapInPlate(meal, idea, id);
       check(`${meal} ${day}: button on ${id} leads somewhere`, next !== null);
       if (next) check(`${meal} ${day}: one swap at a time`, next.swapped !== undefined && swappableFoods(meal, next).size === 0);

@@ -5,6 +5,8 @@ import { Check, Link2, Plus, Pointer } from "lucide-react";
 import { matchedAlias, searchFoods } from "@/lib/search";
 import type { Food } from "@/lib/types";
 import VerdictCard from "./VerdictCard";
+import { withOatFrequency } from "@/lib/frequency";
+import { useOatHighNeed } from "@/lib/useOatHighNeed";
 import { events } from "@/lib/analytics";
 import StartMealSheet from "./StartMealSheet";
 import { trackUsage } from "@/lib/usage";
@@ -36,6 +38,7 @@ export default function SearchPanel({
   // the card's own food. Null when they found it by its own name.
   const [pickedAs, setPickedAs] = useState<string | null>(null);
   const [ate, setAte] = useState(false);
+  const oatHighNeed = useOatHighNeed();
 
   // Open to a food handed in from outside.
   useEffect(() => {
@@ -151,7 +154,7 @@ export default function SearchPanel({
             </div>
           )}
           <VerdictCard
-            food={picked}
+            food={withOatFrequency(picked, oatHighNeed)}
             onFix={onBuildMeal ? () => onBuildMeal(picked) : undefined}
             onSwap={(f) => pick(f)}
           />

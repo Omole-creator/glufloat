@@ -742,9 +742,25 @@ const LOW_WEEKLY_LIMIT: Record<string, number> = {
   ukwa: 4,
 };
 
+/**
+ * Oat swallow (founder and co-founder dietitian, 2026-11-06). Everybody's card
+ * still says 3 a week, but somebody on OAT_HIGH_NEED_TARGET kcal or more may have
+ * it once a day: it is the heaviest slow-sugar plate, and without it their week
+ * ran out of food. It is on at most ONE card a day for everyone, so "Try another
+ * meal" never reads as if Glufloat is only oat swallow. Variety on that one card
+ * comes from changing its soup and its protein (oatPlateWith).
+ */
+export const OAT_SWALLOW = "oat-swallow";
+export const OAT_HIGH_NEED_TARGET = 2000;
+export const OAT_HIGH_NEED_WEEKLY = 7;
+
+/** skip: oat swallow has had its one card today. highNeed: see OAT_HIGH_NEED_TARGET. */
+export type OatRules = { skip?: boolean; highNeed?: boolean };
+
 /** A plate that would take a limited food, the Glufloat-size group, or the week's non-low-GI meals past its count. */
-function overWeeklyLimit(ids: string[], weekCounts: Map<string, number>): boolean {
-  if (ids.some((id) => LOW_WEEKLY_LIMIT[id] != null && (weekCounts.get(id) ?? 0) >= LOW_WEEKLY_LIMIT[id])) return true;
+function overWeeklyLimit(ids: string[], weekCounts: Map<string, number>, highNeed = false): boolean {
+  const lowLimit = (id: string) => (id === OAT_SWALLOW && highNeed ? OAT_HIGH_NEED_WEEKLY : LOW_WEEKLY_LIMIT[id]);
+  if (ids.some((id) => LOW_WEEKLY_LIMIT[id] != null && (weekCounts.get(id) ?? 0) >= lowLimit(id))) return true;
   if (ids.some((id) => WEEKLY_PLATE_LIMIT[id] != null && (weekCounts.get(id) ?? 0) >= WEEKLY_PLATE_LIMIT[id])) return true;
   if (ids.some((id) => WEEKLY_PLATE_LIMIT[id] != null)) {
     let limited = 0;
@@ -947,7 +963,12 @@ export interface MealIdea {
   /** Set when the person swapped one food ("I don't have this"). `serving` is
    *  the countable size of the new food when it is not its card size. */
   swapped?: { from: Food; to: Food; serving: ScaledPortion | null };
+  /** An oat swallow plate whose soup and/or protein the person changed (oatPlateWith). */
+  changed?: OatChange;
 }
+
+/** The soup and protein a person picked on an oat swallow plate. */
+export type OatChange = { soup?: string; protein?: string };
 
 function resolve(meal: NamedMeal, index: number): MealIdea {
   const list = IDEAS[meal];
@@ -1200,6 +1221,7 @@ export function planForDay(
   weekCounts: Map<string, number> = new Map(),
   swallows: string[] = [],
   rules: PracticeRules | null = null,
+  oat: OatRules = {},
 ): MealIdea {
   const list = IDEAS[meal];
   const n = list.length;
@@ -1264,8 +1286,13 @@ export function planForDay(
   // A food with a weekly count (ofada and brown rice, 3 a week) leaves the
   // rotation once eaten that many times in 7 days.
   if (weekCounts.size > 0) {
-    const within = base.filter((s) => !overWeeklyLimit(list[s.idea.index], weekCounts));
+    const within = base.filter((s) => !overWeeklyLimit(list[s.idea.index], weekCounts, oat.highNeed));
     if (within.length > 0) base = within;
+  }
+  // Oat swallow has had its one card today (see OAT_SWALLOW).
+  if (oat.skip) {
+    const noOat = base.filter((s) => !list[s.idea.index].includes(OAT_SWALLOW));
+    if (noOat.length > 0) base = noOat;
   }
   // The patient's dietitian (Glufloat for dietitians, applyPracticeRules).
   base = applyPracticeRules(base, list, rules, `${dayKey}#${meal}#${personalKey}`);
@@ -1548,6 +1575,7 @@ export function platesWithFood(
   targets: Partial<Record<NamedMeal, number | null>> = {},
   conditions: Condition[] = [],
   weekCounts: Map<string, number> = new Map(),
+  highNeed = false,
 ): Record<NamedMeal, MealIdea[]> {
   const out: Record<NamedMeal, MealIdea[]> = { breakfast: [], lunch: [], dinner: [] };
   for (const meal of ["breakfast", "lunch", "dinner"] as NamedMeal[]) {
@@ -1558,7 +1586,7 @@ export function platesWithFood(
       const idea = resolve(meal, i);
       const excluded = excludedProteinsFor(conditions, weekCounts);
       if (idea.foods.some((f) => excluded.has(f.id))) return;
-      if (overWeeklyLimit(ids, weekCounts)) return;
+      if (overWeeklyLimit(ids, weekCounts, highNeed)) return;
       if (target && target > 0) {
         const gap = Math.max(0, target - planCaloriesOf(ids));
         idea.scaledProtein = scaleMainProtein(idea.foods, gap, conditions);
@@ -1580,6 +1608,8 @@ export interface SwapContext {
   swallows?: string[];
   rules?: PracticeRules | null;
   calorieTargetForMeal?: number | null;
+  /** Oat swallow's one card today, and the higher weekly count (OatRules). */
+  oat?: OatRules;
 }
 
 /** The approved swaps for one missing food on this plate that this person may have, in order.
@@ -1605,9 +1635,10 @@ function swapsFor(meal: NamedMeal, idea: MealIdea, fromId: string, ctx: SwapCont
     if (noRedMeat && LEAN_RED_MEAT_IDS.has(swap.to)) continue;
     if (SWALLOW_IDS.has(swap.to) && ticked.length > 0 && !ticked.includes(swap.to)) continue;
     if (ids.includes(swap.to)) continue;
+    if (swap.to === OAT_SWALLOW && ctx.oat?.skip) continue;
     const target = ids.map((id) => (id === fromId ? swap.to : id));
     const index = list.findIndex((p) => key(p) === key(target));
-    if (overWeeklyLimit(target, weekCounts)) continue;
+    if (overWeeklyLimit(target, weekCounts, ctx.oat?.highNeed)) continue;
     if (index < 0) {
       // A new plate: dinner keeps to slow-sugar foods (swallows excepted, as
       // on the blue card), and the whole plate must score green the way the
@@ -1631,8 +1662,75 @@ export function swappableFoods(meal: NamedMeal, idea: MealIdea, ctx: SwapContext
   const ids = new Set<string>();
   // One swap at a time (dietitian's answer): a swapped plate offers no more.
   if (idea.swapped) return ids;
+  // An oat swallow plate: its soup and its protein can each be changed, as
+  // often as the person likes. Once they have, the oat swallow itself stays.
+  if (isOatPlate(idea)) {
+    for (const f of idea.foods) if (oatNextChoice(idea, f.id, ctx)) ids.add(f.id);
+    if (idea.changed) return ids;
+  }
   for (const f of idea.foods) if (swapsFor(meal, idea, f.id, ctx).length > 0) ids.add(f.id);
   return ids;
+}
+
+/** "soup" or "protein" for a food an oat swallow plate can change, otherwise null. */
+export function oatFoodKind(foodId: string): "soup" | "protein" | null {
+  return SWALLOW_SOUPS.includes(foodId) ? "soup" : SOUP_PROTEINS.includes(foodId) ? "protein" : null;
+}
+
+/** A plate's food ids with a person's soup and protein applied. */
+export function oatPlateIds(ids: string[], change: OatChange): string[] {
+  return ids.map((id) => (oatFoodKind(id) === "soup" ? (change.soup ?? id) : oatFoodKind(id) === "protein" ? (change.protein ?? id) : id));
+}
+
+/** Oat swallow with a soup and a protein: the plate whose soup and protein can be changed. */
+export function isOatPlate(idea: Pick<MealIdea, "foods">): boolean {
+  const ids = idea.foods.map((f) => f.id);
+  return ids.includes(OAT_SWALLOW) && ids.some((id) => SWALLOW_SOUPS.includes(id)) && ids.some((id) => SOUP_PROTEINS.includes(id));
+}
+
+/**
+ * The next soup or protein for this food on an oat swallow plate, in a fixed
+ * order, or null when this food is neither or nothing else is allowed. Only the
+ * foods the blue card already serves with oat swallow, under the same rules:
+ * a person's health conditions and a dietitian's left-out foods.
+ */
+export function oatNextChoice(idea: MealIdea, foodId: string, ctx: SwapContext = {}): string | null {
+  const pool = SWALLOW_SOUPS.includes(foodId) ? SWALLOW_SOUPS : SOUP_PROTEINS.includes(foodId) ? SOUP_PROTEINS : null;
+  if (!pool) return null;
+  const excluded = excludedProteinsFor(ctx.conditions ?? [], ctx.weekCounts ?? new Map());
+  const avoid = new Set(ctx.rules?.avoid ?? []);
+  const at = pool.indexOf(foodId);
+  for (let i = 1; i < pool.length; i++) {
+    const id = pool[(at + i) % pool.length];
+    if (excluded.has(id) || avoid.has(id) || !getFood(id)) continue;
+    const ids = idea.foods.map((f) => (f.id === foodId ? id : f.id));
+    const items = ids.map((x) => ({ food: getFood(x)!, portion: rightSizePortion(x) }));
+    if (scoreMeal(items).verdict === "green") return id;
+  }
+  return null;
+}
+
+/**
+ * An oat swallow plate with its soup and/or protein changed. It keeps the
+ * plate's index, so "shown today" still points at the plate the card picked,
+ * and it is sized for the calorie target exactly as the blue card would.
+ */
+export function oatPlateWith(idea: MealIdea, change: OatChange, ctx: SwapContext = {}): MealIdea {
+  const conditions = ctx.conditions ?? [];
+  const foods = idea.foods.map((f) => {
+    const id = SWALLOW_SOUPS.includes(f.id) ? (change.soup ?? f.id) : SOUP_PROTEINS.includes(f.id) ? (change.protein ?? f.id) : f.id;
+    return getFood(id) ?? f;
+  });
+  const next: MealIdea = { foods, names: foods.map((f) => cleanFoodName(f.name)), index: idea.index, count: idea.count, changed: change };
+  const target = ctx.calorieTargetForMeal;
+  if (target && target > 0) {
+    const gap = Math.max(0, target - planCaloriesOf(foods.map((f) => f.id)));
+    next.scaledProtein = scaleMainProtein(foods, gap, conditions);
+    const residualGap = Math.max(0, gap - (next.scaledProtein?.extraCalories ?? 0));
+    next.scaledSide = scaleMainSide(foods, residualGap, conditions);
+  }
+  next.scaledProtein = leanRedMeatServing(foods, conditions) ?? next.scaledProtein;
+  return next;
 }
 
 /**
@@ -2369,10 +2467,12 @@ function guardedCandidate(candidate: ExtraCandidate, food: Food, capProtein: boo
  *  - Each extra's own `maxGrams` is now the most of it in a whole day,
  *    counting what was already eaten today and what is already on today's
  *    cards.
- *  - All nuts and nut butter share ONE daily total, NUT_DAILY_MAX_G (60g,
- *    about two small handfuls), groundnut on a breakfast plate included. 30g
- *    a day is the usual advice and 60g is the top of what the nut studies
- *    used (docs/EVIDENCE.md section 9), so 60g is the ceiling, never the aim.
+ *  - All nuts and nut butter share ONE daily total, NUT_DAILY_MAX_G, groundnut
+ *    on a breakfast plate included. 30g a day is the usual advice and 60g is
+ *    the top of what the nut studies used (docs/EVIDENCE.md section 9). It was
+ *    60g until the founder raised it to 90g on 2026-11-06, after a 10-day sweep
+ *    showed higher targets falling short. 90g is past what the studies tested,
+ *    so it is a ceiling, never the aim, and still awaits dietitian sign-off.
  *
  * The cost, accepted: very high calorie targets end the day shorter, because
  * nuts were the main way extras closed a big gap.
@@ -2384,7 +2484,7 @@ export const NUT_GROUP: ReadonlySet<string> = new Set([
   "peanut-butter",
   "groundnut",
 ]);
-export const NUT_DAILY_MAX_G = 60;
+export const NUT_DAILY_MAX_G = 90;
 
 /** A serving's normal grams, for turning a saved "normal" / "less:0.5" size into grams. */
 function baseGramsFor(id: string): number | null {

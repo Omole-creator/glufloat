@@ -6,6 +6,7 @@ import { ArrowRight, Flame, Moon, Scale, Sun, Sunrise } from "lucide-react";
 import type { Food } from "@/lib/types";
 import {
   platesWithFood,
+  OAT_HIGH_NEED_TARGET,
   mealShareFor,
   mealIdeaCalories,
   mealIdeaCarbs,
@@ -42,6 +43,7 @@ function line(names: string[]): string {
 async function mealTargets(personalize: boolean): Promise<{
   targets: Partial<Record<NamedMeal, number>>;
   conditions: Condition[];
+  highNeed?: boolean;
 }> {
   const p = await readPersonalizationProfile();
   const conditions = p.conditions ?? [];
@@ -59,7 +61,7 @@ async function mealTargets(personalize: boolean): Promise<{
       ? mealShareFor(daily, 0, p.mealPattern, m, conditions)
       : mealShareFor(daily, eaten, p.mealPattern, m, conditions, eatenAtMeal(rows, m));
   }
-  return { targets, conditions };
+  return { targets, conditions, highNeed: daily >= OAT_HIGH_NEED_TARGET };
 }
 
 /**
@@ -86,7 +88,7 @@ export default function MealsWithFood({
       const [t, week] = await Promise.all([mealTargets(personalize), foodCountsThisWeek()]);
       if (!live) return;
       setTargets(t.targets);
-      setPlates(platesWithFood(food.id, t.targets, t.conditions, week));
+      setPlates(platesWithFood(food.id, t.targets, t.conditions, week, t.highNeed));
     };
     void load();
     window.addEventListener(PERSONALIZATION_CHANGED, load);
