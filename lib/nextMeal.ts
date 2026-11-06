@@ -2472,7 +2472,7 @@ function guardedCandidate(candidate: ExtraCandidate, food: Food, capProtein: boo
  *    the top of what the nut studies used (docs/EVIDENCE.md section 9). It was
  *    60g until the founder raised it to 90g on 2026-11-06, after a 10-day sweep
  *    showed higher targets falling short. 90g is past what the studies tested,
- *    so it is a ceiling, never the aim, and still awaits dietitian sign-off.
+ *    so it is a ceiling, never the aim. Signed off by the co-founder dietitian.
  *
  * The cost, accepted: very high calorie targets end the day shorter, because
  * nuts were the main way extras closed a big gap.

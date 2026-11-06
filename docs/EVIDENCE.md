@@ -1041,8 +1041,7 @@ the two no longer meet the co-founder dietitian's "equivalent" limits.
 
 **Plates:** egusi, bitterleaf and okra soup, with fish or chicken. Served this way in
 Ondo ([First Daily, 2025](https://firstdaily.ng/?p=144007)). Shares the swallows'
-4 a week. **No swaps**: `lib/foodSwaps.ts` holds only what the co-founder dietitian
-marked, and she has not seen this food.
+4 a week. **No swaps, and none are needed** (founder, 2026-11-06).
 
 ## 18. Whole-table check, 2026-11-06 (founder: "correct lafun if wrong and others")
 
@@ -1095,7 +1094,7 @@ oat swallow: it made Glufloat look as if it only recommends one food.
   (90g is about 540kcal), which is why it applies only when the day's target needs
   it and is a ceiling, never the aim; kidney disease, where nuts stay at their
   card size; salted nuts for high blood pressure; and nut allergy. No systematic
-  safety review was found. Awaiting dietitian sign-off.
+  safety review was found. **Signed off by the co-founder dietitian (founder, 2026-11-06).**
 
 **Days within 10% of the target, 10-day sweep, 1,080 profiles, no condition:**
 
@@ -1111,3 +1110,8 @@ oat swallow: it made Glufloat look as if it only recommends one food.
 High blood pressure is about the same. **Kidney disease stays lower** (82% at
 2,000-2,399, 50% at 2,400-2,799, 13% at 2,800-3,199): protein-bearing foods cannot
 scale past their card size there, on purpose.
+
+**Who has a target of 2,400kcal or more?** Of 1,080 simulated profiles, 343: 137 normal
+weight, 113 overweight, 93 obese; 253 very or extra active. So it is mostly active
+people, not obese ones, because adjusted weight keeps obese targets down. Among real
+users on 2026-11-06, the 3 with full details were all under 2,000kcal.
