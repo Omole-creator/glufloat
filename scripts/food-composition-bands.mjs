@@ -5,20 +5,23 @@
 export const PLAUSIBILITY_BANDS = {
   swallow: [70, 180],
   rice: [90, 260],
-  tuber: [60, 260],
+  // 290: fried yam measures 277 in the 2016 table (2026-11-06).
+  tuber: [60, 290],
   plantain: [70, 300],
   snack: [60, 600],
   legume: [70, 400],
   bread: [200, 340],
   cereal: [30, 420],
-  corn: [60, 130],
+  // 140: boiled corn measures 136 in the 2016 table (2026-11-06).
+  corn: [60, 140],
   // 5, not 30: since 2026-10-24 a soup card counts the soup without its meat or
   // fish (scripts/soup-recipes.mjs), and a plain broth like pepper soup is light.
   soup: [5, 260],
   protein: [60, 450],
   vegetable: [10, 250],
   fruit: [15, 320],
-  nut: [280, 700],
+  // 140: kola nut (147) and bitter kola (204) are eaten fresh and wet, not dry.
+  nut: [140, 700],
   drink: [0, 420],
   dairy: [30, 350],
   fat: [650, 900],

@@ -1034,8 +1034,7 @@ joined).
 
 **Not taken from the table:** its potassium and sodium for these two. Eba's sodium
 319.85 and potassium 332.05 sit oddly against dry garri, and fufu's potassium 0.57 is
-not believable. The earlier estimates stay. Cooked lafun in the table is 100.42 kcal,
-24.39g carbs, against 110 and 26 in the data; it was not asked about and was left.
+not believable. The earlier estimates stay.
 
 Recomputing the swaps with these numbers dropped eba and fufu as a pair, because
 the two no longer meet the co-founder dietitian's "equivalent" limits.
@@ -1044,3 +1043,30 @@ the two no longer meet the co-founder dietitian's "equivalent" limits.
 Ondo ([First Daily, 2025](https://firstdaily.ng/?p=144007)). Shares the swallows'
 4 a week. **No swaps**: `lib/foodSwaps.ts` holds only what the co-founder dietitian
 marked, and she has not seen this food.
+
+## 18. Whole-table check, 2026-11-06 (founder: "correct lafun if wrong and others")
+
+All 281 rows of `food.pdf.pdf` were parsed and paired by hand with our foods, cooked
+with cooked and raw with raw. A food changed only if (1) the row is the same food in
+the same state, (2) the row is sound: its parts add up to about 100g and its energy
+agrees with them, and (3) the gap is real: 15% or more, and at least 30 kcal or 3g
+carbohydrate per 100g. Potassium and sodium were not changed.
+
+**Corrected (kcal / carbs per 100g, was then now):** lafun 110/26 to 100/24.4;
+tuwo shinkafa 110/25 to 90/19.5; amala 120/28 to 89/20.5; pounded yam 130/30 to
+109/22.2; fried yam 220/30 to 277/53.8; roasted yam 125/29 to 188/38.4; water yam
+108/25 to 128/27.9; cocoyam 112/26 to 132/28.9; sweet potato 90/21 to 118/25.5;
+boiled corn 96/21 to 136/24.7; brown rice 123/26 to 141/29.5; fried rice 175/27 to
+173/32.6; wheat bread 247/41 to 282/51.8; dodo 250/37 to 292/48; moi moi 170/14 to
+108/15.7; kola nut 300/55 to 147/32; bitter kola 320/60 to 204/35.6; sugarcane 269/70
+to 90/16.4; agbalumo 67/15 to 107/9.6.
+
+**Left, on purpose:** boiled ripe plantain (row 81 kcal, parts add to only 92g);
+pawpaw (parts add to 105g, energy does not fit); periwinkle (row is dried; ours is
+boiled); pito (6g fat is not believable); okpa, fio-fio, ekuru (row is a different
+dish or does not fit); tiger nut (row is dry, 4.7% water); boiled egg (195 against
+the well-established 155; two good sources disagree, and no carbs are involved);
+palm wine (fresh sap against fermented). Vegetables and fruit with small gaps stay.
+
+The bands in `food-composition-bands.mjs` were widened for three measured facts:
+tuber to 290 (fried yam), corn to 140, nut down to 140 (fresh kola and bitter kola).

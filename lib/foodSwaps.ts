@@ -117,16 +117,6 @@ export const FOOD_SWAPS: FoodSwap[] = [
     "row": 24
   },
   {
-    "from": "acha",
-    "to": "tuwo-shinkafa",
-    "row": 25
-  },
-  {
-    "from": "tuwo-shinkafa",
-    "to": "acha",
-    "row": 25
-  },
-  {
     "from": "amala-plantain",
     "to": "garri-eba",
     "row": 26
@@ -208,11 +198,7 @@ export const FOOD_SWAPS: FoodSwap[] = [
   {
     "from": "pounded-yam",
     "to": "oat-swallow",
-    "row": 36,
-    "grams": 150,
-    "calories": 165,
-    "carbG": 30,
-    "instruction": "One and a half balls of oat swallow, each the size of your fist (150g in total)."
+    "row": 36
   },
   {
     "from": "oat-swallow",
@@ -223,6 +209,16 @@ export const FOOD_SWAPS: FoodSwap[] = [
     "from": "tuwo-shinkafa",
     "to": "oat-swallow",
     "row": 37
+  },
+  {
+    "from": "pounded-yam",
+    "to": "semovita",
+    "row": 38
+  },
+  {
+    "from": "semovita",
+    "to": "pounded-yam",
+    "row": 38
   },
   {
     "from": "tuwo-dawa",
@@ -324,6 +320,16 @@ export const FOOD_SWAPS: FoodSwap[] = [
     "row": 68
   },
   {
+    "from": "cocoyam",
+    "to": "sweet-potato",
+    "row": 69
+  },
+  {
+    "from": "sweet-potato",
+    "to": "cocoyam",
+    "row": 69
+  },
+  {
     "from": "boiled-plantain-ripe",
     "to": "boiled-plantain-unripe",
     "row": 70
@@ -376,12 +382,11 @@ export const FOOD_SWAPS: FoodSwap[] = [
   {
     "from": "boiled-yam",
     "to": "brown-rice",
-    "row": 77
-  },
-  {
-    "from": "brown-rice",
-    "to": "boiled-yam",
-    "row": 77
+    "row": 77,
+    "grams": 80,
+    "calories": 113,
+    "carbG": 23.6,
+    "instruction": "Half a cup of cooked brown rice (80g)."
   },
   {
     "from": "coconut-rice",
@@ -490,16 +495,6 @@ export const FOOD_SWAPS: FoodSwap[] = [
     "from": "weetabix",
     "to": "oats",
     "row": 88
-  },
-  {
-    "from": "moi-moi",
-    "to": "okpa",
-    "row": 98
-  },
-  {
-    "from": "okpa",
-    "to": "moi-moi",
-    "row": 98
   },
   {
     "from": "plain-yogurt",

@@ -56,14 +56,14 @@
       "staple"
     ],
     "portionIcon": "fist",
-    "calories": 130,
-    "proteinG": 1.5,
-    "fatG": 0.2,
-    "carbG": 30,
-    "fiberG": 2,
+    "calories": 109,
+    "proteinG": 1,
+    "fatG": 1.4,
+    "carbG": 22.2,
+    "fiberG": 1.6,
     "potassiumMg": 300,
     "sodiumMg": 5,
-    "nutritionSource": "estimated"
+    "nutritionSource": "table"
   },
   {
     "id": "amala-yam",
@@ -87,14 +87,14 @@
       "staple"
     ],
     "portionIcon": "fist",
-    "calories": 120,
-    "proteinG": 1.5,
-    "fatG": 0.3,
-    "carbG": 28,
-    "fiberG": 2,
+    "calories": 89,
+    "proteinG": 0.3,
+    "fatG": 0.1,
+    "carbG": 20.5,
+    "fiberG": 2.5,
     "potassiumMg": 150,
     "sodiumMg": 5,
-    "nutritionSource": "estimated"
+    "nutritionSource": "table"
   },
   {
     "id": "amala-plantain",
@@ -271,14 +271,14 @@
       "northern"
     ],
     "portionIcon": "fist",
-    "calories": 110,
+    "calories": 90,
     "proteinG": 2,
-    "fatG": 0.3,
-    "carbG": 25,
-    "fiberG": 0.5,
+    "fatG": 0.4,
+    "carbG": 19.5,
+    "fiberG": 0,
     "potassiumMg": 30,
     "sodiumMg": 5,
-    "nutritionSource": "estimated"
+    "nutritionSource": "table"
   },
   {
     "id": "tuwo-masara",
@@ -435,14 +435,14 @@
     ],
     "healthNote": "This food is fried or heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, keep to the size shown below and use less oil. Boiled or grilled is better.",
     "portionIcon": "half-cup",
-    "calories": 158,
-    "proteinG": 3.2,
-    "fatG": 4.5,
-    "carbG": 24.3,
-    "fiberG": 1.1,
+    "calories": 156,
+    "proteinG": 2.3,
+    "fatG": 3.1,
+    "carbG": 29.3,
+    "fiberG": 1,
     "potassiumMg": 126,
     "sodiumMg": 180,
-    "nutritionSource": "estimated"
+    "nutritionSource": "table"
   },
   {
     "id": "ofada-rice",
@@ -495,14 +495,14 @@
       "swap"
     ],
     "portionIcon": "three-quarter-cup",
-    "calories": 148,
-    "proteinG": 3.2,
-    "fatG": 1.2,
-    "carbG": 31.2,
-    "fiberG": 2.2,
+    "calories": 169,
+    "proteinG": 3.7,
+    "fatG": 1.1,
+    "carbG": 35.4,
+    "fiberG": 1.4,
     "potassiumMg": 54,
     "sodiumMg": 4,
-    "nutritionSource": "estimated"
+    "nutritionSource": "table"
   },
   {
     "id": "basmati-rice",
@@ -618,14 +618,14 @@
     ],
     "healthNote": "This food is fried or heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, keep to the size shown below and use less oil. Boiled or grilled is better.",
     "portionIcon": "avoid",
-    "calories": 176,
-    "proteinG": 1.6,
-    "fatG": 8,
-    "carbG": 24,
-    "fiberG": 2,
+    "calories": 222,
+    "proteinG": 2.4,
+    "fatG": 4.2,
+    "carbG": 43,
+    "fiberG": 1,
     "potassiumMg": 336,
     "sodiumMg": 120,
-    "nutritionSource": "estimated"
+    "nutritionSource": "table"
   },
   {
     "id": "yam-porridge",
@@ -683,14 +683,14 @@
     ],
     "healthNote": "This food is fried or heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, keep to the size shown below and use less oil. Boiled or grilled is better.",
     "portionIcon": "matchbox",
-    "calories": 125,
-    "proteinG": 1.8,
-    "fatG": 0.3,
-    "carbG": 29,
-    "fiberG": 2.7,
+    "calories": 188,
+    "proteinG": 3.4,
+    "fatG": 2,
+    "carbG": 38.4,
+    "fiberG": 1.2,
     "potassiumMg": 460,
     "sodiumMg": 8,
-    "nutritionSource": "estimated"
+    "nutritionSource": "table"
   },
   {
     "id": "sweet-potato",
@@ -711,14 +711,14 @@
       "swap"
     ],
     "portionIcon": "fist",
-    "calories": 108,
-    "proteinG": 1.9,
-    "fatG": 0.1,
-    "carbG": 25.2,
+    "calories": 142,
+    "proteinG": 2.3,
+    "fatG": 0.4,
+    "carbG": 30.6,
     "fiberG": 3.6,
     "potassiumMg": 408,
     "sodiumMg": 43,
-    "nutritionSource": "estimated"
+    "nutritionSource": "table"
   },
   {
     "id": "irish-potato",
@@ -770,14 +770,14 @@
       "swap"
     ],
     "portionIcon": "eggs",
-    "calories": 134,
-    "proteinG": 1.8,
-    "fatG": 0.2,
-    "carbG": 31.2,
-    "fiberG": 4.2,
+    "calories": 158,
+    "proteinG": 2.4,
+    "fatG": 0.6,
+    "carbG": 34.7,
+    "fiberG": 2.8,
     "potassiumMg": 636,
     "sodiumMg": 11,
-    "nutritionSource": "estimated"
+    "nutritionSource": "table"
   },
   {
     "id": "boiled-plantain-unripe",
@@ -860,14 +860,14 @@
     ],
     "healthNote": "This food is fried or heavy with oil. If you have high blood pressure, high cholesterol, or kidney problems, keep to the size shown below and use less oil. Boiled or grilled is better.",
     "portionIcon": "avoid",
-    "calories": 150,
-    "proteinG": 0.8,
-    "fatG": 6.6,
-    "carbG": 22.2,
-    "fiberG": 1.3,
+    "calories": 175,
+    "proteinG": 0.9,
+    "fatG": 5.5,
+    "carbG": 28.8,
+    "fiberG": 3.5,
     "potassiumMg": 300,
     "sodiumMg": 4,
-    "nutritionSource": "estimated"
+    "nutritionSource": "table"
   },
   {
     "id": "unripe-plantain-porridge",
@@ -1516,14 +1516,14 @@
       "friendly"
     ],
     "portionIcon": "palm",
-    "calories": 255,
-    "proteinG": 15,
-    "fatG": 13.5,
-    "carbG": 21,
-    "fiberG": 7.5,
+    "calories": 162,
+    "proteinG": 9.8,
+    "fatG": 3.3,
+    "carbG": 23.5,
+    "fiberG": 2.6,
     "potassiumMg": 420,
     "sodiumMg": 300,
-    "nutritionSource": "estimated"
+    "nutritionSource": "table"
   },
   {
     "id": "akara",
@@ -1679,14 +1679,14 @@
       "swap"
     ],
     "portionIcon": "slice",
-    "calories": 74,
-    "proteinG": 3.9,
-    "fatG": 1,
-    "carbG": 12.3,
-    "fiberG": 2.1,
+    "calories": 85,
+    "proteinG": 2.5,
+    "fatG": 1.2,
+    "carbG": 15.5,
+    "fiberG": 0.8,
     "potassiumMg": 75,
     "sodiumMg": 120,
-    "nutritionSource": "estimated"
+    "nutritionSource": "table"
   },
   {
     "id": "pap",
@@ -1863,14 +1863,14 @@
       "seasonal"
     ],
     "portionIcon": "cob",
-    "calories": 77,
-    "proteinG": 2.7,
-    "fatG": 1.2,
-    "carbG": 16.8,
-    "fiberG": 1.9,
+    "calories": 109,
+    "proteinG": 2.8,
+    "fatG": 1.4,
+    "carbG": 19.8,
+    "fiberG": 3,
     "potassiumMg": 216,
     "sodiumMg": 12,
-    "nutritionSource": "estimated"
+    "nutritionSource": "table"
   },
   {
     "id": "roasted-corn",
@@ -3432,14 +3432,14 @@
     ],
     "carbExchange": "one small fruit",
     "portionIcon": "whole-fruit",
-    "calories": 27,
-    "proteinG": 0.4,
-    "fatG": 0.4,
-    "carbG": 6,
-    "fiberG": 1,
+    "calories": 43,
+    "proteinG": 1.6,
+    "fatG": 2,
+    "carbG": 3.8,
+    "fiberG": 1.7,
     "potassiumMg": 116,
     "sodiumMg": 2,
-    "nutritionSource": "estimated"
+    "nutritionSource": "table"
   },
   {
     "id": "soursop",
@@ -5564,14 +5564,14 @@
       "local"
     ],
     "portionIcon": "avoid",
-    "calories": 81,
-    "proteinG": 0.1,
-    "fatG": 0,
-    "carbG": 21,
-    "fiberG": 0.2,
+    "calories": 27,
+    "proteinG": 0.3,
+    "fatG": 0.2,
+    "carbG": 4.9,
+    "fiberG": 2.5,
     "potassiumMg": 51,
     "sodiumMg": 3,
-    "nutritionSource": "estimated"
+    "nutritionSource": "table"
   },
   {
     "id": "velvet-tamarind",
@@ -5656,14 +5656,14 @@
       "local"
     ],
     "portionIcon": "pieces",
-    "calories": 32,
-    "proteinG": 0.5,
-    "fatG": 0.3,
-    "carbG": 6,
-    "fiberG": 1.5,
+    "calories": 20,
+    "proteinG": 0.3,
+    "fatG": 0.5,
+    "carbG": 3.6,
+    "fiberG": 0.5,
     "potassiumMg": 50,
     "sodiumMg": 1,
-    "nutritionSource": "estimated"
+    "nutritionSource": "table"
   },
   {
     "id": "kola-nut",
@@ -5686,14 +5686,14 @@
       "local"
     ],
     "portionIcon": "pieces",
-    "calories": 45,
-    "proteinG": 0.8,
-    "fatG": 0.5,
-    "carbG": 8.3,
-    "fiberG": 1.5,
+    "calories": 22,
+    "proteinG": 0.4,
+    "fatG": 0.1,
+    "carbG": 4.8,
+    "fiberG": 0.3,
     "potassiumMg": 75,
     "sodiumMg": 2,
-    "nutritionSource": "estimated"
+    "nutritionSource": "table"
   },
   {
     "id": "coconut-water",
@@ -6038,14 +6038,14 @@
       "yoruba"
     ],
     "portionIcon": "fist",
-    "calories": 110,
-    "proteinG": 0.6,
-    "fatG": 0.2,
-    "carbG": 26,
-    "fiberG": 1,
+    "calories": 100,
+    "proteinG": 0.5,
+    "fatG": 0.1,
+    "carbG": 24.4,
+    "fiberG": 0.6,
     "potassiumMg": 70,
     "sodiumMg": 10,
-    "nutritionSource": "estimated"
+    "nutritionSource": "table"
   },
   {
     "id": "coconut-rice",
@@ -6127,14 +6127,14 @@
       "local"
     ],
     "portionIcon": "matchbox",
-    "calories": 108,
-    "proteinG": 1.4,
-    "fatG": 0.2,
-    "carbG": 25,
-    "fiberG": 2.5,
+    "calories": 128,
+    "proteinG": 2.5,
+    "fatG": 0.1,
+    "carbG": 27.9,
+    "fiberG": 2.9,
     "potassiumMg": 400,
     "sodiumMg": 6,
-    "nutritionSource": "estimated"
+    "nutritionSource": "table"
   },
   {
     "id": "gizdodo",
