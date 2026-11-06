@@ -26,7 +26,6 @@ import {
   mealIdeaCarbs,
   mealIdeaFoodsForBuilder,
   MEAL_MAX_CALORIES,
-  GLUFLOAT_SIZE_STARCHES,
   MAX_EXTRA_ITEMS,
   mealShareFor,
   suggestSnack,
