@@ -3,6 +3,7 @@ import LegalShell from "@/components/LegalShell";
 
 export const metadata: Metadata = {
   title: "Privacy Policy | Glufloat",
+  alternates: { canonical: "/privacy" },
 };
 
 export default function PrivacyPage() {

@@ -53,6 +53,7 @@ export const SWALLOW_OPTIONS: { value: string; label: string }[] = [
   { value: "fufu-akpu", label: "Fufu (akpu)" },
   { value: "cocoyam-fufu", label: "Cocoyam fufu" },
   { value: "lafun", label: "Lafun" },
+  { value: "pupuru", label: "Pupuru" },
   { value: "semovita", label: "Semovita" },
   { value: "wheat-swallow", label: "Wheat swallow" },
   { value: "tuwo-shinkafa", label: "Tuwo shinkafa" },

@@ -13,6 +13,9 @@ export const SITE_URL = (
 
 export const SITE_NAME = "Glufloat";
 
+/** The picture a shared link shows on WhatsApp, Facebook and X, when a page has none of its own. */
+export const SOCIAL_IMAGE = "/img/og-glufloat.jpg";
+
 export const SITE_DESCRIPTION =
   "Clear answers on Nigerian foods for people living with diabetes. Every meal gets a green, yellow, or red rating, plus simple ways to improve it.";
 

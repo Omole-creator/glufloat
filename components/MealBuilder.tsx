@@ -453,7 +453,8 @@ export default function MealBuilder({
                     </span>
                     <div className="min-w-0">
                       <p className="text-[11px] font-bold uppercase tracking-wider text-verdict-red">Please note</p>
-                      <p className="mt-0.5 text-sm text-ink">{n}</p>
+                      {/* A green plate shows the sizes first, so here they are above this note. */}
+                      <p className="mt-0.5 text-sm text-ink">{portionsFirst ? n?.replace("shown below", "shown above") : n}</p>
                     </div>
                   </div>
                 ))}

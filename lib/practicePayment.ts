@@ -19,6 +19,7 @@
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { extendAccess, practiceMonthsForAmount, practicePlanForAmount } from "@/lib/hospitalPlans";
+import { watDay } from "@/lib/chat";
 
 export type PracticeGrantResult = "granted" | "already" | "conflict" | "no_practice" | "not_practice_amount";
 
@@ -82,7 +83,7 @@ export async function grantPracticePayment(
 
   // Counted on /admin/finance, the same way a paid hospital invoice is.
   await admin.from("finance_income").insert({
-    received_on: p.paidAt.slice(0, 10),
+    received_on: watDay(p.paidAt),
     amount: p.amount,
     kind: "other_revenue",
     source: `Dietitian: ${practice.name}`,

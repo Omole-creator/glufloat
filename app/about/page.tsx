@@ -10,6 +10,7 @@ export const metadata: Metadata = {
   title: "About Us | Glufloat",
   description:
     "GluFloat is a digital health startup helping people living with diabetes make better food choices without giving up the meals they love.",
+  alternates: { canonical: "/about" },
 };
 
 // The founders' own words (2026-10-09). Change them only on their say.

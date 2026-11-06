@@ -10496,5 +10496,38 @@
     "potassiumMg": 20,
     "sodiumMg": 2,
     "nutritionSource": "estimated"
+  },
+  {
+    "id": "pupuru",
+    "name": "Pupuru (Ikale fufu)",
+    "aliases": [
+      "pupuru",
+      "ikale fufu",
+      "cassava poundo",
+      "ikwurikwu",
+      "kpukpuru"
+    ],
+    "category": "swallow",
+    "role": "starch",
+    "carbLoad": "high",
+    "gi": "high",
+    "baseVerdict": "yellow",
+    "portionGuidance": "One ball the size of your fist. That is about half a cup of the cooked swallow (100g).",
+    "pairingAdvice": "Egusi soup, bitterleaf soup, or okra soup, with fish or chicken.",
+    "frequency": "About 4 times a week.",
+    "logicNote": "Cassava soaked, dried over smoke, and cooked into a swallow. It raises sugar fast, like fufu. Keep to the size shown below.",
+    "tags": [
+      "local",
+      "staple"
+    ],
+    "portionIcon": "fist",
+    "calories": 150,
+    "proteinG": 0.7,
+    "fatG": 0.3,
+    "carbG": 36,
+    "fiberG": 0.7,
+    "potassiumMg": 80,
+    "sodiumMg": 10,
+    "nutritionSource": "estimated"
   }
 ]

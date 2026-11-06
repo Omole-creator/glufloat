@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Check, Hospital, ShieldCheck, Stethoscope, X } from "lucide-react";
@@ -14,6 +15,9 @@ import { Testimonials } from "@/components/ui/testimonial-v2";
 import { Pricing, type PricingPlan } from "@/components/ui/pricing";
 import CountUp from "@/components/CountUp";
 import TrialCta from "@/components/TrialCta";
+
+// Only the home page may call itself "/". See the note in app/layout.tsx.
+export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 const PLANS: PricingPlan[] = [
   {

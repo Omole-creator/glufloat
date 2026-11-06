@@ -35,18 +35,19 @@ function ExtraRow({ item, meal, snack, hideTiming }: { item: ExtraOption; meal: 
               <span className="block text-xs font-semibold text-ink-soft">{item.calories} kcal</span>
             </p>
           </div>
+          {/* Above the size on purpose: the note says "keep to the size shown below". */}
+          {item.food.healthNote && (
+            <p className="mt-2 flex gap-1.5 rounded-lg bg-verdict-red/[0.07] px-2.5 py-1.5 text-xs leading-snug text-ink ring-1 ring-inset ring-verdict-red/15">
+              <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-verdict-red" strokeWidth={2.4} aria-hidden />
+              {item.food.healthNote}
+            </p>
+          )}
           <p className="mt-1 text-sm leading-snug text-ink-soft">{item.instruction}</p>
           <MeasureChips text={item.instruction} forFood={item.name} className="mt-2" />
           {timing && (
             <p className="mt-2 inline-flex items-start gap-1.5 rounded-lg bg-leaf/10 px-2.5 py-1.5 text-xs font-semibold leading-snug text-leaf-deep">
               <Clock className="mt-0.5 h-3.5 w-3.5 shrink-0" strokeWidth={2.4} />
               {timing}
-            </p>
-          )}
-          {item.food.healthNote && (
-            <p className="mt-2 flex gap-1.5 rounded-lg bg-verdict-red/[0.07] px-2.5 py-1.5 text-xs leading-snug text-ink ring-1 ring-inset ring-verdict-red/15">
-              <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-verdict-red" strokeWidth={2.4} aria-hidden />
-              {item.food.healthNote}
             </p>
           )}
         </div>

@@ -51,7 +51,9 @@ export async function POST(request: Request) {
     const { data: p } = await admin
       .from("profiles")
       .select("id")
-      .ilike("email", email)
+      // Escaped: in ilike, an "_" in an address matches any letter, so
+      // a_b@x.com could otherwise be credited to axb@x.com.
+      .ilike("email", email.replace(/[%_\\]/g, "\\$&"))
       .maybeSingle();
     return p?.id ?? null;
   }

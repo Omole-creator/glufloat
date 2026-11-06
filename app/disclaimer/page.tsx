@@ -3,6 +3,7 @@ import LegalShell from "@/components/LegalShell";
 
 export const metadata: Metadata = {
   title: "Medical Disclaimer | Glufloat",
+  alternates: { canonical: "/disclaimer" },
 };
 
 export default function DisclaimerPage() {

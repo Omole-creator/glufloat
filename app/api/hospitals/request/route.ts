@@ -75,7 +75,7 @@ export async function POST(request: Request) {
       .from("hospitals")
       .select("id,name,status")
       .eq("contact_email", email)
-      .ilike("name", name)
+      .ilike("name", name.replace(/[%_\\]/g, "\\$&"))
       .in("status", ["pilot", "active"])
       .limit(1);
     if (same && same.length > 0) {

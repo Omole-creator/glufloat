@@ -38,6 +38,8 @@ export default function DeleteAccount() {
     fetch("/api/account/delete")
       .then(async (r) => {
         if (r.status === 401) return setSignedOut(true);
+        // A server error answers { error }, which has no `practices` list to read.
+        if (!r.ok) return setProblem("Could not load this page. Check your internet and try again.");
         setPre((await r.json()) as Preview);
       })
       .catch(() => setProblem("Could not load this page. Check your internet and try again."));

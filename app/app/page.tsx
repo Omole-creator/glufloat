@@ -444,7 +444,7 @@ export default function AppPage() {
                 >
                   <span className="flex items-center justify-between">
                     <span className="font-display text-sm font-bold text-ink">
-                      {TIER_LABEL[t.tier]} —{" "}
+                      {TIER_LABEL[t.tier]}:{" "}
                       {showYearly
                         ? `${nairaLabel(TIER_YEARLY_AMOUNTS[t.tier])} / year`
                         : `${nairaLabel(TIER_AMOUNTS[t.tier])} / month`}

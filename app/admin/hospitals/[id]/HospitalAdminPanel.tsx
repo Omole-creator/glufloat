@@ -15,6 +15,7 @@ import {
 } from "@/lib/hospitalPlans";
 import { buildDocumentPdf, buildPosterPdf, ngn, type DocumentForPdf } from "@/lib/hospitalPdf";
 import { VAT_RATE, type InvoiceSettings } from "@/lib/invoiceSettings";
+import { watDay } from "@/lib/chat";
 import type { HospitalRow } from "@/lib/hospitalServer";
 import InviteLinkBox from "@/components/hospital/InviteLinkBox";
 
@@ -98,7 +99,7 @@ export default function HospitalAdminPanel({
   const docAction = async (d: Doc, action: "paid" | "void" | "invoice") => {
     let paidOn: string | undefined;
     if (action === "paid") {
-      const today = new Date().toISOString().slice(0, 10);
+      const today = watDay(new Date().toISOString());
       const answer = prompt(
         `The transfer for ${d.number} (${ngn(d.amount)}) has arrived?\nType the date it arrived (YYYY-MM-DD):`,
         today,

@@ -166,6 +166,18 @@ export async function DELETE(request: Request) {
   if (String(body.confirmName ?? "").trim().toLowerCase() !== String(h.name).trim().toLowerCase())
     return NextResponse.json({ error: "Type the hospital's name exactly to delete it." }, { status: 400 });
 
+  // Money history blocks a delete, the same rule as /api/admin/doctors. Checked
+  // BEFORE anything changes: an earning would lose who it is owed to (the link
+  // is set to null), and a payout makes the database refuse the delete, which
+  // used to happen after patients had already been given their days back.
+  const [earned, sourced, paid] = await Promise.all([
+    admin.from("clinician_earnings").select("id", { count: "exact", head: true }).eq("hospital_id", id),
+    admin.from("clinician_earnings").select("id", { count: "exact", head: true }).eq("source_hospital_id", id),
+    admin.from("earning_payouts").select("id", { count: "exact", head: true }).eq("hospital_id", id),
+  ]);
+  if ((earned.count ?? 0) + (sourced.count ?? 0) + (paid.count ?? 0) > 0)
+    return NextResponse.json({ error: "This account has money on record, so it cannot be deleted. Switch it off instead." }, { status: 409 });
+
   const { data: pats } = await admin.from("hospital_patients").select("*").eq("hospital_id", id);
   for (const p of (pats ?? []) as PatientRow[]) await restoreCarried(admin, p);
   const { error } = await admin.from("hospitals").delete().eq("id", id);

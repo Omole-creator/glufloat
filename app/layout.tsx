@@ -4,7 +4,7 @@ import { Analytics } from "@vercel/analytics/next";
 import GoogleTagManager, {
   GoogleTagManagerNoScript,
 } from "@/components/GoogleTagManager";
-import { SITE_DESCRIPTION, SITE_NAME, SITE_URL, abs } from "@/lib/site";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL, SOCIAL_IMAGE, abs } from "@/lib/site";
 import "./globals.css";
 
 const display = Geist({
@@ -25,7 +25,9 @@ export const metadata: Metadata = {
   title: "Glufloat | Know if a food is right for your diabetes, before you eat it",
   description:
     "Check any Nigerian food or your whole meal. Glufloat gives you a clear green, yellow, or red answer, plus the simple fix that makes it safe for your sugar. 7 days free, then N1,500 a month.",
-  alternates: { canonical: "/" },
+  // No canonical here on purpose: every page inherits this object, so a "/" in
+  // the layout told Google that /about, /terms, /privacy and /disclaimer were
+  // copies of the home page. Each public page sets its own.
   icons: {
     icon: "/icon.png",
     apple: "/apple-touch-icon.png",
@@ -38,12 +40,14 @@ export const metadata: Metadata = {
     siteName: SITE_NAME,
     locale: "en_NG",
     url: SITE_URL,
+    images: [{ url: SOCIAL_IMAGE, width: 1200, height: 630, alt: "A plate of jollof rice with grilled fish" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Glufloat | Eat your food again, without the fear",
     description:
       "Green, yellow, or red answers on 1,500+ Nigerian foods, with the fix that turns your meal green.",
+    images: [SOCIAL_IMAGE],
   },
 };
 

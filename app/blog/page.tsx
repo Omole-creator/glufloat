@@ -6,7 +6,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { getPublishedPosts, longDate, type Post } from "@/lib/blog";
 import { readingMinutes } from "@/lib/markdown";
-import { abs, SITE_NAME } from "@/lib/site";
+import { abs, SITE_NAME, SOCIAL_IMAGE } from "@/lib/site";
 
 // Rebuilt on publish (revalidatePath), and re-checked hourly as a safety net in
 // case a revalidate call is ever lost.
@@ -26,8 +26,9 @@ export const metadata: Metadata = {
     url: abs("/blog"),
     type: "website",
     siteName: SITE_NAME,
+    images: [{ url: SOCIAL_IMAGE, width: 1200, height: 630, alt: "A plate of jollof rice with grilled fish" }],
   },
-  twitter: { card: "summary_large_image", title: TITLE, description: DESCRIPTION },
+  twitter: { card: "summary_large_image", title: TITLE, description: DESCRIPTION, images: [SOCIAL_IMAGE] },
 };
 
 /** The green "Checked by" badge, on any post a dietitian has really read. */

@@ -33,6 +33,7 @@ const ICONS = {
   "tuwo-masara": "fist",
   "starch-delta": "fist",
   lafun: "fist",
+  pupuru: "fist",
   "cocoyam-fufu": "fist",
   "tuwo-dawa": "fist",
 

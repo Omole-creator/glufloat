@@ -3,6 +3,7 @@ import LegalShell from "@/components/LegalShell";
 
 export const metadata: Metadata = {
   title: "Terms of Use | Glufloat",
+  alternates: { canonical: "/terms" },
 };
 
 export default function TermsPage() {

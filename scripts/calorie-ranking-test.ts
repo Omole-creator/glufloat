@@ -26,6 +26,7 @@ import {
   mealIdeaCarbs,
   mealIdeaFoodsForBuilder,
   MEAL_MAX_CALORIES,
+  GLUFLOAT_SIZE_STARCHES,
   MAX_EXTRA_ITEMS,
   mealShareFor,
   suggestSnack,
@@ -802,7 +803,15 @@ for (const meal of MEALS) {
   }
   // No scaling active (no calorie target given) must return the exact same
   // array reference — no unnecessary cloning for the common case.
-  const plain = planForDay("lunch", "2026-08-29", new Map());
+  // A right-size starch is copied on purpose, so look for a plate without one
+  // rather than rely on one date landing on such a plate as the list grows.
+  let plain = planForDay("lunch", "2026-08-29", new Map());
+  for (let d = 1; d <= 28 && plain.foods.some((f) => GLUFLOAT_SIZE_STARCHES.has(f.id)); d++) {
+    plain = planForDay("lunch", `2026-08-${String(d).padStart(2, "0")}`, new Map());
+  }
+  if (plain.foods.some((f) => GLUFLOAT_SIZE_STARCHES.has(f.id))) {
+    fail("mealIdeaFoodsForBuilder test setup: no lunch without a right-size starch in 28 days");
+  }
   if (mealIdeaFoodsForBuilder(plain) !== plain.foods) {
     fail("mealIdeaFoodsForBuilder should return the same foods array when nothing was scaled");
   }

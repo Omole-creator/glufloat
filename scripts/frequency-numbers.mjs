@@ -67,7 +67,7 @@ const OVERRIDES = {
  */
 const SWALLOW_GROUP = new Set([
   "garri-eba", "pounded-yam", "amala-yam", "amala-plantain", "fufu-akpu",
-  "cocoyam-fufu", "lafun", "semovita", "wheat-swallow", "tuwo-shinkafa",
+  "cocoyam-fufu", "lafun", "pupuru", "semovita", "wheat-swallow", "tuwo-shinkafa",
   "tuwo-masara", "tuwo-dawa", "acha", "starch-delta",
 ]);
 

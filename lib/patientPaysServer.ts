@@ -18,6 +18,7 @@
 import { randomBytes } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { SITE_URL } from "@/lib/site";
+import { watDay } from "@/lib/chat";
 import type { HospitalRow, PatientRow } from "@/lib/hospitalServer";
 import { dietitianShareKobo, isPatientPays, nextPaidUntil, PATIENT_PAY_KIND, patientPrice, VOLUME_WINDOW_DAYS } from "@/lib/patientPays";
 
@@ -209,7 +210,7 @@ export async function grantPatientPayment(
   // The whole payment is money a customer paid GluFloat, counted on
   // /admin/finance; her share is counted there as a cost (above).
   await admin.from("finance_income").insert({
-    received_on: p.paidAt.slice(0, 10),
+    received_on: watDay(p.paidAt),
     amount: p.amount,
     kind: "other_revenue",
     source: `Dietitian patient: ${row.hospitals.name}`,

@@ -643,7 +643,7 @@ const SIZE_PLATES_BREAKFAST: string[][] = [
  */
 export const SWALLOW_IDS: ReadonlySet<string> = new Set([
   "garri-eba", "pounded-yam", "amala-yam", "amala-plantain", "fufu-akpu",
-  "cocoyam-fufu", "lafun", "semovita", "wheat-swallow", "tuwo-shinkafa",
+  "cocoyam-fufu", "lafun", "pupuru", "semovita", "wheat-swallow", "tuwo-shinkafa",
   "tuwo-masara", "tuwo-dawa", "acha", "starch-delta",
 ]);
 export const SWALLOW_WEEKLY_LIMIT = 4;
@@ -676,6 +676,9 @@ const SWALLOW_PLATES: string[][] = [
   ["cocoyam-fufu", "oha-soup", "chicken"],
   ["lafun", "ewedu", "fish"],
   ["lafun", "efo-riro", "chicken"],
+  ["pupuru", "egusi-soup", "fish"],
+  ["pupuru", "bitterleaf-soup", "chicken"],
+  ["pupuru", "okra-soup", "fish"],
   ["semovita", "efo-riro", "chicken"],
   ["semovita", "okra-soup", "fish"],
   ["semovita", "edikang-ikong", "fish"],

@@ -3,6 +3,7 @@ import { isAdmin } from "@/lib/adminSession";
 import { createAdminClient } from "@/lib/supabase/server";
 import { documentAmountKobo, extendAccess, planName, type HospitalBilling, type HospitalPlanId } from "@/lib/hospitalPlans";
 import { VAT_RATE, readInvoiceSettings } from "@/lib/invoiceSettings";
+import { watDay } from "@/lib/chat";
 
 export const dynamic = "force-dynamic";
 
@@ -119,7 +120,7 @@ export async function PATCH(request: Request) {
 
   if (action === "paid") {
     if (doc.kind !== "invoice") return NextResponse.json({ error: "Turn the quote into an invoice first." }, { status: 400 });
-    const paidOn = /^\d{4}-\d{2}-\d{2}$/.test(String(body.paidOn ?? "")) ? String(body.paidOn) : new Date().toISOString().slice(0, 10);
+    const paidOn = /^\d{4}-\d{2}-\d{2}$/.test(String(body.paidOn ?? "")) ? String(body.paidOn) : watDay(new Date().toISOString());
     // Flip the status first: a double tap cannot add the months twice.
     const { data: flipped } = await admin
       .from("hospital_documents")

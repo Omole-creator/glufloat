@@ -282,6 +282,21 @@ export async function getAccess(): Promise<{
     };
   }
 
+  // Paid before but never started a trial, and the plan has run out. This is a
+  // renewal, not a new person: without this they fell through to "new" and were
+  // offered a free trial on top of what they had already paid for.
+  if (sub) {
+    const previousTier: Tier = sub.tier === "plus" || sub.tier === "dietitian" ? sub.tier : "basic";
+    return {
+      email: user.email ?? null,
+      name,
+      hospitalStaff,
+      inbox,
+      doctor,
+      access: { status: "expired", lapsed: true, previousTier, previousYearly: isYearlyAmount(sub.amount) },
+    };
+  }
+
   // Signed in but no trial yet and no subscription.
   return { email: user.email ?? null, name, hospitalStaff, inbox, doctor, access: { status: "new" } };
 }

@@ -983,3 +983,42 @@ but they cannot also unlock the right-size step.
 (breakfast 33 to 30 plates); their swaps stay in the swap table, unused. Still
 green: wheat bread + egg + moi moi (the egg), and any of the above with a green
 soup or vegetable added.
+
+---
+
+## 17. Pupuru (added 2026-11-06, founder's request)
+
+Fermented, smoke-dried cassava, from the Ikale and Ilaje people of Ondo State. Also
+called Ikale fufu, cassava poundo and ikwurikwu (Adejuyitan 2018 confirms
+ikwurikwu). **Kpukpuru** is the founder's own name for it; no source was found, and
+it is kept as a search name only. "Poundo" alone still goes to Pounded Yam.
+
+**Sugar speed: high, confidence low on the number, high on the class.**
+
+| Source | Finding | Weight |
+|---|---|---|
+| [Abiola et al., EC Nutrition 16.3 (2021)](https://ecronicon.net/assets/ecnu/pdf/ECNU-16-00915.pdf) | GI "86%" | **Rats, 4 per group**, 2g of food against 2g glucose, not matched for available carbohydrate. Fasting levels differed (90 against 62 mg/dL). Not a human GI. |
+| [Moringa pupuru, J Food Meas Charact (2025)](https://link.springer.com/article/10.1007/s11694-025-03441-0) | Plain control 65.27, estimated | **In vitro.** Seen in a search snippet only; the page was login-blocked. Not used. |
+
+The 86 is NOT counted as an in-vivo human measurement, for the same reason the rat
+papers in §3 were not. `high` rests on its nearest human-measured relatives: fufu
+97, eba 84. The 65 is not a loosening: it is in vitro, and the asymmetry rule needs
+two independent sources. A real human study would settle this.
+
+**Composition.** Abiola's "cooked meal" table shows 11.34% moisture, which cannot be
+cooked swallow, so it is read as the dry flour: carbohydrate 80.67, protein 5.34,
+fat 0.65, fibre 1.67. [Adejuyitan et al., Haya Saudi J Life Sci 3.6 (2018)](https://saudijournals.com/media/articles/SJLS-36-481-488.pdf),
+four cassava varieties, dry: moisture 8.74-9.79, protein 1.52-1.70, fibre 1.27-2.03,
+carbohydrate 84.16-86.94. **Adejuyitan's lower protein was used**: four varieties
+against one sample, and in line with other cassava products. Flour works out to
+about 355 kcal/100g, close to the founder's 367.
+
+**Cooked, per 100g ball:** 150 kcal, the middle of the founder's 130-170, which means
+about 42% solids. Carbohydrate 36g, protein 0.7g, fat 0.3g, fibre 0.7g. Potassium and
+sodium are estimates from lafun. Note this is well above eba (98) and fufu (106) in
+the data for a similar food; those two were not re-checked here.
+
+**Plates:** egusi, bitterleaf and okra soup, with fish or chicken. Served this way in
+Ondo ([First Daily, 2025](https://firstdaily.ng/?p=144007)). Shares the swallows'
+4 a week. **No swaps**: `lib/foodSwaps.ts` holds only what the co-founder dietitian
+marked, and she has not seen this food.

@@ -52,7 +52,7 @@ export default function DashboardBottomNav({
               type="button"
               onClick={() => onSelect(t.id)}
               aria-pressed={isActive}
-              className={`flex min-w-0 flex-1 flex-col items-center gap-1 px-0 py-2.5 text-center transition-colors ${
+              className={`flex min-w-0 flex-auto flex-col items-center gap-1 px-0 py-2.5 text-center transition-colors ${
                 isActive ? "text-brand" : "text-ink-soft"
               }`}
             >

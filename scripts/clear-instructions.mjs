@@ -73,6 +73,7 @@ const COOKED = {
   "tuwo-masara": "One ball the size of your fist. That is about half a cup of the cooked swallow (100g).",
   "starch-delta": "One ball the size of your fist. That is about half a cup of the cooked swallow (100g).",
   lafun: "One ball the size of your fist. That is about half a cup of the cooked swallow (100g).",
+  pupuru: "One ball the size of your fist. That is about half a cup of the cooked swallow (100g).",
   "cocoyam-fufu": "One ball the size of your fist. That is about half a cup of the cooked swallow (100g).",
   "tuwo-dawa": "One ball the size of your fist. That is about half a cup of the cooked swallow (100g).",
 
@@ -512,6 +513,7 @@ const REAL_PAIRINGS = {
   "fufu-akpu": "Okra soup, oha soup, or bitterleaf soup, with fish or chicken.",
   "cocoyam-fufu": "Oha soup or okra soup, with fish or chicken.",
   lafun: "Ewedu or efo riro, with fish or chicken.",
+  pupuru: "Egusi soup, bitterleaf soup, or okra soup, with fish or chicken.",
   semovita: "Efo riro, okra soup, or edikang ikong, with fish or chicken.",
   "wheat-swallow": "Okra soup or efo riro, with fish or chicken.",
   "tuwo-shinkafa": "Miyan kuka, miyan taushe, or miyan kubewa, with fish or chicken.",
