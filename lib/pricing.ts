@@ -33,9 +33,25 @@ export const TIER_AMOUNTS: Record<Tier, number> = {
  * grant a higher tier than was actually paid for.
  */
 export function tierForAmount(amountKobo: number | null | undefined): Tier {
-  if (amountKobo === TIER_AMOUNTS.dietitian || amountKobo === TIER_YEARLY_AMOUNTS.dietitian) return "dietitian";
-  if (amountKobo === TIER_AMOUNTS.plus || amountKobo === TIER_YEARLY_AMOUNTS.plus) return "plus";
+  if (
+    amountKobo === TIER_AMOUNTS.dietitian ||
+    amountKobo === TIER_YEARLY_AMOUNTS.dietitian ||
+    amountKobo === creatorAmount("dietitian")
+  )
+    return "dietitian";
+  if (amountKobo === TIER_AMOUNTS.plus || amountKobo === TIER_YEARLY_AMOUNTS.plus || amountKobo === creatorAmount("plus"))
+    return "plus";
   return "basic";
+}
+
+/**
+ * A monthly plan with a creator's code: 20% off (lib/creators.ts
+ * TIER_CREATOR_AMOUNTS holds the same numbers; kept here so this file has no
+ * import and the two can never disagree, checked by
+ * scripts/creator-partners-test.ts). N1,200 / N2,000 / N3,600, still 30 days.
+ */
+function creatorAmount(t: Tier): number {
+  return Math.round(TIER_AMOUNTS[t] * 0.8);
 }
 
 /**

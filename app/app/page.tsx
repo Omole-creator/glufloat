@@ -29,6 +29,9 @@ import LogReading from "@/components/LogReading";
 import MealTestDue from "@/components/MealTestDue";
 import PushOptIn from "@/components/PushOptIn";
 import InviteFriends from "@/components/InviteFriends";
+import CreatorCodeToday from "@/components/creator/CreatorCodeToday";
+import CodeBox from "@/components/creator/CodeBox";
+import { addCode, payWithCode, useCreator } from "@/lib/creatorClient";
 import WeighInReminder from "@/components/WeighInReminder";
 import MedicineNamePrompt from "@/components/MedicineNamePrompt";
 import NutAllergyPrompt from "@/components/NutAllergyPrompt";
@@ -171,6 +174,10 @@ export default function AppPage() {
   const [activeTab, setActiveTabState] = useState<DashboardTabId>(DEFAULT_TAB);
   // A reply in the in-app chat they have not opened yet: the red dot on Chat.
   const chatUnread = useChatUnread(!!access && canUseDietitianChat(access));
+  // A creator's code (glufloat.com/faith): ties the account on first open,
+  // and says whether the next payment is 20% off (lib/creatorClient.ts).
+  const creator = useCreator(!!access && (access.status === "trial" || access.status === "subscribed" || access.status === "expired"));
+  const [codePayErr, setCodePayErr] = useState("");
   // A one-time landing hint pointing at the bottom nav's "Fit me" icon, so a
   // first-time visitor knows where their daily calorie setup lives. Shown
   // once per device (gf_fitme_hint_seen), dismissed by its own close button
@@ -432,8 +439,48 @@ export default function AppPage() {
                 <BillingToggle yearly={payYearly} onChange={setPayYearly} />
               </div>
             )}
+            {/* A creator's code: the monthly plans at 20% off, through our own
+                Paystack payment (lib/creatorsServer.ts). Everyone without a
+                code sees exactly what they saw before. */}
+            {creator?.prices && !showYearly && creator.code && (
+              <p className="mt-5 rounded-2xl bg-leaf/10 px-3 py-2.5 text-sm font-semibold text-leaf-deep">
+                Code {creator.code}: 20% off. {creator.discountLeft === 1 ? "This is your last month at this price." : `You have ${creator.discountLeft} months left at this price.`}
+              </p>
+            )}
+            {creator?.prices && showYearly && creator.code && (
+              <p className="mt-5 text-sm text-ink-soft">Your 20% off with code {creator.code} is on the monthly plans.</p>
+            )}
+            {codePayErr && <p className="mt-3 text-sm font-semibold text-verdict-red">{codePayErr}</p>}
             <div className="mt-6 space-y-3">
-              {TIER_COPY.map((t) => (
+              {creator?.prices && !showYearly
+                ? TIER_COPY.map((t) => (
+                    <button
+                      key={t.tier}
+                      type="button"
+                      onClick={async () => {
+                        setCodePayErr("");
+                        const e = await payWithCode(t.tier);
+                        if (e) setCodePayErr(e);
+                      }}
+                      className={`block w-full rounded-2xl border p-4 text-left transition-colors ${
+                        t.tier === currentTier ? "border-brand bg-brand/5" : "border-line hover:border-brand/40"
+                      }`}
+                    >
+                      <span className="flex items-center justify-between gap-2">
+                        <span className="font-display text-sm font-bold text-ink">
+                          {TIER_LABEL[t.tier]}: {nairaLabel(creator.prices![t.tier])} / month{" "}
+                          <span className="font-sans text-xs font-semibold text-ink-soft line-through">{nairaLabel(TIER_AMOUNTS[t.tier])}</span>
+                        </span>
+                        {t.tier === currentTier && (
+                          <span className="rounded-full bg-brand px-2.5 py-0.5 text-xs font-bold text-white">
+                            {access.lapsed ? "Renew" : "Your plan"}
+                          </span>
+                        )}
+                      </span>
+                      <span className="mt-1 block text-sm text-ink-soft">{t.blurb}</span>
+                    </button>
+                  ))
+                : TIER_COPY.map((t) => (
                 <a
                   key={t.tier}
                   href={withEmail((showYearly ? PAYSTACK_YEARLY_URLS : PAYSTACK_URLS)[t.tier])}
@@ -466,6 +513,12 @@ export default function AppPage() {
                 </a>
               ))}
             </div>
+            {/* Somebody who heard a creator's code and has never paid can still add it here. */}
+            {creator?.canAdd && (
+              <div className="mt-5">
+                <CodeBox onAdd={addCode} />
+              </div>
+            )}
           </div>
         </main>
       </>
@@ -550,9 +603,20 @@ export default function AppPage() {
       {renewSoon && (
         <div className="fixed inset-x-0 top-16 z-40 bg-verdict-yellow/95 px-4 py-2.5 text-center text-sm font-semibold text-ink shadow-md">
           Your {access.status === "subscribed" && access.yearly ? "year" : "month"} ends in {access.daysLeft} {access.daysLeft === 1 ? "day" : "days"}.{" "}
-          <a href={renewUrl} className="underline hover:text-brand-deep">
-            Renew for {renewPriceLabel} to keep Glufloat.
-          </a>
+          {creator?.prices && access.status === "subscribed" && !renewYearly ? (
+            // Still inside the first 3 months on a creator's code: renew at 20% off.
+            <button
+              type="button"
+              onClick={() => payWithCode(access.tier)}
+              className="font-semibold underline hover:text-brand-deep"
+            >
+              Renew for {nairaLabel(creator.prices[access.tier])} (20% off with your code) to keep Glufloat.
+            </button>
+          ) : (
+            <a href={renewUrl} className="underline hover:text-brand-deep">
+              Renew for {renewPriceLabel} to keep Glufloat.
+            </a>
+          )}
         </div>
       )}
 
@@ -771,6 +835,8 @@ export default function AppPage() {
                   Also ties a newly invited account to its inviter. At the
                   bottom of Today, under the HbA1c button (founder, 2026-10-15). */}
               <InviteFriends />
+              {/* A creator's code, during the free week only. */}
+              <CreatorCodeToday creator={creator} trial={access.status === "trial"} />
             </div>
 
             {/* Saving sends the person down to today's meal (`onSaved`) so a

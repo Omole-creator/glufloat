@@ -18,6 +18,7 @@ import {
   Handshake,
   Wallet,
   Megaphone,
+  BadgePercent,
 } from "lucide-react";
 
 /**
@@ -50,6 +51,7 @@ const GROUPS = [
       { href: "/admin/doctors", label: "Doctors", icon: Stethoscope },
       { href: "/admin/agents", label: "Doctor acquisition reps", icon: Handshake },
       { href: "/admin/creators", label: "Creators", icon: Megaphone },
+      { href: "/admin/creator-partners", label: "Creator partners", icon: BadgePercent },
       { href: "/admin/email", label: "Email", icon: Mail },
     ],
   },

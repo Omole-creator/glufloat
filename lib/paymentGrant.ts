@@ -22,6 +22,7 @@ import { periodMsForAmount, tierForAmount } from "@/lib/pricing";
 import { upsertSubscription } from "@/lib/subscriptionWrite";
 import { rewardInviter } from "@/lib/referral";
 import { earnCareFees } from "@/lib/careFeesServer";
+import { earnCreatorFee } from "@/lib/creatorsServer";
 
 export type GrantResult = "granted" | "already" | "conflict" | "no_user";
 
@@ -104,5 +105,7 @@ export async function grantPayment(
   // and advisor who brought that doctor (lib/careFeesServer.ts). Here, after
   // the lock above, so it runs once per payment. It never throws.
   await earnCareFees(admin, { uid, reference: p.reference, amount: p.amount, paidAt: p.paidAt });
+  // A person a creator brought: the creator's share (lib/creatorsServer.ts).
+  await earnCreatorFee(admin, { uid, reference: p.reference, amount: p.amount, paidAt: p.paidAt });
   return "granted";
 }

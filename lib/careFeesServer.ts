@@ -12,6 +12,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { TRIAL_DAYS } from "@/lib/trial";
 import { COLLEAGUE_BONUS_KOBO, REVIEW_FEE_KOBO, reviewReference, splitPayment, splitRepPatientPayment } from "@/lib/careFees";
 import { repPatientLink } from "@/lib/repPatients";
+import { creatorLinkFor } from "@/lib/creatorsServer";
 
 type DoctorPractice = {
   id: string;
@@ -51,6 +52,9 @@ export async function earnCareFees(
     // separate and still runs.
     const repLink = await repPatientLink(admin, p.uid);
     if (repLink) await earnRepPatientFee(admin, p, repLink);
+    // A person a creator brought (lib/creatorsServer.ts): one person, one
+    // partner, so the doctor-path rep and advisor shares are not paid either.
+    const creatorLink = await creatorLinkFor(admin, p.uid);
 
     const link = await patientsDoctor(admin, p.uid);
     if (!link) return;
@@ -93,7 +97,7 @@ export async function earnCareFees(
       firstPaidAt,
     });
 
-    const rows = (repLink ? [] : shares).map((s) => ({
+    const rows = (repLink || creatorLink ? [] : shares).map((s) => ({
       reference: p.reference,
       kind: s.kind,
       hospital_id: s.kind === "care" ? practice.id : null,

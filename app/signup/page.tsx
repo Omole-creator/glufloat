@@ -1,5 +1,6 @@
 "use client";
 
+import SignupCode from "@/components/creator/SignupCode";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -244,6 +245,10 @@ export default function SignUpPage() {
             <ChevronDown aria-hidden className="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-ink-soft/60" />
           </span>
         </label>
+
+        {/* A creator's code: a green line after their link, else a folded
+            "Have a code?" (components/creator/SignupCode.tsx). */}
+        <SignupCode />
 
         <FormError>{err}</FormError>
         <div className="pt-1">

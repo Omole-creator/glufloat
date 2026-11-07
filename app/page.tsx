@@ -15,6 +15,7 @@ import { Testimonials } from "@/components/ui/testimonial-v2";
 import { Pricing, type PricingPlan } from "@/components/ui/pricing";
 import CountUp from "@/components/CountUp";
 import TrialCta from "@/components/TrialCta";
+import HomeCodeBanner from "@/components/creator/HomeCodeBanner";
 
 // Only the home page may call itself "/". See the note in app/layout.tsx.
 export const metadata: Metadata = { alternates: { canonical: "/" } };
@@ -452,6 +453,8 @@ export default function Home() {
       </section>
 
       <Footer />
+      {/* Only for somebody who came through a creator's link (glufloat.com/faith). */}
+      <HomeCodeBanner />
     </>
   );
 }

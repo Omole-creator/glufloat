@@ -291,3 +291,5 @@ month; Send 500 emails a day; Mail up to 5 mailboxes.
   conversion, active subscribers, MRR, churn, and retention by cohort.
 
 **#40 `nut-allergy-schema.sql`**: the nut allergy answer on the account (My details). Until it runs, the answer is kept on the device only.
+
+**#41 `creator-partners-schema.sql`**: creator partners (codes, the people they bring, their earnings and payouts). Run 2026-11-07. Until it runs, creator links are page not found, no code box shows, and payments behave exactly as before.
