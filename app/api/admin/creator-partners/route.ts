@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { isAdmin } from "@/lib/adminSession";
 import { createAdminClient } from "@/lib/supabase/server";
-import { newToken } from "@/lib/hospitalServer";
+import { newCode } from "@/lib/hospitalServer";
 import { normalizePhone } from "@/lib/phone";
 import { codeFromName, normalizeCode, validCode } from "@/lib/creators";
 
@@ -16,6 +16,16 @@ export const dynamic = "force-dynamic";
  *
  * The code is never edited after it is made: it is already in videos and posts.
  */
+/**
+ * The creator's private page link: their code, then 6 secret letters
+ * (founder, 2026-11-07): glufloat.com/creator/faith-k7m3qp. The code is
+ * public (it is in their videos); the 6 letters (31^6, about 900 million)
+ * are what stop anyone else opening the page.
+ */
+function dashToken(code: string): string {
+  return `${code.toLowerCase()}-${newCode(6).toLowerCase()}`;
+}
+
 function clean(body: Record<string, unknown>) {
   const clip = (v: unknown, n = 200) => String(v ?? "").trim().slice(0, n);
   const email = clip(body.email, 200).toLowerCase();
@@ -45,7 +55,7 @@ export async function POST(request: Request) {
 
   const { data, error } = await admin
     .from("creators")
-    .insert({ name: c.name, phone: c.phone, email: c.email, code, dash_token: newToken() })
+    .insert({ name: c.name, phone: c.phone, email: c.email, code, dash_token: dashToken(code) })
     .select("id,code")
     .single();
   if (error) {
@@ -61,7 +71,7 @@ export async function PATCH(request: Request) {
   const id = String(body.id ?? "");
   const action = String(body.action ?? "");
   const admin = createAdminClient();
-  const { data: c } = await admin.from("creators").select("id").eq("id", id).maybeSingle();
+  const { data: c } = await admin.from("creators").select("id,code").eq("id", id).maybeSingle();
   if (!c) return NextResponse.json({ error: "No such creator." }, { status: 404 });
   const now = new Date().toISOString();
 
@@ -70,7 +80,7 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ ok: true });
   }
   if (action === "new_link") {
-    await admin.from("creators").update({ dash_token: newToken(), updated_at: now }).eq("id", id);
+    await admin.from("creators").update({ dash_token: dashToken(c.code as string), updated_at: now }).eq("id", id);
     return NextResponse.json({ ok: true });
   }
   if (action === "edit") {
