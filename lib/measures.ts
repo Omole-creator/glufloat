@@ -67,7 +67,7 @@ export const MEASURES: Measure[] = [
     badge: "1 spoon: 125ml",
     how: "A big spoon is a spoon like this one, filled to the top. It holds 125ml, half a cup. Two big spoons fill one cup.",
     // New file name (2026-11-07): next/image caches by URL.
-    photo: "/img/measures/big-spoon-125ml.jpg",
+    photo: "/img/measures/big-spoon-plate.jpg",
     alt: "A metal spoon marked 125ml, half a cup",
     match: /big spoons?/i,
   },
