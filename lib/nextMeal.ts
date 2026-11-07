@@ -699,9 +699,20 @@ const SWALLOW_PLATES: string[][] = [
   ["starch-delta", "owho-soup", "chicken"],
 ];
 
+/**
+ * Boiled unripe plantain (founder, 2026-11-07): low GI and green at its card's
+ * size (scripts/evidence-gi.mjs), so it is no longer a Glufloat-size starch: not
+ * scored at half, no 2-a-week size group, not one of the 7 fast-sugar meals. It
+ * is held to its card's 4 a week by LOW_WEEKLY_LIMIT instead. Its two plates
+ * stay where they are in SIZE_PLATES_LUNCH/BREAKFAST on purpose: moving them
+ * would shift every later plate's index, and the blue card remembers what it
+ * showed by index (gf_meal_shown), so people could see a repeat.
+ */
+const UNRIPE_PLANTAIN = "boiled-plantain-unripe";
+
 /** The starch on each Glufloat-size plate: the foods that must be eaten at the card's size. */
 export const GLUFLOAT_SIZE_STARCHES: ReadonlySet<string> = new Set([
-  ...[...SIZE_PLATES_LUNCH, ...SIZE_PLATES_BREAKFAST].map((p) => p[0]),
+  ...[...SIZE_PLATES_LUNCH, ...SIZE_PLATES_BREAKFAST].map((p) => p[0]).filter((id) => id !== UNRIPE_PLANTAIN),
   ...[...SWALLOW_IDS].filter((id) => !STEADY_SWALLOWS.has(id)),
 ]);
 /** At most this many Glufloat-size plates (not swallows, they have their own count) eaten in 7 days. */
@@ -737,6 +748,8 @@ export function isWeeklyLimited(id: string): boolean {
  */
 const LOW_WEEKLY_LIMIT: Record<string, number> = {
   "oat-swallow": 3,
+  // Its card says 4 a week (scripts/frequency-numbers.mjs), keep the two in step.
+  [UNRIPE_PLANTAIN]: 4,
   "cooked-beans": 4,
   "beans-porridge": 4,
   ukwa: 4,

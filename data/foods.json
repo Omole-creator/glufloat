@@ -789,12 +789,12 @@
     "category": "plantain",
     "role": "starch",
     "carbLoad": "medium",
-    "gi": "high",
-    "baseVerdict": "yellow",
+    "gi": "low",
+    "baseVerdict": "green",
     "portionGuidance": "Three slices of boiled plantain, each about 2cm thick (100g).",
     "pairingAdvice": "Vegetable sauce, egg, or fish.",
-    "frequency": "About 2 times a week.",
-    "logicNote": "Many people think unripe plantain is safe because it is not sweet. It still pushes your sugar up fast. Keep to the size shown below, and always eat it with vegetables and fish, meat, or egg.",
+    "frequency": "About 4 times a week.",
+    "logicNote": "Boiled unripe plantain raises your sugar more slowly than most starches. Keep to the size shown below, and always eat it with vegetables and fish, meat, or egg. Choose the green one: ripe plantain raises your sugar faster.",
     "tags": [
       "local",
       "friendly"

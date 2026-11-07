@@ -55,6 +55,10 @@ function canBeEveryday(f) {
 /** Hand-picked counts where a food deserves more than its role default. */
 const OVERRIDES = {
   "lime-lemon": 5, // barely any sugar, just a squeeze
+  // Founder, 2026-11-07: low GI on two human studies (see evidence-gi.mjs),
+  // green at the card's size, about 4 times a week like beans and swallows.
+  // Keep in step with LOW_WEEKLY_LIMIT in lib/nextMeal.ts.
+  "boiled-plantain-unripe": 4,
 };
 
 /**

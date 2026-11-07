@@ -28,23 +28,12 @@ const FILE = join(dirname(fileURLToPath(import.meta.url)), "..", "data", "foods.
  * the diff. It is a code comment, not user copy.
  */
 const CORRECTIONS = {
-  "boiled-plantain-unripe": {
-    gi: "high",
-    baseVerdict: "yellow",
-    logicNote:
-      "Many people think unripe plantain is safe because it is not sweet. It still pushes your sugar up fast. Keep to the size shown below, and always eat it with vegetables and fish, meat, or egg.",
-    // The matching portion tightening (three slices / 100g, down from four or
-    // five / 120g) does NOT live here. `portionGuidance` has exactly one owner,
-    // scripts/clear-instructions.mjs, which runs LAST and would silently stomp
-    // anything this script wrote. One field, one owner.
-    why: "boiled unripe plantain measured GI 89 (SW Nigeria, n=80, paper read in full). 'low GI / green' was not defensible. Secondary summaries putting unripe plantain at 45-52 are measuring plantain FLOUR (amala), a different food: drying changes the starch. Do not loosen this on such a summary.",
-  },
   "unripe-plantain-porridge": {
     gi: "high",
     baseVerdict: "yellow",
     logicNote:
       "Unripe plantain with plenty of vegetables is a good Nigerian meal, but the plantain is still a starch. Keep to the size shown below.",
-    why: "same plantain base as above.",
+    why: "never measured in any study. Founder, 2026-11-07: kept high and yellow when boiled unripe plantain moved to low. Long cooking and mashing usually make a starch faster, so the boiled result is not carried over.",
   },
   "boiled-plantain-ripe": {
     gi: "high",
@@ -94,6 +83,18 @@ const CORRECTIONS = {
       "University of Nigeria, Nsukka study (dspace.unn.edu.ng): GI 50-66 (founder, 2026-10-24)",
     ],
     why: "two independent Nigerian measurements, both below the high band. Medium, not low: the top of the Nsukka range is 66, tuwo acha is cooked soft, and the Zaria authors warn the home serving gives a high load. Still in the 4-a-week swallow group.",
+  },
+  "boiled-plantain-unripe": {
+    gi: "low",
+    baseVerdict: "green",
+    logicNote:
+      "Boiled unripe plantain raises your sugar more slowly than most starches. Keep to the size shown below, and always eat it with vegetables and fish, meat, or egg. Choose the green one: ripe plantain raises your sugar faster.",
+    // portionGuidance (three slices, 100g) is owned by clear-instructions.mjs, unchanged.
+    sources: [
+      "Bahado-Singh et al. 2006, Br J Nutr 96:476 (Jamaica): green plantain boiled, GI 39, n=10 healthy, glucose reference; the only boiled green plantain row in the 2021 International Tables that meets ISO 26642",
+      "Oladele & Williamson 2016, Eur J Nutr 55:75-81: unripe plantain boiled 20 min, GI 44.9, n=10 healthy",
+    ],
+    why: "founder, 2026-11-07: moved high/yellow -> low/green after a fuller search (reports/Boiled unripe plantain glycaemic index.md). Contrary data on record: Ogundele & Sanusi 2022 (SW Nigeria) GI 89, cooking method and group size not confirmed; Alegbejo & Ameh 2012 (Zaria, the only study in people with type 2 diabetes) GI 68-69 with stew and meat. Green only at the card's size and with vegetables and fish, meat or egg; 4 times a week. The old note here (low figures are all flour) was wrong: 39 and 44.9 are whole boiled plantain.",
   },
   "tuwo-dawa": {
     gi: "high",

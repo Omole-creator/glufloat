@@ -179,6 +179,10 @@ cultivars. That would be a *loosening*, and the asymmetry rule requires two
 independent sources; there is no Nigerian in-vivo measurement. **Resolution:
 keep `gi: medium`.** Revisit if a second source appears.
 
+> **SUPERSEDED 2026-11-07, see §21.** Boiled unripe plantain is now low/green.
+> The claim below that the low figures are all flour was wrong: two careful
+> human studies measured whole boiled green plantain at 39 and 44.9.
+
 **Plantain: the form is the food.** A first reading suggested the literature
 contradicted itself — boiled unripe plantain at 89, yet "unripe plantain flour
 GI 52.8, recommended for diabetic Nigerians". It does not contradict. They are
@@ -220,7 +224,7 @@ that the next person does not "discover" them and quietly apply them.
 
 | Food | Synthesis says | We keep | Why we hold |
 |---|---|---|---|
-| `boiled-plantain-unripe` | GI ~45, low | **high** | We measured 89 (n=80, **full paper read**). The 45–52 band is plantain **FLOUR** (amala), a different food. Drying changes the starch. This is the single most repeated error about plantain. |
+| `boiled-plantain-unripe` | GI ~45, low | **high** (low since 2026-11-07, §21) | We measured 89 (n=80, **full paper read**). The 45–52 band is plantain **FLOUR** (amala), a different food. Drying changes the starch. This is the single most repeated error about plantain. |
 | `boiled-plantain-ripe` | ~54 | **high** | Same study: 96.5. Ripe is not gentler than unripe. |
 | `sweet-potato` | 41, low | **medium** | Already refused above. Still no Nigerian in-vivo measurement. Needs a genuine second source. |
 | `brown-rice`, `ofada-rice` | ~50, low | **medium** | One secondary source. They do gain: both now say 3 times a week (§4), so the better swap finally reads better than white rice. |
@@ -1128,3 +1132,41 @@ listed. Okpa is under groundnut (Bambara groundnut, a close relative) and vegeta
 oil too, because the card is "Groundnut Oil / Vegetable Oil": both are caution, not
 proof. Packaged foods that may hold traces (biscuits, cakes) are not covered: the app
 cannot know what is in a packet.
+
+
+## 21. Boiled unripe plantain moved to low and green (2026-11-07, founder)
+
+A fuller search (root `reports/Boiled unripe plantain glycaemic index.md`, notes
+in `research_notes/`) found the 89 is one of five or six human results, and the
+others are lower. Human studies of **whole boiled** unripe plantain:
+
+| Study | GI | Notes |
+|---|---|---|
+| Bahado-Singh et al. 2006, Br J Nutr 96:476, Jamaica | **39** | boiled 10 min, n=10 healthy, glucose ref; the only boiled green plantain row meeting ISO 26642 in the 2021 International Tables |
+| Oladele & Williamson 2016, Eur J Nutr 55:75-81, UK | **44.9** | boiled 20 min, n=10 healthy, white bread ref ÷ 1.4 |
+| Ghana mixed meal (2021 tables) | 40 healthy, 41 T2D | with fish and sauce |
+| Ogbuji et al. 2013, EJBMSR, Nigeria | 44 | weak journal, abstract only |
+| Alegbejo & Ameh 2012, Zaria | **68-69** | the only study in Nigerians with type 2 diabetes; with stew and meat |
+| Ogundele & Sanusi 2022, SW Nigeria | **89** (88 with stew) | cooking method and plantain group size not confirmed from what could be read; "n=80" is the whole study |
+
+Also: roasted green plantain 88-89 (Côte d'Ivoire, Kouamé 2017) supports `boli`
+staying high; boiled ripe 66 (Jamaica) and the unverified "boiled 96.5" leave
+`boiled-plantain-ripe` high/yellow. The 96.5 / 92.0 / 88.8 figures could not be
+traced to a readable primary paper; do not quote them.
+
+**Founder's decisions:** `boiled-plantain-unripe` gi low, baseVerdict green,
+about 4 times a week, green only at the card's size (three slices, 100g) and with
+vegetables and fish, meat or egg (the card says so). This is a LOOSENING on two
+independent sources (Jamaica 39, UK 44.9), as the asymmetry rule requires; it is
+in `scripts/evidence-gi.mjs` with both named. Claude's note on record: the one
+study in people with diabetes says medium (68-69), so medium was the more
+cautious reading; the founder chose low. `unripe-plantain-porridge` stays
+high/yellow (never measured; long cooking and mashing usually make starch
+faster). `boiled-plantain-ripe` stays high/yellow.
+
+**In the app:** its two blue-card plates (lunch with efo riro and fish,
+breakfast with garden egg sauce and eggs) stay where they are in the plate lists
+but are no longer Glufloat-size: scored at the normal size, no 2-a-week size
+group, not one of the 7 fast-sugar meals, held to 4 a week by `LOW_WEEKLY_LIMIT`
+in `lib/nextMeal.ts`. Plantain with a soft drink or with white rice still scores
+red.
