@@ -22,7 +22,9 @@ import sharp from "sharp";
  *   from Pexels (see PHOTOS),
  *   golf-ball uy5ZEqUOscs, thumb 3KEFp35FVB0, pinch zet6NIY02hI,
  *   handful 8JbPccfCr5o, egg UQawLoFS4uM, meat-chunks 1ok-cifMvg0,
- *   big-spoon WBX-ZLr8P7I (a metal ladle full of soup: one big spoon, 125ml)
+ *   big-spoon-125ml: the founder's photo (2026-11-07) of a measuring spoon marked
+ *   "125ml 1/2 CUP", replacing the Unsplash ladle of noodle soup (it looked like
+ *   Indomie). Cropped to keep the engraving whole.
  */
 const PHOTOS = {
   // The founder's own cup and fist (2026-10-09), replacing the Unsplash mug and
@@ -48,7 +50,7 @@ const PHOTOS = {
   handful: "attention",
   egg: "centre",
   "meat-chunks": "attention",
-  "big-spoon": "attention",
+  "big-spoon-125ml": { px: { left: 385, top: 0, size: 768 } },
 };
 
 for (const [name, position] of Object.entries(PHOTOS)) {
