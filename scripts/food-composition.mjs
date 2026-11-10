@@ -423,7 +423,10 @@ const PER_100G = {
   // drinks (per 100ml)
   "soft-drink": [41, 0, 0, 10.6, 0, 1, 10],
   "fruit-juice": [45, 0.3, 0.1, 11, 0.2, 150, 10],
-  "malt-drink": [47, 0.5, 0, 11, 0, 30, 15],
+  // Maltina Classic's own label (nbplc.com, read 2026-11-10): 238 kJ (57 kcal),
+  // 13.7g carbohydrate (10.5g sugars), 0.4g protein, <0.1g fat per 100ml.
+  // Was a generic 47 kcal / 11g estimate. Potassium/sodium not on the label.
+  "malt-drink": [57, 0.4, 0, 13.7, 0, 30, 15],
   "energy-drink": [45, 0, 0, 11, 0, 5, 20],
   "zobo-unsweetened": [15, 0.2, 0, 3.5, 0.3, 60, 5],
   "zobo-sweetened": [45, 0.2, 0, 11, 0.3, 60, 5],
