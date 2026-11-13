@@ -175,11 +175,13 @@ async function readPersonalizationProfileFresh(): Promise<PersonalizationProfile
     // Everything in one read. It used to be three reads (the details, then
     // med_types, then swallows), each on its own so a database missing one
     // migration lost only that field. The step-by-step reads below still run,
-    // but only when this one fails.
+    // but only when this one fails. Every field read below from `oneRead` must
+    // be in this list: nut_allergies was missing, so the answer was only ever
+    // read from the phone it was given on (fixed 2026-11-13).
     const oneRead = await supabase
       .from("profiles")
       .select(
-        "goals,activity_level,meal_pattern,sex,age_years,weight_kg,height_cm,conditions,med_doses_per_day,med_times,med_relation_to_food,med_types,swallows",
+        "goals,activity_level,meal_pattern,sex,age_years,weight_kg,height_cm,conditions,med_doses_per_day,med_times,med_relation_to_food,med_types,swallows,nut_allergies",
       )
       .eq("id", user.id)
       .single();
