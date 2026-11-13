@@ -91,18 +91,18 @@ const LOGIC = {
   "white-rice":
     "This one pushes your sugar up fast. Eat less of it, and add vegetables and fish, meat, or egg to slow it down.",
   "rice-and-beans":
-    "The beans slow the rice down, because beans have the rough part of food and are body-building food.",
+    "The beans slow the rice down.",
   "soft-drink":
     "Liquid sugar. It pushes your sugar up faster than anything else. The number one thing to drop.",
   "isi-ewu":
     "Spiced goat head, with very little starch. It is rich, so keep to the size shown below.",
   carrot:
-    "Carrot has its own natural sugar. The size shown below is fine, but a lot of it, or carrot juice with the rough part taken out, can raise your sugar.",
+    "Carrot has its own natural sugar. The size shown below is fine, but a lot of it, or carrot juice, can raise your sugar.",
   beetroot:
-    "Beetroot has more natural sugar than green vegetables, so keep to the size shown below. Juicing it takes out the rough part and raises sugar faster.",
+    "Beetroot has more natural sugar than green vegetables, so keep to the size shown below. Juicing it raises sugar faster.",
   "sweet-potato":
-    "More of the rough part of food than white yam. A good swap when boiled.",
-  avocado: "Good fat and the rough part of food. Slow to raise sugar. A smart snack.",
+    "Raises sugar more slowly than white yam. A good swap when boiled.",
+  avocado: "Good fat, and slow to raise sugar. A smart snack.",
   "club-sandwich":
     "White bread pushes your sugar up fast, so the filling matters. Choose fish, meat, or egg with vegetables, and skip sweet spreads.",
   "hot-dog":
@@ -126,7 +126,7 @@ const LOGIC = {
   "dried-fruit":
     "Drying takes out the water and packs the sugar tight, so even one handful pushes your sugar up fast. Fresh fruit is better.",
   "cooked-beans":
-    "Full of the rough part of food, and body-building. Your sugar rises slowly. One of the best foods for your sugar.",
+    "Your sugar rises slowly. One of the best foods for your sugar.",
   groundnut: "Body-building food and good fat. Your sugar rises slowly. A smart snack swap.",
   "moi-moi": "Steamed beans, full of body-building food. Your sugar rises slowly. A top pick.",
   stockfish: "Dried fish. Very little starch, and full of body-building food.",
@@ -482,6 +482,9 @@ for (const f of foods) {
 const BANNED = [
   /\bavoid/i,
   /\bfibre\b/i,
+  // "the rough part of food" was the old stand-in for fibre. The founder found
+  // it confusing (2026-11-13): say what the food does for sugar instead.
+  /rough part/i,
   /\bspike/i,
   /\bsparingly\b/i,
   /\blegume\b/i,

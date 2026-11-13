@@ -142,7 +142,7 @@ const logicNote = {
   "evaporated-milk": "Unsweetened evaporated milk has natural milk sugar, so use one tablespoon. Avoid the sweetened condensed kind.",
   "coconut-oil": "No sugar impact, but still a heavy fat, so use one teaspoon.",
   sardine: "Oily fish, low in carbs and rich in good fat. Choose the ones packed in water rather than oil.",
-  pomegranate: "Has fibre but also natural sugar, so half a cup of seeds is fine.",
+  pomegranate: "Has natural sugar, so half a cup of seeds is fine.",
   // "keep it small" is vague; point to the exact size shown just below.
   "starch-delta": "Very dense starch, so keep to the size shown below.",
   banana: "The riper the banana, the sweeter it is. Keep to the size shown below.",

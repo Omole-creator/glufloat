@@ -48,7 +48,7 @@ const CORRECTIONS = {
   "wheat-swallow": {
     gi: "high",
     logicNote:
-      "Wheat swallow has more of the rough part of food than semo or eba, but it still turns to sugar fast. Keep to one fist-size ball.",
+      "Wheat swallow still turns to sugar fast, like semo or eba. Keep to one fist-size ball.",
     why: "wheat flour dough measured GI 97.4 (Nigerian J. Nutritional Sciences).",
   },
   "whole-wheat-bread": {
