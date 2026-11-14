@@ -73,14 +73,13 @@ export default function StartForm() {
         hint="For example: Dtn. Mary Adeleke. Your patients see this name."
       />
       <Field
-        label="Your DCN registration number"
+        label="Your DCN registration number (optional)"
         icon={BadgeCheck}
         value={dcn}
         onChange={(e) => setDcn(e.target.value)}
-        required
         autoCapitalize="characters"
         spellCheck={false}
-        hint="From the Dietitians Council of Nigeria. We check it."
+        hint="From the Dietitians Council of Nigeria. If you give it, we check it."
       />
       <Field
         label="Your WhatsApp number"

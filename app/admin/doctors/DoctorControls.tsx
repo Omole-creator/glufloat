@@ -86,8 +86,8 @@ export function AddDoctorForm({ agents }: { agents: Agent[] }) {
           <input value={v.email} onChange={set("email")} required type="email" className={box} />
         </label>
         <label className="text-xs font-semibold text-ink-soft">
-          MDCN folio number
-          <input value={v.mdcn} onChange={set("mdcn")} required className={box} />
+          MDCN folio number (optional)
+          <input value={v.mdcn} onChange={set("mdcn")} className={box} />
         </label>
         <label className="text-xs font-semibold text-ink-soft">
           Brought by
@@ -103,7 +103,7 @@ export function AddDoctorForm({ agents }: { agents: Agent[] }) {
       </div>
       <div className="mt-3 flex flex-wrap items-center gap-3">
         <button
-          disabled={busy || !v.name.trim() || !v.email.trim() || !v.mdcn.trim()}
+          disabled={busy || !v.name.trim() || !v.email.trim()}
           className="h-11 rounded-full bg-leaf px-6 text-sm font-bold text-white hover:bg-leaf-deep disabled:opacity-50"
         >
           {busy ? "Adding..." : "Add doctor"}
@@ -237,8 +237,8 @@ export function DoctorActions({
                 <input value={v.email} onChange={(e) => setV({ ...v, email: e.target.value })} type="email" required className={box} />
               </label>
               <label className="block text-xs font-semibold text-ink-soft">
-                MDCN folio number
-                <input value={v.mdcn} onChange={(e) => setV({ ...v, mdcn: e.target.value })} required className={box} />
+                MDCN folio number (optional)
+                <input value={v.mdcn} onChange={(e) => setV({ ...v, mdcn: e.target.value })} className={box} />
               </label>
             </div>
             {err && <p className="mt-2 text-sm font-semibold text-verdict-red">{err}</p>}

@@ -41,8 +41,9 @@ export async function POST(request: Request) {
   const useSession = body.useSession === true;
 
   if (!name) return NextResponse.json({ error: "Please put your name." }, { status: 400 });
-  if (!/^[A-Z0-9][A-Z0-9/ .-]{2,39}$/.test(dcn))
-    return NextResponse.json({ error: "Please put your DCN registration number." }, { status: 400 });
+  // Optional (founder, 2026-11-14): many dietitians will not share it. If typed, it must look like a number.
+  if (dcn && !/^[A-Z0-9][A-Z0-9/ .-]{2,39}$/.test(dcn))
+    return NextResponse.json({ error: "Please check your DCN registration number, or leave it empty." }, { status: 400 });
   if (phone.length < 10) return NextResponse.json({ error: "Please put your WhatsApp number." }, { status: 400 });
 
   const admin = createAdminClient();
@@ -110,7 +111,7 @@ export async function POST(request: Request) {
         contact_phone: phone,
         contact_email: email,
         city: place || null,
-        dcn_number: dcn,
+        dcn_number: dcn || null,
         approved_at: new Date().toISOString(),
         ...(patientPays
           ? { status: "active", plan: PATIENT_PAYS_PLAN, seats: DOCTOR_SEATS, access_until: DOCTOR_ACCESS_UNTIL }
@@ -137,7 +138,7 @@ export async function POST(request: Request) {
     `New dietitian: ${name}`,
     [
       ["Name", name],
-      ["DCN number", dcn],
+      ["DCN number", dcn || "Not given"],
       ["WhatsApp", phone],
       ["Email", email],
       ["Where", place],

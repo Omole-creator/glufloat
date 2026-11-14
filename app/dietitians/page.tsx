@@ -132,7 +132,7 @@ export default function DietitiansPage() {
     },
   ];
   const steps = [
-    { icon: BadgeCheck, title: "Start free", text: "Give your name, your DCN registration number and your WhatsApp number. It takes 2 minutes." },
+    { icon: BadgeCheck, title: "Start free", text: "Give your name and your WhatsApp number. It takes 2 minutes." },
     { icon: UserPlus, title: "Invite your patients", text: "Send each patient their own link on WhatsApp, or share your QR code. They join with their phone number." },
     { icon: ClipboardList, title: "Review before each visit", text: `Each patient gets ${PATIENT_FREE_DAYS} free days, then pays you inside Glufloat. Open any patient to see every meal and sugar test.` },
   ];

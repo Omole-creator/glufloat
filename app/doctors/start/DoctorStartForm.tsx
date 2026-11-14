@@ -85,11 +85,10 @@ export default function DoctorStartForm() {
         hint="We send your set-up link here."
       />
       <Field
-        label="Your MDCN folio number"
+        label="Your MDCN folio number (optional)"
         icon={BadgeCheck}
         value={mdcn}
         onChange={(e) => setMdcn(e.target.value)}
-        required
         autoCapitalize="characters"
         spellCheck={false}
       />

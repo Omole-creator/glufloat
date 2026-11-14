@@ -15,7 +15,7 @@ type Admin = ReturnType<typeof createAdminClient>;
 
 export const DOCTOR_INVITE_DAYS = 14;
 
-export type DoctorInput = { name: string; email: string; mdcn: string };
+export type DoctorInput = { name: string; email: string; mdcn: string | null };
 
 /**
  * Clean and check a doctor's details. Returns an error sentence, or the clean
@@ -31,8 +31,9 @@ export function cleanDoctor(body: Record<string, unknown>, who: "self" | "admin"
   if (!name) return { error: `Please put ${your} name.` };
   if (!/^dr\.?\s/i.test(name)) name = `Dr ${name}`;
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || isPhoneLoginEmail(email)) return { error: `Please put ${your} email address.` };
-  if (!/^[A-Z0-9][A-Z0-9/ .-]{2,39}$/.test(mdcn)) return { error: `Please put ${your} MDCN folio number.` };
-  return { name, email, mdcn };
+  // Optional (founder, 2026-11-14): many doctors will not share it. If typed, it must look like a number.
+  if (mdcn && !/^[A-Z0-9][A-Z0-9/ .-]{2,39}$/.test(mdcn)) return { error: `Please check ${your} MDCN folio number, or leave it empty.` };
+  return { name, email, mdcn: mdcn || null };
 }
 
 /** A one-time set-up link for this practice, emailed to the doctor. */

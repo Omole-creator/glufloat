@@ -74,7 +74,7 @@ export async function POST(request: Request) {
       `New doctor: ${name}${r.emailed ? "" : " (set-up email did not send)"}`,
       [
         ["Name", name],
-        ["MDCN folio number", mdcn],
+        ["MDCN folio number", mdcn || "Not given"],
         ["Email", email],
         ["Brought by", agentName ? `Doctor acquisition rep: ${agentName}` : invitedBy ? "A colleague's invite" : "Nobody (signed up alone)"],
         ["Set-up link emailed", r.emailed ? "Yes" : "No"],
