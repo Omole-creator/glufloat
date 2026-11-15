@@ -21,6 +21,8 @@ export const dynamic = "force-dynamic";
  *                     back on. Off: status 'declined', dashboard closes, links
  *                     stop, no care fee is earned. Patients keep their accounts.
  *          edit       { name, email, mdcn }
+ *          agent      { agentId } who brought them, "" for nobody (not for a
+ *                     doctor a colleague invited).
  *          new_link   a fresh set-up link (the last one expired or was lost).
  * DELETE { id, confirmName } only a doctor with no money history: a care fee
  *        or payout would lose who it belonged to (the tables set it to null),
@@ -83,6 +85,25 @@ export async function PATCH(request: Request) {
       .eq("id", id);
     // Their name on their own dashboard follows.
     await admin.from("hospital_staff").update({ name: c.name }).eq("hospital_id", id).eq("role", "admin");
+    return NextResponse.json({ ok: true });
+  }
+  if (action === "agent") {
+    // Who brought this doctor, set by hand (founder, 2026-11-15: the doctor
+    // forgot to use the rep's link). Exactly as if they had opened it: from
+    // the next payment on, the rep (and their advisor) earn; past payments
+    // are not paid again. A doctor a colleague invited keeps that, because
+    // reps earn nothing from a colleague's referral.
+    const { data: cur } = await admin.from("hospitals").select("invited_by").eq("id", id).maybeSingle();
+    if (cur?.invited_by)
+      return NextResponse.json({ error: "A colleague invited this doctor, so no rep can be added." }, { status: 409 });
+    let agentId: string | null = null;
+    if (typeof body.agentId === "string" && body.agentId) {
+      const { data: a } = await admin.from("field_agents").select("id,status").eq("id", body.agentId).maybeSingle();
+      if (!a || a.status !== "active")
+        return NextResponse.json({ error: "Choose a doctor acquisition rep from the list, or Nobody." }, { status: 400 });
+      agentId = a.id as string;
+    }
+    await admin.from("hospitals").update({ agent_id: agentId, updated_at: now }).eq("id", id);
     return NextResponse.json({ ok: true });
   }
   if (action === "new_link") {

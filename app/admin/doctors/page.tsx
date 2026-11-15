@@ -10,7 +10,7 @@ import { loadFieldTeam, moneyFor } from "@/lib/fieldTeam";
 import { nairaFromKobo } from "@/lib/careFees";
 import { isInternalEmail } from "@/lib/internalAccounts";
 import FoldCard from "@/components/FoldCard";
-import { AddDoctorForm, DoctorActions } from "./DoctorControls";
+import { AddDoctorForm, BroughtByPicker, DoctorActions } from "./DoctorControls";
 
 export const dynamic = "force-dynamic";
 
@@ -39,9 +39,12 @@ export default async function DoctorsAdminPage() {
 
   const team = await loadFieldTeam(admin);
   const doctors = team.doctors.filter((d) => !isInternalEmail(d.contact_email ?? ""));
-  const agentName = new Map(team.agents.map((a) => [a.id, a.name]));
   const doctorName = new Map(team.doctors.map((d) => [d.id, d.name]));
   const on = doctors.filter((d) => d.status !== "declined");
+  // Switched-on reps to choose from, plus a switched-off one still shown on a doctor.
+  const pickerAgents = team.agents
+    .filter((a) => a.status === "active" || doctors.some((d) => d.agent_id === a.id))
+    .map((a) => ({ id: a.id, name: a.name, role: a.role, off: a.status !== "active" }));
 
   return (
     <AdminShell title="Doctors" subtitle="Glufloat for doctors" icon={<Stethoscope className="h-5 w-5" />}>
@@ -111,11 +114,11 @@ export default async function DoctorsAdminPage() {
                         </td>
                         <td className="px-3 py-3 font-mono text-xs">{d.mdcn_number ?? "-"}</td>
                         <td className="px-3 py-3 text-xs">
-                          {d.agent_id
-                            ? agentName.get(d.agent_id) ?? "An agent"
-                            : d.invited_by
-                              ? `Colleague: ${doctorName.get(d.invited_by) ?? "a doctor"}`
-                              : "Nobody"}
+                          {d.invited_by ? (
+                            `Colleague: ${doctorName.get(d.invited_by) ?? "a doctor"}`
+                          ) : (
+                            <BroughtByPicker id={d.id} name={d.name} current={d.agent_id} agents={pickerAgents} />
+                          )}
                         </td>
                         <td className="px-3 py-3 text-right">{d.patients}</td>
                         <td className="px-3 py-3 text-right">{d.paying}</td>

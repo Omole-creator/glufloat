@@ -116,6 +116,78 @@ export function AddDoctorForm({ agents }: { agents: Agent[] }) {
   );
 }
 
+/**
+ * Who brought this doctor, changed by hand (founder, 2026-11-15): for a doctor
+ * who forgot to use their rep's link. Counts from the next payment on.
+ */
+export function BroughtByPicker({
+  id,
+  name,
+  current,
+  agents,
+}: {
+  id: string;
+  name: string;
+  current: string | null;
+  agents: (Agent & { off?: boolean })[];
+}) {
+  const router = useRouter();
+  const [value, setValue] = useState(current ?? "");
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const changed = value !== (current ?? "");
+  const save = async () => {
+    const who = agents.find((a) => a.id === value)?.name ?? "nobody";
+    if (!confirm(`Set ${name} as brought by ${who}? This counts from ${name}'s patients' next payment. Past payments do not change.`)) return;
+    setBusy(true);
+    setMsg(null);
+    const res = await fetch("/api/admin/doctors", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, action: "agent", agentId: value }),
+    });
+    const j = await res.json().catch(() => ({}));
+    setBusy(false);
+    if (!res.ok) return setMsg({ ok: false, text: j.error ?? "That did not work." });
+    setMsg({ ok: true, text: "Saved." });
+    router.refresh();
+  };
+  return (
+    <div className="min-w-[170px]">
+      <select
+        value={value}
+        onChange={(e) => {
+          setValue(e.target.value);
+          setMsg(null);
+        }}
+        aria-label={`Brought by, for ${name}`}
+        className="h-9 w-full rounded-lg border border-line bg-white px-2 text-xs outline-none focus:border-brand"
+      >
+        <option value="">Nobody (Glufloat)</option>
+        {agents.map((a) => (
+          <option key={a.id} value={a.id} disabled={a.off}>
+            {a.name}
+            {a.role === "advisor" ? " (advisor)" : ""}
+            {a.off ? " (switched off)" : ""}
+          </option>
+        ))}
+      </select>
+      {changed && (
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => void save()}
+          aria-label={`Save brought by for ${name}`}
+          className="mt-1.5 rounded-full bg-leaf px-3 py-1 text-xs font-bold text-white hover:bg-leaf-deep disabled:opacity-50"
+        >
+          {busy ? "Saving..." : "Save"}
+        </button>
+      )}
+      {msg && <p className={`mt-1 text-xs font-semibold ${msg.ok ? "text-leaf-deep" : "text-verdict-red"}`}>{msg.text}</p>}
+    </div>
+  );
+}
+
 /** Edit, a fresh set-up link, switch off/on, and delete, for one doctor. */
 export function DoctorActions({
   id,
