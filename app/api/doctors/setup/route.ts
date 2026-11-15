@@ -9,7 +9,8 @@ export const dynamic = "force-dynamic";
  * becomes the doctor who runs their practice. Signed in already: that account
  * is used. New: an account is made with the email the link was sent to (the
  * link itself proves the address) and the password they choose. The link
- * works once and for 14 days. No phone number is asked for.
+ * works once and for 14 days. The phone number was given at sign-up
+ * (hospitals.contact_phone) and is copied onto their login and staff row.
  */
 export async function POST(request: Request) {
   const body = await request.json().catch(() => ({}));
@@ -20,10 +21,10 @@ export async function POST(request: Request) {
   const admin = createAdminClient();
   const { data: invite } = await admin
     .from("hospital_invites")
-    .select("*,hospitals(id,kind,status)")
+    .select("*,hospitals(id,kind,status,contact_phone)")
     .eq("token", token)
     .maybeSingle();
-  const practice = (invite as unknown as { hospitals: { id: string; kind: string | null; status: string } | null } | null)?.hospitals;
+  const practice = (invite as unknown as { hospitals: { id: string; kind: string | null; status: string; contact_phone: string | null } | null } | null)?.hospitals;
   if (!invite || !practice || practice.kind !== "doctor" || invite.used_at || new Date(invite.expires_at as string).getTime() < Date.now())
     return NextResponse.json({ error: "This link has been used or is too old. Please sign up again to get a new one." }, { status: 410 });
   if (practice.status !== "active") return NextResponse.json({ error: "This account is not open. Please call us on 0813 209 7317." }, { status: 410 });
@@ -43,7 +44,7 @@ export async function POST(request: Request) {
       email,
       password,
       email_confirm: true,
-      user_metadata: { name, phone: null, user_type: "health_pro", source_post: null, partner_code: null },
+      user_metadata: { name, phone: practice.contact_phone ?? null, user_type: "health_pro", source_post: null, partner_code: null },
     });
     if (error || !created.user) {
       if (/already|registered|exists/i.test(error?.message ?? ""))
@@ -69,7 +70,7 @@ export async function POST(request: Request) {
 
   const { error: sErr } = await admin
     .from("hospital_staff")
-    .upsert({ hospital_id: practice.id, user_id: uid, role: "admin", name, phone: null }, { onConflict: "hospital_id,user_id" });
+    .upsert({ hospital_id: practice.id, user_id: uid, role: "admin", name, phone: practice.contact_phone ?? null }, { onConflict: "hospital_id,user_id" });
   if (sErr) return NextResponse.json({ error: "We could not finish setting you up. Please try again." }, { status: 503 });
 
   return NextResponse.json({ ok: true, login });

@@ -17,7 +17,8 @@ export const dynamic = "force-dynamic";
  *    gets an email with a link to finish setting up (their password).
  *  - Who brought them comes from the hidden cookie the /d/<code> link set
  *    (lib/doctorRef.ts). The doctor never types or sees a code.
- *  - No phone number: doctors do not like to share theirs.
+ *  - WhatsApp/phone number required (founder, 2026-11-15; it was left out at
+ *    first because doctors do not like to share it). Patients never see it.
  *
  * The same email asking again gets a fresh link to the same practice, never a
  * second practice.
@@ -30,7 +31,7 @@ export async function POST(request: Request) {
   // The checks and the practice itself are shared with /admin/doctors (lib/doctorSignup.ts).
   const c = cleanDoctor(body, "self");
   if ("error" in c) return NextResponse.json({ error: c.error }, { status: 400 });
-  const { name, email, mdcn } = c;
+  const { name, email, mdcn, phone } = c;
 
   const admin = createAdminClient();
   if (!(await doctorsReady(admin)))
@@ -48,7 +49,11 @@ export async function POST(request: Request) {
 
   // Already signed up with this email? A fresh link to the same practice.
   const same = await doctorByEmail(admin, email);
-  if (same) return reply(await sendDoctorSetupLink(admin, same, name, email), true);
+  if (same) {
+    // Asking again: keep the number they typed this time.
+    await admin.from("hospitals").update({ contact_phone: phone }).eq("id", same);
+    return reply(await sendDoctorSetupLink(admin, same, name, email), true);
+  }
 
   // Who brought them: a field agent, or a colleague (never both).
   const ref = parseDoctorRef(doctorRefFromHeader(request.headers.get("cookie")));
@@ -66,7 +71,7 @@ export async function POST(request: Request) {
     if (col && col.kind === "doctor" && col.status === "active") invitedBy = col.id as string;
   }
 
-  const id = await insertDoctorPractice(admin, { name, email, mdcn, agentId, invitedBy });
+  const id = await insertDoctorPractice(admin, { name, email, mdcn, phone, agentId, invitedBy });
   if (!id) return NextResponse.json({ error: "We could not set you up just now. Please try again." }, { status: 503 });
   const r = await sendDoctorSetupLink(admin, id, name, email);
   if (!isInternalEmail(email))
@@ -76,6 +81,7 @@ export async function POST(request: Request) {
         ["Name", name],
         ["MDCN folio number", mdcn || "Not given"],
         ["Email", email],
+        ["WhatsApp/phone", phone ?? "Not given"],
         ["Brought by", agentName ? `Doctor acquisition rep: ${agentName}` : invitedBy ? "A colleague's invite" : "Nobody (signed up alone)"],
         ["Set-up link emailed", r.emailed ? "Yes" : "No"],
       ],

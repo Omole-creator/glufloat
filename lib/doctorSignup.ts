@@ -2,6 +2,7 @@ import type { createAdminClient } from "@/lib/supabase/server";
 import { newCode, readableToken } from "@/lib/hospitalServer";
 import { DOCTOR_ACCESS_UNTIL, DOCTOR_SEATS } from "@/lib/hospitalPlans";
 import { isPhoneLoginEmail } from "@/lib/phoneLogin";
+import { normalizePhone } from "@/lib/phone";
 import { doctorSetupEmail, sendEmail } from "@/lib/notify";
 import { SITE_URL } from "@/lib/site";
 
@@ -15,14 +16,24 @@ type Admin = ReturnType<typeof createAdminClient>;
 
 export const DOCTOR_INVITE_DAYS = 14;
 
-export type DoctorInput = { name: string; email: string; mdcn: string | null };
+export type DoctorInput = { name: string; email: string; mdcn: string | null; phone: string | null };
 
 /**
  * Clean and check a doctor's details. Returns an error sentence, or the clean
  * values. "self" is the doctor typing (their sign-up keeps its own words);
  * "admin" is Glufloat typing for them.
+ *
+ * WhatsApp/phone number (founder, 2026-11-15): required on sign-up and when
+ * Glufloat adds a doctor. Optional only on admin Edit (phoneRequired false),
+ * because doctors who joined before 2026-11-15 have none. Stored in one shape
+ * (normalizePhone). Patients never see it: the chat gives a doctor no call
+ * number (lib/chatServer.ts patientTeam).
  */
-export function cleanDoctor(body: Record<string, unknown>, who: "self" | "admin"): DoctorInput | { error: string } {
+export function cleanDoctor(
+  body: Record<string, unknown>,
+  who: "self" | "admin",
+  phoneRequired = true,
+): DoctorInput | { error: string } {
   const your = who === "self" ? "your" : "the doctor's";
   const clip = (v: unknown, n = 200) => String(v ?? "").trim().slice(0, n);
   let name = clip(body.name, 120);
@@ -33,7 +44,11 @@ export function cleanDoctor(body: Record<string, unknown>, who: "self" | "admin"
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || isPhoneLoginEmail(email)) return { error: `Please put ${your} email address.` };
   // Optional (founder, 2026-11-14): many doctors will not share it. If typed, it must look like a number.
   if (mdcn && !/^[A-Z0-9][A-Z0-9/ .-]{2,39}$/.test(mdcn)) return { error: `Please check ${your} MDCN folio number, or leave it empty.` };
-  return { name, email, mdcn: mdcn || null };
+  const rawPhone = clip(body.phone, 40);
+  const digits = rawPhone.replace(/\D/g, "");
+  if ((phoneRequired || rawPhone) && digits.length < 10)
+    return { error: `Please put ${your} WhatsApp or phone number.` };
+  return { name, email, mdcn: mdcn || null, phone: digits ? normalizePhone(rawPhone) : null };
 }
 
 /** A one-time set-up link for this practice, emailed to the doctor. */
@@ -76,6 +91,7 @@ export async function insertDoctorPractice(
         contact_role: "Doctor",
         contact_email: d.email,
         mdcn_number: d.mdcn,
+        contact_phone: d.phone,
         status: "active",
         plan: "doctor",
         seats: DOCTOR_SEATS,

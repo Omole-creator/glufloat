@@ -10,6 +10,7 @@ import { loadFieldTeam, moneyFor } from "@/lib/fieldTeam";
 import { nairaFromKobo } from "@/lib/careFees";
 import { isInternalEmail } from "@/lib/internalAccounts";
 import FoldCard from "@/components/FoldCard";
+import { whatsappNumber } from "@/lib/hospitalServer";
 import { AddDoctorForm, BroughtByPicker, DoctorActions } from "./DoctorControls";
 
 export const dynamic = "force-dynamic";
@@ -99,6 +100,18 @@ export default async function DoctorsAdminPage() {
                           <p className="font-semibold text-ink">{d.name}</p>
                           <p className="text-xs text-ink-soft">
                             {d.contact_email}
+                            {d.contact_phone && (
+                              <>
+                                {" · "}
+                                {whatsappNumber(d.contact_phone) ? (
+                                  <a href={`https://wa.me/${whatsappNumber(d.contact_phone)}`} target="_blank" rel="noreferrer" className="font-semibold text-brand hover:underline">
+                                    {d.contact_phone}
+                                  </a>
+                                ) : (
+                                  d.contact_phone
+                                )}
+                              </>
+                            )}
                             {!d.setUp && " · not set up yet"}
                             {d.status === "declined" && " · switched off"}
                           </p>
@@ -107,6 +120,7 @@ export default async function DoctorsAdminPage() {
                               id={d.id}
                               name={d.name}
                               email={d.contact_email ?? ""}
+                              phone={d.contact_phone ?? ""}
                               mdcn={d.mdcn_number ?? ""}
                               off={d.status === "declined"}
                             />

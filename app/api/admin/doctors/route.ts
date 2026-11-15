@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
  * Glufloat's own hands on a doctor.
  *
  * POST   add a doctor by hand (founder, 2026-10-17: without a field agent).
- *        { name, email, mdcn, agentId? }. agentId credits a field agent or
+ *        { name, email, mdcn, phone, agentId? } (phone required). agentId credits a field agent or
  *        advisor exactly as if the doctor had opened their link; empty means
  *        nobody, so only the doctor earns. Opens at once, like a sign-up, and
  *        emails the set-up link; the link is also handed back so it can be
@@ -20,7 +20,8 @@ export const dynamic = "force-dynamic";
  *          off / on   switch off (an MDCN number that does not check out) or
  *                     back on. Off: status 'declined', dashboard closes, links
  *                     stop, no care fee is earned. Patients keep their accounts.
- *          edit       { name, email, mdcn }
+ *          edit       { name, email, mdcn, phone } (phone may stay empty
+ *                     for a doctor who joined before it was asked)
  *          agent      { agentId } who brought them, "" for nobody (not for a
  *                     doctor a colleague invited).
  *          new_link   a fresh set-up link (the last one expired or was lost).
@@ -75,13 +76,13 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ ok: true });
   }
   if (action === "edit") {
-    const c = cleanDoctor(body, "admin");
+    const c = cleanDoctor(body, "admin", false);
     if ("error" in c) return NextResponse.json({ error: c.error }, { status: 400 });
     const other = await doctorByEmail(admin, c.email);
     if (other && other !== id) return NextResponse.json({ error: "Another doctor already uses this email." }, { status: 409 });
     await admin
       .from("hospitals")
-      .update({ name: c.name, contact_name: c.name, contact_email: c.email, mdcn_number: c.mdcn, updated_at: now })
+      .update({ name: c.name, contact_name: c.name, contact_email: c.email, mdcn_number: c.mdcn, contact_phone: c.phone, updated_at: now })
       .eq("id", id);
     // Their name on their own dashboard follows.
     await admin.from("hospital_staff").update({ name: c.name }).eq("hospital_id", id).eq("role", "admin");

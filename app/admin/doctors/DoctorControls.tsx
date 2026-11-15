@@ -45,7 +45,7 @@ function LinkBox({ link, emailed, name }: { link: string; emailed: boolean; name
  */
 export function AddDoctorForm({ agents }: { agents: Agent[] }) {
   const router = useRouter();
-  const [v, setV] = useState({ name: "", email: "", mdcn: "", agentId: "" });
+  const [v, setV] = useState({ name: "", email: "", phone: "", mdcn: "", agentId: "" });
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const [done, setDone] = useState<{ link: string; emailed: boolean; name: string } | null>(null);
@@ -66,7 +66,7 @@ export function AddDoctorForm({ agents }: { agents: Agent[] }) {
     setBusy(false);
     if (!res.ok) return setErr(j.error ?? "That did not work.");
     if (j.link) setDone({ link: j.link, emailed: !!j.emailed, name: j.name });
-    setV({ name: "", email: "", mdcn: "", agentId: "" });
+    setV({ name: "", email: "", phone: "", mdcn: "", agentId: "" });
     router.refresh();
   };
   return (
@@ -76,7 +76,7 @@ export function AddDoctorForm({ agents }: { agents: Agent[] }) {
         void add();
       }}
     >
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         <label className="text-xs font-semibold text-ink-soft">
           Doctor&apos;s name
           <input value={v.name} onChange={set("name")} required placeholder="Dr Ada Okafor" className={box} />
@@ -84,6 +84,10 @@ export function AddDoctorForm({ agents }: { agents: Agent[] }) {
         <label className="text-xs font-semibold text-ink-soft">
           Email
           <input value={v.email} onChange={set("email")} required type="email" className={box} />
+        </label>
+        <label className="text-xs font-semibold text-ink-soft">
+          WhatsApp or phone
+          <input value={v.phone} onChange={set("phone")} required type="tel" className={box} />
         </label>
         <label className="text-xs font-semibold text-ink-soft">
           MDCN folio number (optional)
@@ -103,7 +107,7 @@ export function AddDoctorForm({ agents }: { agents: Agent[] }) {
       </div>
       <div className="mt-3 flex flex-wrap items-center gap-3">
         <button
-          disabled={busy || !v.name.trim() || !v.email.trim()}
+          disabled={busy || !v.name.trim() || !v.email.trim() || !v.phone.trim()}
           className="h-11 rounded-full bg-leaf px-6 text-sm font-bold text-white hover:bg-leaf-deep disabled:opacity-50"
         >
           {busy ? "Adding..." : "Add doctor"}
@@ -193,19 +197,21 @@ export function DoctorActions({
   id,
   name,
   email,
+  phone,
   mdcn,
   off,
 }: {
   id: string;
   name: string;
   email: string;
+  phone: string;
   mdcn: string;
   off: boolean;
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [editing, setEditing] = useState(false);
-  const [v, setV] = useState({ name, email, mdcn });
+  const [v, setV] = useState({ name, email, phone, mdcn });
   const [err, setErr] = useState("");
   const [link, setLink] = useState<{ link: string; emailed: boolean } | null>(null);
 
@@ -307,6 +313,10 @@ export function DoctorActions({
               <label className="block text-xs font-semibold text-ink-soft">
                 Email
                 <input value={v.email} onChange={(e) => setV({ ...v, email: e.target.value })} type="email" required className={box} />
+              </label>
+              <label className="block text-xs font-semibold text-ink-soft">
+                WhatsApp or phone
+                <input value={v.phone} onChange={(e) => setV({ ...v, phone: e.target.value })} type="tel" className={box} />
               </label>
               <label className="block text-xs font-semibold text-ink-soft">
                 MDCN folio number (optional)

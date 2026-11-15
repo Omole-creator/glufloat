@@ -1,17 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { BadgeCheck, MailCheck, Mail, UserRound } from "lucide-react";
+import { BadgeCheck, MailCheck, Mail, Phone, UserRound } from "lucide-react";
 import { Field, FormError, SubmitButton } from "@/components/auth/Field";
 
 /**
- * A doctor signs up (/api/doctors/start): name, email and MDCN folio number.
- * No password here and no phone number. The email carries the link to finish
+ * A doctor signs up (/api/doctors/start): name, email, WhatsApp/phone number
+ * (required, founder 2026-11-15) and MDCN folio number. No password here. The email carries the link to finish
  * setting up, so nothing waits for anybody to approve it.
  */
 export default function DoctorStartForm() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [mdcn, setMdcn] = useState("");
   const [website, setWebsite] = useState("");
   const [busy, setBusy] = useState(false);
@@ -19,12 +20,14 @@ export default function DoctorStartForm() {
   const [sent, setSent] = useState<{ emailed: boolean; link: string | null } | null>(null);
 
   const submit = async () => {
+    // Count only the digits, so spaces, +234 and 0 all pass (same as /signup).
+    if (phone.replace(/\D/g, "").length < 10) return setErr("Please put your WhatsApp or phone number.");
     setBusy(true);
     setErr("");
     const res = await fetch("/api/doctors/start", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, mdcn, website }),
+      body: JSON.stringify({ name, email, phone, mdcn, website }),
     });
     const j = await res.json().catch(() => ({}));
     setBusy(false);
@@ -83,6 +86,18 @@ export default function DoctorStartForm() {
         autoCapitalize="none"
         spellCheck={false}
         hint="We send your set-up link here."
+      />
+      <Field
+        label="WhatsApp or phone number"
+        ariaLabel="Your WhatsApp or phone number"
+        icon={Phone}
+        type="tel"
+        inputMode="tel"
+        value={phone}
+        onChange={(e) => setPhone(e.target.value)}
+        required
+        autoComplete="tel"
+        hint="Only Glufloat sees this. Your patients do not."
       />
       <Field
         label="Your MDCN folio number (optional)"
