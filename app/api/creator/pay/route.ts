@@ -3,7 +3,6 @@ import { createAdminClient } from "@/lib/supabase/server";
 import { sessionUser } from "@/lib/hospitalServer";
 import { startCreatorPayment } from "@/lib/creatorsServer";
 import { TIERS, type Tier } from "@/lib/pricing";
-import { patientsDoctor } from "@/lib/careFeesServer";
 
 export const dynamic = "force-dynamic";
 
@@ -21,9 +20,10 @@ export async function POST(request: Request) {
   const tier = TIERS.includes(body.tier as Tier) ? (body.tier as Tier) : null;
   if (!tier) return NextResponse.json({ error: "Please choose a plan." }, { status: 400 });
   const admin = createAdminClient();
-  // A Glufloat doctor's patient pays for Premium only (founder, 2026-11-16).
-  if (tier !== "dietitian" && (await patientsDoctor(admin, user.id)))
-    return NextResponse.json({ error: "Your doctor's patients use Glufloat Premium. Please choose Premium." }, { status: 409 });
+  // A Glufloat doctor's patient pays for Premium only, but NOT somebody a
+  // creator brought: that is a separate deal, every plan (founder, 2026-11-16).
+  // Everyone reaching this route is on a creator's code, so the doctor rule
+  // never applies here. Kept as a note so it is not added again.
   const r = await startCreatorPayment(admin, user.id, user.email, tier);
   if ("error" in r) return NextResponse.json({ error: r.error }, { status: r.status });
   return NextResponse.json({ url: r.url });

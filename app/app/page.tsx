@@ -177,6 +177,10 @@ export default function AppPage() {
   // A creator's code (glufloat.com/faith): ties the account on first open,
   // and says whether the next payment is 20% off (lib/creatorClient.ts).
   const creator = useCreator(!!access && (access.status === "trial" || access.status === "subscribed" || access.status === "expired"));
+  // A Glufloat doctor's patient is offered Premium only (founder, 2026-11-16),
+  // EXCEPT somebody a creator brought: that is a separate deal, and they keep
+  // every plan (founder, same day). The server rule is in /api/creator/pay.
+  const premiumOnly = !!doctor && !creator?.code;
   const [codePayErr, setCodePayErr] = useState("");
   // A one-time landing hint pointing at the bottom nav's "Fit me" icon, so a
   // first-time visitor knows where their daily calorie setup lives. Shown
@@ -402,9 +406,9 @@ export default function AppPage() {
   // Trial ended and no active subscription. This is the SINGLE paywall — the
   // landing page never links straight to Paystack, it always lands here.
   if (access.status === "expired") {
-    // A Glufloat doctor's patient is offered Premium only: it is the plan
-    // that keeps their doctor in the chat.
-    const TIER_COPY: { tier: "basic" | "plus" | "dietitian"; blurb: string }[] = doctor
+    // A Glufloat doctor's patient is offered Premium only (not one a creator
+    // brought): it is the plan that keeps their doctor in the chat.
+    const TIER_COPY: { tier: "basic" | "plus" | "dietitian"; blurb: string }[] = premiumOnly && doctor
       ? [{ tier: "dietitian", blurb: `Everything in Glufloat, and chat with ${doctor.name}` }]
       : [
           { tier: "basic", blurb: "Every answer, and Check a meal for your whole plate" },
@@ -416,7 +420,7 @@ export default function AppPage() {
     // A renewal is highlighted at the SAME tier they last paid for, never a
     // silent downgrade to Basic pricing. Someone who never paid starts at
     // Basic, same as before.
-    const currentTier = doctor ? "dietitian" : access.previousTier ?? "basic";
+    const currentTier = premiumOnly ? "dietitian" : access.previousTier ?? "basic";
     return (
       <>
         <Navbar />
@@ -432,7 +436,7 @@ export default function AppPage() {
                 : "Your free trial is over."}
             </h1>
             <p className="mt-2 text-sm leading-relaxed text-ink-soft">
-              {doctor
+              {premiumOnly && doctor
                 ? `To get meals in line with your daily calorie target and chat with ${doctor.name}, subscribe to Glufloat Premium. Cancel any time.`
                 : "Choose a plan to keep Glufloat. Cancel any time."}
             </p>
@@ -587,7 +591,7 @@ export default function AppPage() {
   const renewYearly = access.status === "subscribed" && access.yearly && YEARLY_ENABLED;
   // A Glufloat doctor's patient renews on Premium only (founder, 2026-11-16),
   // even if they were on Basic or Plus before they joined their doctor.
-  const renewTier = access.status === "subscribed" ? (doctor && !hospital ? "dietitian" : access.tier) : "basic";
+  const renewTier = access.status === "subscribed" ? (premiumOnly && !hospital ? "dietitian" : access.tier) : "basic";
   const renewPriceLabel =
     access.status === "subscribed"
       ? nairaLabel((renewYearly ? TIER_YEARLY_AMOUNTS : TIER_AMOUNTS)[renewTier])
@@ -598,7 +602,7 @@ export default function AppPage() {
       : "";
   // A doctor's patient who is not on Premium yet (free week, or Basic/Plus).
   const doctorNeedsPremium =
-    !!doctor && !hospital && (access.status === "trial" || (access.status === "subscribed" && access.tier !== "dietitian"));
+    premiumOnly && !hospital && (access.status === "trial" || (access.status === "subscribed" && access.tier !== "dietitian"));
 
   return (
     <>
