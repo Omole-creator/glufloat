@@ -31,6 +31,7 @@ import PushOptIn from "@/components/PushOptIn";
 import InviteFriends from "@/components/InviteFriends";
 import CreatorCodeToday from "@/components/creator/CreatorCodeToday";
 import CodeBox from "@/components/creator/CodeBox";
+import UpgradeNudge from "@/components/UpgradeNudge";
 import { addCode, payWithCode, useCreator } from "@/lib/creatorClient";
 import WeighInReminder from "@/components/WeighInReminder";
 import MedicineNamePrompt from "@/components/MedicineNamePrompt";
@@ -800,6 +801,13 @@ export default function AppPage() {
                   personalize={canUseGoalPersonalization(access)}
                 />
               </div>
+
+              {/* Basic: "upgrade to Plus" for calorie-sized meals; Plus: the
+                  dietitian on Premium. Once a week at most. Not for a doctor's
+                  patient (their own Premium line), a hospital or practice patient. */}
+              {access.status === "subscribed" && !hospital && !premiumOnly && (
+                <UpgradeNudge tier={access.tier} creator={creator} withEmail={withEmail} urls={PAYSTACK_URLS} />
+              )}
 
               {/* The green extras card, directly under the blue meal card
                   (founder instruction, 2026-08-30). */}
