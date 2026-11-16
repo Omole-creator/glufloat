@@ -5,7 +5,7 @@ import { Download, QrCode } from "lucide-react";
 import { buildPosterPdf, joinShort } from "@/lib/hospitalPdf";
 
 /**
- * The QR code box on the Plan page: the join address, the code, and the
+ * The QR code box on the Plan page: the join link, the code, and the
  * printable QR code PDF. Shared by hospitals and dietitians.
  */
 export default function QrCodeCard({
@@ -35,7 +35,9 @@ export default function QrCodeCard({
           : "Print it and put it where your patients wait. They scan it with their phone camera to join. Everyone who joins shows up on your patient list."}
       </p>
       <div className="mt-4 rounded-2xl bg-mist/70 px-4 py-5 text-center">
-        <p className="text-xs font-semibold text-ink-soft">Your join address</p>
+        <p className="text-xs font-semibold text-ink-soft">
+          Patients join by scanning your QR code, or by opening your link:
+        </p>
         <p className="mt-1 font-display text-xl font-bold text-brand">{joinShort(code)}</p>
         <p className="mt-1 text-xs text-ink-soft">
           {practice ? "Your code" : "Your hospital code"}: {code}
