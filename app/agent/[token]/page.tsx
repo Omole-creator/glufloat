@@ -2,8 +2,19 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { createAdminClient } from "@/lib/supabase/server";
 import { doctorsReady } from "@/lib/careFeesServer";
-import { REP_PATIENT_STATUS, earningPaid, earningSource, loadFieldTeam, loadRepPatients, moneyFor, type DoctorStats, type FieldAgent } from "@/lib/fieldTeam";
-import { ADVISOR_DIRECT_RATE, ADVISOR_RATE, AGENT_RATE, REP_PATIENT_SHARE, maskAccount, nairaFromKobo } from "@/lib/careFees";
+import {
+  REP_PATIENT_STATUS,
+  earningPaid,
+  earningSource,
+  invitedByMyDoctors,
+  isInvitedDoctorEarning,
+  loadFieldTeam,
+  loadRepPatients,
+  moneyFor,
+  type DoctorStats,
+  type FieldAgent,
+} from "@/lib/fieldTeam";
+import { ADVISOR_DIRECT_RATE, ADVISOR_RATE, AGENT_RATE, REP_PATIENT_SHARE, SECOND_DEGREE_FEE_KOBO, maskAccount, nairaFromKobo } from "@/lib/careFees";
 import { PREMIUM_MONTHLY } from "@/lib/hospitalPlans";
 import { SITE_URL } from "@/lib/site";
 import AgentShare from "./AgentShare";
@@ -49,6 +60,17 @@ export default async function AgentDashboard({ params }: { params: Promise<{ tok
   const myPatients = await loadRepPatients(admin, team, [agent.id]);
   const linkPaying = myPatients.filter((p) => p.status === "paying").length;
   const day = (iso: string) => new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+
+  // Doctors one of this rep's own doctors invited: N300 a month from each of
+  // their paying patients (lib/careFees.ts). Counted on their own, so the rep
+  // can see what comes from there.
+  const invited = invitedByMyDoctors(team, agent.id);
+  const invitedEarnings = money.earnings.filter((e) => isInvitedDoctorEarning(e, team));
+  const invitedEarned = invitedEarnings.reduce((n, e) => n + e.amount, 0);
+  const invitedOwed = invitedEarnings.filter((e) => !earningPaid(e, team)).reduce((n, e) => n + e.amount, 0);
+  const earnedFrom = (doctorId: string) => invitedEarnings.filter((e) => e.source_hospital_id === doctorId).reduce((n, e) => n + e.amount, 0);
+  const invitedPatients = invited.reduce((n, d) => n + d.patients, 0);
+  const invitedPaying = invited.reduce((n, d) => n + d.paying, 0);
 
   const tiles = [
     { label: "To be paid", value: nairaFromKobo(money.owed + money.sending), sub: "paid to your bank every week" },
@@ -124,6 +146,7 @@ export default async function AgentDashboard({ params }: { params: Promise<{ tok
           {advisor
             ? `For each paying patient, every month, for the patient's first 12 months, you earn ${fee(ADVISOR_DIRECT_RATE)} on doctors you bring yourself and ${fee(ADVISOR_RATE)} on doctors your reps bring.`
             : `You earn ${fee(AGENT_RATE)} for each paying patient of the doctors you bring, every month, for the patient's first 12 months.`}{" "}
+          {`When one of your doctors invites another doctor, you also earn ${nairaFromKobo(SECOND_DEGREE_FEE_KOBO)} each month for each of that doctor's paying patients, for the patient's first 12 months.`}{" "}
           {agent.account_number
             ? `Paid every week to ${agent.account_name ?? ""} (${agent.bank_name ?? ""} ${maskAccount(agent.account_number)}).`
             : "Send Glufloat your bank details so we can pay you."}
@@ -162,6 +185,54 @@ export default async function AgentDashboard({ params }: { params: Promise<{ tok
             {advisor ? "Your doctors and your reps' doctors" : "Your doctors"}
           </h2>
           <DoctorList list={advisor ? myDoctors : own} />
+        </section>
+
+        <section className="mt-6 rounded-2xl border border-[#e3e9f1] bg-white">
+          <h2 className="border-b border-[#eef2f7] px-5 py-4 font-display text-lg font-bold text-ink">Doctors your doctors invited</h2>
+          <div className="grid grid-cols-2 gap-px border-b border-[#eef2f7] bg-[#eef2f7] sm:grid-cols-4">
+            {[
+              { label: "Doctors", value: String(invited.length) },
+              { label: "Paying patients", value: `${invitedPaying} of ${invitedPatients}` },
+              { label: "Earned from them", value: nairaFromKobo(invitedEarned) },
+              { label: "To be paid", value: nairaFromKobo(invitedOwed) },
+            ].map((t) => (
+              <div key={t.label} className="bg-white px-5 py-3">
+                <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-ink/50">{t.label}</p>
+                <p className="mt-1 font-display text-xl font-bold text-ink">{t.value}</p>
+              </div>
+            ))}
+          </div>
+          <p className="border-b border-[#eef2f7] px-5 py-3 text-xs text-ink-soft">
+            When one of your doctors invites another doctor, you earn {nairaFromKobo(SECOND_DEGREE_FEE_KOBO)} each month for each of
+            that doctor&apos;s paying patients, for the patient&apos;s first 12 months.
+          </p>
+          {invited.length === 0 ? (
+            <p className="px-5 py-6 text-center text-sm text-ink-soft">
+              None yet. Ask your doctors to invite their colleagues from their Glufloat dashboard.
+            </p>
+          ) : (
+            <ul className="divide-y divide-[#eef2f7]">
+              {invited.map((d) => (
+                <li key={d.id} className="flex items-center justify-between gap-3 px-5 py-3 text-sm">
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold text-ink">{d.name}</p>
+                    <p className="text-xs text-ink-soft">
+                      Invited by {d.invitedByName} · joined {day(d.created_at)}
+                    </p>
+                  </div>
+                  <div className="shrink-0 text-right text-xs text-ink-soft">
+                    <p>
+                      <span className="font-display text-base font-bold text-ink">{d.patients}</span> patients ·{" "}
+                      <span className="font-bold text-leaf-deep">{d.paying}</span> paying
+                    </p>
+                    <p>
+                      <span className="font-bold text-ink">{nairaFromKobo(earnedFrom(d.id))}</span> earned
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
 
         <section className="mt-6 rounded-2xl border border-[#e3e9f1] bg-white">

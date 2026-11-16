@@ -5,7 +5,7 @@ import { requireStaffPage } from "@/components/hospital/requireStaff";
 import BankDetailsForm from "@/components/BankDetailsForm";
 import InviteColleagueCard from "@/components/hospital/InviteColleagueCard";
 import { isDoctorPractice } from "@/lib/hospitalPlans";
-import { maskAccount, nairaFromKobo, REVIEW_FEE_KOBO } from "@/lib/careFees";
+import { COLLEAGUE_BONUS_KOBO, maskAccount, nairaFromKobo, REVIEW_FEE_KOBO } from "@/lib/careFees";
 import { doctorsReady, earningTotals, type EarningRow, type PayoutRow } from "@/lib/careFeesServer";
 import { listBanks } from "@/lib/paystackBanks";
 import { SITE_URL } from "@/lib/site";
@@ -36,7 +36,7 @@ export default async function EarningsPage({ searchParams }: { searchParams: Pro
       </HospitalShell>
     );
 
-  const [{ data: earn }, { data: pays }, { data: pats }, banks] = await Promise.all([
+  const [{ data: earn }, { data: pays }, { data: pats }, banks, { data: invitedRows }] = await Promise.all([
     ctx.admin
       .from("clinician_earnings")
       .select("id,reference,kind,hospital_id,agent_id,source_hospital_id,patient_user_id,payment_amount,amount,earned_at,payout_id")
@@ -46,13 +46,18 @@ export default async function EarningsPage({ searchParams }: { searchParams: Pro
     ctx.admin.from("earning_payouts").select("id,hospital_id,agent_id,amount,status,reference,note,created_at").eq("hospital_id", h.id).order("created_at", { ascending: false }),
     ctx.admin.from("hospital_patients").select("user_id,name").eq("hospital_id", h.id),
     listBanks(),
+    // Colleagues this doctor invited with their link (no patient data).
+    ctx.admin.from("hospitals").select("id,name,created_at,status").eq("invited_by", h.id).eq("kind", "doctor").order("created_at", { ascending: false }),
   ]);
+  const invited = ((invitedRows ?? []) as { id: string; name: string; created_at: string; status: string }[]).filter((d) => d.status !== "declined");
   const earnings = (earn ?? []) as EarningRow[];
   const payouts = (pays ?? []) as PayoutRow[];
   const totals = earningTotals(earnings, payouts);
   const names = new Map(((pats ?? []) as { user_id: string | null; name: string }[]).filter((p) => p.user_id).map((p) => [p.user_id as string, p.name]));
   const colleagueIds = [...new Set(earnings.filter((e) => e.kind === "colleague" && e.source_hospital_id).map((e) => e.source_hospital_id as string))];
-  const colleagues = new Map<string, string>();
+  const bonusEarned = earnings.filter((e) => e.kind === "colleague").reduce((n, e) => n + e.amount, 0);
+  const bonusFor = new Set(colleagueIds);
+  const colleagues = new Map<string, string>(invited.map((d) => [d.id, d.name]));
   if (colleagueIds.length) {
     const { data } = await ctx.admin.from("hospitals").select("id,name").in("id", colleagueIds);
     for (const c of (data ?? []) as { id: string; name: string }[]) colleagues.set(c.id, c.name);
@@ -94,6 +99,40 @@ export default async function EarningsPage({ searchParams }: { searchParams: Pro
         />
         <InviteColleagueCard link={`${SITE_URL}/d/${h.code}`} />
       </div>
+
+      <section className="mt-6 rounded-2xl border border-[#e3e9f1] bg-white">
+        <h2 className="border-b border-[#eef2f7] px-5 py-4 font-display text-lg font-bold text-ink">Colleagues you invited</h2>
+        <div className="grid grid-cols-2 gap-px border-b border-[#eef2f7] bg-[#eef2f7]">
+          {[
+            { label: "Colleagues invited", value: String(invited.length) },
+            { label: "Earned from invites", value: nairaFromKobo(bonusEarned) },
+          ].map((t) => (
+            <div key={t.label} className="bg-white px-5 py-3">
+              <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-ink/50">{t.label}</p>
+              <p className="mt-1 font-display text-xl font-bold text-ink">{t.value}</p>
+            </div>
+          ))}
+        </div>
+        {invited.length === 0 ? (
+          <p className="px-5 py-6 text-center text-sm text-ink-soft">No colleagues yet. Send them your link above.</p>
+        ) : (
+          <ul className="divide-y divide-[#eef2f7]">
+            {invited.map((d) => (
+              <li key={d.id} className="flex items-center justify-between gap-3 px-5 py-3 text-sm">
+                <div className="min-w-0">
+                  <p className="truncate font-semibold text-ink">{d.name}</p>
+                  <p className="text-xs text-ink-soft">
+                    Joined {new Date(d.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                  </p>
+                </div>
+                <p className={`shrink-0 text-right text-xs ${bonusFor.has(d.id) ? "font-bold text-leaf-deep" : "text-ink-soft"}`}>
+                  {bonusFor.has(d.id) ? `${nairaFromKobo(COLLEAGUE_BONUS_KOBO)} earned` : "Waiting for their first Premium patient"}
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
       <section className="mt-6 rounded-2xl border border-[#e3e9f1] bg-white">
         <h2 className="border-b border-[#eef2f7] px-5 py-4 font-display text-lg font-bold text-ink">Your care fees</h2>

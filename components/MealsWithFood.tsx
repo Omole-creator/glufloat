@@ -1,3 +1,4 @@
+
 "use client";
 
 import { blockedFoods } from "@/lib/nutAllergy";

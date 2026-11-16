@@ -6,8 +6,8 @@ import { COLLEAGUE_BONUS_KOBO, nairaFromKobo } from "@/lib/careFees";
 
 /**
  * A Glufloat doctor invites a colleague (founder, 2026-10-16): their own link,
- * /d/<their code>. When the colleague's first patient subscribes, the doctor
- * who invited them gets N3,000, once.
+ * /d/<their code>. When the colleague's first patient subscribes to Premium,
+ * the doctor who invited them gets N3,000, once (Premium only since 2026-11-16).
  */
 export default function InviteColleagueCard({ link }: { link: string }) {
   const [copied, setCopied] = useState(false);
@@ -21,8 +21,8 @@ export default function InviteColleagueCard({ link }: { link: string }) {
         <h2 className="font-display text-lg font-bold text-ink">Invite a colleague</h2>
       </div>
       <p className="mt-2 text-sm text-ink-soft">
-        Send this link to a doctor you know. When their first patient subscribes, you get{" "}
-        <span className="font-semibold text-ink">{nairaFromKobo(COLLEAGUE_BONUS_KOBO)}</span>.
+        Send this link to a doctor you know. When their first patient subscribes to Glufloat Premium, you get{" "}
+        <span className="font-semibold text-ink">{nairaFromKobo(COLLEAGUE_BONUS_KOBO)}</span>, once.
       </p>
       <p className="mt-4 break-all rounded-2xl bg-mist/70 px-4 py-3 text-sm font-semibold text-brand">{link}</p>
       <div className="mt-4 flex flex-wrap gap-2">

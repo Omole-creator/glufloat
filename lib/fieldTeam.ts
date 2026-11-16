@@ -188,10 +188,32 @@ export const REP_PATIENT_STATUS: Record<RepPatient["status"], string> = {
   not_paying: "Not paying yet",
 };
 
+/**
+ * Doctors that one of this rep's own doctors invited (founder, 2026-11-16):
+ * the rep earns N300 a month from each of their paying patients. One step
+ * only, and switched-off practices are left out like everywhere else.
+ */
+export function invitedByMyDoctors(team: FieldTeam, agentId: string): (DoctorStats & { invitedByName: string })[] {
+  const mine = new Map(team.doctors.filter((d) => d.agent_id === agentId).map((d) => [d.id, d.name]));
+  return team.doctors
+    .filter((d) => d.invited_by && mine.has(d.invited_by) && d.status !== "declined")
+    .map((d) => ({ ...d, invitedByName: mine.get(d.invited_by as string) ?? "" }));
+}
+
+/** True when this rep earning came from a patient of a doctor one of their doctors invited. */
+export function isInvitedDoctorEarning(e: EarningRow, team: FieldTeam): boolean {
+  if (!e.source_hospital_id) return false;
+  return !!team.doctors.find((d) => d.id === e.source_hospital_id)?.invited_by;
+}
+
 /** Where one rep or advisor earning came from, in plain words (no patient names). */
 export function earningSource(e: EarningRow, team: FieldTeam): string {
   if (!e.source_hospital_id) return "A patient from your patient link";
   const doctor = team.doctors.find((d) => d.id === e.source_hospital_id);
+  if (doctor?.invited_by) {
+    const inviter = team.doctors.find((d) => d.id === doctor.invited_by);
+    return `A patient of ${doctor.name}, invited by ${inviter?.name ?? "one of your doctors"}`;
+  }
   return `A patient of ${doctor?.name ?? "one of your doctors"}`;
 }
 

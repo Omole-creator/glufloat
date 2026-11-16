@@ -15,6 +15,9 @@ import {
   splitPayment,
   splitRepPatientPayment,
   weekStartWAT,
+  secondDegreeFee,
+  earnsColleagueBonus,
+  SECOND_DEGREE_FEE_KOBO,
 } from "../lib/careFees";
 
 let fails = 0;
@@ -111,5 +114,23 @@ check("rep patient: after 12 months pays nothing", rp(450_000, new Date(now.getT
 check("rep patient: switched-off rep paid nothing", rp(450_000, null, false).length === 0);
 check("rep patient: never more than the payment", rp(1).length === 0 && by(rp(2), "agent") === 0);
 
+// Second degree (founder, 2026-11-16): the rep earns N300 a month from each
+// paying patient of a doctor one of their doctors invited.
+const sd = (amountKobo: number, yearly = false, firstPaidAt: Date | null = null, agentActive = true) =>
+  secondDegreeFee({ amountKobo, yearly, agentActive, paidAt: now, firstPaidAt });
+check("second degree: N300 on a monthly payment", SECOND_DEGREE_FEE_KOBO === 30_000 && sd(450_000) === 30_000);
+check("second degree: N3,600 on a yearly payment", sd(4_320_000, true) === 360_000);
+check("second degree: month 12 still pays", sd(450_000, false, new Date(now.getTime() - 364 * DAY)) === 30_000);
+check("second degree: nothing after 12 months", sd(450_000, false, new Date(now.getTime() - 366 * DAY)) === 0);
+check("second degree: nothing for a switched-off rep", sd(450_000, false, null, false) === 0);
+check("second degree: nothing on no payment", sd(0) === 0);
+
+// The colleague bonus is paid only on a Premium payment.
+check("colleague bonus: Premium monthly", earnsColleagueBonus(450_000));
+check("colleague bonus: Premium yearly", earnsColleagueBonus(4_320_000));
+check("colleague bonus: Premium with a creator's code", earnsColleagueBonus(360_000));
+check("colleague bonus: not on Basic", !earnsColleagueBonus(150_000));
+check("colleague bonus: not on Plus", !earnsColleagueBonus(250_000));
+check("colleague bonus: not on Basic yearly", !earnsColleagueBonus(1_440_000));
 console.log(fails ? `\n${fails} FAILED` : "\nall passed");
 process.exit(fails ? 1 : 0);

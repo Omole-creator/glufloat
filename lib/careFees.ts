@@ -1,3 +1,4 @@
+import { tierForAmount } from "@/lib/pricing";
 /**
  * Care fees: what a doctor, a field agent and an advisor earn from a patient's
  * payment. Pure (no I/O), so `npx tsx scripts/care-fees-test.ts` proves every
@@ -15,7 +16,13 @@
  *  - A doctor the advisor brought HIMSELF: the advisor gets 15% for the
  *    patient's first 12 months, and nobody else but the doctor.
  *  - A doctor who invites a colleague gets N3,000 once, when the colleague's
- *    first patient pays. Agents earn nothing from a colleague's referral.
+ *    first patient pays for Glufloat PREMIUM (founder, 2026-11-16: a doctor's
+ *    patients are offered Premium only).
+ *  - The rep (or advisor) who brought Doctor A earns N300 a month from each
+ *    paying patient of a doctor Doctor A invited (Doctor B, "second degree"),
+ *    for that patient's first 12 months; a yearly payment counts as 12 months
+ *    (N3,600). One step only: nothing from a doctor Doctor B invites. No
+ *    advisor share on it (founder, 2026-11-16).
  *  - Paid weekly, no minimum.
  *  - A rep's link for PATIENTS (/p/<ref_code>, founder, 2026-10-27): a third
  *    of each payment by that patient for their first 12 months (N1,500 of
@@ -39,6 +46,8 @@ export const AGENT_WINDOW_DAYS = 365;
 export const REP_PATIENT_SHARE = 1 / 3;
 /** N3,000 to a doctor when a colleague they invited gets their first paying patient. */
 export const COLLEAGUE_BONUS_KOBO = 300_000;
+/** N300 a month to the rep from each paying patient of a doctor their doctor invited. */
+export const SECOND_DEGREE_FEE_KOBO = 30_000;
 
 const DAY_MS = 86_400_000;
 
@@ -94,6 +103,21 @@ export function splitRepPatientPayment(opts: {
   if (amount <= 0 || !opts.agentActive || !agentWindowOpen(opts.firstPaidAt, opts.paidAt)) return [];
   const share = Math.floor(amount / 3);
   return share > 0 ? [{ kind: "agent", rate: REP_PATIENT_SHARE, amount: share }] : [];
+}
+
+/**
+ * The rep's N300 from one payment by a patient of a doctor their doctor
+ * invited. A yearly payment buys 12 months, so it earns 12 x N300. Nothing
+ * once the patient's first 12 months are over, or when the rep is off.
+ */
+export function secondDegreeFee(opts: { amountKobo: number; yearly: boolean; agentActive: boolean; paidAt: Date; firstPaidAt: Date | null }): number {
+  if (!(opts.amountKobo > 0) || !opts.agentActive || !agentWindowOpen(opts.firstPaidAt, opts.paidAt)) return 0;
+  return SECOND_DEGREE_FEE_KOBO * (opts.yearly ? 12 : 1);
+}
+
+/** The colleague bonus is paid only on a Glufloat Premium payment (monthly, yearly or with a creator's code). */
+export function earnsColleagueBonus(amountKobo: number): boolean {
+  return tierForAmount(amountKobo) === "dietitian";
 }
 
 /** "2026-10": the calendar month (WAT) a review falls in. */

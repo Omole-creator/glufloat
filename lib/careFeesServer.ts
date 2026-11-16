@@ -10,7 +10,16 @@
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { TRIAL_DAYS } from "@/lib/trial";
-import { COLLEAGUE_BONUS_KOBO, REVIEW_FEE_KOBO, reviewReference, splitPayment, splitRepPatientPayment } from "@/lib/careFees";
+import {
+  COLLEAGUE_BONUS_KOBO,
+  REVIEW_FEE_KOBO,
+  earnsColleagueBonus,
+  reviewReference,
+  secondDegreeFee,
+  splitPayment,
+  splitRepPatientPayment,
+} from "@/lib/careFees";
+import { isYearlyAmount } from "@/lib/pricing";
 import { repPatientLink } from "@/lib/repPatients";
 import { creatorLinkFor } from "@/lib/creatorsServer";
 
@@ -114,11 +123,45 @@ export async function earnCareFees(
     }));
     if (rows.length) await admin.from("clinician_earnings").upsert(rows, { onConflict: "reference,kind", ignoreDuplicates: true });
 
-    // The colleague bonus: once, to the doctor who invited this one, on this
-    // doctor's first paying patient.
+    // A doctor a colleague invited (Doctor B). Two things can be owed:
+    //  1. The rep who brought the inviting doctor (Doctor A) gets N300 a month
+    //     from this patient, for their first 12 months. Kind "agent", so it is
+    //     owed and paid out like any rep share; source_hospital_id is Doctor B,
+    //     which is how the rep's dashboard tells it apart. A colleague-invited
+    //     doctor never has an agent of their own, so (reference, "agent") is
+    //     free. Not when a rep's patient link or a creator brought the patient
+    //     (one person, one partner), like every other rep share.
+    //  2. The colleague bonus: once, to Doctor A, on Doctor B's first patient
+    //     who pays for Premium.
     if (practice.invited_by) {
-      const { data: inviter } = await admin.from("hospitals").select("id,kind,status").eq("id", practice.invited_by).maybeSingle();
-      if (inviter && inviter.kind === "doctor" && inviter.status === "active") {
+      const { data: inviter } = await admin.from("hospitals").select("id,kind,status,agent_id").eq("id", practice.invited_by).maybeSingle();
+      if (inviter && inviter.kind === "doctor" && inviter.agent_id && !repLink && !creatorLink) {
+        const { data: rep } = await admin.from("field_agents").select("id,status").eq("id", inviter.agent_id).maybeSingle();
+        const fee = secondDegreeFee({
+          amountKobo: p.amount,
+          yearly: isYearlyAmount(p.amount),
+          agentActive: rep?.status === "active",
+          paidAt,
+          firstPaidAt,
+        });
+        if (fee > 0)
+          await admin.from("clinician_earnings").upsert(
+            {
+              reference: p.reference,
+              kind: "agent",
+              hospital_id: null,
+              agent_id: inviter.agent_id,
+              source_hospital_id: practice.id,
+              patient_user_id: p.uid,
+              payment_amount: p.amount,
+              rate: null,
+              amount: fee,
+              earned_at: paidAt.toISOString(),
+            },
+            { onConflict: "reference,kind", ignoreDuplicates: true },
+          );
+      }
+      if (inviter && inviter.kind === "doctor" && inviter.status === "active" && earnsColleagueBonus(p.amount)) {
         await admin.from("clinician_earnings").upsert(
           {
             reference: `colleague:${practice.id}`,

@@ -432,7 +432,9 @@ export default function AppPage() {
                 : "Your free trial is over."}
             </h1>
             <p className="mt-2 text-sm leading-relaxed text-ink-soft">
-              Choose a plan to keep Glufloat. Cancel any time.
+              {doctor
+                ? `To get meals in line with your daily calorie target and chat with ${doctor.name}, subscribe to Glufloat Premium. Cancel any time.`
+                : "Choose a plan to keep Glufloat. Cancel any time."}
             </p>
             {YEARLY_ENABLED && (
               <div className="mt-6">
@@ -583,14 +585,20 @@ export default function AppPage() {
   const trialEnding = access.status === "trial" && access.daysLeft <= 1;
   // A yearly member renews for a year, at the yearly price, on the yearly page.
   const renewYearly = access.status === "subscribed" && access.yearly && YEARLY_ENABLED;
+  // A Glufloat doctor's patient renews on Premium only (founder, 2026-11-16),
+  // even if they were on Basic or Plus before they joined their doctor.
+  const renewTier = access.status === "subscribed" ? (doctor && !hospital ? "dietitian" : access.tier) : "basic";
   const renewPriceLabel =
     access.status === "subscribed"
-      ? nairaLabel((renewYearly ? TIER_YEARLY_AMOUNTS : TIER_AMOUNTS)[access.tier])
+      ? nairaLabel((renewYearly ? TIER_YEARLY_AMOUNTS : TIER_AMOUNTS)[renewTier])
       : "";
   const renewUrl =
     access.status === "subscribed"
-      ? withEmail((renewYearly ? PAYSTACK_YEARLY_URLS : PAYSTACK_URLS)[access.tier])
+      ? withEmail((renewYearly ? PAYSTACK_YEARLY_URLS : PAYSTACK_URLS)[renewTier])
       : "";
+  // A doctor's patient who is not on Premium yet (free week, or Basic/Plus).
+  const doctorNeedsPremium =
+    !!doctor && !hospital && (access.status === "trial" || (access.status === "subscribed" && access.tier !== "dietitian"));
 
   return (
     <>
@@ -607,10 +615,10 @@ export default function AppPage() {
             // Still inside the first 3 months on a creator's code: renew at 20% off.
             <button
               type="button"
-              onClick={() => payWithCode(access.tier)}
+              onClick={() => payWithCode(renewTier)}
               className="font-semibold underline hover:text-brand-deep"
             >
-              Renew for {nairaLabel(creator.prices[access.tier])} (20% off with your code) to keep Glufloat.
+              Renew for {nairaLabel(creator.prices[renewTier])} (20% off with your code) to keep Glufloat.
             </button>
           ) : (
             <a href={renewUrl} className="underline hover:text-brand-deep">
@@ -705,6 +713,15 @@ export default function AppPage() {
               <span>
                 <span className="font-semibold">{doctor.name}</span> looks after your diabetes on Glufloat. Your doctor can see
                 your meals and sugar tests.
+                {doctorNeedsPremium && (
+                  <>
+                    {" "}
+                    To get meals in line with your daily calorie target and chat with your doctor, subscribe to Glufloat Premium.{" "}
+                    <a href={withEmail(PAYSTACK_URLS.dietitian)} className="font-semibold text-brand underline hover:text-brand-deep">
+                      Subscribe to Premium ({nairaLabel(TIER_AMOUNTS.dietitian)} a month)
+                    </a>
+                  </>
+                )}
               </span>
             </p>
           )}

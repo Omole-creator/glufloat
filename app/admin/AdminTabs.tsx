@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -64,6 +64,48 @@ const GROUPS = [
 ];
 const TABS = GROUPS.flatMap((g) => g.tabs);
 
+/**
+ * Tabs that blink red when money is due (founder, 2026-11-16), from
+ * /api/admin/payouts/due: Payouts once last week's doctor/rep/dietitian money
+ * is unpaid, Creator partners once a creator's earning is 14 days old.
+ * Read at most once a minute, shared by both menus.
+ */
+let dueCache: { at: number; due: Set<string> } | null = null;
+function useDue(): Set<string> {
+  const path = usePathname();
+  const [due, setDue] = useState<Set<string>>(dueCache?.due ?? new Set());
+  useEffect(() => {
+    if (dueCache && Date.now() - dueCache.at < 60_000) {
+      setDue(dueCache.due);
+      return;
+    }
+    let live = true;
+    fetch("/api/admin/payouts/due")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { payouts?: number; creators?: number } | null) => {
+        const s = new Set<string>();
+        if (d?.payouts) s.add("/admin/payouts");
+        if (d?.creators) s.add("/admin/creator-partners");
+        dueCache = { at: Date.now(), due: s };
+        if (live) setDue(s);
+      })
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, [path]);
+  return due;
+}
+
+function DueDot() {
+  return (
+    <span className="relative ml-auto flex h-2.5 w-2.5 shrink-0" aria-hidden>
+      <span className="absolute inline-flex h-full w-full rounded-full bg-verdict-red opacity-75 motion-safe:animate-ping" />
+      <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-verdict-red" />
+    </span>
+  );
+}
+
 function useHere() {
   const path = usePathname();
   return (href: string, exact?: boolean) => (exact ? path === href : path.startsWith(href));
@@ -77,6 +119,7 @@ async function logOut() {
 /** The left sidebar, from `lg` up. */
 export function AdminSidebarNav() {
   const here = useHere();
+  const due = useDue();
   return (
     <nav className="flex flex-col gap-5">
       {GROUPS.map((g) => (
@@ -97,6 +140,12 @@ export function AdminSidebarNav() {
                   {on && <span className="absolute inset-y-2 left-0 w-1 rounded-full bg-leaf" />}
                   <Icon className="h-4.5 w-4.5 shrink-0" strokeWidth={2.2} />
                   {label}
+                  {due.has(href) && (
+                    <>
+                      <DueDot />
+                      <span className="sr-only"> (time to pay)</span>
+                    </>
+                  )}
                 </Link>
               );
             })}
@@ -130,6 +179,7 @@ export function AdminSidebarFoot() {
 /** Under `lg`: one row of tabs you can swipe, and a small log-out link. */
 export function AdminMobileNav() {
   const here = useHere();
+  const due = useDue();
   const nav = useRef<HTMLElement>(null);
   // With nine screens the row is wider than a phone: bring the current one into view.
   useEffect(() => {
@@ -150,6 +200,12 @@ export function AdminMobileNav() {
           >
             <Icon className="h-3.5 w-3.5" strokeWidth={2.4} />
             {label}
+            {due.has(href) && (
+              <>
+                <DueDot />
+                <span className="sr-only"> (time to pay)</span>
+              </>
+            )}
           </Link>
         );
       })}
