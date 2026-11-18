@@ -25,6 +25,8 @@ export type CreatorPayout = { id: string; creator_id: string | null; amount: num
 
 export type CreatorStats = {
   creator: Creator;
+  /** Devices that opened their link (once each, for good). 0 before #42 runs. */
+  visits: number;
   /** People who signed up through their link or code. */
   joined: number;
   /** Of those, how many have paid at least once. */
@@ -44,13 +46,15 @@ export type CreatorStats = {
 
 export async function loadCreators(admin: SupabaseClient, onlyId?: string): Promise<CreatorStats[]> {
   // Small tables: read them whole and pick out one creator in memory.
-  const [creators, users, earnings, payouts] = await Promise.all([
+  const [creators, users, earnings, payouts, visits] = await Promise.all([
     fetchAll<Creator>(() => admin.from("creators").select("*").order("created_at", { ascending: false })),
     fetchAll<{ user_id: string; creator_id: string; via: string; attached_at: string }>(() =>
       admin.from("creator_users").select("user_id,creator_id,via,attached_at").order("attached_at", { ascending: true }),
     ),
     fetchAll<CreatorEarning>(() => admin.from("creator_earnings").select("*").order("earned_at", { ascending: false })),
     fetchAll<CreatorPayout>(() => admin.from("creator_payouts").select("*").order("created_at", { ascending: false })),
+    // Before #42 the table is missing: fetchAll then gives no rows and every count reads 0.
+    fetchAll<{ creator_id: string }>(() => admin.from("creator_link_visits").select("creator_id")),
   ]);
   const now = Date.now();
   const list = onlyId ? creators.rows.filter((c) => c.id === onlyId) : creators.rows;
@@ -62,6 +66,7 @@ export async function loadCreators(admin: SupabaseClient, onlyId?: string): Prom
     const payers = new Set(earned.map((e) => e.user_id).filter(Boolean) as string[]);
     return {
       creator: c,
+      visits: visits.rows.filter((v) => v.creator_id === c.id).length,
       joined: mine.length,
       paid: payers.size,
       payable: ready.reduce((n, e) => n + e.amount, 0),

@@ -8,7 +8,7 @@ import BankDetailsForm from "@/components/BankDetailsForm";
 import FoldCard from "@/components/FoldCard";
 import { creatorsReady } from "@/lib/creatorsServer";
 import { loadCreators } from "@/lib/creatorTeam";
-import { CREATOR_HOLD_DAYS, CREATOR_PAY_DAY, creatorLink, creatorRate, talkingPoints } from "@/lib/creators";
+import { CREATOR_HOLD_DAYS, CREATOR_PAY_DAY, creatorLink, creatorRate, partnerTitle, talkingPoints } from "@/lib/creators";
 import { nairaFromKobo } from "@/lib/careFees";
 import { listBanks } from "@/lib/paystackBanks";
 import { SITE_URL } from "@/lib/site";
@@ -40,11 +40,15 @@ export default async function CreatorPartnersPage() {
   const sum = (f: (s: (typeof list)[number]) => number) => list.reduce((n, s) => n + f(s), 0);
 
   return (
-    <AdminShell title="Creator partners" subtitle="Creators who said yes: their codes, people and money" icon={icon}>
+    <AdminShell title="Creator partners" subtitle="Creators who said yes, and pharmacies: their codes, people and money" icon={icon}>
       <div className="mt-6">
         <AdminHero
           items={[
-            { label: "Creators", value: String(list.filter((s) => s.creator.status === "active").length), sub: "switched on" },
+            {
+              label: "Partners",
+              value: String(list.filter((s) => s.creator.status === "active").length),
+              sub: `switched on: ${list.filter((s) => s.creator.status === "active" && s.creator.kind !== "pharmacy").length} creators, ${list.filter((s) => s.creator.status === "active" && s.creator.kind === "pharmacy").length} pharmacies`,
+            },
             { label: "People from codes", value: String(sum((s) => s.joined)), sub: `${sum((s) => s.paid)} have paid` },
             { label: "To pay now", value: nairaFromKobo(sum((s) => s.payable)), sub: `by the ${CREATOR_PAY_DAY}th, ${CREATOR_HOLD_DAYS}+ days old` },
             { label: "Paid to creators", value: nairaFromKobo(sum((s) => s.paidOut)), sub: "all time" },
@@ -52,7 +56,12 @@ export default async function CreatorPartnersPage() {
         />
       </div>
 
-      <FoldCard className="mt-6" title="Add a creator partner" sub="Their code is their first name unless you type one." open={list.length === 0}>
+      <FoldCard
+        className="mt-6"
+        title="Add a creator or pharmacy"
+        sub="A creator's code is their first name. A pharmacy's is its name and area. You can type your own."
+        open={list.length === 0}
+      >
         <AddCreatorForm />
       </FoldCard>
 
@@ -64,12 +73,13 @@ export default async function CreatorPartnersPage() {
           const c = s.creator;
           const off = c.status === "off";
           const link = creatorLink(SITE_URL, c.code);
+          const pharmacy = c.kind === "pharmacy";
           return (
             <FoldCard
               key={c.id}
               className={off ? "opacity-70" : ""}
-              title={`${c.name} · ${c.code}`}
-              sub={`${link}${c.phone ? ` · ${c.phone}` : ""}${off ? " · Switched off" : ""}`}
+              title={`${pharmacy ? "Pharmacy: " : ""}${partnerTitle(c)} · ${c.code}`}
+              sub={`${link}${pharmacy && c.contact_name ? ` · ${c.contact_name}` : ""}${c.phone ? ` · ${c.phone}` : ""}${off ? " · Switched off" : ""}`}
               meta={
                 <>
                   <span className="block font-semibold text-ink">
@@ -79,8 +89,10 @@ export default async function CreatorPartnersPage() {
                 </>
               }
             >
-              <div className="grid grid-cols-2 gap-4 text-sm sm:grid-cols-5">
+              {pharmacy && c.address && <p className="mb-3 text-sm text-ink-soft">{c.address}</p>}
+              <div className="grid grid-cols-2 gap-4 text-sm sm:grid-cols-3 lg:grid-cols-6">
                 {[
+                  ["Opened the link", String(s.visits)],
                   ["Signed up", String(s.joined)],
                   ["Have paid", String(s.paid)],
                   ["Share now", `${Math.round(creatorRate(s.paid) * 100)}%`],
@@ -107,6 +119,10 @@ export default async function CreatorPartnersPage() {
                   dashLink={`${SITE_URL}/creator/${c.dash_token}`}
                   points={talkingPoints(c.code, link)}
                   off={off}
+                  kind={pharmacy ? "pharmacy" : "creator"}
+                  branch={c.branch ?? null}
+                  address={c.address ?? null}
+                  contactName={c.contact_name ?? null}
                 />
                 <BankDetailsForm
                   banks={banks}

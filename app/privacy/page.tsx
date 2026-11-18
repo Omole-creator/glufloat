@@ -6,96 +6,161 @@ export const metadata: Metadata = {
   alternates: { canonical: "/privacy" },
 };
 
+/*
+ * The founder's legal text. Rewritten 2026-11-18 at his request, so it says
+ * what the site does today. If the date below changes, change LEGAL_UPDATED
+ * in app/sitemap.ts too.
+ */
 export default function PrivacyPage() {
   return (
     <LegalShell
       eyebrow="The serious part"
       title="Privacy Policy"
-      updated="Last updated: 11 July 2026. Written to follow the Nigeria Data Protection Act 2023 (NDPA). Glufloat is the data controller."
+      updated="Last updated: 18 November 2026. Written to follow the Nigeria Data Protection Act 2023 (NDPA). Glufloat is the data controller."
     >
       <h2>1. Who we are</h2>
       <p>
-        Glufloat is run by Glufloat, based in Lagos State, Nigeria. For any
-        privacy question, contact us at glufloat@gmail.com.
+        Glufloat is run from 11 Idris Ogunlaja Drive, Majek, Lagos, Nigeria.
+        For any privacy question, write to glufloat@gmail.com or
+        support@glufloat.com, or call 0904 874 4395.
       </p>
 
       <h2>2. What we collect</h2>
-      <p>
-        The current version of Glufloat is built to collect as little as
-        possible:
-      </p>
+      <p>We only ask for what we need to pick your meals and keep your record.</p>
       <ul>
         <li>
-          Your account: the name and email you give us when you sign up, and
-          your password, which is kept in a scrambled form we cannot read. We
-          also keep the date your free trial started and whether your membership
-          is active.
+          Your account: your name, email, phone number, and whether you have
+          diabetes, care for someone who does, or are a health worker. Your
+          password is kept in a scrambled form we cannot read. If your hospital
+          signed you up with only a phone number, we use that number to log you
+          in.
         </li>
         <li>
-          Checkout details (name, email, payment) are collected and processed
-          by our checkout partner, Paystack, and their payment providers. We
-          receive confirmation of your membership, not your full card number.
+          My details, if you fill them in: your sex, age, weight, height, how
+          active you are, your goals, other health conditions (high blood
+          pressure, high cholesterol, kidney problems), any nut allergy, the
+          swallows you eat, and how and when you take your diabetes medicine.
+          We keep each new weight you save, so you and your doctor can see how
+          it changes.
         </li>
         <li>
-          Foods you search and meals you build stay on your own device. We do
-          not store them on our servers in this version.
+          Your food record: the meals and foods you tell us you ate, how much,
+          and when. Searching a food or checking a meal is not saved as
+          something you ate. Only &ldquo;I ate this&rdquo; is.
         </li>
         <li>
-          A count of blog visits, explained in the next section. It holds no
-          personal information at all.
+          Your sugar tests and HbA1c results, if you save them, with the time
+          and the meal they go with. We ask your permission the first time you
+          save a sugar test.
         </li>
         <li>
-          Basic, anonymous usage information may be collected to keep the site
-          working and improve it.
+          Your chats with a dietitian, doctor or care team inside Glufloat, and
+          any notes your care team writes for you.
+        </li>
+        <li>
+          How you use the app: for example, which meal we showed you, whether
+          you opened it or asked for another, and which buttons you tap. This
+          helps us pick better meals and fix what is not working.
+        </li>
+        <li>
+          Payments: Paystack takes your payment. We receive the amount, the
+          date, your email and a payment number. We never see or keep your full
+          card number.
+        </li>
+        <li>
+          Meal reminders: if you turn them on, your phone gives us an address
+          to send them to. It is removed when your phone stops accepting them,
+          or when you delete your account.
         </li>
       </ul>
 
-      <h2>3. How we count blog visits</h2>
+      <h2>3. Links, codes and who told you about us</h2>
       <p>
-        We count how many people open each blog post, how many read it to the
-        end, and how many go on to make an account. This is how we learn which
-        posts are useful and which are not.
+        Many people find Glufloat through a friend, a creator, a pharmacy, a
+        doctor or one of our field reps. When you open their link or scan their
+        QR code, a small cookie on your phone remembers who sent you, so the
+        right person gets the credit and you get any discount that comes with
+        it.
       </p>
-      <p>To do it, we store only this:</p>
-      <ul>
-        <li>
-          Which post was opened, and whether the reader reached the bottom or
-          clicked the free-trial button.
-        </li>
-        <li>
-          A random number your own browser makes up for itself. It is not your
-          name, your email, or your address. It is there only so that if you
-          open the same post five times, we count one person and not five.
-        </li>
-        <li>
-          If you later make an account, we keep a note of the first blog post
-          you landed on, so we know which post brought you to us.
-        </li>
-      </ul>
       <p>
-        We do not store your name, your email, your location, your IP address,
-        or anything that could point back to you as a person. We do not follow
-        you around other websites, and we do not sell any of this. If you clear
-        your browser storage, the random number is gone and you start again as
-        somebody new.
+        We also count how many phones open each link. Each phone is counted
+        once. We do not keep your name, location or IP address for this. The
+        person who sent you sees only numbers and money, such as &ldquo;12
+        people signed up, 4 paid&rdquo;. They never see your name, your meals
+        or your sugar tests.
       </p>
 
-      <h2>4. Sensitive (health) information</h2>
+      <h2>4. How we count blog readers</h2>
       <p>
-        Using a diabetes food guide can hint at your health status, which
-        counts as sensitive personal data under the NDPA. We treat this with
-        extra care:
+        We count how many people open each blog post, how many read to the end,
+        and how many go on to make an account. Your browser makes up a random
+        number for itself, so if you open the same post five times we count one
+        person, not five. It is not your name, email or address. If you later
+        make an account, we note the first post you landed on.
+      </p>
+
+      <h2>5. Website statistics and cookies</h2>
+      <p>
+        On the live site we use Vercel Analytics and Google Analytics (through
+        Google Tag Manager) to see how many people visit, which pages they
+        open and where they came from. Google Analytics uses cookies to do
+        this. These numbers come to us as totals, not as named people.
+      </p>
+      <p>
+        Your browser also keeps a few small settings for Glufloat, such as
+        which tab you were on or whether you closed a message. You can clear
+        these at any time in your browser settings.
+      </p>
+
+      <h2>6. Your health information</h2>
+      <p>
+        Your sugar tests, weight, medicines, health conditions and the fact
+        that you use a diabetes app are sensitive personal data under the NDPA.
+        We treat them with extra care:
       </p>
       <ul>
-        <li>We only use it to give you the food guidance you asked for.</li>
-        <li>We never sell it.</li>
-        <li>You can clear it from your device at any time.</li>
+        <li>We use them to pick your meals and build your report.</li>
+        <li>We never sell them and never use them for adverts.</li>
+        <li>
+          We will not use your health records to train a computer model without
+          asking you first. Saying no will not change your service.
+        </li>
+        <li>You can delete any meal or sugar test from your report.</li>
       </ul>
 
-      <h2>5. Why we use your information</h2>
+      <h2>7. Who can see your record</h2>
+      <ul>
+        <li>You.</li>
+        <li>
+          Anyone you send your doctor&apos;s report to. When you share it, you
+          choose who gets it.
+        </li>
+        <li>
+          If you joined through a hospital, a dietitian or a doctor on
+          Glufloat: their doctors, dietitians and staff can see your details,
+          meals, sugar tests, weight, HbA1c, report and chat, so they can look
+          after you. A doctor sees your record only while you are on a free
+          trial or a paid plan.
+        </li>
+        <li>
+          If you are on Glufloat Premium: the Glufloat dietitian you chat with
+          sees your chat.
+        </li>
+        <li>
+          A small number of Glufloat staff, only when needed to run the service
+          or help you. Our own dashboards show totals, not your meals or sugar
+          numbers.
+        </li>
+      </ul>
+
+      <h2>8. Why we use your information</h2>
       <ul>
         <li>To give you the service you signed up for (contract).</li>
-        <li>To take payment for your subscription (contract).</li>
+        <li>To take payment for your plan (contract).</li>
+        <li>
+          To keep your sugar tests and health details, with your permission
+          (consent).
+        </li>
         <li>
           To keep the app safe and working, and to improve it (legitimate
           interest).
@@ -103,29 +168,58 @@ export default function PrivacyPage() {
         <li>To meet our legal duties in Nigeria (legal obligation).</li>
       </ul>
 
-      <h2>6. We do not sell your data</h2>
+      <h2>9. Emails from us</h2>
       <p>
-        We do not sell your personal information to anyone. We only share it
-        where needed: with our checkout partner to process your subscription,
-        with trusted service providers who help us run the app (for example
-        hosting), and with authorities if the law requires us to.
+        We send emails about Glufloat, such as news, tips and changes to your
+        plan. Every email has a &ldquo;Stop these emails&rdquo; link. Once you
+        use it, we stop.
       </p>
 
-      <h2>7. Where your data is kept</h2>
+      <h2>10. Companies that help us</h2>
       <p>
-        Data may be stored or processed on servers inside or outside Nigeria.
-        When data leaves Nigeria, we take the steps required by the NDPA to
-        make sure it stays protected.
+        We do not sell your personal information to anyone. We share it only
+        with companies that help us run Glufloat, and only what they need:
+      </p>
+      <ul>
+        <li>Supabase, which stores our database.</li>
+        <li>Vercel, which runs the website.</li>
+        <li>Paystack, which takes payments.</li>
+        <li>Mailyte, which sends our emails.</li>
+        <li>Google, for website statistics.</li>
+        <li>
+          Your phone&apos;s notification service (Google, Apple or Mozilla), to
+          deliver meal reminders you turned on.
+        </li>
+      </ul>
+      <p>We also share information with the authorities if the law requires us to.</p>
+
+      <h2>11. Where your data is kept</h2>
+      <p>
+        Our database is in London, in the United Kingdom, and the companies
+        above may handle data in other countries too. When data leaves Nigeria,
+        we take the steps the NDPA requires to keep it protected.
       </p>
 
-      <h2>8. How long we keep it</h2>
+      <h2>12. How we keep it safe</h2>
       <p>
-        We keep information for as long as your membership is active, and for
-        a reasonable period after, to meet legal, tax, and accounting duties.
-        When it is no longer needed, we delete or anonymise it.
+        Your connection to Glufloat is encrypted, passwords are scrambled, and
+        each person can only reach their own record unless they are part of
+        your care team. No system is perfect, but we work to keep your
+        information safe and will tell you if something goes wrong that
+        affects you.
       </p>
 
-      <h2>9. Your rights under the NDPA</h2>
+      <h2>13. How long we keep it</h2>
+      <p>
+        We keep your information while you have an account. You can delete your
+        account at any time from the menu (&ldquo;Delete my account&rdquo;).
+        This removes your login, your details, your meals, your sugar tests,
+        your chats and your reminders straight away, and it cannot be undone.
+        We keep payment records for tax and accounting, but with your name and
+        email taken off.
+      </p>
+
+      <h2>14. Your rights under the NDPA</h2>
       <ul>
         <li>Ask what data we hold about you and get a copy.</li>
         <li>Correct data that is wrong.</li>
@@ -138,29 +232,29 @@ export default function PrivacyPage() {
         </li>
       </ul>
       <p>
-        To use any of these rights, contact us at glufloat@gmail.com. We will
-        respond within the time the NDPA requires.
+        To use any of these rights, write to glufloat@gmail.com. We will reply
+        within the time the NDPA requires.
       </p>
 
-      <h2>10. Children</h2>
+      <h2>15. Children</h2>
       <p>
         Glufloat is not made for children under 18. We do not knowingly
         collect data from children. If you believe a child has given us data,
         contact us and we will delete it.
       </p>
 
-      <h2>11. Changes to this policy</h2>
+      <h2>16. Changes to this policy</h2>
       <p>
-        We may update this policy. If we make an important change, we will
-        tell you on the site or by email. The &ldquo;last updated&rdquo; date
-        at the top shows the latest version.
+        We may update this policy as Glufloat changes. If we make an important
+        change, we will tell you on the site or by email. The &ldquo;last
+        updated&rdquo; date at the top shows the latest version.
       </p>
 
-      <h2>12. Contact</h2>
+      <h2>17. Contact</h2>
       <p>
-        Privacy questions or requests: glufloat@gmail.com / Lagos State,
-        Nigeria. You may also contact the Nigeria Data Protection Commission
-        (NDPC).
+        Privacy questions or requests: glufloat@gmail.com, support@glufloat.com,
+        0904 874 4395, 11 Idris Ogunlaja Drive, Majek, Lagos, Nigeria. You may
+        also contact the Nigeria Data Protection Commission (NDPC).
       </p>
     </LegalShell>
   );

@@ -3,10 +3,11 @@ import Image from "next/image";
 import { createAdminClient } from "@/lib/supabase/server";
 import { creatorsReady, type Creator } from "@/lib/creatorsServer";
 import { loadCreators } from "@/lib/creatorTeam";
-import { CREATOR_HIGH_AFTER, CREATOR_HOLD_DAYS, CREATOR_PAY_DAY, creatorLink, creatorRate, nextPayDay, talkingPoints } from "@/lib/creators";
+import { CREATOR_HIGH_AFTER, CREATOR_HOLD_DAYS, CREATOR_PAY_DAY, creatorLink, creatorRate, nextPayDay, partnerTitle, talkingPoints } from "@/lib/creators";
 import { maskAccount, nairaFromKobo } from "@/lib/careFees";
 import { SITE_URL } from "@/lib/site";
 import CreatorShare from "./CreatorShare";
+import PharmacyPosterButton from "@/components/PharmacyPosterButton";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "My Glufloat earnings", robots: { index: false, follow: false } };
@@ -34,7 +35,10 @@ export default async function CreatorDashboard({ params }: { params: Promise<{ t
   const [stats] = await loadCreators(admin, creator.id);
   const link = creatorLink(SITE_URL, creator.code);
   const rate = creatorRate(stats.paid);
-  const first = creator.name.split(/\s+/)[0];
+  // A pharmacy branch (2026-11-18) gets the same page, worded for a shop, with its poster.
+  const pharmacy = creator.kind === "pharmacy";
+  const first = pharmacy ? partnerTitle(creator) : creator.name.split(/\s+/)[0];
+  const people = pharmacy ? "customers" : "people";
   const day = (iso: string | Date) => new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
   const toHigh = Math.max(0, CREATOR_HIGH_AFTER - stats.paid);
 
@@ -44,7 +48,8 @@ export default async function CreatorDashboard({ params }: { params: Promise<{ t
     { label: "Paid to you", value: nairaFromKobo(stats.paidOut), sub: "all time" },
   ];
   const counts = [
-    { label: "Signed up with your code", value: String(stats.joined) },
+    { label: pharmacy ? "Opened your poster's link" : "Opened your link", value: String(stats.visits) },
+    { label: pharmacy ? "Signed up from your poster" : "Signed up with your code", value: String(stats.joined) },
     { label: "Have paid", value: String(stats.paid) },
     { label: "Your share now", value: `${Math.round(rate * 100)}%` },
   ];
@@ -61,12 +66,30 @@ export default async function CreatorDashboard({ params }: { params: Promise<{ t
           </div>
           <h1 className="mt-6 font-display text-2xl font-bold sm:text-3xl">Hello, {first}</h1>
           <p className="mt-1 text-sm text-white/80">
-            Your code is <span className="font-bold text-white">{creator.code}</span> · your people and your money
+            Your code is <span className="font-bold text-white">{creator.code}</span> · your {people} and your money
           </p>
-          <div className="mt-5">
-            <p className="mb-2 text-xs font-bold uppercase tracking-[0.1em] text-white/70">Your link</p>
-            <CreatorShare link={link} points={talkingPoints(creator.code, link)} />
-          </div>
+          {pharmacy ? (
+            <div className="mt-5 rounded-2xl bg-white/12 p-4 ring-1 ring-inset ring-white/20 sm:p-5">
+              <p className="text-xs font-bold uppercase tracking-[0.1em] text-white/70">Your poster</p>
+              <p className="mt-2 text-sm text-white/90">
+                Print it in colour on A4 paper and stick it near your counter. Customers scan it and sign up by themselves.
+              </p>
+              <div className="mt-3">
+                <PharmacyPosterButton
+                  name={creator.name}
+                  branch={creator.branch ?? null}
+                  code={creator.code}
+                  className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-bold text-brand hover:bg-white/90 disabled:opacity-60"
+                />
+              </div>
+              <p className="mt-3 break-all text-xs text-white/70">Your link: {link}</p>
+            </div>
+          ) : (
+            <div className="mt-5">
+              <p className="mb-2 text-xs font-bold uppercase tracking-[0.1em] text-white/70">Your link</p>
+              <CreatorShare link={link} points={talkingPoints(creator.code, link)} />
+            </div>
+          )}
         </div>
       </header>
 
@@ -81,7 +104,7 @@ export default async function CreatorDashboard({ params }: { params: Promise<{ t
           ))}
         </div>
 
-        <div className="mt-3 grid grid-cols-3 gap-3">
+        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
           {counts.map((c) => (
             <div key={c.label} className="rounded-2xl border border-[#e3e9f1] bg-white p-4 text-center">
               <p className="font-display text-2xl font-bold text-ink">{c.value}</p>
@@ -91,14 +114,14 @@ export default async function CreatorDashboard({ params }: { params: Promise<{ t
         </div>
         <p className="mt-3 text-sm text-ink-soft">
           {toHigh > 0
-            ? `When ${toHigh} more of your people pay, your share goes up to 50% on new payments.`
+            ? `When ${toHigh} more of your ${people} pay, your share goes up to 50% on new payments.`
             : "Your share is 50% on new payments."}
         </p>
 
         <section className="mt-6 rounded-2xl border border-[#e3e9f1] bg-white p-5 text-sm leading-relaxed text-ink-soft sm:p-6">
           <h2 className="font-display text-base font-bold text-ink">How you are paid</h2>
           <ul className="mt-2 list-disc space-y-1 pl-5">
-            <li>Your people get a free week, then 20% off their first 3 months.</li>
+            <li>Your {people} get a free week, then 20% off their first 3 months.</li>
             <li>
               You get {Math.round(rate * 100)}% of what Glufloat receives after the payment fee, for 12 months from each person&apos;s first
               payment.
@@ -120,7 +143,7 @@ export default async function CreatorDashboard({ params }: { params: Promise<{ t
         <section className="mt-6 overflow-hidden rounded-2xl border border-[#e3e9f1] bg-white">
           <h2 className="border-b border-[#eef2f7] px-5 py-4 font-display text-base font-bold text-ink">Your earnings</h2>
           {stats.earnings.length === 0 ? (
-            <p className="px-5 py-6 text-center text-sm text-ink-soft">Nothing yet. You earn when somebody who used your code pays.</p>
+            <p className="px-5 py-6 text-center text-sm text-ink-soft">{pharmacy ? "Nothing yet. You earn when a customer who scanned your poster pays." : "Nothing yet. You earn when somebody who used your code pays."}</p>
           ) : (
             <ul className="divide-y divide-[#eef2f7]">
               {stats.earnings.map((e) => (
@@ -140,17 +163,19 @@ export default async function CreatorDashboard({ params }: { params: Promise<{ t
         </section>
 
         <section className="mt-6 overflow-hidden rounded-2xl border border-[#e3e9f1] bg-white">
-          <h2 className="border-b border-[#eef2f7] px-5 py-4 font-display text-base font-bold text-ink">Your people</h2>
+          <h2 className="border-b border-[#eef2f7] px-5 py-4 font-display text-base font-bold text-ink">Your {people}</h2>
           {stats.people.length === 0 ? (
-            <p className="px-5 py-6 text-center text-sm text-ink-soft">Nobody yet. Share your link or your code.</p>
+            <p className="px-5 py-6 text-center text-sm text-ink-soft">{pharmacy ? "Nobody yet. Stick your poster where customers can see it." : "Nobody yet. Share your link or your code."}</p>
           ) : (
             <ul className="divide-y divide-[#eef2f7]">
               {stats.people.map((p, i) => (
                 <li key={i} className="flex items-center justify-between gap-3 px-5 py-3 text-sm">
                   <div>
-                    <p className="font-semibold text-ink">Person {i + 1}</p>
+                    <p className="font-semibold text-ink">
+                      {pharmacy ? "Customer" : "Person"} {i + 1}
+                    </p>
                     <p className="text-xs text-ink-soft">
-                      Joined {day(p.joinedAt)} · {p.via === "code" ? "typed your code" : "used your link"}
+                      Joined {day(p.joinedAt)} · {p.via === "code" ? "typed your code" : pharmacy ? "scanned your poster" : "used your link"}
                     </p>
                   </div>
                   <div className="text-right">

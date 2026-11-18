@@ -41,7 +41,15 @@ export type Creator = {
   account_name: string | null;
   status: "active" | "off";
   created_at: string;
+  /** From #42. Missing (undefined) before it runs, which reads as a creator. */
+  kind?: "creator" | "pharmacy" | null;
+  branch?: string | null;
+  address?: string | null;
+  contact_name?: string | null;
 };
+
+/** The cookie listing partner ids this device has already been counted for. */
+export const VISIT_COOKIE = "gf_crv";
 
 export async function creatorsReady(admin: SupabaseClient): Promise<boolean> {
   const { error } = await admin.from("creators").select("id", { head: true, count: "exact" }).limit(1);

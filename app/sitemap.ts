@@ -16,8 +16,8 @@ export const revalidate = 3600;
  * date its text was last edited.
  */
 const LEGAL_UPDATED = {
-  terms: new Date("2026-08-01"),
-  privacy: new Date("2026-07-11"),
+  terms: new Date("2026-11-18"),
+  privacy: new Date("2026-11-18"),
   disclaimer: new Date("2026-07-11"),
 };
 

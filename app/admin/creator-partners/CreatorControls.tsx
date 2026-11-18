@@ -3,17 +3,32 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Copy, Pencil, Send, Trash2, X } from "lucide-react";
+import { pharmacyCode, type PartnerKind } from "@/lib/creators";
+import PharmacyPosterButton from "@/components/PharmacyPosterButton";
 
-/** Add a creator partner. They never sign up: this is how they start. */
+/**
+ * Add a partner. They never sign up: this is how they start. Type picks a
+ * creator or a pharmacy branch (founder, 2026-11-18). For a pharmacy the code
+ * is suggested from its name and area and can be shortened before saving.
+ */
 export function AddCreatorForm() {
   const router = useRouter();
+  const [kind, setKind] = useState<PartnerKind>("creator");
   const [name, setName] = useState("");
+  const [branch, setBranch] = useState("");
+  const [address, setAddress] = useState("");
+  const [contact, setContact] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
+  // Once admin types a code, the suggestion stops overwriting it.
+  const [codeTouched, setCodeTouched] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const [ok, setOk] = useState("");
+  const pharmacy = kind === "pharmacy";
+  const suggested = pharmacy && name.trim() && branch.trim() ? pharmacyCode(name, branch, new Set()) : "";
+  const shownCode = pharmacy && !codeTouched ? suggested : code;
 
   const add = async () => {
     setBusy(true);
@@ -22,16 +37,24 @@ export function AddCreatorForm() {
     const res = await fetch("/api/admin/creator-partners", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, phone, email, code }),
+      body: JSON.stringify(
+        pharmacy
+          ? { kind, name, branch, address, contact_name: contact, phone, email, code: shownCode }
+          : { name, phone, email, code },
+      ),
     });
     const j = await res.json().catch(() => ({}));
     setBusy(false);
     if (!res.ok) return setErr(j.error ?? "That did not work.");
-    setOk(`Added. Their code is ${j.code}.`);
+    setOk(`Added. ${pharmacy ? "The" : "Their"} code is ${j.code}.`);
     setName("");
+    setBranch("");
+    setAddress("");
+    setContact("");
     setPhone("");
     setEmail("");
     setCode("");
+    setCodeTouched(false);
     router.refresh();
   };
 
@@ -45,9 +68,40 @@ export function AddCreatorForm() {
       className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
     >
       <label className="text-xs font-semibold text-ink-soft">
-        Name
+        Type
+        <select
+          value={kind}
+          onChange={(e) => {
+            setKind(e.target.value as PartnerKind);
+            setErr("");
+            setOk("");
+          }}
+          className={`mt-1 ${box}`}
+        >
+          <option value="creator">Creator</option>
+          <option value="pharmacy">Pharmacy</option>
+        </select>
+      </label>
+      <label className="text-xs font-semibold text-ink-soft">
+        {pharmacy ? "Pharmacy name" : "Name"}
         <input value={name} onChange={(e) => setName(e.target.value)} required className={`mt-1 ${box}`} />
       </label>
+      {pharmacy && (
+        <>
+          <label className="text-xs font-semibold text-ink-soft">
+            Branch or area
+            <input value={branch} onChange={(e) => setBranch(e.target.value)} required placeholder="Ikeja" className={`mt-1 ${box}`} />
+          </label>
+          <label className="text-xs font-semibold text-ink-soft">
+            Address
+            <input value={address} onChange={(e) => setAddress(e.target.value)} className={`mt-1 ${box}`} />
+          </label>
+          <label className="text-xs font-semibold text-ink-soft">
+            Contact person
+            <input value={contact} onChange={(e) => setContact(e.target.value)} className={`mt-1 ${box}`} />
+          </label>
+        </>
+      )}
       <label className="text-xs font-semibold text-ink-soft">
         WhatsApp number
         <input value={phone} onChange={(e) => setPhone(e.target.value)} inputMode="tel" className={`mt-1 ${box}`} />
@@ -57,18 +111,24 @@ export function AddCreatorForm() {
         <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" className={`mt-1 ${box}`} />
       </label>
       <label className="text-xs font-semibold text-ink-soft">
-        Code (leave empty for their first name)
+        {pharmacy ? "Code (shorten it if you like)" : "Code (leave empty for their first name)"}
         <input
-          value={code}
-          onChange={(e) => setCode(e.target.value.toUpperCase())}
-          placeholder="FAITH"
+          value={shownCode}
+          onChange={(e) => {
+            setCodeTouched(true);
+            setCode(e.target.value.toUpperCase());
+          }}
+          placeholder={pharmacy ? "ALPHAIKEJA" : "FAITH"}
           maxLength={20}
           className={`mt-1 uppercase ${box}`}
         />
       </label>
       <div className="flex items-end sm:col-span-2 lg:col-span-4">
-        <button disabled={busy || !name.trim()} className="h-11 rounded-full bg-leaf px-6 text-sm font-bold text-white hover:bg-leaf-deep disabled:opacity-50">
-          {busy ? "Adding..." : "Add creator"}
+        <button
+          disabled={busy || !name.trim() || (pharmacy && !branch.trim())}
+          className="h-11 rounded-full bg-leaf px-6 text-sm font-bold text-white hover:bg-leaf-deep disabled:opacity-50"
+        >
+          {busy ? "Adding..." : pharmacy ? "Add pharmacy" : "Add creator"}
         </button>
       </div>
       {err && <p className="text-sm font-semibold text-verdict-red sm:col-span-2 lg:col-span-4">{err}</p>}
@@ -88,6 +148,10 @@ export function CreatorLinks({
   dashLink,
   points,
   off,
+  kind = "creator",
+  branch = null,
+  address = null,
+  contactName = null,
 }: {
   id: string;
   name: string;
@@ -98,16 +162,31 @@ export function CreatorLinks({
   dashLink: string;
   points: string;
   off: boolean;
+  kind?: PartnerKind;
+  branch?: string | null;
+  address?: string | null;
+  contactName?: string | null;
 }) {
   const router = useRouter();
+  const pharmacy = kind === "pharmacy";
   const [editing, setEditing] = useState(false);
-  const [v, setV] = useState({ name, phone: phone ?? "", email: email ?? "" });
+  const [v, setV] = useState({
+    name,
+    phone: phone ?? "",
+    email: email ?? "",
+    branch: branch ?? "",
+    address: address ?? "",
+    contact_name: contactName ?? "",
+  });
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
   const first = name.split(/\s+/)[0];
   const wa = phone ? (phone.startsWith("0") && phone.length === 11 ? "234" + phone.slice(1) : phone) : "";
-  const message = `Hello ${first}, welcome to Glufloat. Thank you for saying yes.\n\nYour code is ${code}, and your link is ${link}\n\nThis is your own page. It shows your people and your money. Please keep it private:\n${dashLink}\n\nOn that page there is also a short list of what you can say about Glufloat.`;
+  const where = pharmacy && branch ? `${name}, ${branch}` : name;
+  const message = pharmacy
+    ? `Hello${contactName ? ` ${contactName.split(/\s+/)[0]}` : ""}, welcome to Glufloat. Thank you for partnering with us.\n\nThis is the page for ${where}. It has your poster, and shows how many customers joined and your money. Please keep it private:\n${dashLink}\n\nDownload the poster from that page, print it in colour on A4 paper, and stick it near your counter. Customers scan it and sign up by themselves.`
+    : `Hello ${first}, welcome to Glufloat. Thank you for saying yes.\n\nYour code is ${code}, and your link is ${link}\n\nThis is your own page. It shows your people and your money. Please keep it private:\n${dashLink}\n\nOn that page there is also a short list of what you can say about Glufloat.`;
 
   const act = async (action: string, ask?: string) => {
     if (ask && !confirm(ask)) return;
@@ -190,7 +269,7 @@ export function CreatorLinks({
             href={`https://wa.me/${wa}?text=${encodeURIComponent(message)}`}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label={`Send ${name} their code and page on WhatsApp`}
+            aria-label={pharmacy ? `Send ${where} their page on WhatsApp` : `Send ${name} their code and page on WhatsApp`}
             className="inline-flex items-center gap-1.5 rounded-full bg-[#25D366] px-3.5 py-1.5 text-xs font-bold text-white hover:brightness-95"
           >
             <Send className="h-3.5 w-3.5" /> Send on WhatsApp
@@ -198,21 +277,25 @@ export function CreatorLinks({
         )}
         {email && (
           <a
-            href={`mailto:${email}?subject=${encodeURIComponent(`Your Glufloat code: ${code}`)}&body=${encodeURIComponent(`${message}\n\n${points}`)}`}
+            href={`mailto:${email}?subject=${encodeURIComponent(pharmacy ? `Your Glufloat poster: ${where}` : `Your Glufloat code: ${code}`)}&body=${encodeURIComponent(pharmacy ? message : `${message}\n\n${points}`)}`}
             aria-label={`Email ${name} their code and page`}
             className="inline-flex items-center gap-1.5 rounded-full border border-line px-3.5 py-1.5 text-xs font-bold text-ink hover:border-brand"
           >
             Email it
           </a>
         )}
-        <button
-          type="button"
-          onClick={() => copy(points, "t")}
-          aria-label={`Copy what ${name} can say`}
-          className="inline-flex items-center gap-1 rounded-full border border-line px-3.5 py-1.5 text-xs font-bold text-ink hover:border-brand"
-        >
-          <Copy className="h-3 w-3" /> {copied === "t" ? "Copied" : "Copy what to say"}
-        </button>
+        {pharmacy ? (
+          <PharmacyPosterButton name={name} branch={branch} code={code} />
+        ) : (
+          <button
+            type="button"
+            onClick={() => copy(points, "t")}
+            aria-label={`Copy what ${name} can say`}
+            className="inline-flex items-center gap-1 rounded-full border border-line px-3.5 py-1.5 text-xs font-bold text-ink hover:border-brand"
+          >
+            <Copy className="h-3 w-3" /> {copied === "t" ? "Copied" : "Copy what to say"}
+          </button>
+        )}
         <button
           type="button"
           disabled={busy}
@@ -271,11 +354,29 @@ export function CreatorLinks({
                 <X className="h-4 w-4" />
               </button>
             </div>
-            <p className="mt-1 text-xs text-ink-soft">The code {code} cannot change: it is already in their posts.</p>
+            <p className="mt-1 text-xs text-ink-soft">
+              The code {code} cannot change: it is already {pharmacy ? "on their poster" : "in their posts"}.
+            </p>
             <label className="mt-4 block text-xs font-semibold text-ink-soft">
-              Name
+              {pharmacy ? "Pharmacy name" : "Name"}
               <input value={v.name} onChange={(e) => setV({ ...v, name: e.target.value })} required className={box} />
             </label>
+            {pharmacy && (
+              <>
+                <label className="mt-3 block text-xs font-semibold text-ink-soft">
+                  Branch or area
+                  <input value={v.branch} onChange={(e) => setV({ ...v, branch: e.target.value })} required className={box} />
+                </label>
+                <label className="mt-3 block text-xs font-semibold text-ink-soft">
+                  Address
+                  <input value={v.address} onChange={(e) => setV({ ...v, address: e.target.value })} className={box} />
+                </label>
+                <label className="mt-3 block text-xs font-semibold text-ink-soft">
+                  Contact person
+                  <input value={v.contact_name} onChange={(e) => setV({ ...v, contact_name: e.target.value })} className={box} />
+                </label>
+              </>
+            )}
             <label className="mt-3 block text-xs font-semibold text-ink-soft">
               WhatsApp number
               <input value={v.phone} onChange={(e) => setV({ ...v, phone: e.target.value })} inputMode="tel" className={box} />

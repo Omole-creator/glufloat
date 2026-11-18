@@ -3,15 +3,18 @@ import { isAdmin } from "@/lib/adminSession";
 import { createAdminClient } from "@/lib/supabase/server";
 import { newCode } from "@/lib/hospitalServer";
 import { normalizePhone } from "@/lib/phone";
-import { codeFromName, normalizeCode, validCode } from "@/lib/creators";
+import { codeFromName, normalizeCode, pharmacyCode, validCode } from "@/lib/creators";
 
 export const dynamic = "force-dynamic";
 
 /**
  * Creator partners, added by Glufloat (they never sign up).
  *
- * POST  add one            { name, phone, email, code? }  (code defaults to the first name)
- * PATCH { id, action }     on | off | new_link | edit { name, phone, email }
+ * POST  add one            { kind?, name, branch?, address?, contact_name?, phone, email, code? }
+ *       kind "creator" (default): code defaults to the first name.
+ *       kind "pharmacy" (2026-11-18): one row per branch, needs a branch;
+ *       code defaults to name + area (ALPHAIKEJA). Needs #42.
+ * PATCH { id, action }     on | off | new_link | edit { name, phone, email, branch?, address?, contact_name? }
  * DELETE { id, confirmName } only somebody with no people, earnings or payouts
  *
  * The code is never edited after it is made: it is already in videos and posts.
@@ -34,14 +37,23 @@ function clean(body: Record<string, unknown>) {
     phone: normalizePhone(clip(body.phone, 40)) || null,
     email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : null,
     code: normalizeCode(clip(body.code, 40)),
+    kind: body.kind === "pharmacy" ? ("pharmacy" as const) : ("creator" as const),
+    branch: clip(body.branch, 120) || null,
+    address: clip(body.address, 300) || null,
+    contact_name: clip(body.contact_name, 120) || null,
   };
 }
 
 export async function POST(request: Request) {
   if (!(await isAdmin())) return NextResponse.json({ error: "Not allowed" }, { status: 401 });
   const c = clean(await request.json().catch(() => ({})));
-  if (!c.name) return NextResponse.json({ error: "Please put their name." }, { status: 400 });
+  if (!c.name) return NextResponse.json({ error: c.kind === "pharmacy" ? "Please put the pharmacy's name." : "Please put their name." }, { status: 400 });
+  if (c.kind === "pharmacy" && !c.branch) return NextResponse.json({ error: "Please put the branch or area." }, { status: 400 });
   const admin = createAdminClient();
+  if (c.kind === "pharmacy") {
+    const { error: colErr } = await admin.from("creators").select("kind").limit(1);
+    if (colErr) return NextResponse.json({ error: "Pharmacies are not ready yet. Run pharmacy-partners-schema.sql (#42) first." }, { status: 503 });
+  }
   const { data: rows, error: readErr } = await admin.from("creators").select("code");
   if (readErr) return NextResponse.json({ error: "This is not ready yet. Run creator-partners-schema.sql first." }, { status: 503 });
   const taken = new Set((rows ?? []).map((r) => r.code as string));
@@ -51,11 +63,14 @@ export async function POST(request: Request) {
     if (!validCode(code))
       return NextResponse.json({ error: "A code is 3 to 20 letters or numbers, starting with a letter, and not one of our own page names." }, { status: 400 });
     if (taken.has(code)) return NextResponse.json({ error: `${code} is already used by another creator.` }, { status: 409 });
-  } else code = codeFromName(c.name, taken);
+  } else code = c.kind === "pharmacy" ? pharmacyCode(c.name, c.branch ?? "", taken) : codeFromName(c.name, taken);
 
+  // A creator row is written exactly as before #42 (no new columns), so creators keep working without it.
+  const row: Record<string, unknown> = { name: c.name, phone: c.phone, email: c.email, code, dash_token: dashToken(code) };
+  if (c.kind === "pharmacy") Object.assign(row, { kind: "pharmacy", branch: c.branch, address: c.address, contact_name: c.contact_name });
   const { data, error } = await admin
     .from("creators")
-    .insert({ name: c.name, phone: c.phone, email: c.email, code, dash_token: dashToken(code) })
+    .insert(row)
     .select("id,code")
     .single();
   if (error) {
@@ -71,8 +86,9 @@ export async function PATCH(request: Request) {
   const id = String(body.id ?? "");
   const action = String(body.action ?? "");
   const admin = createAdminClient();
-  const { data: c } = await admin.from("creators").select("id,code").eq("id", id).maybeSingle();
+  const { data: c } = await admin.from("creators").select("*").eq("id", id).maybeSingle();
   if (!c) return NextResponse.json({ error: "No such creator." }, { status: 404 });
+  const isPharmacy = c.kind === "pharmacy";
   const now = new Date().toISOString();
 
   if (action === "on" || action === "off") {
@@ -86,7 +102,11 @@ export async function PATCH(request: Request) {
   if (action === "edit") {
     const e = clean(body);
     if (!e.name) return NextResponse.json({ error: "Please put their name." }, { status: 400 });
-    await admin.from("creators").update({ name: e.name, phone: e.phone, email: e.email, updated_at: now }).eq("id", id);
+    if (isPharmacy && !e.branch) return NextResponse.json({ error: "Please put the branch or area." }, { status: 400 });
+    const upd: Record<string, unknown> = { name: e.name, phone: e.phone, email: e.email, updated_at: now };
+    if (isPharmacy) Object.assign(upd, { branch: e.branch, address: e.address, contact_name: e.contact_name });
+    const { error: updErr } = await admin.from("creators").update(upd).eq("id", id);
+    if (updErr) return NextResponse.json({ error: "This did not save. Please try again." }, { status: 503 });
     return NextResponse.json({ ok: true });
   }
   return NextResponse.json({ error: "Unknown action." }, { status: 400 });

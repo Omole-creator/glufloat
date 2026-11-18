@@ -87,6 +87,50 @@ export function codeFromName(name: string, taken: Set<string>): string {
   return `${base}${Date.now() % 100000}`;
 }
 
+/** A partner is a creator or a pharmacy branch (founder, 2026-11-18). */
+export type PartnerKind = "creator" | "pharmacy";
+
+/** Words that add nothing to a pharmacy's code. */
+const PHARMACY_FILLER = new Set(
+  ["pharmacy", "pharmacies", "pharmaceutical", "pharmaceuticals", "pharma", "chemist", "chemists", "store", "stores", "ltd", "limited",
+    "nig", "nigeria", "plc", "and", "the", "co", "company", "enterprise", "enterprises", "ventures", "phase", "branch"].map((w) => w.toUpperCase()),
+);
+
+const PHARMACY_CODE_MAX = 12;
+
+/**
+ * The code suggested for a pharmacy branch: the first real word of its name
+ * plus the first word of its area ("Alpha Pharmacy", "Ikeja" → ALPHAIKEJA),
+ * at most 12 letters, the name part shortened first so the area survives.
+ * Admin can type a shorter one. A clash adds a number. `taken` = codes in use.
+ */
+export function pharmacyCode(name: string, branch: string, taken: Set<string>): string {
+  const words = (s: string) =>
+    String(s ?? "")
+      .split(/[\s,&/.\-]+/)
+      .map((w) => normalizeCode(w))
+      .filter((w) => w && !PHARMACY_FILLER.has(w));
+  const n = words(name)[0] ?? "";
+  const a = words(branch).find((w) => /^[A-Z]/.test(w)) ?? "";
+  const area = a.slice(0, 8);
+  let base = n.slice(0, Math.max(3, PHARMACY_CODE_MAX - area.length)) + area;
+  base = base.slice(0, PHARMACY_CODE_MAX);
+  if (!/^[A-Z]/.test(base)) base = `P${base}`.slice(0, PHARMACY_CODE_MAX);
+  if (base.length < 3) base = (base + "RX1").slice(0, 3);
+  const ok = (c: string) => validCode(c) && !taken.has(c);
+  if (ok(base)) return base;
+  for (let k = 2; k < 1000; k++) {
+    const c = `${base.slice(0, PHARMACY_CODE_MAX - String(k).length)}${k}`;
+    if (ok(c)) return c;
+  }
+  return `${base.slice(0, 8)}${Date.now() % 10000}`;
+}
+
+/** How a partner is named on screens: "Alpha Pharmacy, Ikeja" or "Faith Eze". */
+export function partnerTitle(p: { name: string; kind?: string | null; branch?: string | null }): string {
+  return p.kind === "pharmacy" && p.branch ? `${p.name}, ${p.branch}` : p.name;
+}
+
 /**
  * The discounted price a person pays for this tier, or null when they get no
  * discount. Only monthly plans, and only the first 3 payments.

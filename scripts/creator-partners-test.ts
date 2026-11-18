@@ -17,6 +17,8 @@ import {
   isCreatorAmount,
   nextPayDay,
   normalizeCode,
+  partnerTitle,
+  pharmacyCode,
   payableNow,
   talkingPoints,
   validCode,
@@ -97,6 +99,20 @@ const names = [
 const missing = names.filter((n) => !RESERVED_CODES.has(n));
 check("every top-level page and public file is a reserved word", missing.length === 0, missing);
 check("FORGOTPASSWORD cannot be a code", !validCode("FORGOTPASSWORD"));
+
+// Pharmacy partners (2026-11-18): one code per branch, name + area, at most 12.
+check("Alpha Pharmacy, Ikeja gets ALPHAIKEJA", pharmacyCode("Alpha Pharmacy", "Ikeja", new Set()) === "ALPHAIKEJA");
+check("filler words are dropped", pharmacyCode("Bola Stores & Pharmacy Ltd", "Ojota", new Set()) === "BOLAOJOTA");
+check("a long name keeps the area", (() => {
+  const c = pharmacyCode("HealthPlus Pharmacy", "Lekki Phase 1", new Set());
+  return c.endsWith("LEKKI") && c.length <= 12 && validCode(c);
+})());
+check("a pharmacy code is never longer than 12", pharmacyCode("Supercalifragilistic Pharmacy", "Victoriaislandextension", new Set()).length <= 12);
+check("a clash gets a number", pharmacyCode("Alpha Pharmacy", "Ikeja", new Set(["ALPHAIKEJA"])) === "ALPHAIKEJA2");
+check("two branches get two codes", pharmacyCode("Alpha Pharmacy", "Ikeja", new Set()) !== pharmacyCode("Alpha Pharmacy", "Yaba", new Set()));
+check("a pharmacy code is never a page word", validCode(pharmacyCode("Blog", "", new Set())));
+check("a pharmacy title shows the branch", partnerTitle({ name: "Alpha Pharmacy", kind: "pharmacy", branch: "Ikeja" }) === "Alpha Pharmacy, Ikeja");
+check("a creator title is just the name", partnerTitle({ name: "Faith Eze", kind: "creator", branch: "Ikeja" }) === "Faith Eze");
 
 console.log(fails ? `\n${fails} FAILED` : "\nAll creator partner checks pass.");
 process.exit(fails ? 1 : 0);
