@@ -32,8 +32,8 @@ const socials = [
   { name: "X", handle: "@glufloat", href: "https://x.com/glufloat", icon: <XMark /> },
   {
     name: "Instagram",
-    handle: "@glufloat",
-    href: "https://instagram.com/glufloat",
+    handle: "@glufloat_",
+    href: "https://www.instagram.com/glufloat_/",
     icon: <InstagramMark />,
   },
 ];
