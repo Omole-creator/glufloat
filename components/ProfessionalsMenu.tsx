@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { BriefcaseMedical, ChevronDown, Hospital, Stethoscope } from "lucide-react";
+import { BriefcaseMedical, ChevronDown, Hospital, Pill, Stethoscope } from "lucide-react";
+import { PHARMACY_WHATSAPP_URL } from "@/lib/pharmacyJoin";
 
 const ITEMS = [
   { href: "/hospitals", label: "For hospitals", sub: "Care for your patients between visits", icon: Hospital },
@@ -74,6 +75,22 @@ export default function ProfessionalsMenu({ onDark, pathname }: { onDark: boolea
               </span>
             </Link>
           ))}
+          {/* Pharmacies DM us on WhatsApp; there is no sign-up (founder, 2026-11-19). */}
+          <a
+            href={PHARMACY_WHATSAPP_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => setOpen(false)}
+            className="flex items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-mist"
+          >
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand/[0.08] text-brand">
+              <Pill className="h-4.5 w-4.5" strokeWidth={2.2} />
+            </span>
+            <span>
+              <span className="block text-sm font-bold text-ink">For pharmacies</span>
+              <span className="block text-xs font-normal text-ink-soft">Message us on WhatsApp to join</span>
+            </span>
+          </a>
         </div>
       )}
     </div>

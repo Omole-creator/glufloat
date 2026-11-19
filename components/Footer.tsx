@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { PHARMACY_WHATSAPP_URL } from "@/lib/pharmacyJoin";
 
 /** X, Instagram, TikTok and LinkedIn, drawn here: this lucide build ships none of them. */
 function XMark() {
@@ -66,7 +67,7 @@ const socials = [
   },
 ];
 
-const COLUMNS: { title: string; links: { href: string; label: string }[] }[] = [
+const COLUMNS: { title: string; links: { href: string; label: string; external?: boolean }[] }[] = [
   {
     title: "Product",
     links: [
@@ -82,6 +83,8 @@ const COLUMNS: { title: string; links: { href: string; label: string }[] }[] = [
       { href: "/hospitals", label: "For hospitals and clinics" },
       { href: "/dietitians", label: "For dietitians" },
       { href: "/doctors/start", label: "For doctors" },
+      // Pharmacies DM us; there is no sign-up (founder, 2026-11-19).
+      { href: PHARMACY_WHATSAPP_URL, label: "For pharmacies", external: true },
     ],
   },
   {
@@ -145,9 +148,15 @@ export default function Footer() {
               <ul className="mt-3 space-y-2 text-ink-soft">
                 {c.links.map((l) => (
                   <li key={l.href}>
-                    <Link className="hover:text-brand" href={l.href}>
-                      {l.label}
-                    </Link>
+                    {l.external ? (
+                      <a className="hover:text-brand" href={l.href} target="_blank" rel="noopener noreferrer">
+                        {l.label}
+                      </a>
+                    ) : (
+                      <Link className="hover:text-brand" href={l.href}>
+                        {l.label}
+                      </Link>
+                    )}
                   </li>
                 ))}
               </ul>

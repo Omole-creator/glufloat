@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { PHARMACY_WHATSAPP_URL } from "@/lib/pharmacyJoin";
 import {
   BookOpen,
   ChevronRight,
@@ -292,6 +293,19 @@ export default function Navbar() {
               </span>
               <ChevronRight className="h-4 w-4 text-ink-soft" />
             </Link>
+            {/* Pharmacies: a slim row that opens WhatsApp, no sign-up (founder, 2026-11-19). */}
+            <a
+              href={PHARMACY_WHATSAPP_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => setMenuOpen(false)}
+              className="mt-2 flex items-center justify-between rounded-2xl bg-white px-4 py-3 text-sm font-bold text-ink ring-1 ring-ink/[0.05] active:scale-[0.99]"
+            >
+              <span>
+                For pharmacies <span className="font-normal text-ink-soft">· WhatsApp us</span>
+              </span>
+              <ChevronRight className="h-4 w-4 text-ink-soft" />
+            </a>
 
             <p className="mt-5 px-1 text-[11px] font-bold uppercase tracking-[0.14em] text-ink-soft">Glufloat</p>
             <div className="mt-2 overflow-hidden rounded-3xl bg-white ring-1 ring-ink/[0.05]">
