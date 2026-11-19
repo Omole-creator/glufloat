@@ -139,6 +139,14 @@ for (const T of TARGETS) {
   const none = new Map<string, number>();
   for (const id of LEAN_RED_MEAT_IDS) check(`${id} exists`, !!getFood(id));
   check("no condition: nothing dropped", excludedProteinsFor([], none).size === 0);
+  // Red meat is about 3 times a week for everybody (dietitian, 2026-11-19).
+  const twoRed = new Map([["beef", 1], ["goat-meat", 1]]);
+  const threeRed = new Map([["beef", 2], ["goat-meat", 1]]);
+  check("no condition: 2 red meats this week, nothing dropped", excludedProteinsFor([], twoRed).size === 0);
+  for (const id of LEAN_RED_MEAT_IDS) {
+    check(`no condition: ${id} dropped after 3 red meats this week`, excludedProteinsFor([], threeRed).has(id));
+  }
+  check("no condition: fish never dropped", !excludedProteinsFor([], threeRed).has("fish"));
   const bp = excludedProteinsFor(["hypertension"], none);
   const chol = excludedProteinsFor(["high_cholesterol"], none);
   const kid = excludedProteinsFor(["kidney_disease"], none);

@@ -101,6 +101,7 @@ function say(food: Food, rank: { tier: number; perWeek: number }): string {
   if (rank.tier === 2) return "About 1 time a month";
   if (rank.tier === 4) return `You can ${verb} this every day`;
   if (rank.perWeek === 7) return "About 1 time a day";
+  if (rank.perWeek === 1) return "About 1 time a week";
   return `About ${rank.perWeek} times a week`;
 }
 
@@ -121,6 +122,7 @@ function howOftenPhrase(rank: { tier: number; perWeek: number }): string {
   if (rank.tier === 2) return "about 1 time a month";
   if (rank.tier === 4) return "every day";
   if (rank.perWeek === 7) return "about 1 time a day";
+  if (rank.perWeek === 1) return "about 1 time a week";
   return `about ${rank.perWeek} times a week`;
 }
 

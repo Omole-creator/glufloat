@@ -12,6 +12,7 @@
  *   "Never."
  *   "Never, except to treat a low sugar."
  *   "About 1 time a month."
+ *   "About 1 time a week."
  *   "About N times a week."
  *   "You can eat this every day."
  *
@@ -91,6 +92,23 @@ const ALCOHOL = new Set(["beer", "pito", "palm-wine", "local-gin"]);
  * keyed on a sugar-free, starch-free condiment, not a loosening of the gate.
  */
 const DAILY_BUT_LIMITED = new Set(["salt", "seasoning-cube"]);
+
+/**
+ * Red meat is fine for sugar but is not a daily food (co-founder dietitian,
+ * 2026-11-19). The usual advice is about 3 servings of red meat a week. Suya
+ * and asun are also salty and charred; dambu nama is dried, salted meat, the
+ * closest thing here to processed meat. These are caps: a stricter number
+ * already stored still wins. Beef and goat meat at 3 must stay in step with
+ * RED_MEAT_WEEKLY_LIMIT in lib/nextMeal.ts, which holds the blue card to it.
+ */
+const RED_MEAT_LIMIT = {
+  beef: 3,
+  "goat-meat": 3,
+  "beef-regular": 3,
+  suya: 2,
+  asun: 2,
+  "dambu-nama": 1,
+};
 
 /**
  * How many times a week a food that cannot be daily may be eaten.
@@ -204,7 +222,8 @@ function derive(f) {
   // loosening, and it is guarded by an assertion below.
   if (DAILY_BUT_LIMITED.has(f.id)) return { tier: 4 };
 
-  const rule = fromRule(f);
+  let rule = fromRule(f);
+  if (RED_MEAT_LIMIT[f.id]) rule = stricter(rule, { tier: 3, perWeek: RED_MEAT_LIMIT[f.id] });
   if (f.role === "starch") return rule;
 
   const stored = fromStored(f);
@@ -216,6 +235,7 @@ function say({ tier, perWeek }) {
   if (tier === 1) return "Never, except to treat a low sugar.";
   if (tier === 2) return "About 1 time a month.";
   if (tier === 4) return "You can eat this every day.";
+  if (perWeek === 1) return "About 1 time a week.";
   return `About ${perWeek} times a week.`;
 }
 
@@ -273,7 +293,7 @@ if (tooOften.length) {
 
 // Every answer must be countable.
 const vague = foods.filter(
-  (f) => !/^(Never\.|Never, except to treat a low sugar\.|About 1 time a month\.|About \d+ times a week\.|You can eat this every day\.)$/.test(f.frequency),
+  (f) => !/^(Never\.|Never, except to treat a low sugar\.|About 1 time a month\.|About 1 time a week\.|About \d+ times a week\.|You can eat this every day\.)$/.test(f.frequency),
 );
 if (vague.length) {
   console.error(`not countable: ${vague.map((f) => `${f.id} (${f.frequency})`).join(", ")}`);

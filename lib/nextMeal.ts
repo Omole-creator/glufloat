@@ -94,6 +94,15 @@ export const LEAN_RED_MEAT_IDS = new Set(["beef", "goat-meat"]);
 export const LEAN_RED_MEAT_GRAMS = 50;
 export const LEAN_RED_MEAT_WEEKLY_LIMIT = 3;
 
+/**
+ * Red meat is not a daily food for anybody (co-founder dietitian, 2026-11-19):
+ * the beef and goat meat cards say "About 3 times a week". So once the two
+ * together have been eaten 3 times in 7 days, the blue card stops offering
+ * them to everyone, not only to people with high blood pressure or high
+ * cholesterol. Keep in step with RED_MEAT_LIMIT in scripts/frequency-numbers.mjs.
+ */
+export const RED_MEAT_WEEKLY_LIMIT = 3;
+
 /** Who gets beef or goat meat at the smaller, lean size. */
 function leanRedMeatOnly(conditions: Condition[]): boolean {
   return (
@@ -103,8 +112,8 @@ function leanRedMeatOnly(conditions: Condition[]): boolean {
 }
 
 /**
- * The proteins dropped from this person's blue-card plates. Nothing without
- * a flagged condition; every protein with a healthNote for kidney disease;
+ * The proteins dropped from this person's blue-card plates. Without a
+ * flagged condition, beef and goat meat once eaten 3 times this week; every protein with a healthNote for kidney disease;
  * for high blood pressure or high cholesterol, the same minus beef and goat
  * meat, until those two have been eaten 3 times this week.
  */
@@ -112,10 +121,12 @@ export function excludedProteinsFor(
   conditions: Condition[],
   weekCounts: ReadonlyMap<string, number> = new Map(),
 ): ReadonlySet<string> {
-  if (conditions.length === 0) return new Set();
-  if (!leanRedMeatOnly(conditions)) return CONDITION_EXCLUDED_PROTEIN_IDS;
   let eaten = 0;
   for (const id of LEAN_RED_MEAT_IDS) eaten += weekCounts.get(id) ?? 0;
+  if (conditions.length === 0) {
+    return eaten >= RED_MEAT_WEEKLY_LIMIT ? LEAN_RED_MEAT_IDS : new Set();
+  }
+  if (!leanRedMeatOnly(conditions)) return CONDITION_EXCLUDED_PROTEIN_IDS;
   if (eaten >= LEAN_RED_MEAT_WEEKLY_LIMIT) return CONDITION_EXCLUDED_PROTEIN_IDS;
   return new Set([...CONDITION_EXCLUDED_PROTEIN_IDS].filter((id) => !LEAN_RED_MEAT_IDS.has(id)));
 }

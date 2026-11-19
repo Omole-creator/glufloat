@@ -31,6 +31,9 @@ const FOODS_WITH: Record<string, string[]> = {
   groundnut: [
     "groundnut", "peanut-butter", "groundnut-soup", "kuli-kuli", "donkwa", "peanut-candy",
     "kunun-gyada", "vegetable-oil", "mixed-nuts", "okpa",
+    // Yaji (the suya spice) is made with ground kuli kuli, and kilishi is
+    // coated in groundnut paste (2026-11-19).
+    "suya", "kilishi",
   ],
   cashew: ["cashew-nut", "cashew-fruit", "mixed-nuts"],
   walnut: ["walnut", "mixed-nuts"],

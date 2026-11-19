@@ -1012,14 +1012,14 @@
     "baseVerdict": "green",
     "portionGuidance": "One stick. That is about six pieces of meat (90g).",
     "pairingAdvice": "Onions, tomato, cabbage.",
-    "frequency": "You can eat this every day.",
+    "frequency": "About 2 times a week.",
     "logicNote": "Spiced grilled meat. Very little starch. A great street-food choice.",
     "tags": [
       "local",
       "street",
       "friendly"
     ],
-    "healthNote": "Beef and goat are red meat. Liver, kidney, shaki, and pomo are organ meat. Both are fine for your sugar but not for everyone. If you have high blood pressure, high cholesterol, or kidney problems, pick fish or skinless chicken instead and use less salt.",
+    "healthNote": "Suya is red meat, and the yaji and seasoning make it salty. Ask for less yaji and no extra seasoning cube, and cut off any burnt parts. If you have high blood pressure, high cholesterol, or kidney problems, pick chicken suya or grilled fish instead. Yaji is made with groundnut, so do not eat suya if you cannot eat groundnut.",
     "portionIcon": "pieces",
     "calories": 225,
     "proteinG": 25.2,
@@ -2499,7 +2499,7 @@
     "baseVerdict": "green",
     "portionGuidance": "Two medium chunks (90g). Put together, they fill your palm.",
     "pairingAdvice": "Vegetables.",
-    "frequency": "You can eat this every day.",
+    "frequency": "About 3 times a week.",
     "logicNote": "Trim visible fat.",
     "tags": [],
     "healthNote": "Beef and goat are red meat. They are fine for your sugar but not for everyone. If you have high blood pressure or high cholesterol, choose lean, trimmed meat in your recommended portion (about 50g, one medium chunk), prepared with minimal salt and added oil. Fish and skinless chicken are also good options. If you have kidney problems, pick fish or skinless chicken instead.",
@@ -2531,7 +2531,7 @@
     "baseVerdict": "green",
     "portionGuidance": "Two medium chunks (90g). Put together, they fill your palm.",
     "pairingAdvice": "Pepper sauce, vegetables.",
-    "frequency": "You can eat this every day.",
+    "frequency": "About 3 times a week.",
     "logicNote": "Lean red meat. Friendly.",
     "tags": [
       "local"
@@ -4685,7 +4685,7 @@
     "baseVerdict": "green",
     "portionGuidance": "Enough of the shredded meat to fill your palm (about 60g).",
     "pairingAdvice": "Eat it alone, or with vegetables.",
-    "frequency": "You can eat this every day.",
+    "frequency": "About 1 time a week.",
     "logicNote": "Dried, spiced, shredded meat. Mostly body-building food.",
     "tags": [
       "local",
@@ -5822,7 +5822,7 @@
     "baseVerdict": "green",
     "portionGuidance": "Two medium chunks (90g). Put together, they fill your palm.",
     "pairingAdvice": "Vegetables. Trim the visible fat.",
-    "frequency": "You can eat this every day.",
+    "frequency": "About 3 times a week.",
     "logicNote": "Meat has no starch, so it does not raise blood sugar. Trim the fat, as fatty cuts are heavy for the heart.",
     "tags": [
       "local"
@@ -6426,7 +6426,7 @@
     "baseVerdict": "green",
     "portionGuidance": "Two medium chunks (90g). Put together, they fill your palm.",
     "pairingAdvice": "Onions and pepper, with a vegetable side.",
-    "frequency": "You can eat this every day.",
+    "frequency": "About 2 times a week.",
     "logicNote": "Grilled, peppered goat meat. Very little starch and friendly. Trim heavy fat.",
     "tags": [
       "local",

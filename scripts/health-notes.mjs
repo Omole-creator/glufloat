@@ -24,6 +24,12 @@ const NOTES = {
   // `meat` above.
   leanMeat:
     "Beef and goat are red meat. They are fine for your sugar but not for everyone. If you have high blood pressure or high cholesterol, choose lean, trimmed meat in your recommended portion (about 50g, one medium chunk), prepared with minimal salt and added oil. Fish and skinless chicken are also good options. If you have kidney problems, pick fish or skinless chicken instead.",
+  // Suya only (co-founder dietitian, 2026-11-19): red meat, salty from the yaji
+  // and seasoning, and charred over an open fire. Yaji is made with ground kuli
+  // kuli, so the groundnut warning lives here too (suya is also on the
+  // groundnut list in lib/nutAllergy.ts).
+  suya:
+    "Suya is red meat, and the yaji and seasoning make it salty. Ask for less yaji and no extra seasoning cube, and cut off any burnt parts. If you have high blood pressure, high cholesterol, or kidney problems, pick chicken suya or grilled fish instead. Yaji is made with groundnut, so do not eat suya if you cannot eat groundnut.",
   // The dietician replaced "use only a pinch" with a real number: under 5g of
   // salt a day, which is about one level teaspoon. That is a budget for ALL the
   // salt in a day's food, not a per-serving amount, so it reads correctly on
@@ -99,6 +105,9 @@ const OGBONO_IDS = new Set(["ogbono-soup"]);
 // LEAN_RED_MEAT_IDS in lib/nextMeal.ts.
 const LEAN_MEAT_IDS = new Set(["beef", "goat-meat"]);
 
+// Suya gets its own note (NOTES.suya).
+const SUYA_IDS = new Set(["suya"]);
+
 // Red and organ meat. Only checked on meaty roles.
 const MEAT_ROLES = new Set(["protein", "soup", "snack"]);
 const MEAT_WORDS = [
@@ -171,6 +180,7 @@ function noteFor(f) {
   if (OGBONO_IDS.has(f.id)) return NOTES.ogbono;
   const text = identity(f);
   if (LEAN_MEAT_IDS.has(f.id)) return NOTES.leanMeat;
+  if (SUYA_IDS.has(f.id)) return NOTES.suya;
   if (MEAT_ROLES.has(f.role) && hasAny(text, MEAT_WORDS)) return NOTES.meat;
   if (SALT_IDS.has(f.id) || (SALT_ROLES.has(f.role) && hasAny(text, SALT_WORDS)))
     return NOTES.salt;

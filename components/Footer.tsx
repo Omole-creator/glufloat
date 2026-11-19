@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
-/** X and Instagram, drawn here: this lucide build ships neither mark. */
+/** X, Instagram, TikTok and LinkedIn, drawn here: this lucide build ships none of them. */
 function XMark() {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4" aria-hidden>
@@ -28,6 +28,22 @@ function InstagramMark() {
   );
 }
 
+function TikTokMark() {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4" aria-hidden>
+      <path d="M16.6 2h-3.3v13.4a2.9 2.9 0 1 1-2.9-2.9c.3 0 .6 0 .9.1V9.2a6.3 6.3 0 1 0 5.3 6.2V8.6a7.9 7.9 0 0 0 4.4 1.4V6.7a4.5 4.5 0 0 1-4.4-4.7Z" />
+    </svg>
+  );
+}
+
+function LinkedInMark() {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4" aria-hidden>
+      <path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5ZM3 9.75h4V21H3V9.75Zm6.5 0h3.8v1.6h.1c.5-1 1.8-2 3.8-2 4 0 4.8 2.6 4.8 6V21h-4v-5c0-1.2 0-2.8-1.7-2.8s-2 1.3-2 2.7V21h-4V9.75Z" />
+    </svg>
+  );
+}
+
 const socials = [
   { name: "X", handle: "@glufloat", href: "https://x.com/glufloat", icon: <XMark /> },
   {
@@ -35,6 +51,18 @@ const socials = [
     handle: "@glufloat_",
     href: "https://www.instagram.com/glufloat_/",
     icon: <InstagramMark />,
+  },
+  {
+    name: "TikTok",
+    handle: "@glufloat",
+    href: "https://www.tiktok.com/@glufloat",
+    icon: <TikTokMark />,
+  },
+  {
+    name: "LinkedIn",
+    handle: "Glufloat",
+    href: "https://www.linkedin.com/company/glufloat/",
+    icon: <LinkedInMark />,
   },
 ];
 

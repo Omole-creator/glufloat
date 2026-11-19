@@ -1170,3 +1170,36 @@ but are no longer Glufloat-size: scored at the normal size, no 2-a-week size
 group, not one of the 7 fast-sugar meals, held to 4 a week by `LOW_WEEKLY_LIMIT`
 in `lib/nextMeal.ts`. Plantain with a soft drink or with white rice still scores
 red.
+
+## 22. Red meat and suya (2026-11-19, co-founder dietitian approved)
+
+**Suya is not processed meat.** Processed meat (WHO/IARC Group 1) is meat
+cured, salted, smoked or fermented to keep it: sausage, corned beef, bacon.
+Suya is fresh beef, grilled, so it is red meat (Group 2A). The 2026-09-06 note
+that removed it from the extras called it "processed"; the decision stands, the
+reason was wrong. It stays out of the extras for salt (432mg sodium a stick
+against 59mg for plain beef, from the yaji and seasoning cubes), red meat, and
+open-flame charring (heterocyclic amines and PAHs form on burnt meat).
+
+**Red meat is no longer "every day".** WCRF and most national guidance keep red
+meat to about 3 servings (350 to 500g cooked) a week. `RED_MEAT_LIMIT` in
+`scripts/frequency-numbers.mjs`: beef, goat meat and regular-cut beef 3 a week;
+suya and asun 2 (salty and charred); dambu nama 1 (dried, salted, the closest to
+processed meat). This makes foods stricter, so one credible source is enough
+under the asymmetry rule. The weekly numbers are a house rule, signed off by
+the co-founder dietitian. "About 1 time a week." is now a sixth allowed
+frequency sentence.
+
+The blue card keeps to it: once beef and goat meat together have been eaten 3
+times in 7 days, they leave every person's plates (`RED_MEAT_WEEKLY_LIMIT`,
+`excludedProteinsFor` in `lib/nextMeal.ts`), not only for high blood pressure or
+cholesterol.
+
+**Suya has its own warning** (`NOTES.suya`, health-notes.mjs): less yaji, no
+extra seasoning cube, cut off burnt parts, chicken suya or grilled fish for high
+blood pressure, cholesterol or kidney problems, and yaji contains groundnut.
+
+**Nut allergy gap closed.** Yaji is made with ground kuli kuli and kilishi is
+coated in groundnut paste; both were missing from the groundnut list in
+`lib/nutAllergy.ts`, so a person with a groundnut allergy could be shown them
+with no warning. Added 2026-11-19.
