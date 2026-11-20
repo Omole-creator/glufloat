@@ -414,14 +414,18 @@ export default function AppPage() {
   // person on the free week can open (founder, 2026-11-20). `currentTier` is
   // the plan to highlight (null = none), `tag` its label.
   const planPicker = (currentTier: Tier | null, tag: string) => {
+    // The plan names and blurbs are the founder's words (2026-11-20). TIER_LABEL
+    // stays "Glufloat" for Basic elsewhere (the membership badge, qa.mjs).
+    const PLAN_NAME = { basic: "Glufloat Basic", plus: "Glufloat Plus", dietitian: "Glufloat Premium" } as const;
+    const naira0 = (kobo: number) => nairaLabel(kobo).replace(/^N/, "₦");
     // A Glufloat doctor's patient is offered Premium only (not one a creator
     // brought): it is the plan that keeps their doctor in the chat.
     const TIER_COPY: { tier: "basic" | "plus" | "dietitian"; blurb: string }[] = premiumOnly && doctor
       ? [{ tier: "dietitian", blurb: `Everything in Glufloat, and chat with ${doctor.name}` }]
       : [
-          { tier: "basic", blurb: "Every answer, and Check a meal for your whole plate" },
-          { tier: "plus", blurb: "Basic, plus meals picked around your goal" },
-          { tier: "dietitian", blurb: "Plus, and a dietitian in your corner" },
+          { tier: "basic", blurb: "Access Glufloat and get general meal guidance, without calorie-based personalisation." },
+          { tier: "plus", blurb: "Meals personalised to your daily calorie needs, goals, and health profile." },
+          { tier: "dietitian", blurb: "Everything in Plus, with a dietitian you can chat with." },
         ];
     // Yearly only when the yearly pages exist (lib/access.ts).
     const showYearly = YEARLY_ENABLED && payYearly;
@@ -461,8 +465,8 @@ export default function AppPage() {
                     >
                       <span className="flex items-center justify-between gap-2">
                         <span className="font-display text-sm font-bold text-ink">
-                          {TIER_LABEL[t.tier]}: {nairaLabel(creator.prices![t.tier])} / month{" "}
-                          <span className="font-sans text-xs font-semibold text-ink-soft line-through">{nairaLabel(TIER_AMOUNTS[t.tier])}</span>
+                          {PLAN_NAME[t.tier]}: {naira0(creator.prices![t.tier])}/month{" "}
+                          <span className="font-sans text-xs font-semibold text-ink-soft line-through">{naira0(TIER_AMOUNTS[t.tier])}</span>
                         </span>
                         {t.tier === currentTier && (
                           <span className="rounded-full bg-brand px-2.5 py-0.5 text-xs font-bold text-white">
@@ -485,10 +489,10 @@ export default function AppPage() {
                 >
                   <span className="flex items-center justify-between">
                     <span className="font-display text-sm font-bold text-ink">
-                      {TIER_LABEL[t.tier]}:{" "}
+                      {PLAN_NAME[t.tier]}:{" "}
                       {showYearly
-                        ? `${nairaLabel(TIER_YEARLY_AMOUNTS[t.tier])} / year`
-                        : `${nairaLabel(TIER_AMOUNTS[t.tier])} / month`}
+                        ? `${naira0(TIER_YEARLY_AMOUNTS[t.tier])}/year`
+                        : `${naira0(TIER_AMOUNTS[t.tier])}/month`}
                     </span>
                     {t.tier === currentTier && (
                       <span className="rounded-full bg-brand px-2.5 py-0.5 text-xs font-bold text-white">
@@ -499,8 +503,8 @@ export default function AppPage() {
                   <span className="mt-1 block text-sm text-ink-soft">{t.blurb}</span>
                   {showYearly && (
                     <span className="mt-1 block text-sm font-semibold text-leaf-deep">
-                      That is {nairaLabel(TIER_YEARLY_AMOUNTS[t.tier] / 12)} a month. You save{" "}
-                      {nairaLabel(TIER_AMOUNTS[t.tier] * 12 - TIER_YEARLY_AMOUNTS[t.tier])}.
+                      That is {naira0(TIER_YEARLY_AMOUNTS[t.tier] / 12)} a month. You save{" "}
+                      {naira0(TIER_AMOUNTS[t.tier] * 12 - TIER_YEARLY_AMOUNTS[t.tier])}.
                     </span>
                   )}
                 </a>
