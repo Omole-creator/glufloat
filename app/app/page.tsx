@@ -697,7 +697,7 @@ export default function AppPage() {
                 You keep your {access.daysLeft} free {access.daysLeft === 1 ? "day" : "days"}. Your paid time starts
                 after {access.daysLeft === 1 ? "it ends" : "they end"}.
               </p>
-              {planPicker(premiumOnly ? null : "plus", "What you have in your free trial")}
+              {planPicker(premiumOnly ? null : "plus", "Recommended")}
             </div>
           </div>,
           document.body,
