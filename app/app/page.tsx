@@ -463,16 +463,14 @@ export default function AppPage() {
                         t.tier === currentTier ? "border-brand bg-brand/5" : "border-line hover:border-brand/40"
                       }`}
                     >
-                      <span className="flex items-center justify-between gap-2">
+                      {t.tier === currentTier && tag && (
+                    <span className="mb-1.5 inline-block rounded-full bg-brand px-2.5 py-0.5 text-xs font-bold text-white">{tag}</span>
+                  )}
+                  <span className="flex items-center justify-between gap-2">
                         <span className="font-display text-sm font-bold text-ink">
                           {PLAN_NAME[t.tier]}: {naira0(creator.prices![t.tier])}/month{" "}
                           <span className="font-sans text-xs font-semibold text-ink-soft line-through">{naira0(TIER_AMOUNTS[t.tier])}</span>
                         </span>
-                        {t.tier === currentTier && (
-                          <span className="rounded-full bg-brand px-2.5 py-0.5 text-xs font-bold text-white">
-                            {tag}
-                          </span>
-                        )}
                       </span>
                       <span className="mt-1 block text-sm text-ink-soft">{t.blurb}</span>
                     </button>
@@ -487,6 +485,9 @@ export default function AppPage() {
                       : "border-line hover:border-brand/40"
                   }`}
                 >
+                  {t.tier === currentTier && tag && (
+                    <span className="mb-1.5 inline-block rounded-full bg-brand px-2.5 py-0.5 text-xs font-bold text-white">{tag}</span>
+                  )}
                   <span className="flex items-center justify-between">
                     <span className="font-display text-sm font-bold text-ink">
                       {PLAN_NAME[t.tier]}:{" "}
@@ -494,11 +495,6 @@ export default function AppPage() {
                         ? `${naira0(TIER_YEARLY_AMOUNTS[t.tier])}/year`
                         : `${naira0(TIER_AMOUNTS[t.tier])}/month`}
                     </span>
-                    {t.tier === currentTier && (
-                      <span className="rounded-full bg-brand px-2.5 py-0.5 text-xs font-bold text-white">
-                        {tag}
-                      </span>
-                    )}
                   </span>
                   <span className="mt-1 block text-sm text-ink-soft">{t.blurb}</span>
                   {showYearly && (
@@ -524,7 +520,10 @@ export default function AppPage() {
     // A renewal is highlighted at the SAME tier they last paid for, never a
     // silent downgrade to Basic pricing. Someone who never paid starts at
     // Basic, same as before.
-    const currentTier = premiumOnly ? "dietitian" : access.previousTier ?? "basic";
+    // Someone who never paid has no plan: point at Plus, the plan their free
+    // trial gave them (founder, 2026-11-20). A doctor's patient sees Premium
+    // only and needs no tag.
+    const currentTier = access.lapsed ? (premiumOnly ? "dietitian" : access.previousTier ?? "basic") : premiumOnly ? null : "plus";
     return (
       <>
         <Navbar />
@@ -544,7 +543,7 @@ export default function AppPage() {
                 ? `To get meals in line with your daily calorie target and chat with ${doctor.name}, subscribe to Glufloat Premium. Cancel any time.`
                 : "Choose a plan to keep Glufloat. Cancel any time."}
             </p>
-            {planPicker(currentTier, access.lapsed ? "Renew" : "Your plan")}
+            {planPicker(currentTier, access.lapsed ? "Renew" : "What you had in your free trial")}
           </div>
         </main>
       </>
@@ -698,7 +697,7 @@ export default function AppPage() {
                 You keep your {access.daysLeft} free {access.daysLeft === 1 ? "day" : "days"}. Your paid time starts
                 after {access.daysLeft === 1 ? "it ends" : "they end"}.
               </p>
-              {planPicker(null, "")}
+              {planPicker(premiumOnly ? null : "plus", "What you have in your free trial")}
             </div>
           </div>,
           document.body,
