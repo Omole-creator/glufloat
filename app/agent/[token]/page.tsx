@@ -17,6 +17,7 @@ import {
 import { ADVISOR_DIRECT_RATE, ADVISOR_RATE, AGENT_RATE, REP_PATIENT_SHARE, SECOND_DEGREE_FEE_KOBO, maskAccount, nairaFromKobo } from "@/lib/careFees";
 import { PREMIUM_MONTHLY } from "@/lib/hospitalPlans";
 import { SITE_URL } from "@/lib/site";
+import { PLAN_NAME } from "@/lib/creatorTeam";
 import AgentShare from "./AgentShare";
 import DoctorFlyerButton from "@/components/hospital/DoctorFlyerButton";
 
@@ -243,6 +244,14 @@ export default async function AgentDashboard({ params }: { params: Promise<{ tok
               <span className="font-bold text-leaf-deep">{linkPaying}</span> paying
             </p>
           </div>
+          {linkPaying > 0 && (
+            <p className="border-b border-[#eef2f7] px-5 py-3 text-xs text-ink-soft">
+              Paying now:{" "}
+              {(["dietitian", "plus", "basic"] as const)
+                .map((t) => `${PLAN_NAME[t]} ${myPatients.filter((p) => p.plan === t).length}`)
+                .join(" · ")}
+            </p>
+          )}
           <p className="border-b border-[#eef2f7] px-5 py-3 text-xs text-ink-soft">
             Patients who joined with your patient link. You earn {fee(REP_PATIENT_SHARE)} each month for each one who pays for Glufloat
             Premium, for their first 12 months. On other plans, you earn a third of what they pay. Names are kept private.
@@ -258,7 +267,10 @@ export default async function AgentDashboard({ params }: { params: Promise<{ tok
                     <p className="text-xs text-ink-soft">Joined {day(p.joinedAt)}</p>
                   </div>
                   <div className="shrink-0 text-right text-xs">
-                    <p className={p.status === "paying" ? "font-bold text-leaf-deep" : "text-ink-soft"}>{REP_PATIENT_STATUS[p.status]}</p>
+                    <p className={p.status === "paying" ? "font-bold text-leaf-deep" : "text-ink-soft"}>
+                      {REP_PATIENT_STATUS[p.status]}
+                      {p.plan && ` · ${PLAN_NAME[p.plan]}`}
+                    </p>
                     <p className="text-ink-soft">
                       <span className="font-display text-base font-bold text-ink">{nairaFromKobo(p.earned)}</span> earned
                     </p>

@@ -139,6 +139,8 @@ export type RepPatient = {
   agentId: string;
   joinedAt: string;
   status: "paying" | "trial" | "not_paying";
+  /** The plan they are paying for now; null unless status is "paying". */
+  plan: "basic" | "plus" | "dietitian" | null;
   /** Kobo the rep has earned from this patient's payments. */
   earned: number;
 };
@@ -153,18 +155,18 @@ export async function loadRepPatients(admin: SupabaseClient, team: FieldTeam, ag
   if (error || !data?.length) return [];
   const rows = data as { user_id: string; agent_id: string; attached_at: string }[];
   const ids = rows.map((r) => r.user_id);
-  const paying = new Set<string>();
+  const paying = new Map<string, "basic" | "plus" | "dietitian">();
   const trialStart = new Map<string, string | null>();
   const now = Date.now();
   for (let i = 0; i < ids.length; i += 100) {
     const slice = ids.slice(i, i + 100);
     const [subs, profs] = await Promise.all([
-      admin.from("subscriptions").select("user_id,status,current_period_end").in("user_id", slice),
+      admin.from("subscriptions").select("user_id,tier,status,current_period_end").in("user_id", slice),
       admin.from("profiles").select("id,trial_start").in("id", slice),
     ]);
-    for (const s of (subs.data ?? []) as { user_id: string; status: string; current_period_end: string | null }[])
+    for (const s of (subs.data ?? []) as { user_id: string; tier: string | null; status: string; current_period_end: string | null }[])
       if ((s.status === "active" || s.status === "non-renewing") && s.current_period_end && new Date(s.current_period_end).getTime() > now)
-        paying.add(s.user_id);
+        paying.set(s.user_id, s.tier === "plus" || s.tier === "dietitian" ? s.tier : "basic");
     for (const p of (profs.data ?? []) as { id: string; trial_start: string | null }[]) trialStart.set(p.id, p.trial_start);
   }
   return rows.map((r) => {
@@ -175,6 +177,7 @@ export async function loadRepPatients(admin: SupabaseClient, team: FieldTeam, ag
       agentId: r.agent_id,
       joinedAt: r.attached_at,
       status: paying.has(r.user_id) ? "paying" : onTrial ? "trial" : "not_paying",
+      plan: paying.get(r.user_id) ?? null,
       earned: team.earnings
         .filter((e) => e.agent_id === r.agent_id && e.patient_user_id === r.user_id && !e.source_hospital_id)
         .reduce((n, e) => n + e.amount, 0),

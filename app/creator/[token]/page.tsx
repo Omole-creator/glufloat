@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { createAdminClient } from "@/lib/supabase/server";
 import { creatorsReady, type Creator } from "@/lib/creatorsServer";
-import { loadCreators } from "@/lib/creatorTeam";
+import { loadCreators, PLAN_NAME } from "@/lib/creatorTeam";
+import { TIER_AMOUNTS, type Tier } from "@/lib/pricing";
+import FoldCard from "@/components/FoldCard";
 import { CREATOR_HIGH_AFTER, CREATOR_HOLD_DAYS, CREATOR_PAY_DAY, creatorLink, creatorRate, nextPayDay, partnerTitle, talkingPoints } from "@/lib/creators";
 import { maskAccount, nairaFromKobo } from "@/lib/careFees";
 import { SITE_URL } from "@/lib/site";
@@ -42,6 +44,11 @@ export default async function CreatorDashboard({ params }: { params: Promise<{ t
   const day = (iso: string | Date) => new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
   const toHigh = Math.max(0, CREATOR_HIGH_AFTER - stats.paid);
 
+  // Most expensive plan first: it is the one that earns them the most.
+  const planOrder: Tier[] = ["dietitian", "plus", "basic"];
+  const payingNow = planOrder.reduce((n, t) => n + stats.plans[t], 0);
+  const notPaid = Math.max(0, stats.joined - payingNow - stats.stopped);
+
   const tiles = [
     { label: "Ready to pay you", value: nairaFromKobo(stats.payable), sub: `sent by ${day(nextPayDay())}` },
     { label: "Waiting", value: nairaFromKobo(stats.waiting), sub: `earned in the last ${CREATOR_HOLD_DAYS} days` },
@@ -50,7 +57,7 @@ export default async function CreatorDashboard({ params }: { params: Promise<{ t
   const counts = [
     { label: pharmacy ? "Opened your poster's link" : "Opened your link", value: String(stats.visits) },
     { label: pharmacy ? "Signed up from your poster" : "Signed up with your code", value: String(stats.joined) },
-    { label: "Have paid", value: String(stats.paid) },
+    { label: "Paying now", value: String(payingNow) },
     { label: "Your share now", value: `${Math.round(rate * 100)}%` },
   ];
 
@@ -112,6 +119,39 @@ export default async function CreatorDashboard({ params }: { params: Promise<{ t
             </div>
           ))}
         </div>
+        <FoldCard
+          className="mt-3"
+          title="Who is on which plan"
+          meta={
+            <>
+              <span className="font-bold text-leaf-deep">{payingNow}</span> of {stats.joined} paying now
+            </>
+          }
+        >
+          <ul className="divide-y divide-[#eef2f7] text-sm">
+            {planOrder.map((t) => (
+              <li key={t} className="flex items-center justify-between gap-3 py-2.5">
+                <span>
+                  <span className="font-semibold text-ink">{PLAN_NAME[t]}</span>{" "}
+                  <span className="text-xs text-ink-soft">{nairaFromKobo(TIER_AMOUNTS[t])} a month</span>
+                </span>
+                <span className="font-display text-lg font-bold text-ink">{stats.plans[t]}</span>
+              </li>
+            ))}
+            <li className="flex items-center justify-between gap-3 py-2.5">
+              <span className="text-ink-soft">Paid before, then stopped</span>
+              <span className="font-display text-lg font-bold text-ink-soft">{stats.stopped}</span>
+            </li>
+            <li className="flex items-center justify-between gap-3 py-2.5">
+              <span className="text-ink-soft">Signed up, not paid yet</span>
+              <span className="font-display text-lg font-bold text-ink-soft">{notPaid}</span>
+            </li>
+          </ul>
+          <p className="mt-3 text-xs leading-relaxed text-ink-soft">
+            You get the same share of every payment. Each plan costs a different amount, so Premium earns you the most and Basic the least.
+            Your {people} also pay 20% less for their first 3 months.
+          </p>
+        </FoldCard>
         <p className="mt-3 text-sm text-ink-soft">
           {toHigh > 0
             ? `When ${toHigh} more of your ${people} pay, your share goes up to 50% on new payments.`
@@ -179,7 +219,9 @@ export default async function CreatorDashboard({ params }: { params: Promise<{ t
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="font-semibold text-ink">{p.paid ? "Paying" : "Not paid yet"}</p>
+                    <p className={p.plan.now ? "font-semibold text-leaf-deep" : "font-semibold text-ink-soft"}>
+                      {p.plan.now ? PLAN_NAME[p.plan.now] : p.plan.stopped ? "Stopped paying" : "Not paid yet"}
+                    </p>
                     <p className="text-xs text-ink-soft">{nairaFromKobo(p.earned)} earned</p>
                   </div>
                 </li>

@@ -7,6 +7,13 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { fetchAll } from "@/lib/adminFetch";
 import { payableNow } from "@/lib/creators";
 import type { Creator } from "@/lib/creatorsServer";
+import { TIERS, type Tier } from "@/lib/pricing";
+
+/** Short plan names a creator reads ("dietitian" is shown as Premium). */
+export const PLAN_NAME: Record<Tier, string> = { basic: "Basic", plus: "Plus", dietitian: "Premium" };
+
+/** Where one person stands today: on a plan now, paid before and stopped, or never paid. */
+export type PersonPlan = { now: Tier | null; stopped: boolean };
 
 export type CreatorEarning = {
   id: string;
@@ -29,8 +36,12 @@ export type CreatorStats = {
   visits: number;
   /** People who signed up through their link or code. */
   joined: number;
-  /** Of those, how many have paid at least once. */
+  /** Of those, how many have paid at least once. Drives the 50% share; never change its meaning. */
   paid: number;
+  /** People on a live plan today, by plan. */
+  plans: Record<Tier, number>;
+  /** Paid at least once, but no live plan today. */
+  stopped: number;
   /** Ready to pay out now (at least 14 days old, not yet paid). */
   payable: number;
   payableIds: string[];
@@ -41,7 +52,7 @@ export type CreatorStats = {
   earnings: CreatorEarning[];
   payouts: CreatorPayout[];
   /** One row per person, numbered, never named: when they joined and what the creator earned from them. */
-  people: { joinedAt: string; via: string; paid: boolean; earned: number }[];
+  people: { joinedAt: string; via: string; paid: boolean; earned: number; plan: PersonPlan }[];
 };
 
 export async function loadCreators(admin: SupabaseClient, onlyId?: string): Promise<CreatorStats[]> {
@@ -58,6 +69,8 @@ export async function loadCreators(admin: SupabaseClient, onlyId?: string): Prom
   ]);
   const now = Date.now();
   const list = onlyId ? creators.rows.filter((c) => c.id === onlyId) : creators.rows;
+  const ids = new Set(list.map((c) => c.id));
+  const plan = await livePlans(admin, users.rows.filter((u) => ids.has(u.creator_id)).map((u) => u.user_id), now);
   return list.map((c) => {
     const mine = users.rows.filter((u) => u.creator_id === c.id);
     const earned = earnings.rows.filter((e) => e.creator_id === c.id).map((e) => ({ ...e, amount: Number(e.amount) }));
@@ -75,12 +88,43 @@ export async function loadCreators(admin: SupabaseClient, onlyId?: string): Prom
       paidOut: payouts.rows.filter((p) => p.creator_id === c.id).reduce((n, p) => n + Number(p.amount), 0),
       earnings: earned,
       payouts: payouts.rows.filter((p) => p.creator_id === c.id),
-      people: mine.map((u) => ({
-        joinedAt: u.attached_at,
-        via: u.via,
-        paid: payers.has(u.user_id),
-        earned: earned.filter((e) => e.user_id === u.user_id).reduce((n, e) => n + e.amount, 0),
-      })),
+      plans: Object.fromEntries(TIERS.map((t) => [t, mine.filter((u) => plan.get(u.user_id)?.now === t).length])) as Record<Tier, number>,
+      stopped: mine.filter((u) => {
+        const p = plan.get(u.user_id);
+        return !p?.now && (payers.has(u.user_id) || !!p?.stopped);
+      }).length,
+      people: mine.map((u) => {
+        const p = plan.get(u.user_id);
+        return {
+          joinedAt: u.attached_at,
+          via: u.via,
+          paid: payers.has(u.user_id),
+          earned: earned.filter((e) => e.user_id === u.user_id).reduce((n, e) => n + e.amount, 0),
+          plan: { now: p?.now ?? null, stopped: !p?.now && (payers.has(u.user_id) || !!p?.stopped) },
+        };
+      }),
     };
   });
+}
+
+/**
+ * Each person's plan today, from `subscriptions` (one row per person). Live =
+ * active or non-renewing with time left. A row whose time ran out means they
+ * paid before and stopped. Any read failure simply shows nobody on a plan.
+ */
+async function livePlans(admin: SupabaseClient, userIds: string[], now: number): Promise<Map<string, PersonPlan>> {
+  const out = new Map<string, PersonPlan>();
+  for (let i = 0; i < userIds.length; i += 100) {
+    const { data } = await admin
+      .from("subscriptions")
+      .select("user_id,tier,status,current_period_end")
+      .in("user_id", userIds.slice(i, i + 100));
+    for (const s of (data ?? []) as { user_id: string; tier: string | null; status: string; current_period_end: string | null }[]) {
+      const live =
+        (s.status === "active" || s.status === "non-renewing") && !!s.current_period_end && new Date(s.current_period_end).getTime() > now;
+      const tier: Tier = s.tier === "plus" || s.tier === "dietitian" ? s.tier : "basic";
+      out.set(s.user_id, live ? { now: tier, stopped: false } : { now: null, stopped: true });
+    }
+  }
+  return out;
 }
