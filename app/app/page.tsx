@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { createPortal } from "react-dom";
 import {
   ClipboardList,
   ListChecks,
@@ -57,6 +58,7 @@ import {
   canUseDietitianChat,
   type Access,
   type DoctorLink,
+  type Tier,
 } from "@/lib/account";
 import { trackAppOpen } from "@/lib/usage";
 import { accessOnce, clearAccessCache } from "@/lib/useAccess";
@@ -183,6 +185,8 @@ export default function AppPage() {
   // every plan (founder, same day). The server rule is in /api/creator/pay.
   const premiumOnly = !!doctor && !creator?.code;
   const [codePayErr, setCodePayErr] = useState("");
+  // The "Pay now" sheet for somebody on the free week (founder, 2026-11-20).
+  const [showPayNow, setShowPayNow] = useState(false);
   // A one-time landing hint pointing at the bottom nav's "Fit me" icon, so a
   // first-time visitor knows where their daily calorie setup lives. Shown
   // once per device (gf_fitme_hint_seen), dismissed by its own close button
@@ -406,7 +410,10 @@ export default function AppPage() {
 
   // Trial ended and no active subscription. This is the SINGLE paywall — the
   // landing page never links straight to Paystack, it always lands here.
-  if (access.status === "expired") {
+  // The plan list, shared by the expired screen and the "Pay now" sheet a
+  // person on the free week can open (founder, 2026-11-20). `currentTier` is
+  // the plan to highlight (null = none), `tag` its label.
+  const planPicker = (currentTier: Tier | null, tag: string) => {
     // A Glufloat doctor's patient is offered Premium only (not one a creator
     // brought): it is the plan that keeps their doctor in the chat.
     const TIER_COPY: { tier: "basic" | "plus" | "dietitian"; blurb: string }[] = premiumOnly && doctor
@@ -418,29 +425,8 @@ export default function AppPage() {
         ];
     // Yearly only when the yearly pages exist (lib/access.ts).
     const showYearly = YEARLY_ENABLED && payYearly;
-    // A renewal is highlighted at the SAME tier they last paid for, never a
-    // silent downgrade to Basic pricing. Someone who never paid starts at
-    // Basic, same as before.
-    const currentTier = premiumOnly ? "dietitian" : access.previousTier ?? "basic";
     return (
-      <>
-        <Navbar />
-        <main className="flex flex-1 items-center justify-center bg-mist px-4 pb-24 pt-28">
-          <div className="w-full max-w-md rounded-2xl border border-line bg-white p-8 text-center shadow-[0_16px_40px_-18px_rgba(12,45,77,0.35)]">
-            {/* Somebody who paid us last month must never be told their free trial
-                is over. `lapsed` is how getAccess tells the two apart. */}
-            <h1 className="font-display text-2xl font-bold text-ink">
-              {access.lapsed
-                ? access.previousYearly
-                  ? "Your year is over."
-                  : "Your month is over."
-                : "Your free trial is over."}
-            </h1>
-            <p className="mt-2 text-sm leading-relaxed text-ink-soft">
-              {premiumOnly && doctor
-                ? `To get meals in line with your daily calorie target and chat with ${doctor.name}, subscribe to Glufloat Premium. Cancel any time.`
-                : "Choose a plan to keep Glufloat. Cancel any time."}
-            </p>
+          <>
             {YEARLY_ENABLED && (
               <div className="mt-6">
                 <BillingToggle yearly={payYearly} onChange={setPayYearly} />
@@ -480,7 +466,7 @@ export default function AppPage() {
                         </span>
                         {t.tier === currentTier && (
                           <span className="rounded-full bg-brand px-2.5 py-0.5 text-xs font-bold text-white">
-                            {access.lapsed ? "Renew" : "Your plan"}
+                            {tag}
                           </span>
                         )}
                       </span>
@@ -506,7 +492,7 @@ export default function AppPage() {
                     </span>
                     {t.tier === currentTier && (
                       <span className="rounded-full bg-brand px-2.5 py-0.5 text-xs font-bold text-white">
-                        {access.lapsed ? "Renew" : "Your plan"}
+                        {tag}
                       </span>
                     )}
                   </span>
@@ -526,6 +512,35 @@ export default function AppPage() {
                 <CodeBox onAdd={addCode} />
               </div>
             )}
+          </>
+    );
+  };
+
+  if (access.status === "expired") {
+    // A renewal is highlighted at the SAME tier they last paid for, never a
+    // silent downgrade to Basic pricing. Someone who never paid starts at
+    // Basic, same as before.
+    const currentTier = premiumOnly ? "dietitian" : access.previousTier ?? "basic";
+    return (
+      <>
+        <Navbar />
+        <main className="flex flex-1 items-center justify-center bg-mist px-4 pb-24 pt-28">
+          <div className="w-full max-w-md rounded-2xl border border-line bg-white p-8 text-center shadow-[0_16px_40px_-18px_rgba(12,45,77,0.35)]">
+            {/* Somebody who paid us last month must never be told their free trial
+                is over. `lapsed` is how getAccess tells the two apart. */}
+            <h1 className="font-display text-2xl font-bold text-ink">
+              {access.lapsed
+                ? access.previousYearly
+                  ? "Your year is over."
+                  : "Your month is over."
+                : "Your free trial is over."}
+            </h1>
+            <p className="mt-2 text-sm leading-relaxed text-ink-soft">
+              {premiumOnly && doctor
+                ? `To get meals in line with your daily calorie target and chat with ${doctor.name}, subscribe to Glufloat Premium. Cancel any time.`
+                : "Choose a plan to keep Glufloat. Cancel any time."}
+            </p>
+            {planPicker(currentTier, access.lapsed ? "Renew" : "Your plan")}
           </div>
         </main>
       </>
@@ -639,11 +654,51 @@ export default function AppPage() {
       {trialEnding && (
         <div className="fixed inset-x-0 top-16 z-40 bg-verdict-yellow/95 px-4 py-2.5 text-center text-sm font-semibold text-ink shadow-md">
           Your free trial ends tomorrow.{" "}
-          <a href="/#pricing" className="underline hover:text-brand-deep">
+          {/* It used to link to /#pricing, whose buttons say "Open my app" to
+              somebody on the trial and send them straight back here. */}
+          <button type="button" onClick={() => setShowPayNow(true)} className="underline hover:text-brand-deep">
             Choose a plan to keep Glufloat.
-          </a>
+          </button>
         </div>
       )}
+
+      {/* "Pay now" during the free week (founder, 2026-11-20). The paid time
+          starts when the free days end (lib/paymentGrant.ts), so paying early
+          loses nothing. A portal, like every full-screen sheet here. */}
+      {showPayNow &&
+        access.status === "trial" &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[95] flex items-center justify-center overflow-y-auto bg-ink/40 p-4"
+            onClick={() => setShowPayNow(false)}
+          >
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="pay-now-title"
+              onClick={(e) => e.stopPropagation()}
+              className="relative my-auto w-full max-w-md rounded-2xl bg-white p-6 text-center shadow-[0_24px_60px_-20px_rgba(12,42,71,0.6)] sm:p-8"
+            >
+              <button
+                type="button"
+                onClick={() => setShowPayNow(false)}
+                aria-label="Close"
+                className="absolute right-3 top-3 text-ink-soft transition-colors hover:text-ink"
+              >
+                <X className="h-5 w-5" />
+              </button>
+              <h2 id="pay-now-title" className="font-display text-2xl font-bold text-ink">
+                Pay now
+              </h2>
+              <p className="mt-2 text-sm leading-relaxed text-ink-soft">
+                You keep your {access.daysLeft} free {access.daysLeft === 1 ? "day" : "days"}. Your paid time starts
+                after {access.daysLeft === 1 ? "it ends" : "they end"}.
+              </p>
+              {planPicker(null, "")}
+            </div>
+          </div>,
+          document.body,
+        )}
 
       {/* A centered modal-style notice, not a corner toast (founder
           instruction, 2026-08-30: "should appear at the middle of the
@@ -709,6 +764,21 @@ export default function AppPage() {
             text="Eat the food you love, the right way."
             className="mt-1 font-display text-base font-semibold leading-tight text-ink-soft sm:text-lg"
           />
+          {/* Somebody who wants to pay before the free week is over could not
+              find a way (founder, 2026-11-20). A doctor's patient already has
+              their own Premium line below. */}
+          {access.status === "trial" && !doctorNeedsPremium && (
+            <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-ink-soft">
+              Want to pay now? Your free days stay.
+              <button
+                type="button"
+                onClick={() => setShowPayNow(true)}
+                className="rounded-full bg-leaf px-3 py-1 text-sm font-bold text-white transition-colors hover:bg-leaf-deep"
+              >
+                Pay now
+              </button>
+            </p>
+          )}
           {/* Said plainly, once (founder agreed, 2026-10-12): the hospital pays,
               and the hospital's doctors and dietitians can see the record. */}
           {/* A Glufloat doctor's patient: who looks after them, and what the doctor sees. */}

@@ -23,8 +23,25 @@ import { upsertSubscription } from "@/lib/subscriptionWrite";
 import { rewardInviter } from "@/lib/referral";
 import { earnCareFees } from "@/lib/careFeesServer";
 import { earnCreatorFee } from "@/lib/creatorsServer";
+import { TRIAL_DAYS } from "@/lib/trial";
 
 export type GrantResult = "granted" | "already" | "conflict" | "no_user";
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+const WAT_MS = 60 * 60 * 1000; // Nigeria, GMT+1, no daylight saving
+
+/**
+ * When a free trial ends: midnight (Nigerian time) at the start of day
+ * TRIAL_DAYS + 1, counted from the start day. Matches getAccess(), which
+ * counts calendar days and calls the trial over on day 8. 0 if no trial.
+ */
+export function trialEndMs(trialStart: string | null | undefined): number {
+  if (!trialStart) return 0;
+  const start = new Date(trialStart).getTime();
+  if (!Number.isFinite(start)) return 0;
+  const startDay = Math.floor((start + WAT_MS) / DAY_MS) * DAY_MS - WAT_MS;
+  return startDay + TRIAL_DAYS * DAY_MS;
+}
 
 export async function grantPayment(
   admin: SupabaseClient,
@@ -88,7 +105,14 @@ export async function grantPayment(
     .maybeSingle();
   const end = sub?.current_period_end ? new Date(sub.current_period_end as string).getTime() : 0;
   const live = !!sub && (sub.status === "active" || sub.status === "non-renewing") && end > now;
-  const from = live ? end : now;
+  // Paying during the free week keeps the free days (founder, 2026-11-20):
+  // the paid time starts when the trial would have ended, never today.
+  let from = live ? end : now;
+  if (!live) {
+    const { data: prof } = await admin.from("profiles").select("trial_start").eq("id", uid).maybeSingle();
+    const trialEnd = trialEndMs(prof?.trial_start as string | null | undefined);
+    if (trialEnd > from) from = trialEnd;
+  }
 
   await upsertSubscription(admin, {
     user_id: uid,
