@@ -11,11 +11,12 @@
  * address itself and ImprovMX forwards them as usual.
  */
 
-/** The four addresses the founder made for this (names are his). */
+/** The addresses the founder made for this (names are his). */
 export const DIRECT_SENDERS = [
   { email: "hmo@glufloat.com", name: "GluFloat for HMO" },
   { email: "hospital@glufloat.com", name: "GluFloat for Hospital" },
   { email: "favour@glufloat.com", name: "Favour from GluFloat" },
+  { email: "omole@glufloat.com", name: "Omole from Glufloat" },
   { email: "support@glufloat.com", name: "GluFloat Support" },
 ] as const;
 
