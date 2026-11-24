@@ -4,6 +4,7 @@ import { UserPlus } from "lucide-react";
 import HospitalShell from "@/components/hospital/HospitalShell";
 import NotStaff from "@/components/hospital/NotStaff";
 import { requireStaffPage } from "@/components/hospital/requireStaff";
+import { areaPath } from "@/lib/staffArea";
 import { hospitalRoster } from "@/lib/hospitalRoster";
 import { isDoctorPractice, isNursePractice, isPractice } from "@/lib/hospitalPlans";
 import { isPatientPays } from "@/lib/patientPays";
@@ -50,9 +51,9 @@ export default async function HospitalHome({ searchParams }: { searchParams: Pro
       title="Patients"
       subtitle={`${ctx.hospital.name} · ${isPractice(ctx.hospital) || doctor ? "Your practice" : ROLE_GREETING[ctx.staff.role]}`}
       actions={
-        isAdmin && !nurse ? (
+        isAdmin ? (
           <Link
-            href={ctx.all.length > 1 ? `/hospital/add?h=${ctx.hospital.id}` : "/hospital/add"}
+            href={areaPath(ctx.all.length > 1 ? `/hospital/add?h=${ctx.hospital.id}` : "/hospital/add", nurse)}
             className="inline-flex items-center gap-2 rounded-full bg-leaf px-5 py-2.5 text-sm font-bold text-white shadow-[0_10px_24px_-12px_rgba(62,155,79,0.8)] hover:bg-leaf-deep"
           >
             <UserPlus className="h-4 w-4" /> Add patients
@@ -70,7 +71,7 @@ export default async function HospitalHome({ searchParams }: { searchParams: Pro
         ))}
       </div>
 
-      <PatientTable rows={rows} isAdmin={isAdmin} hid={ctx.all.length > 1 ? ctx.hospital.id : null} hospitalName={ctx.hospital.name} hospitalCode={ctx.hospital.code} doctor={doctor} patientPays={isPatientPays(ctx.hospital)} />
+      <PatientTable rows={rows} isAdmin={isAdmin} hid={ctx.all.length > 1 ? ctx.hospital.id : null} hospitalName={ctx.hospital.name} hospitalCode={ctx.hospital.code} doctor={doctor} nurse={nurse} patientPays={isPatientPays(ctx.hospital)} />
     </HospitalShell>
   );
 }

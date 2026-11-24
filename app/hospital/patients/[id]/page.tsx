@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import HospitalShell from "@/components/hospital/HospitalShell";
 import NotStaff from "@/components/hospital/NotStaff";
 import { requireStaffPage } from "@/components/hospital/requireStaff";
+import { areaPath } from "@/lib/staffArea";
 import { hospitalLive, isDoctorPractice, isNursePractice, isPractice } from "@/lib/hospitalPlans";
 import { practiceRuleFoodIds } from "@/lib/nextMeal";
 import { getFood } from "@/lib/search";
@@ -51,7 +52,7 @@ export default async function PatientPage({
   const [{ id }, sp] = await Promise.all([params, searchParams]);
   const ctx = await requireStaffPage(sp.h, `/hospital/patients/${id}`);
   if (!ctx) return <NotStaff />;
-  const back = ctx.all.length > 1 ? `/hospital?h=${ctx.hospital.id}` : "/hospital";
+  const back = areaPath(ctx.all.length > 1 ? `/hospital?h=${ctx.hospital.id}` : "/hospital", isNursePractice(ctx.hospital));
 
   const { data: row } = await ctx.admin
     .from("hospital_patients")

@@ -4,16 +4,17 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { CreditCard, LogOut, MessageCircle, QrCode, UserPlus, Users, Stethoscope, Wallet } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { areaPath } from "@/lib/staffArea";
 
 type Role = "admin" | "doctor" | "dietitian";
 
 function tabs(role: Role, practice: boolean, doctor = false, nurse = false) {
-  // A nurse partner: her patients, her QR code (with the flyer), her money.
-  // No messages (she has no chat) and no "Add patients" (patients join only
-  // through her QR code or link, where they agree to what she sees).
+  // A nurse partner: her patients, adding patients, her QR code (with the
+  // flyer), her money. No messages (she has no chat with patients).
   if (nurse)
     return [
       { href: "/hospital", label: "Patients", icon: Users, exact: true },
+      { href: "/hospital/add", label: "Add patients", icon: UserPlus, exact: false },
       { href: "/hospital/plan", label: "QR code", short: "QR code", icon: QrCode, exact: false },
       { href: "/hospital/earnings", label: "Earnings", icon: Wallet, exact: false },
     ];
@@ -43,7 +44,8 @@ function tabs(role: Role, practice: boolean, doctor = false, nurse = false) {
 }
 
 function useHere() {
-  const path = usePathname();
+  // A nurse's dashboard is shown at /nurse/... (lib/staffArea.ts); compare as /hospital/...
+  const path = areaPath(usePathname() ?? "", false);
   return (href: string, exact: boolean) =>
     exact ? path === href || path.startsWith("/hospital/patients") : path.startsWith(href);
 }
@@ -92,7 +94,7 @@ export function HospitalSidebarNav({
         return (
           <Link
             key={href}
-            href={withHid(href, hid)}
+            href={withHid(areaPath(href, nurse), hid)}
             aria-current={on ? "page" : undefined}
             className={`relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 font-display text-sm font-semibold transition-colors ${
               on ? "bg-white/12 text-white" : "text-white/70 hover:bg-white/[0.07] hover:text-white"
@@ -155,7 +157,7 @@ export function HospitalMobileNav({
           return (
             <Link
               key={t.href}
-              href={withHid(t.href, hid)}
+              href={withHid(areaPath(t.href, nurse), hid)}
               aria-current={on ? "page" : undefined}
               className={`flex min-w-0 flex-1 flex-col items-center gap-1 py-2.5 text-center transition-colors ${on ? "text-brand" : "text-ink-soft"}`}
             >

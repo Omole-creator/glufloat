@@ -30,12 +30,18 @@ export default function AddPatients({
   open,
   backHref,
   patientPays = false,
+  nurse = false,
 }: {
   hid: string | null;
   open: boolean;
   backHref: string;
   /** A dietitian whose patients pay her in the app (patient-pays-schema.sql). */
   patientPays?: boolean;
+  /**
+   * A nurse partner (founder, 2026-11-24): no tick here. Her adding a patient
+   * is not their agreement; each patient ticks their own on their invite page.
+   */
+  nurse?: boolean;
 }) {
   const [mode, setMode] = useState<"one" | "many">("one");
   const [one, setOne] = useState<Patient>({ name: "", phone: "", email: "" });
@@ -49,13 +55,13 @@ export default function AddPatients({
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!agreed) return setErr("Please tick the box to say these patients agreed to join.");
+    if (!nurse && !agreed) return setErr("Please tick the box to say these patients agreed to join.");
     setBusy(true);
     setErr("");
     const res = await fetch("/api/hospital/patients", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ hid, patients: list, confirmed: true }),
+      body: JSON.stringify({ hid, patients: list, confirmed: !nurse }),
     });
     const j = await res.json().catch(() => ({}));
     setBusy(false);
@@ -139,6 +145,12 @@ export default function AddPatients({
           </div>
         )}
 
+        {nurse ? (
+          <p className="mt-5 rounded-xl bg-mist/70 p-3.5 text-sm text-ink">
+            When {mode === "one" ? "this patient opens their invite, they" : "each patient opens their invite, they"} tick a box to agree
+            that you can see their name, the meals they save, and their sugar tests before and after meals. You see nothing until they do.
+          </p>
+        ) : (
         <label className="mt-5 flex items-start gap-3 rounded-xl bg-mist/70 p-3.5 text-sm text-ink">
           <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="mt-0.5 h-5 w-5 shrink-0" />
           <span>
@@ -146,6 +158,7 @@ export default function AddPatients({
             dietitians will see their meals and sugar tests.
           </span>
         </label>
+        )}
 
         {err && <p className="mt-3 text-sm font-medium text-verdict-red">{err}</p>}
         <button
@@ -183,7 +196,9 @@ export default function AddPatients({
             "Each patient appears on your list as Invited.",
             "Tap Send invite. Their own link opens in WhatsApp, ready to send.",
             "They open it, check their phone number and choose a password. No email needed.",
-            patientPays
+            nurse
+              ? "They tick a box to agree that you can see their name, their meals and their sugar tests before and after meals. Then their 7 free days start."
+              : patientPays
               ? "Their first 14 days are free. Then they pay you inside Glufloat, every month, at your price."
               : "They get everything in Glufloat Premium, and your doctors and dietitians see their record.",
           ].map((s, i) => (
@@ -194,7 +209,7 @@ export default function AddPatients({
           ))}
         </ol>
         <p className="mt-5 rounded-xl bg-white/10 px-3.5 py-3 text-sm text-white/85">
-          Patients can also join on their own with your QR code. Print it from {patientPays ? "Price and earnings" : "Plan and QR code"}.
+          Patients can also join on their own with your QR code. Print it from {nurse ? "QR code" : patientPays ? "Price and earnings" : "Plan and QR code"}.
         </p>
       </aside>
     </div>

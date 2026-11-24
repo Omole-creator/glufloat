@@ -3,16 +3,21 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Lock } from "lucide-react";
+import { Lock, Mail } from "lucide-react";
 import { Field, FormError, SubmitButton } from "@/components/auth/Field";
 import { createClient } from "@/lib/supabase/client";
 import { currentUser } from "@/lib/authUser";
 import { clearAccessCache } from "@/lib/useAccess";
 
-export default function DoctorSetupForm({ token, email }: { token: string; email: string }) {
+/**
+ * `nurse` (founder, 2026-11-24): a nurse's short set-up link (/setup/ada42).
+ * Her email is never shown; she types it, and the server checks it.
+ */
+export default function DoctorSetupForm({ token, email, nurse = false }: { token: string; email: string; nurse?: boolean }) {
   const router = useRouter();
   const [me, setMe] = useState<string | null | undefined>(undefined);
   const [password, setPassword] = useState("");
+  const [typedEmail, setTypedEmail] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const [needLogin, setNeedLogin] = useState(false);
@@ -25,10 +30,10 @@ export default function DoctorSetupForm({ token, email }: { token: string; email
     setBusy(true);
     setErr("");
     setNeedLogin(false);
-    const res = await fetch("/api/doctors/setup", {
+    const res = await fetch(nurse ? "/api/setup" : "/api/doctors/setup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(useSession ? { token, useSession: true } : { token, password }),
+      body: JSON.stringify({ ...(useSession ? { token, useSession: true } : { token, password }), ...(nurse ? { email: typedEmail } : {}) }),
     });
     const j = await res.json().catch(() => ({}));
     if (!res.ok) {
@@ -44,12 +49,27 @@ export default function DoctorSetupForm({ token, email }: { token: string; email
       }
     }
     clearAccessCache();
-    router.push("/hospital");
+    router.push(nurse ? "/nurse" : "/hospital");
     router.refresh();
   };
 
   if (me === undefined) return <div className="h-48" />;
-  const here = `/doctors/setup/${token}`;
+  const here = nurse ? `/setup/${token}` : `/doctors/setup/${token}`;
+  const emailField = (
+    <Field
+      label="Your email"
+      ariaLabel="Your email"
+      icon={Mail}
+      type="email"
+      value={typedEmail}
+      onChange={(e) => setTypedEmail(e.target.value)}
+      required
+      autoComplete="email"
+      autoCapitalize="none"
+      spellCheck={false}
+      hint="The email Glufloat has for you."
+    />
+  );
 
   if (me)
     return (
@@ -57,6 +77,7 @@ export default function DoctorSetupForm({ token, email }: { token: string; email
         <p className="rounded-2xl bg-mist/70 px-4 py-3.5 text-sm text-ink">
           You are signed in as <span className="font-semibold">{me}</span>.
         </p>
+        {nurse && emailField}
         <FormError>{err}</FormError>
         <button
           onClick={() => finish(true)}
@@ -86,9 +107,13 @@ export default function DoctorSetupForm({ token, email }: { token: string; email
       }}
       className="space-y-4"
     >
-      <p className="rounded-2xl bg-mist/70 px-4 py-3.5 text-sm text-ink">
-        Your login email is <span className="font-semibold">{email}</span>.
-      </p>
+      {nurse ? (
+        emailField
+      ) : (
+        <p className="rounded-2xl bg-mist/70 px-4 py-3.5 text-sm text-ink">
+          Your login email is <span className="font-semibold">{email}</span>.
+        </p>
+      )}
       <Field
         label="Choose a password"
         ariaLabel="Your password"

@@ -373,7 +373,7 @@ export async function hospitalStatusFor(admin: SupabaseClient, uid: string): Pro
     /** Her monthly price in naira, for a patient-pays dietitian's patient; else null. */
     price: number | null;
   };
-  staff: { id: string; name: string; role: StaffRole; kind: "hospital" | "dietitian" | "doctor" }[];
+  staff: { id: string; name: string; role: StaffRole; kind: "hospital" | "dietitian" | "doctor"; nurse?: boolean }[];
 }> {
   const out: Awaited<ReturnType<typeof hospitalStatusFor>> = { patient: null, staff: [] };
   const [{ data: pats, error }, { data: staff }] = await Promise.all([
@@ -385,13 +385,15 @@ export async function hospitalStatusFor(admin: SupabaseClient, uid: string): Pro
   ]);
   if (error) return out;
 
-  for (const s of (staff ?? []) as unknown as { role: StaffRole; hospitals: { id: string; name: string; status: string; kind?: string | null } | null }[]) {
+  for (const s of (staff ?? []) as unknown as { role: StaffRole; hospitals: { id: string; name: string; status: string; kind?: string | null; contact_role?: string | null } | null }[]) {
     if (s.hospitals && (s.hospitals.status === "pilot" || s.hospitals.status === "active" || s.hospitals.status === "ended"))
       out.staff.push({
         id: s.hospitals.id,
         name: s.hospitals.name,
         role: s.role,
         kind: s.hospitals.kind === "dietitian" ? "dietitian" : s.hospitals.kind === "doctor" ? "doctor" : "hospital",
+        // A nurse partner's dashboard is /nurse (lib/staffArea.ts).
+        nurse: isNursePractice(s.hospitals),
       });
   }
 

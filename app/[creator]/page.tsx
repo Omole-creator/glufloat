@@ -2,6 +2,8 @@ import { notFound, redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/server";
 import { creatorForCode } from "@/lib/creatorsServer";
 import { normalizeCode, validCode } from "@/lib/creators";
+import { isNurseCode, normalizeNurseCode } from "@/lib/nurseCodes";
+import { isNursePractice } from "@/lib/hospitalPlans";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +17,17 @@ export const dynamic = "force-dynamic";
 export default async function CreatorLink({ params }: { params: Promise<{ creator: string }> }) {
   const { creator } = await params;
   const raw = decodeURIComponent(String(creator ?? ""));
+  // A nurse partner's patient link: glufloat.com/nurseada (founder,
+  // 2026-11-24). Opens her join page, where her patients join and agree.
+  if (isNurseCode(raw)) {
+    const { data } = await createAdminClient()
+      .from("hospitals")
+      .select("code,kind,contact_role,status")
+      .eq("code", normalizeNurseCode(raw))
+      .maybeSingle();
+    if (data && isNursePractice(data) && data.status === "active") redirect(`/j/${data.code}`);
+    notFound();
+  }
   if (!/^[A-Za-z0-9]{3,20}$/.test(raw) || !validCode(normalizeCode(raw))) notFound();
   const c = await creatorForCode(createAdminClient(), raw).catch(() => null);
   if (!c) notFound();

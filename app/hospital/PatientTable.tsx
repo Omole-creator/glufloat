@@ -1,5 +1,6 @@
 "use client";
 
+import { areaPath } from "@/lib/staffArea";
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -126,6 +127,7 @@ export default function PatientTable({
   hospitalName,
   hospitalCode,
   doctor = false,
+  nurse = false,
   patientPays = false,
 }: {
   rows: RosterRow[];
@@ -135,6 +137,8 @@ export default function PatientTable({
   hospitalCode: string;
   /** A Glufloat doctor's practice: no payment countdown, show each patient's own plan. */
   doctor?: boolean;
+  /** A nurse partner (founder, 2026-11-24): no chat or flags, and her own invite words. */
+  nurse?: boolean;
   /** A dietitian whose patients pay her in the app: no "Record payment" (patient-pays-schema.sql). */
   patientPays?: boolean;
 }) {
@@ -211,9 +215,16 @@ export default function PatientTable({
 
   const inviteLink = (r: RosterRow) => `${SITE_URL}/j/${hospitalCode}?t=${r.inviteToken}`;
   const inviteText = (r: RosterRow) =>
-    `Hello ${r.name.split(/\s+/)[0]}, ${hospitalName} has added you to Glufloat. It tells you what to eat for your diabetes and how much, and keeps a report for your doctor and dietitian.\n\nOpen this link to join. Use this phone number (${r.phone}):\n${inviteLink(r)}`;
+    nurse
+      ? `Hello ${r.name.split(/\s+/)[0]}, ${hospitalName} has added you to Glufloat. It tells you what to eat for your diabetes and how much.
 
-  const detailHref = (r: RosterRow) => `/hospital/patients/${r.id}${hid ? `?h=${hid}` : ""}`;
+When you join, you will be asked to agree that ${hospitalName} can see your name, the meals you save, and your sugar tests before and after meals.
+
+Open this link to join. Use this phone number (${r.phone}):
+${inviteLink(r)}`
+      : `Hello ${r.name.split(/\s+/)[0]}, ${hospitalName} has added you to Glufloat. It tells you what to eat for your diabetes and how much, and keeps a report for your doctor and dietitian.\n\nOpen this link to join. Use this phone number (${r.phone}):\n${inviteLink(r)}`;
+
+  const detailHref = (r: RosterRow) => areaPath(`/hospital/patients/${r.id}${hid ? `?h=${hid}` : ""}`, nurse);
 
   const FILTERS: { id: Filter; label: string }[] = [
     { id: "all", label: "Everyone" },
@@ -225,7 +236,9 @@ export default function PatientTable({
     { id: "waiting", label: "Waiting" },
     { id: "invited", label: "Invited" },
     { id: "paused", label: "Paused" },
-  ].filter((f) => !doctor || (f.id !== "due" && f.id !== "paused" && f.id !== "waiting")) as { id: Filter; label: string }[];
+  ]
+    .filter((f) => !doctor || (f.id !== "due" && f.id !== "paused" && f.id !== "waiting"))
+    .filter((f) => !nurse || (f.id !== "messages" && f.id !== "safety")) as { id: Filter; label: string }[];
 
   const Actions = ({ r }: { r: RosterRow }) =>
     !isAdmin ? null : (
@@ -373,8 +386,9 @@ export default function PatientTable({
                   <th className="px-3 py-2.5">Last used</th>
                   <th className="px-3 py-2.5 text-right">Meals</th>
                   <th className="px-3 py-2.5 text-right">Tests</th>
-                  <th className="px-3 py-2.5">Latest sugar test</th>
-                  <th className="px-3 py-2.5">HbA1c</th>
+                  {/* A nurse sees only meals and before/after tests on them. */}
+                  {!nurse && <th className="px-3 py-2.5">Latest sugar test</th>}
+                  {!nurse && <th className="px-3 py-2.5">HbA1c</th>}
                   <th className="px-3 py-2.5">{doctor ? "Glufloat plan" : "Paid"}</th>
                   <th className="px-5 py-2.5" />
                 </tr>
@@ -405,6 +419,7 @@ export default function PatientTable({
                     </td>
                     <td className="px-3 py-3 text-right tabular-nums text-ink">{r.status === "active" ? r.meals30 : "-"}</td>
                     <td className="px-3 py-3 text-right tabular-nums text-ink">{r.status === "active" ? r.tests30 : "-"}</td>
+                    {!nurse && (
                     <td className="px-3 py-3 text-ink">
                       {r.latestReading ? (
                         <>
@@ -415,6 +430,8 @@ export default function PatientTable({
                         "-"
                       )}
                     </td>
+                    )}
+                    {!nurse && (
                     <td className="px-3 py-3 text-ink">
                       {r.latestHba1c ? (
                         <>
@@ -425,6 +442,7 @@ export default function PatientTable({
                         "-"
                       )}
                     </td>
+                    )}
                     <td className={`px-3 py-3 text-xs ${isDue(r) ? "font-semibold text-verdict-red" : "text-ink"}`}>
                       {doctor
                         ? r.plan

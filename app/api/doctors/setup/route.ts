@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { sessionUser } from "@/lib/hospitalServer";
+import { isNursePractice } from "@/lib/hospitalPlans";
 
 export const dynamic = "force-dynamic";
 
@@ -21,20 +22,29 @@ export async function POST(request: Request) {
   const admin = createAdminClient();
   const { data: invite } = await admin
     .from("hospital_invites")
-    .select("*,hospitals(id,kind,status,contact_phone)")
+    .select("*,hospitals(id,kind,status,contact_phone,contact_role)")
     .eq("token", token)
     .maybeSingle();
-  const practice = (invite as unknown as { hospitals: { id: string; kind: string | null; status: string; contact_phone: string | null } | null } | null)?.hospitals;
+  const practice = (invite as unknown as { hospitals: { id: string; kind: string | null; status: string; contact_phone: string | null; contact_role: string | null } | null } | null)?.hospitals;
   if (!invite || !practice || practice.kind !== "doctor" || invite.used_at || new Date(invite.expires_at as string).getTime() < Date.now())
     return NextResponse.json({ error: "This link has been used or is too old. Please sign up again to get a new one." }, { status: 410 });
   if (practice.status !== "active") return NextResponse.json({ error: "This account is not open. Please call us on 0813 209 7317." }, { status: 410 });
 
-  const name = String(invite.name ?? "").trim() || "Doctor";
+  const nurse = isNursePractice(practice);
+  const name = String(invite.name ?? "").trim() || (nurse ? "Nurse" : "Doctor");
   const email = String(invite.email ?? "").trim().toLowerCase();
+  // A nurse's set-up link is short (/setup/ada42, founder 2026-11-24), so the
+  // link alone is not enough: she must also type the email Glufloat has for
+  // her. The same answer for any wrong email, so it tells a guesser nothing.
+  if (nurse && String(body.email ?? "").trim().toLowerCase() !== email)
+    return NextResponse.json({ error: "That email is not the one Glufloat has for you. Please check it, or call us on 0813 209 7317." }, { status: 403 });
   let uid: string;
   let login: string | null = null;
 
   const session = useSession ? await sessionUser() : null;
+  // A nurse finishes only from her own login, never from somebody else's.
+  if (session && nurse && (session.email ?? "").toLowerCase() !== email)
+    return NextResponse.json({ error: "Log out first, then open this link again and type your email." }, { status: 403 });
   if (session) {
     uid = session.id;
   } else {

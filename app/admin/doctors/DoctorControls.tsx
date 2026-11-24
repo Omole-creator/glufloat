@@ -45,7 +45,16 @@ function LinkBox({ link, emailed, name }: { link: string; emailed: boolean; name
  */
 export function AddDoctorForm({ agents }: { agents: Agent[] }) {
   const router = useRouter();
-  const [v, setV] = useState({ type: "doctor", name: "", email: "", phone: "", mdcn: "", agentId: "" });
+  const [v, setV] = useState({ type: "doctor", name: "", email: "", phone: "", mdcn: "", agentId: "", code: "" });
+  // A nurse's patient link (glufloat.com/nurseada): suggested from her name,
+  // editable before saving, never after (like a pharmacy's code).
+  const [codeTouched, setCodeTouched] = useState(false);
+  const suggest = async (name: string) => {
+    if (codeTouched || !name.trim()) return;
+    const res = await fetch(`/api/admin/doctors?suggest=${encodeURIComponent(name)}`);
+    const j = await res.json().catch(() => ({}));
+    if (j.code) setV((cur) => (codeTouched ? cur : { ...cur, code: j.code }));
+  };
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const [done, setDone] = useState<{ link: string; emailed: boolean; name: string } | null>(null);
@@ -68,7 +77,8 @@ export function AddDoctorForm({ agents }: { agents: Agent[] }) {
     setBusy(false);
     if (!res.ok) return setErr(j.error ?? "That did not work.");
     if (j.link) setDone({ link: j.link, emailed: !!j.emailed, name: j.name });
-    setV({ type: v.type, name: "", email: "", phone: "", mdcn: "", agentId: "" });
+    setV({ type: v.type, name: "", email: "", phone: "", mdcn: "", agentId: "", code: "" });
+    setCodeTouched(false);
     router.refresh();
   };
   return (
@@ -81,14 +91,28 @@ export function AddDoctorForm({ agents }: { agents: Agent[] }) {
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
         <label className="text-xs font-semibold text-ink-soft">
           Type
-          <select value={v.type} onChange={set("type")} className={box}>
+          <select
+            value={v.type}
+            onChange={(e) => {
+              set("type")(e);
+              if (e.target.value === "nurse") void suggest(v.name);
+            }}
+            className={box}
+          >
             <option value="doctor">Doctor</option>
             <option value="nurse">Nurse</option>
           </select>
         </label>
         <label className="text-xs font-semibold text-ink-soft">
           {nurse ? "Nurse's name" : "Doctor's name"}
-          <input value={v.name} onChange={set("name")} required placeholder={nurse ? "Ada Okafor" : "Dr Ada Okafor"} className={box} />
+          <input
+            value={v.name}
+            onChange={set("name")}
+            onBlur={() => nurse && void suggest(v.name)}
+            required
+            placeholder={nurse ? "Ada Okafor" : "Dr Ada Okafor"}
+            className={box}
+          />
         </label>
         <label className="text-xs font-semibold text-ink-soft">
           Email
@@ -114,6 +138,24 @@ export function AddDoctorForm({ agents }: { agents: Agent[] }) {
           </select>
         </label>
       </div>
+      {nurse && (
+        <label className="mt-3 block max-w-md text-xs font-semibold text-ink-soft">
+          Patient link (you can change it before saving, not after: it goes on her flyer)
+          <span className="mt-1 flex h-11 items-center rounded-xl border border-line bg-white px-3 text-sm focus-within:border-brand">
+            <span className="shrink-0 text-ink-soft">glufloat.com/</span>
+            <input
+              value={v.code}
+              onChange={(e) => {
+                setCodeTouched(true);
+                setV({ ...v, code: e.target.value.toLowerCase().replace(/[^a-z0-9]/g, "") });
+              }}
+              placeholder="nurseada"
+              aria-label="Patient link"
+              className="min-w-0 flex-1 bg-transparent font-semibold text-ink outline-none"
+            />
+          </span>
+        </label>
+      )}
       <div className="mt-3 flex flex-wrap items-center gap-3">
         <button
           disabled={busy || !v.name.trim() || !v.email.trim() || !v.phone.trim()}
@@ -123,7 +165,7 @@ export function AddDoctorForm({ agents }: { agents: Agent[] }) {
         </button>
         <p className="text-xs text-ink-soft">
           {nurse
-            ? "She gets an email to set her password. She sees only her patients' names, meals and before/after sugar tests, once they agree. N1,000 a month per Premium patient to her, N450 to who brought her, for 12 months."
+            ? "She gets an email to set her password. She sees only her patients' names, meals and before/after sugar tests, once they agree. No chat. N1,000 a month per Premium patient to her, N450 to who brought her, for 12 months."
             : "They get an email to set their password. Only the doctor earns unless you pick who brought them."}
         </p>
       </div>
@@ -213,6 +255,7 @@ export function DoctorActions({
   phone,
   mdcn,
   off,
+  nurse = false,
 }: {
   id: string;
   name: string;
@@ -220,6 +263,8 @@ export function DoctorActions({
   phone: string;
   mdcn: string;
   off: boolean;
+  /** A nurse partner: her own words, and an NMCN number instead of MDCN. */
+  nurse?: boolean;
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
@@ -282,7 +327,7 @@ export function DoctorActions({
         disabled={busy}
         onClick={async () => {
           const typed = prompt(
-            `This deletes ${name}'s practice and patient list. Patients keep their own Glufloat accounts.\n\nA doctor with care fees on record cannot be deleted: switch them off instead.\n\nType the name to delete:`,
+            `This deletes ${name}'s practice and patient list. Patients keep their own Glufloat accounts.\n\n${nurse ? "A nurse with earnings" : "A doctor with care fees"} on record cannot be deleted: switch them off instead.\n\nType the name to delete:`,
           );
           if (typed == null) return;
           if (await call("DELETE", { confirmName: typed })) router.refresh();
@@ -332,7 +377,7 @@ export function DoctorActions({
                 <input value={v.phone} onChange={(e) => setV({ ...v, phone: e.target.value })} type="tel" className={box} />
               </label>
               <label className="block text-xs font-semibold text-ink-soft">
-                MDCN folio number (optional)
+                {nurse ? "NMCN licence number (optional)" : "MDCN folio number (optional)"}
                 <input value={v.mdcn} onChange={(e) => setV({ ...v, mdcn: e.target.value })} className={box} />
               </label>
             </div>

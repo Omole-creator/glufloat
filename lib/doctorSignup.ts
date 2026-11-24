@@ -5,6 +5,7 @@ import { isPhoneLoginEmail } from "@/lib/phoneLogin";
 import { normalizePhone } from "@/lib/phone";
 import { doctorSetupEmail, sendEmail } from "@/lib/notify";
 import { SITE_URL } from "@/lib/site";
+import { nurseFirstName, nurseSetupToken } from "@/lib/nurseCodes";
 
 /**
  * Making a doctor's practice, shared by the public sign-up (/doctors/start)
@@ -58,7 +59,11 @@ export function cleanDoctor(
   return { name, email, mdcn: mdcn || null, phone: digits ? normalizePhone(rawPhone) : null, nurse };
 }
 
-/** A one-time set-up link for this practice, emailed to the doctor. */
+/**
+ * A one-time set-up link for this practice, emailed to the doctor. A nurse's
+ * is /setup/<first name><2 digits> (lib/nurseCodes.ts); her set-up page also
+ * asks for this email, so the short link alone opens nothing.
+ */
 export async function sendDoctorSetupLink(
   admin: Admin,
   practiceId: string,
@@ -66,18 +71,23 @@ export async function sendDoctorSetupLink(
   email: string,
   nurse = false,
 ): Promise<{ emailed: boolean; link: string | null }> {
-  const token = readableToken(name, true);
-  const { error } = await admin.from("hospital_invites").insert({
-    token,
-    hospital_id: practiceId,
-    role: "admin",
-    name,
-    email,
-    expires_at: new Date(Date.now() + DOCTOR_INVITE_DAYS * 86400000).toISOString(),
-  });
-  if (error) return { emailed: false, link: null };
-  const link = `${SITE_URL}/doctors/setup/${token}`;
-  const firstName = name.replace(/^dr\.?\s+/i, "").split(/\s+/)[0] || name;
+  let token = "";
+  for (let attempt = 0; attempt < 40 && !token; attempt++) {
+    const t = nurse ? nurseSetupToken(name) + (attempt >= 30 ? String(attempt % 10) : "") : readableToken(name, true);
+    const { error } = await admin.from("hospital_invites").insert({
+      token: t,
+      hospital_id: practiceId,
+      role: "admin",
+      name,
+      email,
+      expires_at: new Date(Date.now() + DOCTOR_INVITE_DAYS * 86400000).toISOString(),
+    });
+    if (!error) token = t;
+    else if (!/duplicate|unique/i.test(error.message)) return { emailed: false, link: null };
+  }
+  if (!token) return { emailed: false, link: null };
+  const link = nurse ? `${SITE_URL}/setup/${token}` : `${SITE_URL}/doctors/setup/${token}`;
+  const firstName = nurse ? nurseFirstName(name).charAt(0) + nurseFirstName(name).slice(1).toLowerCase() || name : name.replace(/^dr\.?\s+/i, "").split(/\s+/)[0] || name;
   const mail = doctorSetupEmail(firstName, link, DOCTOR_INVITE_DAYS, nurse);
   const sent = await sendEmail(email, mail.subject, mail.html, mail.text, "doctor-setup");
   return { emailed: sent.ok, link };
@@ -86,13 +96,15 @@ export async function sendDoctorSetupLink(
 /** Insert the practice. Retries a clash on the random code; null on any other failure. */
 export async function insertDoctorPractice(
   admin: Admin,
-  d: DoctorInput & { agentId: string | null; invitedBy: string | null },
+  d: DoctorInput & { agentId: string | null; invitedBy: string | null; code?: string },
 ): Promise<string | null> {
-  for (let attempt = 0; attempt < 4; attempt++) {
+  // A nurse's join code is her patient link (NURSEADA), chosen by Glufloat and
+  // already checked free: no retry with a random one.
+  for (let attempt = 0; attempt < (d.code ? 1 : 4); attempt++) {
     const { data, error } = await admin
       .from("hospitals")
       .insert({
-        code: newCode(),
+        code: d.code ?? newCode(),
         kind: "doctor",
         name: d.name,
         contact_name: d.name,

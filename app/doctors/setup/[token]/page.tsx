@@ -13,11 +13,12 @@ export default async function DoctorSetupPage({ params }: { params: Promise<{ to
   try {
     const { data } = await createAdminClient()
       .from("hospital_invites")
-      .select("name,email,used_at,expires_at,hospitals(kind)")
+      .select("name,email,used_at,expires_at,hospitals(kind,contact_role)")
       .eq("token", token)
       .maybeSingle();
-    const kind = (data as unknown as { hospitals: { kind: string | null } | null } | null)?.hospitals?.kind;
-    if (data && kind === "doctor") {
+    const hh = (data as unknown as { hospitals: { kind: string | null; contact_role: string | null } | null } | null)?.hospitals;
+    // A nurse's link opens only at /setup/<token>, which asks for her email.
+    if (data && hh?.kind === "doctor" && hh.contact_role !== "Nurse") {
       if (data.used_at) bad = "This link has already been used. If that was you, just log in.";
       else if (new Date(data.expires_at as string).getTime() < Date.now()) bad = "This link is more than 14 days old. Please sign up again to get a new one.";
       else invite = { name: (data.name as string | null) ?? "Doctor", email: (data.email as string | null) ?? "" };

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Download, QrCode } from "lucide-react";
 import { buildPosterPdf, joinShort } from "@/lib/hospitalPdf";
+import { isNurseCode } from "@/lib/nurseCodes";
 
 /**
  * The QR code box on the Plan page: the join link, the code, and the
@@ -39,9 +40,12 @@ export default function QrCodeCard({
           Patients join by scanning your QR code, or by opening your link:
         </p>
         <p className="mt-1 font-display text-xl font-bold text-brand">{joinShort(code)}</p>
-        <p className="mt-1 text-xs text-ink-soft">
-          {practice ? "Your code" : "Your hospital code"}: {code}
-        </p>
+        {/* A nurse's link is the code itself (glufloat.com/nurseada). */}
+        {!isNurseCode(code) && (
+          <p className="mt-1 text-xs text-ink-soft">
+            {practice ? "Your code" : "Your hospital code"}: {code}
+          </p>
+        )}
       </div>
       <button
         disabled={busy || !open}

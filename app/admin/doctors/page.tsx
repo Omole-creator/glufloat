@@ -107,6 +107,9 @@ export default async function DoctorsAdminPage() {
                               <span className="ml-2 rounded-full bg-leaf/10 px-2 py-0.5 text-[11px] font-bold text-leaf-deep">Nurse</span>
                             )}
                           </p>
+                          {d.contact_role === "Nurse" && (
+                            <p className="font-mono text-xs text-brand">glufloat.com/{d.code.toLowerCase()}</p>
+                          )}
                           <p className="text-xs text-ink-soft">
                             {d.contact_email}
                             {d.contact_phone && (
@@ -132,6 +135,7 @@ export default async function DoctorsAdminPage() {
                               phone={d.contact_phone ?? ""}
                               mdcn={d.mdcn_number ?? ""}
                               off={d.status === "declined"}
+                              nurse={d.contact_role === "Nurse"}
                             />
                           </div>
                         </td>

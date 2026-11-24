@@ -57,6 +57,7 @@ export default function Navbar() {
   const isHospitalStaff = (hospitalStaff?.length ?? 0) > 0;
   // A dietitian running her own practice (Glufloat for dietitians) and nothing else.
   const onlyPractice = isHospitalStaff && hospitalStaff!.every((s) => s.kind === "dietitian");
+  const onlyNurse = isHospitalStaff && hospitalStaff!.every((s) => s.nurse);
   const pathname = usePathname();
   const router = useRouter();
   // The app is already open on /app, so the menu offers Sign out there rather than
@@ -351,11 +352,11 @@ export default function Navbar() {
             )}
             {isHospitalStaff && (
               <Link
-                href="/hospital"
+                href={onlyNurse ? "/nurse" : "/hospital"}
                 onClick={() => setMenuOpen(false)}
                 className="flex items-center justify-center rounded-full bg-brand px-5 py-3.5 text-center text-base font-bold text-white"
               >
-                {onlyPractice ? "My dietitian dashboard" : "Hospital dashboard"}
+                {onlyNurse ? "My nurse dashboard" : onlyPractice ? "My dietitian dashboard" : "Hospital dashboard"}
               </Link>
             )}
             {inbox && (

@@ -47,6 +47,8 @@ export const RESERVED_CODES = new Set(
     // words that would read as ours
     "glufloat", "help", "support", "login", "logout", "pricing", "pay", "home", "new", "free", "test", "demo",
     "staff", "team", "partner", "partners", "dashboard", "settings", "_next",
+    // a nurse partner's dashboard and set-up link (lib/nurseCodes.ts)
+    "nurse", "nurses", "setup",
   ].map((w) => normalizeCode(w)),
 );
 
@@ -60,7 +62,8 @@ export function normalizeCode(raw: string | null | undefined): string {
 
 /** A code we would accept for a creator: 3 to 20 letters/digits, starting with a letter, not ours. */
 export function validCode(code: string): boolean {
-  return /^[A-Z][A-Z0-9]{2,19}$/.test(code) && !RESERVED_CODES.has(code);
+  // Codes starting NURSE are nurses' patient links (glufloat.com/nurseada).
+  return /^[A-Z][A-Z0-9]{2,19}$/.test(code) && !RESERVED_CODES.has(code) && !code.startsWith("NURSE");
 }
 
 /**

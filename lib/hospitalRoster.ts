@@ -205,7 +205,9 @@ export async function hospitalRoster(admin: SupabaseClient, hospitalId: string, 
     return {
       id: p.id,
       name: p.name,
-      phone: nurse ? "" : p.phone,
+      // A nurse sees the number only for a patient she added who has not
+      // joined yet (she typed it, and needs it to send the invite).
+      phone: nurse && p.status !== "invited" ? "" : p.phone,
       email: nurse ? null : p.email ?? (accountEmail && !isPhoneLoginEmail(accountEmail) ? accountEmail : null),
       status: p.status,
       userId: uid,

@@ -4,6 +4,20 @@ import { createAdminClient } from "@/lib/supabase/server";
 import { doctorsReady } from "@/lib/careFeesServer";
 import { restoreCarried, type PatientRow } from "@/lib/hospitalServer";
 import { NURSE_ROLE } from "@/lib/hospitalPlans";
+import { normalizeNurseCode, suggestNurseCode, validNurseCode } from "@/lib/nurseCodes";
+
+/** Every code already used by a practice or a creator, so a nurse's link never clashes. */
+async function takenCodes(admin: ReturnType<typeof createAdminClient>): Promise<Set<string>> {
+  const [h, c] = await Promise.all([admin.from("hospitals").select("code"), admin.from("creators").select("code")]);
+  return new Set([...(h.data ?? []), ...(c.data ?? [])].map((r) => String((r as { code: string }).code ?? "").toUpperCase()));
+}
+
+/** GET ?suggest=<name>: the patient-link code we suggest for a new nurse. */
+export async function GET(request: Request) {
+  if (!(await isAdmin())) return NextResponse.json({ error: "Not allowed" }, { status: 401 });
+  const name = new URL(request.url).searchParams.get("suggest") ?? "";
+  return NextResponse.json({ code: suggestNurseCode(name, await takenCodes(createAdminClient())).toLowerCase() });
+}
 import { cleanDoctor, doctorByEmail, insertDoctorPractice, sendDoctorSetupLink } from "@/lib/doctorSignup";
 
 export const dynamic = "force-dynamic";
@@ -53,7 +67,21 @@ export async function POST(request: Request) {
     agentId = a.id as string;
   }
 
-  const id = await insertDoctorPractice(admin, { ...c, agentId, invitedBy: null });
+  // A nurse's patient link (glufloat.com/nurseada): typed or suggested, checked free.
+  let code: string | undefined;
+  if (c.nurse) {
+    const taken = await takenCodes(admin);
+    code = normalizeNurseCode(String(body.code ?? "")) || suggestNurseCode(c.name, taken);
+    if (!validNurseCode(code))
+      return NextResponse.json({ error: "The patient link must start with nurse, then 2 to 15 letters or numbers, like nurseada." }, { status: 400 });
+    if (taken.has(code))
+      return NextResponse.json(
+        { error: `glufloat.com/${code.toLowerCase()} is taken. Try glufloat.com/${suggestNurseCode(c.name, taken).toLowerCase()}.` },
+        { status: 409 },
+      );
+  }
+
+  const id = await insertDoctorPractice(admin, { ...c, agentId, invitedBy: null, code });
   if (!id) return NextResponse.json({ error: "Could not add the doctor. Please try again." }, { status: 503 });
   const r = await sendDoctorSetupLink(admin, id, c.name, c.email, c.nurse);
   return NextResponse.json({ ok: true, id, emailed: r.emailed, link: r.link, name: c.name });

@@ -15,7 +15,7 @@ type Result = {
   name: string | null;
   access: Access;
   /** Hospitals this person works for (Glufloat for hospitals). */
-  hospitalStaff?: { id: string; name: string; role: string; kind?: "hospital" | "dietitian" | "doctor" }[];
+  hospitalStaff?: { id: string; name: string; role: string; kind?: "hospital" | "dietitian" | "doctor"; nurse?: boolean }[];
   /** Answers Premium members' chats at /inbox. */
   inbox?: boolean;
   /** Their Glufloat doctor, if any (never changes access). */

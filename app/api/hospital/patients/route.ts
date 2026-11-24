@@ -30,11 +30,11 @@ export async function POST(request: Request) {
   const ctx = await staffContext(String(body.hid ?? "") || null);
   if (!ctx) return NextResponse.json({ error: "Please log in again." }, { status: 401 });
   if (ctx.staff.role !== "admin") return NextResponse.json({ error: "Only the hospital admin can add patients." }, { status: 403 });
-  // A nurse's patients join only through her QR code or link, where they tick
-  // their own agreement (founder, 2026-11-24). She cannot add them by hand.
-  if (isNursePractice(ctx.hospital))
-    return NextResponse.json({ error: "Your patients join with your QR code or link." }, { status: 403 });
-  if (body.confirmed !== true)
+  // A nurse may add her patients (founder, 2026-11-24), but her adding them is
+  // never their agreement: the row starts with confirmed false, and only the
+  // patient's own tick on their invite page sets it (app/api/hospital/join).
+  const nurse = isNursePractice(ctx.hospital);
+  if (!nurse && body.confirmed !== true)
     return NextResponse.json({ error: "Please tick the box to say these patients agreed to join." }, { status: 400 });
 
   const list = (Array.isArray(body.patients) ? body.patients : []).slice(0, MAX_AT_ONCE) as {
@@ -72,7 +72,7 @@ export async function POST(request: Request) {
       email,
       status: "invited",
       invite_token: newToken(),
-      confirmed: true,
+      confirmed: !nurse,
       added_by: ctx.user.id,
     });
     if (error) {

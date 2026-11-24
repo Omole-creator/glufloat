@@ -49,8 +49,9 @@ function SignInForm() {
       // Hospital doctors, dietitians and admins go to their dashboard.
       try {
         const res = await fetch("/api/hospital/me", { cache: "no-store" });
-        const j = (await res.json()) as { staff?: unknown[]; inbox?: boolean };
-        if (Array.isArray(j.staff) && j.staff.length > 0) to = "/hospital";
+        const j = (await res.json()) as { staff?: { nurse?: boolean }[]; inbox?: boolean };
+        // A nurse partner's dashboard is /nurse.
+        if (Array.isArray(j.staff) && j.staff.length > 0) to = j.staff.every((s) => s.nurse) ? "/nurse" : "/hospital";
         // A Glufloat Premium dietitian goes to the chats she answers.
         else if (j.inbox) to = "/inbox";
       } catch {

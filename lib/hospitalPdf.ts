@@ -4,6 +4,7 @@ import { jsPDF } from "jspdf";
 import QRCode from "qrcode";
 import { ANNUAL_MONTHS_PAID, planName, practicePlanName } from "@/lib/hospitalPlans";
 import type { InvoiceSettings } from "@/lib/invoiceSettings";
+import { isNurseCode, nursePath } from "@/lib/nurseCodes";
 import { SITE_URL } from "@/lib/site";
 
 /**
@@ -75,13 +76,14 @@ async function logoDataUrl(): Promise<string | null> {
   }
 }
 
+/** A practice's join link. A nurse's is her own patient link, glufloat.com/nurseada. */
 export function joinUrl(code: string): string {
-  return `${SITE_URL}/j/${code}`;
+  return isNurseCode(code) ? `${SITE_URL}${nursePath(code)}` : `${SITE_URL}/j/${code}`;
 }
 
-/** The short form people type: glufloat.com/j/4KQ7MD */
+/** The short form people type: glufloat.com/j/4KQ7MD, or glufloat.com/nurseada. */
 export function joinShort(code: string): string {
-  return `${SITE_URL.replace(/^https?:\/\/(www\.)?/, "")}/j/${code}`;
+  return joinUrl(code).replace(/^https?:\/\/(www\.)?/, "");
 }
 
 export async function buildDocumentPdf(
@@ -319,7 +321,9 @@ export async function buildPosterPdf(hospital: { name: string; code: string }): 
   pdf.setFontSize(13);
   const sub = pdf.splitTextToSize(
     // Never "free": the hospital may charge its patients for the programme.
-    `${hospital.name} gives you Glufloat. It tells you what to eat and how much, and keeps a report for your doctor and dietitian.`,
+    isNurseCode(hospital.code)
+      ? `${hospital.name} uses Glufloat to help you with your diabetes. It tells you what to eat and how much.`
+      : `${hospital.name} gives you Glufloat. It tells you what to eat and how much, and keeps a report for your doctor and dietitian.`,
     W - 36,
   );
   pdf.text(sub, 18, 56 + title.length * 12 + 4);
@@ -550,7 +554,7 @@ export async function buildPharmacyPosterPdf(
 export async function buildNurseFlyerPdf(n: { name: string; code: string }, premiumNaira: number): Promise<jsPDF> {
   return posterPdf({
     where: n.name,
-    link: `${SITE_URL}/j/${n.code}`,
+    link: joinUrl(n.code),
     offer: [
       { t: "Free for 7 days. You do not need a card.", bold: true },
       { t: `After that, it is N${premiumNaira.toLocaleString("en-NG")} a month.`, bold: false },

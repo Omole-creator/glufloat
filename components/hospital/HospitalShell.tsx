@@ -4,6 +4,7 @@ import { AlertTriangle, Sparkles } from "lucide-react";
 import { hospitalLive, isDoctorPractice, isNursePractice, isPractice, orgWords, planName, PRACTICE_TRIAL_DAYS, waitingForFirstPatient } from "@/lib/hospitalPlans";
 import { ROLE_LABEL, type StaffContext } from "@/lib/hospitalServer";
 import { isWaiting } from "@/lib/chat";
+import { areaPath } from "@/lib/staffArea";
 import { HospitalLogOut, HospitalMobileNav, HospitalSidebarNav, HospitalSwitcher } from "./HospitalNav";
 
 /**
@@ -54,7 +55,7 @@ export default async function HospitalShell({
   return (
     <div className="min-h-screen bg-[#f2f5f9]">
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col bg-[#0b2e59] px-4 py-5 lg:flex">
-        <Link href="/hospital" className="flex items-center gap-2.5 px-1.5">
+        <Link href={areaPath("/hospital", nurse)} className="flex items-center gap-2.5 px-1.5">
           <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white">
             <Image src="/logo-mark.png" alt="" width={28} height={28} className="h-7 w-7" />
           </span>
@@ -65,7 +66,7 @@ export default async function HospitalShell({
         </Link>
         <div className="mt-6 rounded-2xl bg-white/[0.07] p-3.5 ring-1 ring-inset ring-white/10">
           <p className="font-display text-sm font-bold leading-snug text-white">{h.name}</p>
-          <p className="mt-0.5 text-xs text-white/60">{planName(h.plan)}</p>
+          <p className="mt-0.5 text-xs text-white/60">{nurse ? "Glufloat for nurses" : planName(h.plan)}</p>
           <HospitalSwitcher options={options} current={h.id} />
         </div>
         <div className="-mx-1 mt-6 min-h-0 flex-1 overflow-y-auto px-1">
@@ -86,7 +87,7 @@ export default async function HospitalShell({
 
       <header className="sticky top-0 z-30 bg-[#0b2e59] lg:hidden">
         <div className="flex items-center justify-between gap-3 px-4 py-3">
-          <Link href="/hospital" className="flex min-w-0 items-center gap-2">
+          <Link href={areaPath("/hospital", nurse)} className="flex min-w-0 items-center gap-2">
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white">
               <Image src="/logo-mark.png" alt="" width={22} height={22} className="h-5.5 w-5.5" />
             </span>
@@ -117,7 +118,7 @@ export default async function HospitalShell({
                 <p>
                   <span className="font-bold">Your Glufloat plan has ended.</span> Your patients are no longer covered and
                   their records are closed.{" "}
-                  <Link href="/hospital/plan" className="font-bold text-brand underline">
+                  <Link href={areaPath("/hospital/plan", nurse)} className="font-bold text-brand underline">
                     Choose a plan to continue
                   </Link>
                 </p>
@@ -138,7 +139,7 @@ export default async function HospitalShell({
                   {daysLeft === 1 ? "day" : "days"}.
                 </span>{" "}
                 {practice ? (
-                  <Link href="/hospital/plan" className="font-bold text-brand underline">
+                  <Link href={areaPath("/hospital/plan", nurse)} className="font-bold text-brand underline">
                     Choose a plan to keep your patients covered
                   </Link>
                 ) : ctx.staff.role === "admin" ? (

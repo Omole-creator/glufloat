@@ -86,7 +86,7 @@ type HospitalMe = {
     due?: boolean;
     price?: number | null;
   };
-  staff: { id: string; name: string; role: string; kind?: "hospital" | "dietitian" | "doctor" }[];
+  staff: { id: string; name: string; role: string; kind?: "hospital" | "dietitian" | "doctor"; nurse?: boolean }[];
   /** A Glufloat Premium dietitian who answers chats at /inbox (chat-schema.sql). */
   inbox?: boolean;
 };
@@ -143,7 +143,7 @@ export async function getAccess(): Promise<{
   name: string | null;
   access: Access;
   /** Hospitals this person works for (doctor, dietitian, admin). Empty for almost everyone. */
-  hospitalStaff?: { id: string; name: string; role: string; kind?: "hospital" | "dietitian" | "doctor" }[];
+  hospitalStaff?: { id: string; name: string; role: string; kind?: "hospital" | "dietitian" | "doctor"; nurse?: boolean }[];
   /** Answers Premium members' chats at /inbox. */
   inbox?: boolean;
   /** Their Glufloat doctor, if they joined one. Never changes access. */

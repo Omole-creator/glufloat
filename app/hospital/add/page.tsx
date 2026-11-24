@@ -1,8 +1,8 @@
-import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import HospitalShell from "@/components/hospital/HospitalShell";
 import NotStaff from "@/components/hospital/NotStaff";
 import { requireStaffPage } from "@/components/hospital/requireStaff";
+import { areaPath } from "@/lib/staffArea";
 import { acceptsPatients, isDoctorPractice, isNursePractice } from "@/lib/hospitalPlans";
 import { seatsUsed } from "@/lib/hospitalServer";
 import { isPatientPays } from "@/lib/patientPays";
@@ -15,8 +15,6 @@ export default async function AddPage({ searchParams }: { searchParams: Promise<
   const sp = await searchParams;
   const ctx = await requireStaffPage(sp.h, "/hospital/add");
   if (!ctx) return <NotStaff />;
-  // A nurse partner: no chat, and patients join only through her QR code.
-  if (isNursePractice(ctx.hospital)) redirect(ctx.all.length > 1 ? `/hospital?h=${ctx.hospital.id}` : "/hospital");
   if (ctx.staff.role !== "admin")
     return (
       <HospitalShell ctx={ctx} title="Add patients">
@@ -31,7 +29,9 @@ export default async function AddPage({ searchParams }: { searchParams: Promise<
       ctx={ctx}
       title="Add patients"
       subtitle={
-        isDoctorPractice(ctx.hospital)
+        isNursePractice(ctx.hospital)
+          ? `${used} ${used === 1 ? "patient has" : "patients have"} joined. Each patient you add gets an invite to join you on Glufloat.`
+          : isDoctorPractice(ctx.hospital)
           ? `${used} ${used === 1 ? "patient has" : "patients have"} joined. Each patient you add gets an invite to join you on Glufloat.`
           : isPatientPays(ctx.hospital)
             ? `${used} ${used === 1 ? "patient has" : "patients have"} joined. Each new patient gets 14 free days, then pays you inside Glufloat.`
@@ -41,8 +41,9 @@ export default async function AddPage({ searchParams }: { searchParams: Promise<
       <AddPatients
         hid={ctx.all.length > 1 ? ctx.hospital.id : null}
         open={acceptsPatients(ctx.hospital)}
-        backHref={ctx.all.length > 1 ? `/hospital?h=${ctx.hospital.id}` : "/hospital"}
+        backHref={areaPath(ctx.all.length > 1 ? `/hospital?h=${ctx.hospital.id}` : "/hospital", isNursePractice(ctx.hospital))}
         patientPays={isPatientPays(ctx.hospital)}
+        nurse={isNursePractice(ctx.hospital)}
       />
     </HospitalShell>
   );
