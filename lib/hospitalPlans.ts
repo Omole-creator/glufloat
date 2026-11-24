@@ -145,7 +145,7 @@ export function practicePlanForAmount(kobo: number | null | undefined): Practice
   return PRACTICE_PLANS.find((p) => p.monthly * 100 === kobo || practiceYearly(p) * 100 === kobo);
 }
 
-type Kinded = { kind?: string | null };
+type Kinded = { kind?: string | null; contact_role?: string | null };
 
 /** A dietitian's practice, not a hospital. A row from before the SQL ran is a hospital. */
 export function isPractice(h: Kinded | null | undefined): boolean {
@@ -167,6 +167,21 @@ export function isDoctorPractice(h: Kinded | null | undefined): boolean {
   return h?.kind === "doctor";
 }
 
+/**
+ * A nurse partner (founder, 2026-11-24). Stored as a doctor's practice (kind
+ * 'doctor', so her QR code, link, login, Premium-only patients and the rep
+ * "Brought by" all work the same) with contact_role 'Nurse'. She sees much
+ * less than a doctor: only a patient's name, the meals they logged, and their
+ * before- and after-meal sugar tests, and only once the patient agreed when
+ * joining. No health profile, HbA1c, weight, flags, notes, chat or report.
+ * She earns N1,000 a month from each patient on Premium for 12 months
+ * (lib/careFees.ts), with no "Mark as reviewed".
+ */
+export const NURSE_ROLE = "Nurse";
+export function isNursePractice(h: Kinded | null | undefined): boolean {
+  return h?.kind === "doctor" && h.contact_role === NURSE_ROLE;
+}
+
 /** A doctor's practice is open until switched off. */
 export const DOCTOR_ACCESS_UNTIL = "2999-12-31T00:00:00.000Z";
 /** No limit on a doctor's patients. */
@@ -184,6 +199,8 @@ export function acceptsPatients(h: Kinded & { status: string; access_until: stri
 
 /** The words a patient or the dashboard reads, so a dietitian is never called a hospital. */
 export function orgWords(h: Kinded | null | undefined) {
+  if (isNursePractice(h))
+    return { yours: "your nurse", Yours: "Your nurse", product: "for nurses", adminLabel: "Nurse" };
   if (isDoctorPractice(h))
     return { yours: "your doctor", Yours: "Your doctor", product: "for doctors", adminLabel: "Doctor" };
   const p = isPractice(h);

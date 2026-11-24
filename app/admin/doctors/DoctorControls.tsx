@@ -45,10 +45,12 @@ function LinkBox({ link, emailed, name }: { link: string; emailed: boolean; name
  */
 export function AddDoctorForm({ agents }: { agents: Agent[] }) {
   const router = useRouter();
-  const [v, setV] = useState({ name: "", email: "", phone: "", mdcn: "", agentId: "" });
+  const [v, setV] = useState({ type: "doctor", name: "", email: "", phone: "", mdcn: "", agentId: "" });
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const [done, setDone] = useState<{ link: string; emailed: boolean; name: string } | null>(null);
+  // A nurse partner (founder, 2026-11-24): same form, the Type drop-down set to Nurse.
+  const nurse = v.type === "nurse";
   const set = (k: keyof typeof v) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setV({ ...v, [k]: e.target.value });
     setErr("");
@@ -66,7 +68,7 @@ export function AddDoctorForm({ agents }: { agents: Agent[] }) {
     setBusy(false);
     if (!res.ok) return setErr(j.error ?? "That did not work.");
     if (j.link) setDone({ link: j.link, emailed: !!j.emailed, name: j.name });
-    setV({ name: "", email: "", phone: "", mdcn: "", agentId: "" });
+    setV({ type: v.type, name: "", email: "", phone: "", mdcn: "", agentId: "" });
     router.refresh();
   };
   return (
@@ -76,10 +78,17 @@ export function AddDoctorForm({ agents }: { agents: Agent[] }) {
         void add();
       }}
     >
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
         <label className="text-xs font-semibold text-ink-soft">
-          Doctor&apos;s name
-          <input value={v.name} onChange={set("name")} required placeholder="Dr Ada Okafor" className={box} />
+          Type
+          <select value={v.type} onChange={set("type")} className={box}>
+            <option value="doctor">Doctor</option>
+            <option value="nurse">Nurse</option>
+          </select>
+        </label>
+        <label className="text-xs font-semibold text-ink-soft">
+          {nurse ? "Nurse's name" : "Doctor's name"}
+          <input value={v.name} onChange={set("name")} required placeholder={nurse ? "Ada Okafor" : "Dr Ada Okafor"} className={box} />
         </label>
         <label className="text-xs font-semibold text-ink-soft">
           Email
@@ -90,7 +99,7 @@ export function AddDoctorForm({ agents }: { agents: Agent[] }) {
           <input value={v.phone} onChange={set("phone")} required type="tel" className={box} />
         </label>
         <label className="text-xs font-semibold text-ink-soft">
-          MDCN folio number (optional)
+          {nurse ? "NMCN licence number (optional)" : "MDCN folio number (optional)"}
           <input value={v.mdcn} onChange={set("mdcn")} className={box} />
         </label>
         <label className="text-xs font-semibold text-ink-soft">
@@ -110,9 +119,13 @@ export function AddDoctorForm({ agents }: { agents: Agent[] }) {
           disabled={busy || !v.name.trim() || !v.email.trim() || !v.phone.trim()}
           className="h-11 rounded-full bg-leaf px-6 text-sm font-bold text-white hover:bg-leaf-deep disabled:opacity-50"
         >
-          {busy ? "Adding..." : "Add doctor"}
+          {busy ? "Adding..." : nurse ? "Add nurse" : "Add doctor"}
         </button>
-        <p className="text-xs text-ink-soft">They get an email to set their password. Only the doctor earns unless you pick who brought them.</p>
+        <p className="text-xs text-ink-soft">
+          {nurse
+            ? "She gets an email to set her password. She sees only her patients' names, meals and before/after sugar tests, once they agree. N1,000 a month per Premium patient to her, N450 to who brought her, for 12 months."
+            : "They get an email to set their password. Only the doctor earns unless you pick who brought them."}
+        </p>
       </div>
       {err && <p className="mt-2 text-sm font-semibold text-verdict-red">{err}</p>}
       {done && <LinkBox {...done} />}

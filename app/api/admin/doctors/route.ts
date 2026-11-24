@@ -3,6 +3,7 @@ import { isAdmin } from "@/lib/adminSession";
 import { createAdminClient } from "@/lib/supabase/server";
 import { doctorsReady } from "@/lib/careFeesServer";
 import { restoreCarried, type PatientRow } from "@/lib/hospitalServer";
+import { NURSE_ROLE } from "@/lib/hospitalPlans";
 import { cleanDoctor, doctorByEmail, insertDoctorPractice, sendDoctorSetupLink } from "@/lib/doctorSignup";
 
 export const dynamic = "force-dynamic";
@@ -31,7 +32,7 @@ export const dynamic = "force-dynamic";
  *        partner programme kept.
  */
 async function loadDoctor(admin: ReturnType<typeof createAdminClient>, id: string) {
-  const { data } = await admin.from("hospitals").select("id,kind,name,contact_email").eq("id", id).maybeSingle();
+  const { data } = await admin.from("hospitals").select("id,kind,name,contact_email,contact_role").eq("id", id).maybeSingle();
   return data && data.kind === "doctor" ? data : null;
 }
 
@@ -43,7 +44,7 @@ export async function POST(request: Request) {
   const admin = createAdminClient();
   if (!(await doctorsReady(admin))) return NextResponse.json({ error: "Run doctors-schema.sql first." }, { status: 503 });
   if (await doctorByEmail(admin, c.email))
-    return NextResponse.json({ error: "A doctor with this email is already on Glufloat. Use New set-up link on their row." }, { status: 409 });
+    return NextResponse.json({ error: "Somebody with this email is already on Glufloat as a doctor or nurse. Use New set-up link on their row." }, { status: 409 });
 
   let agentId: string | null = null;
   if (typeof body.agentId === "string" && body.agentId) {
@@ -54,7 +55,7 @@ export async function POST(request: Request) {
 
   const id = await insertDoctorPractice(admin, { ...c, agentId, invitedBy: null });
   if (!id) return NextResponse.json({ error: "Could not add the doctor. Please try again." }, { status: 503 });
-  const r = await sendDoctorSetupLink(admin, id, c.name, c.email);
+  const r = await sendDoctorSetupLink(admin, id, c.name, c.email, c.nurse);
   return NextResponse.json({ ok: true, id, emailed: r.emailed, link: r.link, name: c.name });
 }
 
@@ -76,7 +77,8 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ ok: true });
   }
   if (action === "edit") {
-    const c = cleanDoctor(body, "admin", false);
+    // The type is never changed on edit: a nurse stays a nurse.
+    const c = cleanDoctor({ ...body, type: d.contact_role === NURSE_ROLE ? "nurse" : "doctor" }, "admin", false);
     if ("error" in c) return NextResponse.json({ error: c.error }, { status: 400 });
     const other = await doctorByEmail(admin, c.email);
     if (other && other !== id) return NextResponse.json({ error: "Another doctor already uses this email." }, { status: 409 });
@@ -109,7 +111,7 @@ export async function PATCH(request: Request) {
   }
   if (action === "new_link") {
     if (!d.contact_email) return NextResponse.json({ error: "Add their email first." }, { status: 400 });
-    const r = await sendDoctorSetupLink(admin, id, d.name as string, d.contact_email as string);
+    const r = await sendDoctorSetupLink(admin, id, d.name as string, d.contact_email as string, d.contact_role === NURSE_ROLE);
     if (!r.link) return NextResponse.json({ error: "Could not make a link. Please try again." }, { status: 503 });
     return NextResponse.json({ ok: true, emailed: r.emailed, link: r.link });
   }

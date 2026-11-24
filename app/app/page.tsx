@@ -421,7 +421,7 @@ export default function AppPage() {
     // A Glufloat doctor's patient is offered Premium only (not one a creator
     // brought): it is the plan that keeps their doctor in the chat.
     const TIER_COPY: { tier: "basic" | "plus" | "dietitian"; blurb: string }[] = premiumOnly && doctor
-      ? [{ tier: "dietitian", blurb: `Everything in Glufloat, and chat with ${doctor.name}` }]
+      ? [{ tier: "dietitian", blurb: doctor.nurse ? "Everything in Plus, with a dietitian you can chat with." : `Everything in Glufloat, and chat with ${doctor.name}` }]
       : [
           { tier: "basic", blurb: "Access Glufloat and get general meal guidance, without calorie-based personalisation." },
           { tier: "plus", blurb: "Meals personalised to your daily calorie needs, goals, and health profile." },
@@ -540,7 +540,7 @@ export default function AppPage() {
             </h1>
             <p className="mt-2 text-sm leading-relaxed text-ink-soft">
               {premiumOnly && doctor
-                ? `To get meals in line with your daily calorie target and chat with ${doctor.name}, subscribe to Glufloat Premium. Cancel any time.`
+                ? `To get meals in line with your daily calorie target and chat with ${doctor.nurse ? "our dietitian" : doctor.name}, subscribe to Glufloat Premium. Cancel any time.`
                 : "Choose a plan to keep Glufloat. Cancel any time."}
             </p>
             {planPicker(currentTier, access.lapsed ? "Renew" : "What you had in your free trial")}
@@ -569,7 +569,7 @@ export default function AppPage() {
             ? hospital.kind === "dietitian"
               ? "Chat with your dietitian"
               : "Chat with your care team"
-            : doctor
+            : doctor && !doctor.nurse
               ? "Chat with your doctor"
               : t.label,
           dot: chatUnread && activeTab !== "dietitian",
@@ -789,12 +789,21 @@ export default function AppPage() {
             <p className="mt-2 flex items-start gap-2 rounded-2xl bg-brand/[0.06] px-3.5 py-2.5 text-sm text-ink ring-1 ring-inset ring-brand/10">
               <Stethoscope className="mt-0.5 h-4 w-4 shrink-0 text-brand" strokeWidth={2.2} />
               <span>
-                <span className="font-semibold">{doctor.name}</span> looks after your diabetes on Glufloat. Your doctor can see
-                your meals and sugar tests.
+                {doctor.nurse ? (
+                  <>
+                    <span className="font-semibold">{doctor.name}</span> helps you with your diabetes on Glufloat. Your nurse can see your
+                    name, the meals you save, and your sugar tests before and after meals. Nothing else.
+                  </>
+                ) : (
+                  <>
+                    <span className="font-semibold">{doctor.name}</span> looks after your diabetes on Glufloat. Your doctor can see
+                    your meals and sugar tests.
+                  </>
+                )}
                 {doctorNeedsPremium && (
                   <>
                     {" "}
-                    To get meals in line with your daily calorie target and chat with your doctor, subscribe to Glufloat Premium.{" "}
+                    To get meals in line with your daily calorie target and chat with {doctor.nurse ? "our dietitian" : "your doctor"}, subscribe to Glufloat Premium.{" "}
                     <a href={withEmail(PAYSTACK_URLS.dietitian)} className="font-semibold text-brand underline hover:text-brand-deep">
                       Subscribe to Premium ({nairaLabel(TIER_AMOUNTS.dietitian)} a month)
                     </a>

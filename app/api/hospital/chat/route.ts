@@ -1,6 +1,6 @@
 import { NextResponse, after } from "next/server";
 import { cleanBody, isWaiting } from "@/lib/chat";
-import { hospitalLive } from "@/lib/hospitalPlans";
+import { hospitalLive, isNursePractice } from "@/lib/hospitalPlans";
 import { staffContext, type StaffContext } from "@/lib/hospitalServer";
 import { canAnswer, chatReady, senderRoleFor, findThread, pushTo, saveMessage, threadMessages, times } from "@/lib/chatServer";
 
@@ -16,7 +16,8 @@ const NO_STORE = { "Cache-Control": "no-store" };
  * practice. Only while the patient is using one of the hospital's places.
  */
 async function patientFor(ctx: StaffContext, id: string) {
-  if (!hospitalLive(ctx.hospital)) return null;
+  // A nurse partner has no chat with patients (founder, 2026-11-24).
+  if (!hospitalLive(ctx.hospital) || isNursePractice(ctx.hospital)) return null;
   const { data } = await ctx.admin
     .from("hospital_patients")
     .select("id,user_id,status,name")

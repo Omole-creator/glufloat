@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
-import { acceptsPatients, isDoctorPractice, orgWords, PRACTICE_TRIAL_DAYS, waitingForFirstPatient } from "@/lib/hospitalPlans";
+import { acceptsPatients, isDoctorPractice, isNursePractice, orgWords, PRACTICE_TRIAL_DAYS, waitingForFirstPatient } from "@/lib/hospitalPlans";
 import { isPatientPays, PATIENT_FREE_DAYS } from "@/lib/patientPays";
 import { ownPaidMsLeft, seatsUsed, sessionUser, type HospitalRow, type PatientRow } from "@/lib/hospitalServer";
 import { normalizePhone } from "@/lib/phone";
@@ -40,6 +40,13 @@ export async function POST(request: Request) {
   // the first patient who joins (below), not when she signed up.
   if (!acceptsPatients(h))
     return NextResponse.json({ error: `${w.Yours}'s Glufloat is not open right now. Please speak to ${w.yours}.` }, { status: 410 });
+
+  // A nurse partner sees a patient's name, meals and before/after sugar tests
+  // only with the patient's own tick (founder, 2026-11-24). It is kept on the
+  // patient row's `confirmed`, set below only from this tick.
+  const nurse = isNursePractice(h);
+  if (nurse && body.consent !== true)
+    return NextResponse.json({ error: `Please tick the box to agree, so ${h.name} can see your meals and sugar tests.` }, { status: 400 });
 
   let invite: PatientRow | null = null;
   if (token) {
@@ -105,8 +112,10 @@ export async function POST(request: Request) {
     .eq("user_id", uid)
     .neq("status", "removed")
     .maybeSingle();
-  if (mine && (mine as PatientRow).status !== "invited")
+  if (mine && (mine as PatientRow).status !== "invited") {
+    if (nurse && !(mine as PatientRow).confirmed) await admin.from("hospital_patients").update({ confirmed: true }).eq("id", (mine as PatientRow).id);
     return NextResponse.json({ ok: true, status: (mine as PatientRow).status, login: createdLogin, doctor: isDoctorPractice(h) });
+  }
 
   // Which row is theirs: the invite, a row with their phone, or a new one.
   let row: PatientRow | null = invite ?? (mine as PatientRow | null);
@@ -134,6 +143,7 @@ export async function POST(request: Request) {
     status,
     joined_at: now,
     carried_ms: carried > 0 ? carried : null,
+    ...(nurse ? { confirmed: true } : {}),
   };
 
   let rowId: string;

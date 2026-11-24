@@ -48,11 +48,15 @@ export default async function DoctorsAdminPage() {
     .map((a) => ({ id: a.id, name: a.name, role: a.role, off: a.status !== "active" }));
 
   return (
-    <AdminShell title="Doctors" subtitle="Glufloat for doctors" icon={<Stethoscope className="h-5 w-5" />}>
+    <AdminShell title="Doctors" subtitle="Glufloat for doctors and nurses" icon={<Stethoscope className="h-5 w-5" />}>
       <div className="mt-6">
         <AdminHero
           items={[
-            { label: "Doctors", value: String(on.length), sub: `${on.filter((d) => d.setUp).length} finished setting up` },
+            {
+              label: "Doctors and nurses",
+              value: String(on.length),
+              sub: `${on.filter((d) => d.contact_role === "Nurse").length} nurses · ${on.filter((d) => d.setUp).length} finished setting up`,
+            },
             { label: "Their patients", value: String(on.reduce((n, d) => n + d.patients, 0)), sub: "joined so far" },
             { label: "On Premium", value: String(on.reduce((n, d) => n + d.paying, 0)), sub: "paying now" },
             {
@@ -65,14 +69,14 @@ export default async function DoctorsAdminPage() {
       </div>
 
       {/* Used now and then: folded once there is anybody on the list. */}
-      <FoldCard className="mt-6" title="Add a doctor" sub="No doctor acquisition rep needed. They get an email to set their password." open={doctors.length === 0}>
+      <FoldCard className="mt-6" title="Add a doctor or nurse" sub="Pick the type. They get an email to set their password." open={doctors.length === 0}>
         <AddDoctorForm
           agents={team.agents.filter((a) => a.status === "active").map((a) => ({ id: a.id, name: a.name, role: a.role }))}
         />
       </FoldCard>
 
       <div className="mt-6">
-        <AdminCard title="All doctors" sub="Check each MDCN number. Switch off anyone whose number does not check out." flush>
+        <AdminCard title="All doctors and nurses" sub="Check each MDCN or NMCN number. Switch off anyone whose number does not check out." flush>
           {doctors.length === 0 ? (
             <p className="px-6 pb-6 text-sm text-ink-soft">No doctors yet. Add one above, or they sign up with a doctor acquisition rep&apos;s link.</p>
           ) : (
@@ -80,8 +84,8 @@ export default async function DoctorsAdminPage() {
               <table className="w-full min-w-[1100px] text-sm">
                 <thead>
                   <tr className="border-y border-[#e3e9f1] bg-[#f7f9fc] text-left text-[11px] font-bold uppercase tracking-[0.06em] text-ink/50">
-                    <th className="px-5 py-2.5">Doctor</th>
-                    <th className="px-3 py-2.5">MDCN number</th>
+                    <th className="px-5 py-2.5">Doctor or nurse</th>
+                    <th className="px-3 py-2.5">MDCN / NMCN</th>
                     <th className="px-3 py-2.5">Brought by</th>
                     <th className="px-3 py-2.5 text-right">Patients</th>
                     <th className="px-3 py-2.5 text-right">On Premium</th>
@@ -97,7 +101,12 @@ export default async function DoctorsAdminPage() {
                     return (
                       <tr key={d.id} className={`border-b border-[#eef2f7] align-top ${d.status === "declined" ? "opacity-60" : ""}`}>
                         <td className="px-5 py-3">
-                          <p className="font-semibold text-ink">{d.name}</p>
+                          <p className="font-semibold text-ink">
+                            {d.name}
+                            {d.contact_role === "Nurse" && (
+                              <span className="ml-2 rounded-full bg-leaf/10 px-2 py-0.5 text-[11px] font-bold text-leaf-deep">Nurse</span>
+                            )}
+                          </p>
                           <p className="text-xs text-ink-soft">
                             {d.contact_email}
                             {d.contact_phone && (

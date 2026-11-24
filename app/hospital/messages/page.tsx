@@ -1,10 +1,11 @@
+import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ChevronRight, MessageCircle } from "lucide-react";
 import HospitalShell from "@/components/hospital/HospitalShell";
 import NotStaff from "@/components/hospital/NotStaff";
 import { requireStaffPage } from "@/components/hospital/requireStaff";
-import { hospitalLive, isPractice } from "@/lib/hospitalPlans";
+import { hospitalLive, isPractice, isNursePractice } from "@/lib/hospitalPlans";
 import { clockLabel, dayLabel, waitLabel, waitingSince, watDay } from "@/lib/chat";
 import { THREAD_COLS, chatReady, type ThreadRow } from "@/lib/chatServer";
 
@@ -20,6 +21,8 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
   const sp = await searchParams;
   const ctx = await requireStaffPage(sp.h, "/hospital/messages");
   if (!ctx) return <NotStaff />;
+  // A nurse partner: no chat, and patients join only through her QR code.
+  if (isNursePractice(ctx.hospital)) redirect(ctx.all.length > 1 ? `/hospital?h=${ctx.hospital.id}` : "/hospital");
   const hid = ctx.all.length > 1 ? ctx.hospital.id : null;
   const ready = await chatReady(ctx.admin);
 

@@ -115,6 +115,34 @@ export function secondDegreeFee(opts: { amountKobo: number; yearly: boolean; age
   return SECOND_DEGREE_FEE_KOBO * (opts.yearly ? 12 : 1);
 }
 
+/**
+ * A nurse partner (founder, 2026-11-24): N1,000 a month to the nurse and N450
+ * a month to the person who brought her (the advisor, or a rep), from each of
+ * her patients' payments for Glufloat Premium, for the patient's first 12
+ * months (counted from their first payment with her). A yearly payment buys
+ * 12 months, so it earns 12 times each. Her patients are offered Premium
+ * only; a Basic or Plus payment earns nothing. No percentage, no review.
+ */
+export const NURSE_FEE_KOBO = 100_000;
+export const NURSE_BRINGER_FEE_KOBO = 45_000;
+
+export function nurseFees(opts: {
+  amountKobo: number;
+  yearly: boolean;
+  hasBringer: boolean;
+  bringerActive: boolean;
+  paidAt: Date;
+  firstPaidAt: Date | null;
+}): { nurse: number; bringer: number } {
+  if (!(opts.amountKobo > 0) || tierForAmount(opts.amountKobo) !== "dietitian" || !agentWindowOpen(opts.firstPaidAt, opts.paidAt))
+    return { nurse: 0, bringer: 0 };
+  const months = opts.yearly ? 12 : 1;
+  return {
+    nurse: NURSE_FEE_KOBO * months,
+    bringer: opts.hasBringer && opts.bringerActive ? NURSE_BRINGER_FEE_KOBO * months : 0,
+  };
+}
+
 /** The colleague bonus is paid only on a Glufloat Premium payment (monthly, yearly or with a creator's code). */
 export function earnsColleagueBonus(amountKobo: number): boolean {
   return tierForAmount(amountKobo) === "dietitian";

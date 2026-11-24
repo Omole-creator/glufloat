@@ -4,8 +4,8 @@ import NotStaff from "@/components/hospital/NotStaff";
 import { requireStaffPage } from "@/components/hospital/requireStaff";
 import BankDetailsForm from "@/components/BankDetailsForm";
 import InviteColleagueCard from "@/components/hospital/InviteColleagueCard";
-import { isDoctorPractice } from "@/lib/hospitalPlans";
-import { COLLEAGUE_BONUS_KOBO, maskAccount, nairaFromKobo, REVIEW_FEE_KOBO } from "@/lib/careFees";
+import { isDoctorPractice, isNursePractice } from "@/lib/hospitalPlans";
+import { COLLEAGUE_BONUS_KOBO, maskAccount, nairaFromKobo, NURSE_FEE_KOBO, REVIEW_FEE_KOBO } from "@/lib/careFees";
 import { doctorsReady, earningTotals, type EarningRow, type PayoutRow } from "@/lib/careFeesServer";
 import { listBanks } from "@/lib/paystackBanks";
 import { SITE_URL } from "@/lib/site";
@@ -65,6 +65,8 @@ export default async function EarningsPage({ searchParams }: { searchParams: Pro
   const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
   const thisMonth = earnings.filter((e) => e.earned_at >= monthStart).reduce((n, e) => n + e.amount, 0);
   const perReview = nairaFromKobo(REVIEW_FEE_KOBO);
+  // A nurse partner (founder, 2026-11-24): paid per Premium month, not per review, and no colleague invites.
+  const nurse = isNursePractice(h);
   const status = new Map(payouts.map((p) => [p.id, p.status]));
 
   const tiles = [
@@ -74,7 +76,7 @@ export default async function EarningsPage({ searchParams }: { searchParams: Pro
   ];
 
   return (
-    <HospitalShell ctx={ctx} title="Earnings" subtitle="Your care fees for looking after your patients on Glufloat">
+    <HospitalShell ctx={ctx} title="Earnings" subtitle={nurse ? "What you earn from your patients on Glufloat Premium" : "Your care fees for looking after your patients on Glufloat"}>
       <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
         {tiles.map((t) => (
           <div key={t.label} className="min-w-0 rounded-2xl border border-[#e3e9f1] bg-white p-4 sm:p-5">
@@ -85,10 +87,17 @@ export default async function EarningsPage({ searchParams }: { searchParams: Pro
         ))}
       </div>
 
-      <p className="mt-4 rounded-2xl bg-brand/[0.06] px-4 py-3 text-sm text-ink ring-1 ring-inset ring-brand/10">
-        You earn a care fee of <span className="font-semibold">{perReview}</span> each month for each patient you mark as reviewed,
-        while they are on a paid Glufloat plan. It is added as soon as you mark them, and paid to your bank every week.
-      </p>
+      {nurse ? (
+        <p className="mt-4 rounded-2xl bg-brand/[0.06] px-4 py-3 text-sm text-ink ring-1 ring-inset ring-brand/10">
+          You earn <span className="font-semibold">{nairaFromKobo(NURSE_FEE_KOBO)}</span> each month for each patient who pays for
+          Glufloat Premium, for their first 12 months. It is added when they pay, and paid to your bank every week.
+        </p>
+      ) : (
+        <p className="mt-4 rounded-2xl bg-brand/[0.06] px-4 py-3 text-sm text-ink ring-1 ring-inset ring-brand/10">
+          You earn a care fee of <span className="font-semibold">{perReview}</span> each month for each patient you mark as reviewed,
+          while they are on a paid Glufloat plan. It is added as soon as you mark them, and paid to your bank every week.
+        </p>
+      )}
 
       <div className="mt-6 grid gap-4 lg:grid-cols-2">
         <BankDetailsForm
@@ -97,9 +106,10 @@ export default async function EarningsPage({ searchParams }: { searchParams: Pro
           extra={{ hid: ctx.all.length > 1 ? h.id : null }}
           saved={{ bankName: h.bank_name ?? null, accountShown: h.account_number ? maskAccount(h.account_number) : null, accountName: h.account_name ?? null }}
         />
-        <InviteColleagueCard link={`${SITE_URL}/d/${h.code}`} />
+        {!nurse && <InviteColleagueCard link={`${SITE_URL}/d/${h.code}`} />}
       </div>
 
+      {!nurse && (
       <section className="mt-6 rounded-2xl border border-[#e3e9f1] bg-white">
         <h2 className="border-b border-[#eef2f7] px-5 py-4 font-display text-lg font-bold text-ink">Colleagues you invited</h2>
         <div className="grid grid-cols-2 gap-px border-b border-[#eef2f7] bg-[#eef2f7]">
@@ -133,12 +143,15 @@ export default async function EarningsPage({ searchParams }: { searchParams: Pro
           </ul>
         )}
       </section>
+      )}
 
       <section className="mt-6 rounded-2xl border border-[#e3e9f1] bg-white">
-        <h2 className="border-b border-[#eef2f7] px-5 py-4 font-display text-lg font-bold text-ink">Your care fees</h2>
+        <h2 className="border-b border-[#eef2f7] px-5 py-4 font-display text-lg font-bold text-ink">{nurse ? "Your earnings" : "Your care fees"}</h2>
         {earnings.length === 0 ? (
           <p className="px-5 py-8 text-center text-sm text-ink-soft">
-            Nothing yet. Open a patient and press &ldquo;Mark as reviewed&rdquo;. Your care fees show here.
+            {nurse
+              ? "Nothing yet. When a patient of yours pays for Glufloat Premium, it shows here."
+              : <>Nothing yet. Open a patient and press &ldquo;Mark as reviewed&rdquo;. Your care fees show here.</>}
           </p>
         ) : (
           <ul className="divide-y divide-[#eef2f7]">

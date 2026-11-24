@@ -13,6 +13,7 @@ import { TRIAL_DAYS } from "@/lib/trial";
 import {
   COLLEAGUE_BONUS_KOBO,
   REVIEW_FEE_KOBO,
+  nurseFees,
   earnsColleagueBonus,
   reviewReference,
   secondDegreeFee,
@@ -20,12 +21,14 @@ import {
   splitRepPatientPayment,
 } from "@/lib/careFees";
 import { isYearlyAmount } from "@/lib/pricing";
+import { isNursePractice } from "@/lib/hospitalPlans";
 import { repPatientLink } from "@/lib/repPatients";
 import { creatorLinkFor } from "@/lib/creatorsServer";
 
 type DoctorPractice = {
   id: string;
   kind: string | null;
+  contact_role?: string | null;
   status: string;
   agent_id: string | null;
   invited_by: string | null;
@@ -37,7 +40,7 @@ type AgentRow = { id: string; status: string; manager_id: string | null; role: s
 export async function patientsDoctor(admin: SupabaseClient, uid: string): Promise<{ practice: DoctorPractice; joinedAt: string | null } | null> {
   const { data, error } = await admin
     .from("hospital_patients")
-    .select("id,joined_at,hospitals(id,kind,status,agent_id,invited_by)")
+    .select("id,joined_at,hospitals(id,kind,contact_role,status,agent_id,invited_by)")
     .eq("user_id", uid)
     .eq("status", "active")
     .order("joined_at", { ascending: false });
@@ -84,6 +87,43 @@ export async function earnCareFees(
     if (link.joinedAt) firstQuery = firstQuery.gte("paid_at", link.joinedAt);
     const { data: first } = await firstQuery.order("paid_at", { ascending: true }).limit(1);
     const firstPaidAt = first && first.length ? new Date(first[0].paid_at as string) : null;
+
+    // A nurse partner: fixed monthly fees, not percentages (founder,
+    // 2026-11-24). One person, one partner: a patient a rep's patient link or
+    // a creator already brought earns her and her bringer nothing.
+    if (isNursePractice(practice)) {
+      if (repLink || creatorLink) return;
+      let bringer: { id: string; status: string; role: string } | null = null;
+      if (practice.agent_id) {
+        const { data: a } = await admin.from("field_agents").select("id,status,role").eq("id", practice.agent_id).maybeSingle();
+        bringer = (a as { id: string; status: string; role: string } | null) ?? null;
+      }
+      const fees = nurseFees({
+        amountKobo: p.amount,
+        yearly: isYearlyAmount(p.amount),
+        hasBringer: !!bringer,
+        bringerActive: bringer?.status === "active",
+        paidAt,
+        firstPaidAt,
+      });
+      const nurseRows = [
+        ...(fees.nurse > 0 && practice.status === "active"
+          ? [{ reference: p.reference, kind: "care", hospital_id: practice.id, agent_id: null, amount: fees.nurse }]
+          : []),
+        ...(fees.bringer > 0 && bringer
+          ? [{ reference: p.reference, kind: bringer.role === "advisor" ? "advisor" : "agent", hospital_id: null, agent_id: bringer.id, amount: fees.bringer }]
+          : []),
+      ].map((r) => ({
+        ...r,
+        source_hospital_id: practice.id,
+        patient_user_id: p.uid,
+        payment_amount: p.amount,
+        rate: null,
+        earned_at: paidAt.toISOString(),
+      }));
+      if (nurseRows.length) await admin.from("clinician_earnings").upsert(nurseRows, { onConflict: "reference,kind", ignoreDuplicates: true });
+      return;
+    }
 
     let agent: AgentRow | null = null;
     let advisor: AgentRow | null = null;

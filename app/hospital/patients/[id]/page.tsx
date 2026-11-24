@@ -4,7 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import HospitalShell from "@/components/hospital/HospitalShell";
 import NotStaff from "@/components/hospital/NotStaff";
 import { requireStaffPage } from "@/components/hospital/requireStaff";
-import { hospitalLive, isDoctorPractice, isPractice } from "@/lib/hospitalPlans";
+import { hospitalLive, isDoctorPractice, isNursePractice, isPractice } from "@/lib/hospitalPlans";
 import { practiceRuleFoodIds } from "@/lib/nextMeal";
 import { getFood } from "@/lib/search";
 import { cleanFoodName } from "@/lib/foodName";
@@ -26,6 +26,7 @@ import {
   type PatternMeal,
 } from "@/lib/safetyFlag";
 import SugarFlags from "./SugarFlags";
+import NurseRecord, { nurseMeals } from "./NurseRecord";
 import PatientDetail from "./PatientDetail";
 import PracticeRulesEditor from "./PracticeRulesEditor";
 import CareNoteEditor from "./CareNoteEditor";
@@ -36,6 +37,9 @@ import { canAnswer, chatReady } from "@/lib/chatServer";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Patient", robots: { index: false, follow: false } };
+
+/** How far back a nurse partner sees a patient's meals. */
+const NURSE_DAYS = 30;
 
 export default async function PatientPage({
   params,
@@ -51,7 +55,7 @@ export default async function PatientPage({
 
   const { data: row } = await ctx.admin
     .from("hospital_patients")
-    .select("id,user_id,status,name,phone,joined_at")
+    .select("id,user_id,status,name,phone,joined_at,confirmed")
     .eq("id", id)
     .eq("hospital_id", ctx.hospital.id)
     .maybeSingle();
@@ -88,6 +92,27 @@ export default async function PatientPage({
         <p className="mt-6 rounded-2xl border border-[#e3e9f1] bg-white p-6 text-sm text-ink-soft">
           {first} has not paid for Glufloat yet. You can see their meals and sugar tests once they pay.
         </p>
+      </HospitalShell>
+    );
+  }
+  // A nurse partner (founder, 2026-11-24): the patient's name, the meals they
+  // logged and their before- and after-meal sugar tests, nothing else, and
+  // only once the patient ticked their own agreement when joining.
+  if (isNursePractice(ctx.hospital)) {
+    const name = row.name as string;
+    const agreed = row.confirmed === true;
+    return (
+      <HospitalShell ctx={ctx} title={name}>
+        <Link href={back} className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:underline">
+          <ArrowLeft className="h-4 w-4" /> All patients
+        </Link>
+        {agreed ? (
+          <NurseRecord firstName={name.split(/\s+/)[0]} days={await nurseMeals(ctx.admin, uid, NURSE_DAYS)} span={NURSE_DAYS} />
+        ) : (
+          <p className="mt-6 rounded-2xl border border-[#e3e9f1] bg-white p-6 text-sm text-ink-soft">
+            {name.split(/\s+/)[0]} has not agreed to share their meals and sugar tests with you. Ask them to open your link again and tick the box.
+          </p>
+        )}
       </HospitalShell>
     );
   }

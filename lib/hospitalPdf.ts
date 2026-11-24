@@ -529,12 +529,48 @@ export async function buildPharmacyPosterPdf(
   p: { name: string; branch: string | null; code: string },
   fromNaira: number,
 ): Promise<jsPDF> {
+  return posterPdf({
+    where: p.branch ? `${p.name}, ${p.branch}` : p.name,
+    link: `${SITE_URL}/${p.code.toLowerCase()}`,
+    offer: [
+      { t: "Free for 7 days. You do not need a card.", bold: true },
+      { t: `After that, plans start from N${fromNaira.toLocaleString("en-NG")} a month.`, bold: false },
+      { t: `You get 20% off your first 3 months because you found Glufloat at ${p.name}.`, bold: true },
+    ],
+    signUp: "Sign up with your name, email and a password.",
+  });
+}
+
+/**
+ * A nurse partner's flyer (founder, 2026-11-24): the pharmacy poster's words,
+ * with her name, her own QR code (/j/<code>, where her patients join her and
+ * agree to what she sees), and Premium's one price, since her patients are
+ * offered Premium only. No 20% off, and nothing about how she is paid.
+ */
+export async function buildNurseFlyerPdf(n: { name: string; code: string }, premiumNaira: number): Promise<jsPDF> {
+  return posterPdf({
+    where: n.name,
+    link: `${SITE_URL}/j/${n.code}`,
+    offer: [
+      { t: "Free for 7 days. You do not need a card.", bold: true },
+      { t: `After that, it is N${premiumNaira.toLocaleString("en-NG")} a month.`, bold: false },
+    ],
+    signUp: "Sign up with your name, phone number and a password.",
+  });
+}
+
+async function posterPdf(o: {
+  where: string;
+  link: string;
+  offer: { t: string; bold: boolean }[];
+  signUp: string;
+}): Promise<jsPDF> {
   const pdf = new jsPDF({ compress: true, format: "a4" });
   const W = 210;
   const H = 297;
   const M = 16;
-  const where = p.branch ? `${p.name}, ${p.branch}` : p.name;
-  const link = `${SITE_URL}/${p.code.toLowerCase()}`;
+  const where = o.where;
+  const link = o.link;
   const typed = link.replace(/^https?:\/\/(www\.)?/, "");
   const logo = await logoDataUrl();
   const qr = await QRCode.toDataURL(link, {
@@ -603,11 +639,7 @@ export async function buildPharmacyPosterPdf(
 
   // The offer, in a green box.
   y += 3;
-  const offer = [
-    { t: "Free for 7 days. You do not need a card.", bold: true },
-    { t: `After that, plans start from N${fromNaira.toLocaleString("en-NG")} a month.`, bold: false },
-    { t: `You get 20% off your first 3 months because you found Glufloat at ${p.name}.`, bold: true },
-  ];
+  const offer = o.offer;
   pdf.setFontSize(12.5);
   const offerLines = offer.map((o) => ({ ...o, lines: pdf.splitTextToSize(o.t, W - 2 * M - 14) as string[] }));
   const boxH = offerLines.reduce((n, o) => n + o.lines.length * 5.6 + 2, 0) + 10;
@@ -639,7 +671,7 @@ export async function buildPharmacyPosterPdf(
   pdf.text("How to start", M, y + 4);
   const steps = [
     "Point your phone camera at this code.",
-    "Sign up with your name, email and a password.",
+    o.signUp,
     "Glufloat picks your next meal for you.",
   ];
   let sy = y + 14;

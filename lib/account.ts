@@ -70,7 +70,7 @@ export type HospitalCover = {
  * who their Chat tab reaches (their doctor, once they are on Premium) and
  * shows their doctor's notes above the blue card.
  */
-export type DoctorLink = { name: string; notes: CareNote[] };
+export type DoctorLink = { name: string; notes: CareNote[]; /** A nurse partner: she has no chat and sees less. */ nurse?: boolean };
 
 type HospitalMe = {
   patient: null | {
@@ -79,6 +79,7 @@ type HospitalMe = {
     status: "active" | "waiting";
     chats: HospitalChat[];
     kind?: "hospital" | "dietitian" | "doctor";
+    nurse?: boolean;
     rules?: { note: string | null; avoid: string[]; prefer: string[] } | null;
     paidUntil?: string | null;
     notes?: CareNote[];
@@ -190,7 +191,7 @@ export async function getAccess(): Promise<{
   // every answer below and grants nothing.
   const doctor: DoctorLink | undefined =
     hosp.patient && hosp.patient.kind === "doctor" && hosp.patient.status === "active"
-      ? { name: hosp.patient.hospitalName, notes: Array.isArray(hosp.patient.notes) ? hosp.patient.notes : [] }
+      ? { name: hosp.patient.hospitalName, notes: Array.isArray(hosp.patient.notes) ? hosp.patient.notes : [], nurse: hosp.patient.nurse === true }
       : undefined;
 
   // A hospital paying for this person wins over everything: they get Premium

@@ -80,13 +80,18 @@ Need help? Call or WhatsApp us on 0813 209 7317.`;
  * hospital admin gets. Framed as care: the doctor looks after patients
  * between visits.
  */
-export function doctorSetupEmail(firstName: string, link: string, inviteDays: number) {
+export function doctorSetupEmail(firstName: string, link: string, inviteDays: number, nurse = false) {
   const subject = "Finish setting up Glufloat for your patients";
+  // A nurse partner sees only names, meals and before/after sugar tests.
+  const sees = nurse
+    ? "Your patients will know what to eat for their diabetes, and, once they agree, you will see the meals they save and their sugar tests before and after meals."
+    : "Your patients will know what to eat for their diabetes, and you will see their meals, sugar tests and reports between visits.";
+  const product = nurse ? "Glufloat for nurses" : "Glufloat for doctors";
   const html = `<div style="font-family:Arial,sans-serif;color:#0c2a47;max-width:560px">
-<div style="background:#1b5faa;color:#fff;padding:18px 22px;border-radius:14px 14px 0 0;font-size:20px;font-weight:bold">Glufloat for doctors</div>
+<div style="background:#1b5faa;color:#fff;padding:18px 22px;border-radius:14px 14px 0 0;font-size:20px;font-weight:bold">${product}</div>
 <div style="border:1px solid #e3e9f1;border-top:0;border-radius:0 0 14px 14px;padding:22px">
 <p style="margin:0 0 12px;font-size:16px">Hello ${esc(firstName)},</p>
-<p style="margin:0 0 12px;font-size:16px;line-height:1.5">Thank you for joining Glufloat. Your patients will know what to eat for their diabetes, and you will see their meals, sugar tests and reports between visits.</p>
+<p style="margin:0 0 12px;font-size:16px;line-height:1.5">Thank you for joining Glufloat. ${sees}</p>
 <p style="margin:0 0 18px;font-size:16px;line-height:1.5">Tap the button to choose your password and open your dashboard.</p>
 <p style="margin:0 0 18px"><a href="${esc(link)}" style="background:#3e9b4f;color:#fff;padding:13px 22px;border-radius:999px;text-decoration:none;font-weight:bold;font-size:16px">Finish setting up</a></p>
 <p style="margin:0 0 8px;font-size:14px;color:#46617a;line-height:1.5">This link works for ${inviteDays} days. Do not share it. It opens your patients' records.</p>
@@ -94,7 +99,7 @@ export function doctorSetupEmail(firstName: string, link: string, inviteDays: nu
 </div></div>`;
   const text = `Hello ${firstName},
 
-Thank you for joining Glufloat. Your patients will know what to eat for their diabetes, and you will see their meals, sugar tests and reports between visits.
+Thank you for joining Glufloat. ${sees}
 
 Open this link to choose your password and open your dashboard:
 ${link}

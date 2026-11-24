@@ -22,6 +22,7 @@ export default function JoinForm({
   tokenWasBad,
   practice = false,
   doctor = false,
+  nurse = false,
 }: {
   code: string;
   token: string | null;
@@ -32,6 +33,11 @@ export default function JoinForm({
   practice?: boolean;
   /** A Glufloat doctor: the patient is linked to them and starts their own 7 free days. */
   doctor?: boolean;
+  /**
+   * A nurse partner (founder, 2026-11-24): the patient must agree, with their
+   * own tick, to what she will see. Nothing else is shared with her.
+   */
+  nurse?: boolean;
 }) {
   const router = useRouter();
   const [me, setMe] = useState<{ label: string } | null | undefined>(undefined);
@@ -43,6 +49,7 @@ export default function JoinForm({
   const [err, setErr] = useState(tokenWasBad ? "This invite has already been used, or it is not right. You can still join below." : "");
   const [needLogin, setNeedLogin] = useState(false);
   const [done, setDone] = useState<"active" | "waiting" | null>(null);
+  const [agreed, setAgreed] = useState(false);
 
   useEffect(() => {
     void createClient()
@@ -57,13 +64,14 @@ export default function JoinForm({
   const here = `/j/${code}${token ? `?t=${token}` : ""}`;
 
   const join = async (useSession: boolean) => {
+    if (nurse && !agreed) return setErr(`Please tick the box to agree, so ${hospitalName} can see your meals and sugar tests.`);
     setBusy(true);
     setErr("");
     setNeedLogin(false);
     const res = await fetch("/api/hospital/join", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(useSession ? { code, token, useSession: true } : { code, token, name, phone, email, password }),
+      body: JSON.stringify({ ...(useSession ? { code, token, useSession: true } : { code, token, name, phone, email, password }), consent: nurse ? agreed : undefined }),
     });
     const j = await res.json().catch(() => ({}));
     if (!res.ok) {
@@ -96,7 +104,9 @@ export default function JoinForm({
             <p className="font-display text-lg font-bold text-ink">{done === "active" ? "You are in" : "You are on the waiting list"}</p>
             <p className="mt-1 text-sm text-ink">
               {done === "active"
-                ? doctor
+                ? nurse
+                  ? `${hospitalName} can now see your name, the meals you save, and your sugar tests before and after meals. Start your 7 free days to begin.`
+                  : doctor
                   ? `${hospitalName} can now see your meals and sugar tests on Glufloat. Start your 7 free days to begin.`
                   : practice
                   ? `${hospitalName} now looks after your diabetes on Glufloat. Your dietitian can see your meals and sugar tests. Your first 14 days are free.`
@@ -127,6 +137,7 @@ export default function JoinForm({
         <p className="rounded-2xl bg-mist/70 px-4 py-3.5 text-sm text-ink">
           You are signed in as <span className="font-semibold">{me.label}</span>.
         </p>
+        {nurse && <NurseConsent name={hospitalName} agreed={agreed} onChange={setAgreed} />}
         <FormError>{err}</FormError>
         <button
           onClick={() => join(true)}
@@ -172,7 +183,7 @@ export default function JoinForm({
         onChange={(e) => setPhone(e.target.value)}
         required
         autoComplete="tel"
-        hint={knownName ? `The number you gave ${doctor ? "your doctor" : practice ? "your dietitian" : "your hospital"}. You will log in with it.` : "You will log in with this number."}
+        hint={knownName ? `The number you gave ${nurse ? "your nurse" : doctor ? "your doctor" : practice ? "your dietitian" : "your hospital"}. You will log in with it.` : "You will log in with this number."}
       />
       <Field
         label="Email (only if you have one)"
@@ -196,6 +207,7 @@ export default function JoinForm({
         autoComplete="new-password"
         hint="6 or more letters or numbers. Write it down somewhere safe."
       />
+      {nurse && <NurseConsent name={hospitalName} agreed={agreed} onChange={setAgreed} />}
       <FormError>{err}</FormError>
       {needLogin && (
         <Link
@@ -217,5 +229,22 @@ export default function JoinForm({
         </Link>
       </p>
     </form>
+  );
+}
+
+/** The patient's own agreement to what a nurse partner may see. */
+function NurseConsent({ name, agreed, onChange }: { name: string; agreed: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-line bg-mist/60 px-4 py-3.5 text-sm text-ink">
+      <input
+        type="checkbox"
+        checked={agreed}
+        onChange={(e) => onChange(e.target.checked)}
+        className="mt-0.5 h-5 w-5 shrink-0 accent-[var(--green)]"
+      />
+      <span>
+        I agree that {name} can see my name, the meals I save, and my sugar tests before and after meals. Nothing else about my health is shown.
+      </span>
+    </label>
   );
 }

@@ -1,7 +1,7 @@
 import webpush from "web-push";
 import type { RequestOptions } from "web-push";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { hospitalLive } from "@/lib/hospitalPlans";
+import { hospitalLive, isNursePractice } from "@/lib/hospitalPlans";
 import type { HospitalRow, StaffRole } from "@/lib/hospitalServer";
 import type { ChatMessage, SenderRole, ThreadTimes } from "@/lib/chat";
 
@@ -83,7 +83,9 @@ export async function careTeam(admin: SupabaseClient, hospital: Pick<HospitalRow
 }
 
 /** May this staff member write in a hospital's chats? Doctors, dietitians, and a practice's own dietitian. */
-export function canAnswer(role: StaffRole, hospital: Pick<HospitalRow, "kind">): boolean {
+export function canAnswer(role: StaffRole, hospital: Pick<HospitalRow, "kind"> & { contact_role?: string | null }): boolean {
+  // A nurse partner has no chat with patients (founder, 2026-11-24).
+  if (isNursePractice(hospital)) return false;
   return hospital.kind === "dietitian" || hospital.kind === "doctor" || role === "doctor" || role === "dietitian";
 }
 
@@ -145,6 +147,9 @@ export async function patientTeam(admin: SupabaseClient, uid: string): Promise<P
     // A Glufloat doctor's patient chats with their doctor only once they are on
     // Premium (they pay for it themselves; the doctor answers).
     .filter((p) => p.hospitals && hospitalLive(p.hospitals) && (p.hospitals.kind !== "doctor" || premium))
+    // A nurse partner has no chat: her patients on Premium chat with their
+    // Glufloat dietitian, like any other member (founder, 2026-11-24).
+    .filter((p) => !isNursePractice(p.hospitals))
     // A hospital or dietitian that pays for them comes before their doctor.
     .sort((a, b) => {
       const doc = (p: Joined) => (p.hospitals?.kind === "doctor" ? 1 : 0);

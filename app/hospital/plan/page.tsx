@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import HospitalShell from "@/components/hospital/HospitalShell";
 import NotStaff from "@/components/hospital/NotStaff";
 import { requireStaffPage } from "@/components/hospital/requireStaff";
-import { hospitalLive, isDoctorPractice, isPractice, planName, practicePlanName, waitingForFirstPatient } from "@/lib/hospitalPlans";
+import { hospitalLive, isDoctorPractice, isPractice, planName, practicePlanName, waitingForFirstPatient, isNursePractice } from "@/lib/hospitalPlans";
 import QrCodeCard from "@/components/hospital/QrCodeCard";
 import InviteColleagueCard from "@/components/hospital/InviteColleagueCard";
 import DoctorFlyerButton from "@/components/hospital/DoctorFlyerButton";
@@ -34,6 +34,32 @@ export default async function PlanPage({ searchParams }: { searchParams: Promise
       </HospitalShell>
     );
   const h = ctx.hospital;
+
+  // A nurse partner: her QR code and her flyer. No colleague link (nurses do
+  // not invite doctors).
+  if (isNursePractice(h))
+    return (
+      <HospitalShell ctx={ctx} title="QR code" subtitle="Your patients scan it to join you on Glufloat.">
+        <div className="mt-6 grid gap-4 lg:grid-cols-2">
+          <QrCodeCard name={h.name} code={h.code} open={hospitalLive(h)} practice />
+          <section className="rounded-2xl border border-[#e3e9f1] bg-white p-5 sm:p-6">
+            <h2 className="font-display text-lg font-bold text-ink">Flyer for your patients</h2>
+            <p className="mt-2 text-sm text-ink-soft">
+              One page with your name and your QR code. Print it and give one to each patient with diabetes you care for, at the lab or at home.
+            </p>
+            <p className="mt-2 text-sm text-ink-soft">
+              When they join, they tick a box to agree that you can see their name, the meals they save, and their sugar tests before and after meals. That is all you see.
+            </p>
+            <DoctorFlyerButton
+              nurse
+              name={h.name}
+              code={h.code}
+              className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-leaf px-5 py-3 text-sm font-bold text-white hover:bg-leaf-deep disabled:opacity-50"
+            />
+          </section>
+        </div>
+      </HospitalShell>
+    );
 
   // Glufloat for doctors: nothing to pay. Their QR code for patients, and
   // their link for colleagues.

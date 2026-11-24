@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { AlertTriangle, Sparkles } from "lucide-react";
-import { hospitalLive, isDoctorPractice, isPractice, orgWords, planName, PRACTICE_TRIAL_DAYS, waitingForFirstPatient } from "@/lib/hospitalPlans";
+import { hospitalLive, isDoctorPractice, isNursePractice, isPractice, orgWords, planName, PRACTICE_TRIAL_DAYS, waitingForFirstPatient } from "@/lib/hospitalPlans";
 import { ROLE_LABEL, type StaffContext } from "@/lib/hospitalServer";
 import { isWaiting } from "@/lib/chat";
 import { HospitalLogOut, HospitalMobileNav, HospitalSidebarNav, HospitalSwitcher } from "./HospitalNav";
@@ -30,6 +30,7 @@ export default async function HospitalShell({
   // Glufloat for dietitians: same dashboard, her own words.
   const practice = isPractice(h);
   const doctor = isDoctorPractice(h);
+  const nurse = isNursePractice(h);
   const words = orgWords(h);
   const roleLabel = practice || doctor ? words.adminLabel : ROLE_LABEL[ctx.staff.role];
   // A dietitian with no patient yet: nothing has ended, her 14 days have not begun.
@@ -68,7 +69,7 @@ export default async function HospitalShell({
           <HospitalSwitcher options={options} current={h.id} />
         </div>
         <div className="-mx-1 mt-6 min-h-0 flex-1 overflow-y-auto px-1">
-          <HospitalSidebarNav role={ctx.staff.role} hid={hid} practice={practice} doctor={doctor} waiting={waiting} />
+          <HospitalSidebarNav role={ctx.staff.role} hid={hid} practice={practice} doctor={doctor} nurse={nurse} waiting={waiting} />
         </div>
         <div className="border-t border-white/10 pt-4">
           <p className="truncate px-1 text-sm font-semibold text-white">{ctx.staff.name}</p>
@@ -95,7 +96,7 @@ export default async function HospitalShell({
         </div>
       </header>
       {/* Phones: the nav is a bar fixed to the bottom (HospitalMobileNav). */}
-      <HospitalMobileNav role={ctx.staff.role} hid={hid} practice={practice} doctor={doctor} waiting={waiting} />
+      <HospitalMobileNav role={ctx.staff.role} hid={hid} practice={practice} doctor={doctor} nurse={nurse} waiting={waiting} />
 
       <main className="lg:pl-64">
         {/* pb-32 on phones so the bottom bar never covers the last thing. */}

@@ -64,7 +64,14 @@ export type RosterRow = {
  * paid Glufloat plan and no free trial running shows no record (meals, tests,
  * readings, HbA1c, flags) until they pay.
  */
-export async function hospitalRoster(admin: SupabaseClient, hospitalId: string, opts: { paidOnly?: boolean } = {}): Promise<RosterRow[]> {
+/**
+ * `nurse` (a nurse partner's list, founder 2026-11-24): she may see only a
+ * patient's name, the meals they logged, and their before- and after-meal
+ * sugar tests, and only once the patient agreed when joining (`confirmed`).
+ * So her list carries no phone, email, latest reading, HbA1c, flag or chat,
+ * and "sugar tests" counts only tests saved on a meal.
+ */
+export async function hospitalRoster(admin: SupabaseClient, hospitalId: string, opts: { paidOnly?: boolean; nurse?: boolean } = {}): Promise<RosterRow[]> {
   const { data } = await admin
     .from("hospital_patients")
     .select("*")
@@ -82,6 +89,7 @@ export async function hospitalRoster(admin: SupabaseClient, hospitalId: string, 
   };
   const meals = new Map<string, number>();
   const tests = new Map<string, number>();
+  const mealTests = new Map<string, number>();
   const latest = new Map<string, { mgdl: number; takenAt: string }>();
   const hba1c = new Map<string, { percent: number; testedOn: string }>();
   const emails = new Map<string, string | null>();
@@ -134,6 +142,7 @@ export async function hospitalRoster(admin: SupabaseClient, hospitalId: string, 
     for (const r of gr.rows) {
       bump(r.user_id, r.taken_at);
       if (r.taken_at >= since30) tests.set(r.user_id, (tests.get(r.user_id) ?? 0) + 1);
+      if (r.taken_at >= since30 && r.meal_check_id != null) mealTests.set(r.user_id, (mealTests.get(r.user_id) ?? 0) + 1);
       const cur = latest.get(r.user_id);
       if (!cur || cur.takenAt < r.taken_at) latest.set(r.user_id, { mgdl: Number(r.mgdl), takenAt: r.taken_at });
       const list = readings.get(r.user_id) ?? [];
@@ -187,25 +196,28 @@ export async function hospitalRoster(admin: SupabaseClient, hospitalId: string, 
     const uid = p.user_id;
     const accountEmail = uid ? emails.get(uid) ?? null : null;
     const plan = uid ? plans.get(uid) ?? null : null;
-    const hidden = !!opts.paidOnly && !(plan === "premium" || plan === "plus" || plan === "basic" || plan === "trial");
-    const flagged = !!uid && p.status === "active" && !hidden;
+    const hidden =
+      (!!opts.paidOnly && !(plan === "premium" || plan === "plus" || plan === "basic" || plan === "trial")) ||
+      (!!opts.nurse && !p.confirmed);
+    const nurse = !!opts.nurse;
+    const flagged = !!uid && p.status === "active" && !hidden && !nurse;
     const rs = uid && !hidden ? readings.get(uid) ?? [] : [];
     return {
       id: p.id,
       name: p.name,
-      phone: p.phone,
-      email: p.email ?? (accountEmail && !isPhoneLoginEmail(accountEmail) ? accountEmail : null),
+      phone: nurse ? "" : p.phone,
+      email: nurse ? null : p.email ?? (accountEmail && !isPhoneLoginEmail(accountEmail) ? accountEmail : null),
       status: p.status,
       userId: uid,
       inviteToken: p.invite_token,
       createdAt: p.created_at,
       joinedAt: p.joined_at,
-      phoneLogin: isPhoneLoginEmail(accountEmail),
+      phoneLogin: nurse ? false : isPhoneLoginEmail(accountEmail),
       lastActive: uid ? last.get(uid) ?? null : null,
       meals30: uid && !hidden ? meals.get(uid) ?? 0 : 0,
-      tests30: uid && !hidden ? tests.get(uid) ?? 0 : 0,
-      latestReading: uid && !hidden ? latest.get(uid) ?? null : null,
-      latestHba1c: uid && !hidden ? hba1c.get(uid) ?? null : null,
+      tests30: uid && !hidden ? (nurse ? mealTests : tests).get(uid) ?? 0 : 0,
+      latestReading: uid && !hidden && !nurse ? latest.get(uid) ?? null : null,
+      latestHba1c: uid && !hidden && !nurse ? hba1c.get(uid) ?? null : null,
       safety: flagged ? safetyEvents(rs, new Date(), p.safety_seen_at ?? null) : [],
       beforeFlag: flagged ? beforeMealFlag(rs, p.before_target_mgdl) : null,
       patterns: flagged ? mealPatternFlags(mealsBy.get(uid as string) ?? [], rs).map((f) => f.label) : [],

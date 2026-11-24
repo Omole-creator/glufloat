@@ -1,6 +1,6 @@
 import type { createAdminClient } from "@/lib/supabase/server";
 import { newCode, readableToken } from "@/lib/hospitalServer";
-import { DOCTOR_ACCESS_UNTIL, DOCTOR_SEATS } from "@/lib/hospitalPlans";
+import { DOCTOR_ACCESS_UNTIL, DOCTOR_SEATS, NURSE_ROLE } from "@/lib/hospitalPlans";
 import { isPhoneLoginEmail } from "@/lib/phoneLogin";
 import { normalizePhone } from "@/lib/phone";
 import { doctorSetupEmail, sendEmail } from "@/lib/notify";
@@ -16,7 +16,13 @@ type Admin = ReturnType<typeof createAdminClient>;
 
 export const DOCTOR_INVITE_DAYS = 14;
 
-export type DoctorInput = { name: string; email: string; mdcn: string | null; phone: string | null };
+/**
+ * `nurse` (founder, 2026-11-24): a nurse partner, added only by Glufloat in
+ * /admin/doctors with the Type drop-down. Same practice row, contact_role
+ * 'Nurse' (lib/hospitalPlans.ts isNursePractice). `mdcn` then holds her NMCN
+ * licence number, optional like a doctor's.
+ */
+export type DoctorInput = { name: string; email: string; mdcn: string | null; phone: string | null; nurse: boolean };
 
 /**
  * Clean and check a doctor's details. Returns an error sentence, or the clean
@@ -34,21 +40,22 @@ export function cleanDoctor(
   who: "self" | "admin",
   phoneRequired = true,
 ): DoctorInput | { error: string } {
-  const your = who === "self" ? "your" : "the doctor's";
+  const nurse = who === "admin" && body.type === "nurse";
+  const your = who === "self" ? "your" : nurse ? "the nurse's" : "the doctor's";
   const clip = (v: unknown, n = 200) => String(v ?? "").trim().slice(0, n);
   let name = clip(body.name, 120);
   const email = clip(body.email, 200).toLowerCase();
   const mdcn = clip(body.mdcn, 40).toUpperCase();
   if (!name) return { error: `Please put ${your} name.` };
-  if (!/^dr\.?\s/i.test(name)) name = `Dr ${name}`;
+  if (!nurse && !/^dr\.?\s/i.test(name)) name = `Dr ${name}`;
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || isPhoneLoginEmail(email)) return { error: `Please put ${your} email address.` };
   // Optional (founder, 2026-11-14): many doctors will not share it. If typed, it must look like a number.
-  if (mdcn && !/^[A-Z0-9][A-Z0-9/ .-]{2,39}$/.test(mdcn)) return { error: `Please check ${your} MDCN folio number, or leave it empty.` };
+  if (mdcn && !/^[A-Z0-9][A-Z0-9/ .-]{2,39}$/.test(mdcn)) return { error: `Please check ${your} ${nurse ? "NMCN licence" : "MDCN folio"} number, or leave it empty.` };
   const rawPhone = clip(body.phone, 40);
   const digits = rawPhone.replace(/\D/g, "");
   if ((phoneRequired || rawPhone) && digits.length < 10)
     return { error: `Please put ${your} WhatsApp or phone number.` };
-  return { name, email, mdcn: mdcn || null, phone: digits ? normalizePhone(rawPhone) : null };
+  return { name, email, mdcn: mdcn || null, phone: digits ? normalizePhone(rawPhone) : null, nurse };
 }
 
 /** A one-time set-up link for this practice, emailed to the doctor. */
@@ -57,6 +64,7 @@ export async function sendDoctorSetupLink(
   practiceId: string,
   name: string,
   email: string,
+  nurse = false,
 ): Promise<{ emailed: boolean; link: string | null }> {
   const token = readableToken(name, true);
   const { error } = await admin.from("hospital_invites").insert({
@@ -70,7 +78,7 @@ export async function sendDoctorSetupLink(
   if (error) return { emailed: false, link: null };
   const link = `${SITE_URL}/doctors/setup/${token}`;
   const firstName = name.replace(/^dr\.?\s+/i, "").split(/\s+/)[0] || name;
-  const mail = doctorSetupEmail(firstName, link, DOCTOR_INVITE_DAYS);
+  const mail = doctorSetupEmail(firstName, link, DOCTOR_INVITE_DAYS, nurse);
   const sent = await sendEmail(email, mail.subject, mail.html, mail.text, "doctor-setup");
   return { emailed: sent.ok, link };
 }
@@ -88,7 +96,7 @@ export async function insertDoctorPractice(
         kind: "doctor",
         name: d.name,
         contact_name: d.name,
-        contact_role: "Doctor",
+        contact_role: d.nurse ? NURSE_ROLE : "Doctor",
         contact_email: d.email,
         mdcn_number: d.mdcn,
         contact_phone: d.phone,

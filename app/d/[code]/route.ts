@@ -23,8 +23,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ code
     const { data: agent } = await admin.from("field_agents").select("id,status").eq("ref_code", raw.toLowerCase()).maybeSingle();
     if (agent && agent.status === "active") value = `a:${agent.id}`;
     else {
-      const { data: practice } = await admin.from("hospitals").select("id,kind,status").eq("code", raw.toUpperCase()).maybeSingle();
-      if (practice && practice.kind === "doctor" && practice.status === "active") value = `c:${practice.id}`;
+      const { data: practice } = await admin.from("hospitals").select("id,kind,status,contact_role").eq("code", raw.toUpperCase()).maybeSingle();
+      if (practice && practice.kind === "doctor" && practice.contact_role !== "Nurse" && practice.status === "active") value = `c:${practice.id}`;
     }
     if (value)
       res.cookies.set(DOCTOR_REF_COOKIE, value, {

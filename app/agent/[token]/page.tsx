@@ -87,13 +87,16 @@ export default async function AgentDashboard({ params }: { params: Promise<{ tok
         {list.map((d) => (
           <li key={d.id} className="flex items-center justify-between gap-3 px-5 py-3 text-sm">
             <div className="min-w-0">
-              <p className="truncate font-semibold text-ink">{d.name}</p>
+              <p className="truncate font-semibold text-ink">
+                {d.name}
+                {d.contact_role === "Nurse" && <span className="ml-1.5 text-xs font-bold text-leaf-deep">(Nurse)</span>}
+              </p>
               <p className="text-xs text-ink-soft">
                 Joined {new Date(d.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
                 {d.setUp ? "" : " · has not finished setting up"}
               </p>
               <div className="mt-2">
-                <DoctorFlyerButton name={d.name} code={d.code} />
+                <DoctorFlyerButton name={d.name} code={d.code} nurse={d.contact_role === "Nurse"} />
               </div>
             </div>
             <div className="shrink-0 text-right text-xs text-ink-soft">

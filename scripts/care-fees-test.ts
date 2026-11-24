@@ -18,6 +18,9 @@ import {
   secondDegreeFee,
   earnsColleagueBonus,
   SECOND_DEGREE_FEE_KOBO,
+  nurseFees,
+  NURSE_FEE_KOBO,
+  NURSE_BRINGER_FEE_KOBO,
 } from "../lib/careFees";
 
 let fails = 0;
@@ -132,5 +135,21 @@ check("colleague bonus: Premium with a creator's code", earnsColleagueBonus(360_
 check("colleague bonus: not on Basic", !earnsColleagueBonus(150_000));
 check("colleague bonus: not on Plus", !earnsColleagueBonus(250_000));
 check("colleague bonus: not on Basic yearly", !earnsColleagueBonus(1_440_000));
+
+// A nurse partner (founder, 2026-11-24): N1,000 to her, N450 to who brought
+// her, per Premium month, for the patient's first 12 months.
+const nf = (amountKobo: number, yearly = false, firstPaidAt: Date | null = null, hasBringer = true, bringerActive = true) =>
+  nurseFees({ amountKobo, yearly, hasBringer, bringerActive, paidAt: now, firstPaidAt });
+check("nurse: N1,000 and N450 on Premium monthly", nf(450_000).nurse === NURSE_FEE_KOBO && nf(450_000).bringer === NURSE_BRINGER_FEE_KOBO);
+check("nurse: amounts are N1,000 and N450", NURSE_FEE_KOBO === 100_000 && NURSE_BRINGER_FEE_KOBO === 45_000);
+check("nurse: 12 times on Premium yearly", nf(4_320_000, true).nurse === 1_200_000 && nf(4_320_000, true).bringer === 540_000);
+check("nurse: Premium with a creator's code still counts", nf(360_000).nurse === 100_000);
+check("nurse: nothing on Basic", nf(150_000).nurse === 0 && nf(150_000).bringer === 0);
+check("nurse: nothing on Plus", nf(250_000).nurse === 0);
+check("nurse: month 12 still pays", nf(450_000, false, new Date(now.getTime() - 364 * DAY)).nurse === 100_000);
+check("nurse: nothing after 12 months", nf(450_000, false, new Date(now.getTime() - 366 * DAY)).nurse === 0 && nf(450_000, false, new Date(now.getTime() - 366 * DAY)).bringer === 0);
+check("nurse: no bringer, only the nurse", nf(450_000, false, null, false).bringer === 0 && nf(450_000, false, null, false).nurse === 100_000);
+check("nurse: switched-off bringer earns nothing", nf(450_000, false, null, true, false).bringer === 0);
+check("nurse: nothing on no payment", nf(0).nurse === 0);
 console.log(fails ? `\n${fails} FAILED` : "\nall passed");
 process.exit(fails ? 1 : 0);

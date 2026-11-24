@@ -1,8 +1,9 @@
+import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import HospitalShell from "@/components/hospital/HospitalShell";
 import NotStaff from "@/components/hospital/NotStaff";
 import { requireStaffPage } from "@/components/hospital/requireStaff";
-import { acceptsPatients, isDoctorPractice } from "@/lib/hospitalPlans";
+import { acceptsPatients, isDoctorPractice, isNursePractice } from "@/lib/hospitalPlans";
 import { seatsUsed } from "@/lib/hospitalServer";
 import { isPatientPays } from "@/lib/patientPays";
 import AddPatients from "./AddPatients";
@@ -14,6 +15,8 @@ export default async function AddPage({ searchParams }: { searchParams: Promise<
   const sp = await searchParams;
   const ctx = await requireStaffPage(sp.h, "/hospital/add");
   if (!ctx) return <NotStaff />;
+  // A nurse partner: no chat, and patients join only through her QR code.
+  if (isNursePractice(ctx.hospital)) redirect(ctx.all.length > 1 ? `/hospital?h=${ctx.hospital.id}` : "/hospital");
   if (ctx.staff.role !== "admin")
     return (
       <HospitalShell ctx={ctx} title="Add patients">

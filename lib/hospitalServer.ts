@@ -1,7 +1,7 @@
 import { randomBytes } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient, createClient } from "@/lib/supabase/server";
-import { hospitalLive } from "@/lib/hospitalPlans";
+import { hospitalLive, isNursePractice } from "@/lib/hospitalPlans";
 import { isPatientPays, patientPrice } from "@/lib/patientPays";
 import { normalizePhone } from "@/lib/phone";
 
@@ -356,6 +356,8 @@ export async function hospitalStatusFor(admin: SupabaseClient, uid: string): Pro
      * not covered, so their own trial or plan decides their access.
      */
     kind: "hospital" | "dietitian" | "doctor";
+    /** A nurse partner (kind "doctor", contact_role "Nurse"): no chat with her, no notes. */
+    nurse?: boolean;
     /** Her note and food rules for this patient (practice-rules-schema.sql), or null. */
     rules: PracticeRulesOut | null;
     /** When their payment to the dietitian or hospital runs out (patient-paid-schema.sql), or null. */
@@ -432,9 +434,11 @@ export async function hospitalStatusFor(admin: SupabaseClient, uid: string): Pro
       // A doctor's patients chat in the app only (lib/chatServer.ts); no WhatsApp contact.
       chats: pick.status === "active" && !doctor ? await chatContacts(admin, pick.hospitals) : [],
       kind: pick.hospitals.kind === "dietitian" ? "dietitian" : doctor ? "doctor" : "hospital",
+      // A nurse partner (founder, 2026-11-24): no chat with her, no notes.
+      nurse: isNursePractice(pick.hospitals),
       rules: pick.status === "active" && pick.hospitals.kind === "dietitian" ? await practiceRulesFor(admin, pick.id) : null,
       paidUntil: pick.status === "active" && !doctor ? await paidUntilFor(admin, pick.id) : null,
-      notes: pick.status === "active" && pick.hospitals.kind !== "dietitian" ? await careNotesFor(admin, pick.id) : [],
+      notes: pick.status === "active" && pick.hospitals.kind !== "dietitian" && !isNursePractice(pick.hospitals) ? await careNotesFor(admin, pick.id) : [],
     };
   }
   return out;

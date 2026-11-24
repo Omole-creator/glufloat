@@ -67,11 +67,12 @@ export async function POST(request: Request) {
       agentName = a.name as string;
     }
   } else if (ref && "colleagueId" in ref) {
-    const { data: col } = await admin.from("hospitals").select("id,kind,status").eq("id", ref.colleagueId).maybeSingle();
-    if (col && col.kind === "doctor" && col.status === "active") invitedBy = col.id as string;
+    const { data: col } = await admin.from("hospitals").select("id,kind,status,contact_role").eq("id", ref.colleagueId).maybeSingle();
+    // A nurse partner does not invite doctors (no colleague bonus for nurses).
+    if (col && col.kind === "doctor" && col.contact_role !== "Nurse" && col.status === "active") invitedBy = col.id as string;
   }
 
-  const id = await insertDoctorPractice(admin, { name, email, mdcn, phone, agentId, invitedBy });
+  const id = await insertDoctorPractice(admin, { name, email, mdcn, phone, nurse: false, agentId, invitedBy });
   if (!id) return NextResponse.json({ error: "We could not set you up just now. Please try again." }, { status: 503 });
   const r = await sendDoctorSetupLink(admin, id, name, email);
   if (!isInternalEmail(email))

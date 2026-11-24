@@ -5,7 +5,7 @@ import HospitalShell from "@/components/hospital/HospitalShell";
 import NotStaff from "@/components/hospital/NotStaff";
 import { requireStaffPage } from "@/components/hospital/requireStaff";
 import { hospitalRoster } from "@/lib/hospitalRoster";
-import { isDoctorPractice, isPractice } from "@/lib/hospitalPlans";
+import { isDoctorPractice, isNursePractice, isPractice } from "@/lib/hospitalPlans";
 import { isPatientPays } from "@/lib/patientPays";
 import PatientTable from "./PatientTable";
 
@@ -19,7 +19,8 @@ export default async function HospitalHome({ searchParams }: { searchParams: Pro
   const ctx = await requireStaffPage(sp.h, "/hospital");
   if (!ctx) return <NotStaff />;
 
-  const rows = await hospitalRoster(ctx.admin, ctx.hospital.id, { paidOnly: isDoctorPractice(ctx.hospital) });
+  const nurse = isNursePractice(ctx.hospital);
+  const rows = await hospitalRoster(ctx.admin, ctx.hospital.id, { paidOnly: isDoctorPractice(ctx.hospital), nurse });
   const active = rows.filter((r) => r.status === "active");
   const weekAgo = new Date(Date.now() - 7 * DAY_MS).toISOString();
   const usedThisWeek = active.filter((r) => r.lastActive && r.lastActive >= weekAgo).length;
@@ -40,7 +41,7 @@ export default async function HospitalHome({ searchParams }: { searchParams: Pro
         : { label: "Places used", value: `${active.length} of ${ctx.hospital.seats}`, sub: waiting ? `${waiting} waiting for a place` : "patients using Glufloat" },
     { label: "Used it this week", value: String(usedThisWeek), sub: `of ${active.length} ${active.length === 1 ? "patient" : "patients"}` },
     { label: "Meals saved", value: meals.toLocaleString(), sub: "last 30 days" },
-    { label: "Sugar tests saved", value: tests.toLocaleString(), sub: "last 30 days" },
+    { label: "Sugar tests saved", value: tests.toLocaleString(), sub: nurse ? "before and after meals, last 30 days" : "last 30 days" },
   ];
 
   return (
@@ -49,7 +50,7 @@ export default async function HospitalHome({ searchParams }: { searchParams: Pro
       title="Patients"
       subtitle={`${ctx.hospital.name} · ${isPractice(ctx.hospital) || doctor ? "Your practice" : ROLE_GREETING[ctx.staff.role]}`}
       actions={
-        isAdmin ? (
+        isAdmin && !nurse ? (
           <Link
             href={ctx.all.length > 1 ? `/hospital/add?h=${ctx.hospital.id}` : "/hospital/add"}
             className="inline-flex items-center gap-2 rounded-full bg-leaf px-5 py-2.5 text-sm font-bold text-white shadow-[0_10px_24px_-12px_rgba(62,155,79,0.8)] hover:bg-leaf-deep"

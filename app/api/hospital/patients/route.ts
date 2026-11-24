@@ -4,7 +4,7 @@ import { TARGET_MAX, TARGET_MIN, validTarget } from "@/lib/safetyFlag";
 import { newToken, restoreCarried, seatsUsed, staffContext, type PatientRow } from "@/lib/hospitalServer";
 import { normalizePhone } from "@/lib/phone";
 import { isPhoneLoginEmail } from "@/lib/phoneLogin";
-import { extendAccess, isDoctorPractice, isPractice } from "@/lib/hospitalPlans";
+import { extendAccess, isDoctorPractice, isNursePractice, isPractice } from "@/lib/hospitalPlans";
 import { practiceRuleFoodIds } from "@/lib/nextMeal";
 import { isPatientPays } from "@/lib/patientPays";
 import { creditReview, payingNow } from "@/lib/careFeesServer";
@@ -30,6 +30,10 @@ export async function POST(request: Request) {
   const ctx = await staffContext(String(body.hid ?? "") || null);
   if (!ctx) return NextResponse.json({ error: "Please log in again." }, { status: 401 });
   if (ctx.staff.role !== "admin") return NextResponse.json({ error: "Only the hospital admin can add patients." }, { status: 403 });
+  // A nurse's patients join only through her QR code or link, where they tick
+  // their own agreement (founder, 2026-11-24). She cannot add them by hand.
+  if (isNursePractice(ctx.hospital))
+    return NextResponse.json({ error: "Your patients join with your QR code or link." }, { status: 403 });
   if (body.confirmed !== true)
     return NextResponse.json({ error: "Please tick the box to say these patients agreed to join." }, { status: 400 });
 
@@ -100,6 +104,10 @@ export async function PATCH(request: Request) {
   if (!data) return NextResponse.json({ error: "We could not find this patient." }, { status: 404 });
   const p = data as PatientRow;
   const action = String(body.action ?? "");
+  // A nurse partner may only take a patient off her list. Everything else
+  // here (targets, flags, notes, reviews, passwords) is for doctors.
+  if (isNursePractice(ctx.hospital) && action !== "remove")
+    return NextResponse.json({ error: "This is not open to nurses." }, { status: 403 });
 
   // Clinical actions any doctor, dietitian or admin at the hospital may take
   // (clinician-flags-schema.sql, #29). Everything below them is admin-only.

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { staffContext } from "@/lib/hospitalServer";
-import { hospitalLive, isDoctorPractice } from "@/lib/hospitalPlans";
+import { hospitalLive, isDoctorPractice, isNursePractice } from "@/lib/hospitalPlans";
 import { doctorCanSeeRecord } from "@/lib/careFeesServer";
 import { patientHba1cs, patientMonth, patientProfile, patientReadings, patientWeights, watMonth, weightLineFor } from "@/lib/patientRecord";
 
@@ -22,6 +22,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   // A hospital whose plan has ended keeps its list, not its patients' records.
   if (!hospitalLive(ctx.hospital))
     return NextResponse.json({ error: "Your Glufloat plan has ended." }, { status: 402 });
+  // A nurse partner never gets the report (profile, HbA1c, weight, every
+  // test): only the list on the patient page (founder, 2026-11-24).
+  if (isNursePractice(ctx.hospital)) return NextResponse.json({ error: "This is not open to nurses." }, { status: 403 });
 
   const { data: p } = await ctx.admin
     .from("hospital_patients")

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import AuthShell from "@/components/auth/AuthShell";
 import { createAdminClient } from "@/lib/supabase/server";
-import { acceptsPatients, isDoctorPractice, isPractice } from "@/lib/hospitalPlans";
+import { acceptsPatients, isDoctorPractice, isNursePractice, isPractice } from "@/lib/hospitalPlans";
 import JoinForm from "./JoinForm";
 
 export const dynamic = "force-dynamic";
@@ -24,16 +24,16 @@ export default async function JoinPage({
   const [{ code }, { t }] = await Promise.all([params, searchParams]);
   const clean = (code ?? "").trim().toUpperCase();
 
-  let hospital: { name: string; live: boolean; practice: boolean; doctor: boolean } | null = null;
+  let hospital: { name: string; live: boolean; practice: boolean; doctor: boolean; nurse: boolean } | null = null;
   let invite: { name: string; phone: string } | null = null;
   try {
     const admin = createAdminClient();
     // "*" so a database without the dietitian column (kind) still answers.
     const { data } = await admin.from("hospitals").select("*").eq("code", clean).maybeSingle();
     if (data) {
-      const row = data as { name: string; status: string; access_until: string | null; kind?: string | null };
+      const row = data as { name: string; status: string; access_until: string | null; kind?: string | null; contact_role?: string | null };
       // A dietitian with no patient yet is open: her first patient starts her 14 days.
-      hospital = { name: row.name, live: acceptsPatients(row), practice: isPractice(row), doctor: isDoctorPractice(row) };
+      hospital = { name: row.name, live: acceptsPatients(row), practice: isPractice(row), doctor: isDoctorPractice(row) && !isNursePractice(row), nurse: isNursePractice(row) };
       if (t) {
         const { data: p } = await admin
           .from("hospital_patients")
@@ -56,7 +56,7 @@ export default async function JoinPage({
         title={hospital ? "Not open right now" : "We could not find this link"}
         subtitle={
           hospital
-            ? `${hospital.name}'s Glufloat is not open right now. Please speak to ${hospital.doctor ? "your doctor" : hospital.practice ? "your dietitian" : "your hospital"}.`
+            ? `${hospital.name}'s Glufloat is not open right now. Please speak to ${hospital.nurse ? "your nurse" : hospital.doctor ? "your doctor" : hospital.practice ? "your dietitian" : "your hospital"}.`
             : "Please check the address, or ask your hospital or dietitian for it again."
         }
       >
@@ -72,7 +72,9 @@ export default async function JoinPage({
     <AuthShell
       title={first ? `Welcome, ${first}` : `Join ${hospital.name}`}
       subtitle={
-        hospital.doctor ? (
+        hospital.nurse ? (
+          `${hospital.name} uses Glufloat to help you with your diabetes. It tells you what to eat and how much. Start with 7 days free.`
+        ) : hospital.doctor ? (
           <>
             {`${hospital.name} uses Glufloat to look after your diabetes. It tells you what to eat and how much, and keeps a report for your doctor. Start with 7 days free.`}
             <span className="mt-2 block">Your doctor is paid by Glufloat to review your meals and sugar tests every month.</span>
@@ -90,7 +92,8 @@ export default async function JoinPage({
         knownName={invite?.name ?? null}
         tokenWasBad={!!t && !invite}
         practice={hospital.practice}
-        doctor={hospital.doctor}
+        doctor={hospital.doctor || hospital.nurse}
+        nurse={hospital.nurse}
       />
     </AuthShell>
   );

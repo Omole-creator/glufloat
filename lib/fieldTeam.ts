@@ -32,6 +32,8 @@ export type DoctorRow = {
   name: string;
   contact_email: string | null;
   contact_phone: string | null;
+  /** "Nurse" for a nurse partner (lib/hospitalPlans.ts isNursePractice), else "Doctor". */
+  contact_role?: string | null;
   mdcn_number: string | null;
   status: string;
   agent_id: string | null;
@@ -67,7 +69,7 @@ export async function loadFieldTeam(admin: SupabaseClient): Promise<FieldTeam> {
     fetchAll<DoctorRow>(() =>
       admin
         .from("hospitals")
-        .select("id,code,name,contact_email,contact_phone,mdcn_number,status,agent_id,invited_by,bank_name,account_number,account_name,created_at")
+        .select("id,code,name,contact_email,contact_phone,contact_role,mdcn_number,status,agent_id,invited_by,bank_name,account_number,account_name,created_at")
         .eq("kind", "doctor")
         .order("created_at", { ascending: false }),
     ),

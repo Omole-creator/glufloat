@@ -7,7 +7,16 @@ import { createClient } from "@/lib/supabase/client";
 
 type Role = "admin" | "doctor" | "dietitian";
 
-function tabs(role: Role, practice: boolean, doctor = false) {
+function tabs(role: Role, practice: boolean, doctor = false, nurse = false) {
+  // A nurse partner: her patients, her QR code (with the flyer), her money.
+  // No messages (she has no chat) and no "Add patients" (patients join only
+  // through her QR code or link, where they agree to what she sees).
+  if (nurse)
+    return [
+      { href: "/hospital", label: "Patients", icon: Users, exact: true },
+      { href: "/hospital/plan", label: "QR code", short: "QR code", icon: QrCode, exact: false },
+      { href: "/hospital/earnings", label: "Earnings", icon: Wallet, exact: false },
+    ];
   // A Glufloat doctor: no staff and no plan to pay for. Their QR code, and
   // what they have earned looking after their patients.
   if (doctor)
@@ -65,18 +74,20 @@ export function HospitalSidebarNav({
   hid,
   practice = false,
   doctor = false,
+  nurse = false,
   waiting = 0,
 }: {
   role: Role;
   hid: string | null;
   practice?: boolean;
   doctor?: boolean;
+  nurse?: boolean;
   waiting?: number;
 }) {
   const here = useHere();
   return (
     <nav className="flex flex-col gap-0.5">
-      {tabs(role, practice, doctor).map(({ href, label, icon: Icon, exact }) => {
+      {tabs(role, practice, doctor, nurse).map(({ href, label, icon: Icon, exact }) => {
         const on = here(href, exact);
         return (
           <Link
@@ -119,12 +130,14 @@ export function HospitalMobileNav({
   hid,
   practice = false,
   doctor = false,
+  nurse = false,
   waiting = 0,
 }: {
   role: Role;
   hid: string | null;
   practice?: boolean;
   doctor?: boolean;
+  nurse?: boolean;
   waiting?: number;
 }) {
   const here = useHere();
@@ -134,7 +147,7 @@ export function HospitalMobileNav({
       className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-white/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-10px_28px_-16px_rgba(12,42,71,0.22)] backdrop-blur lg:hidden"
     >
       <div className="mx-auto flex max-w-xl items-stretch justify-between px-0.5">
-        {tabs(role, practice, doctor).map((t) => {
+        {tabs(role, practice, doctor, nurse).map((t) => {
           const on = here(t.href, t.exact);
           const Icon = t.icon;
           const label = doctor && t.href === "/hospital/plan" ? "QR code" : practice && t.href === "/hospital/plan" ? "Earnings" : MOBILE_LABEL[t.href] ?? t.label;

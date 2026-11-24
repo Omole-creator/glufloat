@@ -2,20 +2,25 @@
 
 import { useState } from "react";
 import { Download } from "lucide-react";
-import { buildDoctorFlyerPdf } from "@/lib/hospitalPdf";
+import { buildDoctorFlyerPdf, buildNurseFlyerPdf } from "@/lib/hospitalPdf";
 import { PREMIUM_MONTHLY } from "@/lib/hospitalPlans";
 
-/** Downloads the doctor's patient flyer (half A4) with their own QR code. */
+/**
+ * Downloads the doctor's patient flyer (half A4) with their own QR code, or,
+ * for a nurse partner (`nurse`), her A4 flyer worded like the pharmacy poster.
+ */
 export default function DoctorFlyerButton({
   name,
   code,
   className,
   label = "Download flyer",
+  nurse = false,
 }: {
   name: string;
   code: string;
   className?: string;
   label?: string;
+  nurse?: boolean;
 }) {
   const [busy, setBusy] = useState(false);
   return (
@@ -26,7 +31,7 @@ export default function DoctorFlyerButton({
       onClick={async () => {
         setBusy(true);
         try {
-          (await buildDoctorFlyerPdf({ name, code }, PREMIUM_MONTHLY)).save(`glufloat-flyer-${code}.pdf`);
+          (await (nurse ? buildNurseFlyerPdf : buildDoctorFlyerPdf)({ name, code }, PREMIUM_MONTHLY)).save(`glufloat-flyer-${code}.pdf`);
         } finally {
           setBusy(false);
         }
