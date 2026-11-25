@@ -46,8 +46,9 @@ export default function DisclaimerPage() {
           It does not tell you to start, stop, or change any medication.
         </li>
         <li>
-          It does not have access to your personal medical history, laboratory
-          results, or other health conditions.
+          It does not have access to your hospital records or your full medical
+          history. It only knows what you choose to enter, such as your health
+          conditions, medicines, sugar tests, and HbA1c results.
         </li>
       </ul>
 
