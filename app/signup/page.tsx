@@ -98,7 +98,7 @@ export default function SignUpPage() {
       title={path === "me" ? "Start your free trial" : path === "hospital" ? "Glufloat for your hospital" : "Glufloat for dietitians"}
       subtitle={
         path === "me"
-          ? "Glufloat is not designed for kids below the age of 18 and pregnant women with diabetes."
+          ? undefined
           : path === "hospital"
             ? "Give your diabetes patients Glufloat, and see their meals and sugar tests from one place."
             : "Support your patients between visits, and see their meals and sugar tests from your own dashboard."

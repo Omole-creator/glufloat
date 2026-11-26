@@ -168,7 +168,8 @@ export default function Footer() {
           <p className="text-xs leading-relaxed text-ink-soft">
             Glufloat provides food guidance for people living with diabetes. It
             is not a substitute for medical advice and does not diagnose, treat,
-            cure, or prevent any medical condition. Always consult your doctor
+            cure, or prevent any medical condition. It is also not for kids
+            below 18 or for pregnant women with diabetes. Always consult your doctor
             or other qualified healthcare professional about your individual
             care.{" "}
             <Link
