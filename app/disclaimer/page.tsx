@@ -40,6 +40,9 @@ export default function DisclaimerPage() {
         <li>It does not diagnose diabetes or any other medical condition.</li>
         <li>It does not treat, cure, or reverse diabetes.</li>
         <li>
+          It is not for kids below 18 or for pregnant women with diabetes.
+        </li>
+        <li>
           It does not replace your doctor, nurse, pharmacist, or dietitian.
         </li>
         <li>
