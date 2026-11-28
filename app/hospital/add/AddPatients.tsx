@@ -193,8 +193,10 @@ export default function AddPatients({
         <label className="mt-5 flex items-start gap-3 rounded-xl bg-mist/70 p-3.5 text-sm text-ink">
           <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="mt-0.5 h-5 w-5 shrink-0" />
           <span>
-            {mode === "one" ? "This patient agreed" : "These patients agreed"} to join Glufloat, and know that our doctors and
-            dietitians will see their meals and sugar tests.
+            {patientPays
+              ? // A dietitian (founder, 2026-11-28): the tick should say she is in charge.
+                `${mode === "one" ? "This patient agreed" : "These patients agreed"} that I will be their only dietitian on Glufloat, and that I can see their meals and sugar tests.`
+              : `${mode === "one" ? "This patient agreed" : "These patients agreed"} to join Glufloat, and know that our doctors and dietitians will see their meals and sugar tests.`}
           </span>
         </label>
         )}
