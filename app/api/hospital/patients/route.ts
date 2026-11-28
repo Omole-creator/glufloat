@@ -88,15 +88,28 @@ export async function POST(request: Request) {
       confirmed: !nurse,
       added_by: ctx.user.id,
     };
+    // One free week per patient, ever: somebody she had before (removed)
+    // gets none again, and their invite says so.
+    let ownFreeDays = freeDays;
+    if (isPatientPays(ctx.hospital)) {
+      const { data: before } = await ctx.admin
+        .from("hospital_patients")
+        .select("id")
+        .eq("hospital_id", ctx.hospital.id)
+        .eq("status", "removed")
+        .eq("phone", phone)
+        .limit(1);
+      if ((before ?? []).length > 0) ownFreeDays = 0;
+    }
     const withExtras = () => ({
       ...rowData,
-      ...(freeDays !== null && freeDaysSaved ? { free_days: freeDays } : {}),
+      ...(ownFreeDays !== null && freeDaysSaved ? { free_days: ownFreeDays } : {}),
       ...(price !== null && priceSaved ? { price } : {}),
     });
     let { error } = await ctx.admin.from("hospital_patients").insert(withExtras());
     // A database without #43 (free_days) or #44 (price): add them anyway, on her settings.
     for (let i = 0; i < 2 && error; i++) {
-      if (freeDaysSaved && freeDays !== null && /free_days/i.test(error.message)) freeDaysSaved = false;
+      if (freeDaysSaved && ownFreeDays !== null && /free_days/i.test(error.message)) freeDaysSaved = false;
       else if (priceSaved && price !== null && /'price'/i.test(error.message)) priceSaved = false;
       else break;
       ({ error } = await ctx.admin.from("hospital_patients").insert(withExtras()));
@@ -254,6 +267,8 @@ export async function PATCH(request: Request) {
       .eq("user_id", p.user_id);
     if (payErr || (count ?? 0) > 0) return NextResponse.json({ error: "This patient has already paid you, so free days no longer apply." }, { status: 409 });
     const until = freeDaysEnd(d, p.joined_at);
+    // One free week per patient, ever: counted from the day they joined.
+    if (!until) return NextResponse.json({ error: "This patient's free week is already used up. They need to pay you now." }, { status: 409 });
     const { error } = await ctx.admin.from("hospital_patients").update({ paid_until: until }).eq("id", p.id);
     if (error) return NextResponse.json({ error: "That did not save. Please try again." }, { status: 503 });
     // Remember the choice too; a database without #43 still has the date above.

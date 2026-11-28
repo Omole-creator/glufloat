@@ -101,14 +101,20 @@ export function priceFor(h: PriceHolder | null | undefined, row: { price?: numbe
 /**
  * The end of a never-paid patient's time when she changes their free days on
  * their page (founder, 2026-11-28). None: their time ends now, so they pay
- * now. Seven: counted from the day they joined; if that week is already over,
- * a fresh week from now.
+ * now. Seven: counted from the day they joined, and only ONE free week per
+ * patient, ever: once that week is over this returns null and the change is
+ * refused (a fresh week each time would give endless free Premium).
  */
-export function freeDaysEnd(days: FreeDays, joinedAt: string | null, now = Date.now()): string {
+export function freeDaysEnd(days: FreeDays, joinedAt: string | null, now = Date.now()): string | null {
   if (days === 0) return new Date(now).toISOString();
   const joined = joinedAt ? new Date(joinedAt).getTime() : now;
   const end = (Number.isFinite(joined) ? joined : now) + days * 86_400_000;
-  return new Date(end > now ? end : now + days * 86_400_000).toISOString();
+  return end > now ? new Date(end).toISOString() : null;
+}
+
+/** True while a patient's one free week (from the day they joined) is not over. */
+export function freeWeekLeft(joinedAt: string | null, now = Date.now()): boolean {
+  return freeDaysEnd(7, joinedAt, now) !== null;
 }
 
 /**

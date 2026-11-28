@@ -57,7 +57,9 @@ check("no row: her usual price", priceFor({ patient_price: null }, null) === 4_5
 const joined = new Date(now - 2 * DAY).toISOString();
 check("none: ends now", freeDaysEnd(0, joined, now) === new Date(now).toISOString());
 check("7 from joining when the week is not over", freeDaysEnd(7, joined, now) === new Date(now + 5 * DAY).toISOString());
-check("7 from now when the week from joining is over", freeDaysEnd(7, new Date(now - 10 * DAY).toISOString(), now) === new Date(now + 7 * DAY).toISOString());
+check("no second free week once the first is over", freeDaysEnd(7, new Date(now - 10 * DAY).toISOString(), now) === null);
+check("exactly 7 days after joining: over", freeDaysEnd(7, new Date(now - 7 * DAY).toISOString(), now) === null);
+check("none still works after the week", freeDaysEnd(0, new Date(now - 10 * DAY).toISOString(), now) === new Date(now).toISOString());
 check("a bad stored value falls back to her setting", freeDaysFor({ patient_free_days: 0 }, { free_days: 14 }) === 0);
 
 // Her price.

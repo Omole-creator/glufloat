@@ -31,7 +31,7 @@ import NurseRecord, { nurseMeals } from "./NurseRecord";
 import PatientDetail from "./PatientDetail";
 import PracticeRulesEditor from "./PracticeRulesEditor";
 import PatientTermsEditor from "./PatientTermsEditor";
-import { freeDaysFor, isPatientPays, patientPrice } from "@/lib/patientPays";
+import { freeDaysFor, freeWeekLeft, isPatientPays, patientPrice } from "@/lib/patientPays";
 import CareNoteEditor from "./CareNoteEditor";
 import ReviewButton from "./ReviewButton";
 import { doctorCanSeeRecord, payingNow, reviewFeeThisMonth } from "@/lib/careFeesServer";
@@ -265,6 +265,7 @@ export default async function PatientPage({
           usualPrice={patientPrice(ctx.hospital)}
           freeDays={terms.freeDays}
           canChangeFreeDays={terms.neverPaid}
+          freeWeekLeft={freeWeekLeft((row.joined_at as string | null) ?? null)}
           paidUntilText={terms.paidUntilText}
         />
       )}

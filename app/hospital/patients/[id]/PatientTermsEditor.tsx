@@ -17,6 +17,7 @@ export default function PatientTermsEditor({
   usualPrice,
   freeDays,
   canChangeFreeDays,
+  freeWeekLeft = true,
   paidUntilText,
 }: {
   patientId: string;
@@ -29,6 +30,8 @@ export default function PatientTermsEditor({
   freeDays: number;
   /** True while they have joined and never paid her. */
   canChangeFreeDays: boolean;
+  /** False once a week has passed since they joined: no second free week. */
+  freeWeekLeft?: boolean;
   /** "Free until 5 December" / "Paid until 5 December", or null. */
   paidUntilText: string | null;
 }) {
@@ -115,13 +118,18 @@ export default function PatientTermsEditor({
         Leave it empty for your usual price ({naira(usualPrice)}). A new price starts at their next payment.
       </p>
 
-      {canChangeFreeDays && (
+      {canChangeFreeDays && !freeWeekLeft && (
+        <p className="mt-5 text-sm text-ink-soft">
+          {firstName}&apos;s free week is used up. Each patient gets one free week at most.
+        </p>
+      )}
+      {canChangeFreeDays && freeWeekLeft && (
         <div className="mt-5">
           <p className="text-sm font-semibold text-ink">Free days</p>
           <div className="mt-2 grid gap-2 sm:grid-cols-2" role="radiogroup" aria-label={`Free days for ${firstName}`}>
             {[
               { d: 0, title: "No free days", sub: "They pay you now." },
-              { d: 7, title: "7 free days", sub: "From the day they joined." },
+              { d: 7, title: "7 free days", sub: "Counted from the day they joined." },
             ].map((o) => (
               <button
                 key={o.d}
@@ -139,7 +147,7 @@ export default function PatientTermsEditor({
               </button>
             ))}
           </div>
-          <p className="mt-2 text-xs text-ink-soft">You can change this until {firstName} first pays you.</p>
+          <p className="mt-2 text-xs text-ink-soft">You can change this during {firstName}&apos;s first week, until they first pay you. Each patient gets one free week at most.</p>
         </div>
       )}
 

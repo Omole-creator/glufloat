@@ -190,7 +190,20 @@ export async function POST(request: Request) {
   // her straight away. Its own write: a database without the column still
   // lets them join.
   const patientPays = isPatientPays(h);
-  const freeDays = patientPays ? freeDaysFor(h, row) : null;
+  let freeDays = patientPays ? freeDaysFor(h, row) : null;
+  // One free week per patient, ever (founder, 2026-11-28): somebody who was
+  // with her before (removed and added again, by account or by phone) gets
+  // no free days the second time.
+  if (patientPays && freeDays) {
+    const { data: before } = await admin
+      .from("hospital_patients")
+      .select("id")
+      .eq("hospital_id", h.id)
+      .eq("status", "removed")
+      .or(`user_id.eq.${uid}${phone ? `,phone.eq.${phone}` : ""}`)
+      .limit(1);
+    if ((before ?? []).length > 0) freeDays = 0;
+  }
   if (finalStatus === "active" && !doctorPractice) {
     const days = patientPays ? (freeDays ?? 0) : 30;
     await admin
