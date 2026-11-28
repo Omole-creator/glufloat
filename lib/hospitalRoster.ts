@@ -57,6 +57,10 @@ export type RosterRow = {
    * "ended", or null (no account yet).
    */
   plan: "premium" | "plus" | "basic" | "trial" | "ended" | null;
+  /** A dietitian's own price for this patient, naira, or null for her usual price (#44). */
+  price: number | null;
+  /** The free days chosen on this invite, 0 or 7, or null for her setting (#43). */
+  freeDays: number | null;
 };
 
 /**
@@ -212,6 +216,8 @@ export async function hospitalRoster(admin: SupabaseClient, hospitalId: string, 
       status: p.status,
       userId: uid,
       inviteToken: p.invite_token,
+      price: p.price ?? null,
+      freeDays: p.free_days ?? null,
       createdAt: p.created_at,
       joinedAt: p.joined_at,
       phoneLogin: nurse ? false : isPhoneLoginEmail(accountEmail),

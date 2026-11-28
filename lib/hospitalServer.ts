@@ -2,7 +2,7 @@ import { randomBytes } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient, createClient } from "@/lib/supabase/server";
 import { hospitalLive, isNursePractice } from "@/lib/hospitalPlans";
-import { isPatientPays, patientPrice } from "@/lib/patientPays";
+import { isPatientPays, priceFor } from "@/lib/patientPays";
 import { normalizePhone } from "@/lib/phone";
 
 /**
@@ -84,6 +84,8 @@ export type PatientRow = {
   paused_left_ms?: number | null;
   /** patient-free-days-schema.sql (#43): this invite's own free days, 0 or 7 (null = the dietitian's setting). */
   free_days?: number | null;
+  /** patient-price-schema.sql (#44): this patient's own monthly price, naira (null = her usual price). */
+  price?: number | null;
   /** clinician-flags-schema.sql (#29): the before-meal target its clinician set (null = 150). */
   before_target_mgdl?: number | null;
   /** clinician-flags-schema.sql (#29): "Mark as seen" on the red sugar flag. */
@@ -389,7 +391,7 @@ export async function hospitalStatusFor(admin: SupabaseClient, uid: string): Pro
   const [{ data: pats, error }, { data: staff }] = await Promise.all([
     admin
       .from("hospital_patients")
-      .select("id,user_id,status,carried_ms,carried_restored_at,joined_at,paid_until,hospitals(*)")
+      .select("*,hospitals(*)") // "*" so a database without #44 (price) still answers
       .eq("user_id", uid),
     admin.from("hospital_staff").select("role,hospitals(*)").eq("user_id", uid),
   ]);
@@ -450,7 +452,7 @@ export async function hospitalStatusFor(admin: SupabaseClient, uid: string): Pro
       status: (pick.status === "paused" ? "active" : pick.status) as "active" | "waiting",
       due,
       firstPay,
-      price: payer ? patientPrice(pick.hospitals) : null,
+      price: payer ? priceFor(pick.hospitals, pick) : null,
       // A doctor's patients chat in the app only (lib/chatServer.ts); no WhatsApp contact.
       chats: pick.status === "active" && !doctor ? await chatContacts(admin, pick.hospitals) : [],
       kind: pick.hospitals.kind === "dietitian" ? "dietitian" : doctor ? "doctor" : "hospital",

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { CheckCircle2, ClipboardPaste, UserPlus } from "lucide-react";
+import { naira } from "@/lib/patientPays";
 
 type Patient = { name: string; phone: string; email: string };
 
@@ -31,6 +32,7 @@ export default function AddPatients({
   backHref,
   patientPays = false,
   defaultFreeDays = 7,
+  defaultPrice = 0,
   nurse = false,
 }: {
   hid: string | null;
@@ -40,6 +42,8 @@ export default function AddPatients({
   patientPays?: boolean;
   /** Her free-days setting (0 or 7): where the choice below starts. */
   defaultFreeDays?: number;
+  /** Her usual price a month, naira: what these patients pay unless she types another. */
+  defaultPrice?: number;
   /**
    * A nurse partner (founder, 2026-11-24): no tick here. Her adding a patient
    * is not their agreement; each patient ticks their own on their invite page.
@@ -53,9 +57,11 @@ export default function AddPatients({
   // The free days these invites get (founder, 2026-11-28): none for a client
   // who already pays her, 7 for a new one. Starts on her own setting.
   const [freeDays, setFreeDays] = useState(defaultFreeDays);
+  // Their own price (founder, 2026-11-28). Empty = her usual price.
+  const [price, setPrice] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
-  const [result, setResult] = useState<{ added: number; skipped: { name: string; reason: string }[]; freeDaysSaved?: boolean } | null>(null);
+  const [result, setResult] = useState<{ added: number; skipped: { name: string; reason: string }[]; freeDaysSaved?: boolean; priceSaved?: boolean } | null>(null);
 
   const list = mode === "one" ? [one] : parseList(text);
 
@@ -67,12 +73,18 @@ export default function AddPatients({
     const res = await fetch("/api/hospital/patients", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ hid, patients: list, confirmed: !nurse, ...(patientPays ? { freeDays } : {}) }),
+      body: JSON.stringify({ hid, patients: list, confirmed: !nurse, ...(patientPays ? { freeDays, price } : {}) }),
     });
     const j = await res.json().catch(() => ({}));
     setBusy(false);
     if (!res.ok) return setErr(j.error ?? "Something went wrong.");
-    setResult({ added: j.added ?? 0, skipped: j.skipped ?? [], freeDaysSaved: j.freeDaysSaved !== false });
+    setResult({
+      added: j.added ?? 0,
+      skipped: j.skipped ?? [],
+      freeDaysSaved: j.freeDaysSaved !== false,
+      priceSaved: j.priceSaved !== false,
+    });
+    setPrice("");
     setOne({ name: "", phone: "", email: "" });
     setText("");
     setAgreed(false);
@@ -184,6 +196,20 @@ export default function AddPatients({
           </fieldset>
         )}
 
+        {patientPays && (
+          <label className="mt-5 block text-sm font-semibold text-ink">
+            Price a month for {mode === "one" ? "this patient" : "these patients"}{" "}
+            <span className="font-normal text-ink-soft">(leave empty for your usual {naira(defaultPrice)})</span>
+            <input
+              className={field}
+              inputMode="numeric"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              placeholder={String(defaultPrice)}
+            />
+          </label>
+        )}
+
         {nurse ? (
           <p className="mt-5 rounded-xl bg-mist/70 p-3.5 text-sm text-ink">
             When {mode === "one" ? "this patient opens their invite, they" : "each patient opens their invite, they"} tick a box to agree
@@ -214,6 +240,9 @@ export default function AddPatients({
             <p className="flex items-center gap-2 font-bold text-leaf-deep">
               <CheckCircle2 className="h-4 w-4" /> {result.added} added
             </p>
+            {result.priceSaved === false && (
+              <p className="mt-1 text-ink">A price for one patient is not ready yet, so they pay your usual price.</p>
+            )}
             {result.freeDaysSaved === false && (
               <p className="mt-1 text-ink">Your free-days choice is not ready yet, so they get 7 free days.</p>
             )}

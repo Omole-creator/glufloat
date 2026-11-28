@@ -10,6 +10,7 @@ import { formatBoth } from "@/lib/glucose";
 import { SITE_URL } from "@/lib/site";
 import { safetyBadge } from "@/lib/safetyFlag";
 import { waitLabel } from "@/lib/chat";
+import { naira } from "@/lib/patientPays";
 
 const DAY_MS = 86400000;
 
@@ -129,6 +130,8 @@ export default function PatientTable({
   doctor = false,
   nurse = false,
   patientPays = false,
+  defaultPrice = 0,
+  defaultFreeDays = 7,
 }: {
   rows: RosterRow[];
   isAdmin: boolean;
@@ -141,6 +144,9 @@ export default function PatientTable({
   nurse?: boolean;
   /** A dietitian whose patients pay her in the app: no "Record payment" (patient-pays-schema.sql). */
   patientPays?: boolean;
+  /** Her usual price and free days, for the invite text when a patient has none of their own. */
+  defaultPrice?: number;
+  defaultFreeDays?: number;
 }) {
   const router = useRouter();
   const [q, setQ] = useState("");
@@ -222,7 +228,17 @@ When you join, you will be asked to agree that ${hospitalName} can see your name
 
 Open this link to join. Use this phone number (${r.phone}):
 ${inviteLink(r)}`
-      : `Hello ${r.name.split(/\s+/)[0]}, ${hospitalName} has added you to Glufloat. It tells you what to eat for your diabetes and how much, and keeps a report for your doctor and dietitian.\n\nOpen this link to join. Use this phone number (${r.phone}):\n${inviteLink(r)}`;
+      : `Hello ${r.name.split(/\s+/)[0]}, ${hospitalName} has added you to Glufloat. It tells you what to eat for your diabetes and how much, and keeps a report for your doctor and dietitian.${
+          // A dietitian's patient is told the price and free days before they
+          // join, so the pay screen is never a surprise (founder, 2026-11-28).
+          patientPays
+            ? `\n\nYou pay ${naira(r.price ?? defaultPrice)} a month inside Glufloat. ${
+                (r.freeDays ?? defaultFreeDays) > 0
+                  ? `Your first ${r.freeDays ?? defaultFreeDays} days are free.`
+                  : "You start paying from the day you join."
+              }`
+            : ""
+        }\n\nOpen this link to join. Use this phone number (${r.phone}):\n${inviteLink(r)}`;
 
   const detailHref = (r: RosterRow) => areaPath(`/hospital/patients/${r.id}${hid ? `?h=${hid}` : ""}`, nurse);
 

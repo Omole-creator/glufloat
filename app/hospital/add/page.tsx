@@ -5,7 +5,7 @@ import { requireStaffPage } from "@/components/hospital/requireStaff";
 import { areaPath } from "@/lib/staffArea";
 import { acceptsPatients, isDoctorPractice, isNursePractice } from "@/lib/hospitalPlans";
 import { seatsUsed } from "@/lib/hospitalServer";
-import { freeDaysLabel, isPatientPays, practiceFreeDays } from "@/lib/patientPays";
+import { freeDaysLabel, isPatientPays, patientPrice, practiceFreeDays } from "@/lib/patientPays";
 import AddPatients from "./AddPatients";
 
 export const dynamic = "force-dynamic";
@@ -44,6 +44,7 @@ export default async function AddPage({ searchParams }: { searchParams: Promise<
         backHref={areaPath(ctx.all.length > 1 ? `/hospital?h=${ctx.hospital.id}` : "/hospital", isNursePractice(ctx.hospital))}
         patientPays={isPatientPays(ctx.hospital)}
         defaultFreeDays={practiceFreeDays(ctx.hospital)}
+        defaultPrice={patientPrice(ctx.hospital)}
         nurse={isNursePractice(ctx.hospital)}
       />
     </HospitalShell>

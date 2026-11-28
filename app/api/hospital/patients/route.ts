@@ -6,7 +6,7 @@ import { normalizePhone } from "@/lib/phone";
 import { isPhoneLoginEmail } from "@/lib/phoneLogin";
 import { extendAccess, isDoctorPractice, isNursePractice, isPractice } from "@/lib/hospitalPlans";
 import { practiceRuleFoodIds } from "@/lib/nextMeal";
-import { isPatientPays, parseFreeDays } from "@/lib/patientPays";
+import { freeDaysEnd, isPatientPays, parseFreeDays, parsePatientPrice } from "@/lib/patientPays";
 import { creditReview, payingNow } from "@/lib/careFeesServer";
 
 const RULE_FOODS = new Set(practiceRuleFoodIds());
@@ -48,6 +48,14 @@ export async function POST(request: Request) {
   // (founder, 2026-11-28). Null = her setting, decided when they join.
   const freeDays = isPatientPays(ctx.hospital) ? parseFreeDays(body.freeDays) : null;
   let freeDaysSaved = true;
+  // And their own price (founder, 2026-11-28). Empty = her usual price.
+  let price: number | null = null;
+  if (isPatientPays(ctx.hospital) && String(body.price ?? "").trim() !== "") {
+    const r = parsePatientPrice(body.price);
+    if ("error" in r) return NextResponse.json({ error: r.error }, { status: 400 });
+    price = r.price;
+  }
+  let priceSaved = true;
 
   const added: string[] = [];
   const skipped: { name: string; reason: string }[] = [];
@@ -80,13 +88,18 @@ export async function POST(request: Request) {
       confirmed: !nurse,
       added_by: ctx.user.id,
     };
-    let { error } = await ctx.admin
-      .from("hospital_patients")
-      .insert(freeDays !== null && freeDaysSaved ? { ...rowData, free_days: freeDays } : rowData);
-    // Before #43 has run there is no free_days column: add them anyway, on her setting.
-    if (error && freeDays !== null && freeDaysSaved && /free_days/i.test(error.message)) {
-      freeDaysSaved = false;
-      ({ error } = await ctx.admin.from("hospital_patients").insert(rowData));
+    const withExtras = () => ({
+      ...rowData,
+      ...(freeDays !== null && freeDaysSaved ? { free_days: freeDays } : {}),
+      ...(price !== null && priceSaved ? { price } : {}),
+    });
+    let { error } = await ctx.admin.from("hospital_patients").insert(withExtras());
+    // A database without #43 (free_days) or #44 (price): add them anyway, on her settings.
+    for (let i = 0; i < 2 && error; i++) {
+      if (freeDaysSaved && freeDays !== null && /free_days/i.test(error.message)) freeDaysSaved = false;
+      else if (priceSaved && price !== null && /'price'/i.test(error.message)) priceSaved = false;
+      else break;
+      ({ error } = await ctx.admin.from("hospital_patients").insert(withExtras()));
     }
     if (error) {
       skipped.push({
@@ -95,7 +108,7 @@ export async function POST(request: Request) {
       });
     } else added.push(name);
   }
-  return NextResponse.json({ ok: true, added: added.length, skipped, freeDaysSaved });
+  return NextResponse.json({ ok: true, added: added.length, skipped, freeDaysSaved, priceSaved });
 }
 
 /**
@@ -207,6 +220,43 @@ export async function PATCH(request: Request) {
       .eq("id", p.id);
     if (error) return NextResponse.json({ error: "This is not ready yet. Please try again later." }, { status: 503 });
     return NextResponse.json({ ok: true, note, avoid, prefer });
+  }
+
+  // A dietitian's terms for one patient (founder, 2026-11-28).
+  // "price": their own monthly price, or empty for her usual price. Applies
+  // from their next payment, never the month already paid.
+  if (action === "price") {
+    if (!isPatientPays(ctx.hospital)) return NextResponse.json({ error: "This is for dietitians." }, { status: 403 });
+    let price: number | null = null;
+    if (String(body.price ?? "").trim() !== "") {
+      const r = parsePatientPrice(body.price);
+      if ("error" in r) return NextResponse.json({ error: r.error }, { status: 400 });
+      price = r.price;
+    }
+    const { error } = await ctx.admin.from("hospital_patients").update({ price }).eq("id", p.id);
+    if (error) return NextResponse.json({ error: "This is not ready yet. Please try again later." }, { status: 503 });
+    return NextResponse.json({ ok: true, price });
+  }
+  // "freedays": none or 7, only for a patient who has joined and never paid
+  // her. None ends their time now; 7 counts from the day they joined (or a
+  // fresh week if that week is over).
+  if (action === "freedays") {
+    if (!isPatientPays(ctx.hospital)) return NextResponse.json({ error: "This is for dietitians." }, { status: 403 });
+    const d = parseFreeDays(body.freeDays);
+    if (d === null) return NextResponse.json({ error: "Choose no free days or 7 free days." }, { status: 400 });
+    if (p.status !== "active" || !p.user_id) return NextResponse.json({ error: "This patient has not joined yet, or is paused." }, { status: 409 });
+    const { count } = await ctx.admin
+      .from("patient_payments")
+      .select("id", { count: "exact", head: true })
+      .eq("hospital_id", ctx.hospital.id)
+      .eq("user_id", p.user_id);
+    if ((count ?? 0) > 0) return NextResponse.json({ error: "This patient has already paid you, so free days no longer apply." }, { status: 409 });
+    const until = freeDaysEnd(d, p.joined_at);
+    const { error } = await ctx.admin.from("hospital_patients").update({ paid_until: until }).eq("id", p.id);
+    if (error) return NextResponse.json({ error: "That did not save. Please try again." }, { status: 503 });
+    // Remember the choice too; a database without #43 still has the date above.
+    await ctx.admin.from("hospital_patients").update({ free_days: d }).eq("id", p.id);
+    return NextResponse.json({ ok: true, paidUntil: until, freeDays: d });
   }
 
   if (action === "remove") {

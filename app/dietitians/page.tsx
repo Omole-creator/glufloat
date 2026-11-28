@@ -160,11 +160,11 @@ export default function DietitiansPage() {
     },
     {
       q: "How much can I charge?",
-      a: `Any price from ${naira(PATIENT_PRICE_MIN)} a month. You can change it any time. A new price starts at each patient's next payment.`,
+      a: `Any price from ${naira(PATIENT_PRICE_MIN)} a month. You can change it any time, and you can give any patient their own price. A new price starts at that patient's next payment.`,
     },
     {
       q: "Do my patients get free days?",
-      a: `You choose. Give new patients ${PATIENT_FREE_DAYS} free days, or none, so clients who already pay you keep paying from the day they join. You can choose for each patient you invite.`,
+      a: `You choose. Give new patients ${PATIENT_FREE_DAYS} free days, or none, so clients who already pay you keep paying from the day they join. You can choose for each patient, and change it until they first pay you.`,
     },
     {
       q: "How do my patients pay?",

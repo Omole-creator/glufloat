@@ -88,6 +88,30 @@ export function patientPrice(h: PriceHolder | null | undefined): number {
 }
 
 /**
+ * One patient's price in naira (founder, 2026-11-28): their own price if she
+ * set one (patient-price-schema.sql, #44), otherwise her usual price. She can
+ * change either at any time; a change applies from their next payment.
+ */
+export function priceFor(h: PriceHolder | null | undefined, row: { price?: number | null } | null | undefined): number {
+  const own = Number(row?.price);
+  if (row?.price != null && Number.isFinite(own) && own >= PATIENT_PRICE_MIN && own <= PATIENT_PRICE_MAX) return Math.round(own);
+  return patientPrice(h);
+}
+
+/**
+ * The end of a never-paid patient's time when she changes their free days on
+ * their page (founder, 2026-11-28). None: their time ends now, so they pay
+ * now. Seven: counted from the day they joined; if that week is already over,
+ * a fresh week from now.
+ */
+export function freeDaysEnd(days: FreeDays, joinedAt: string | null, now = Date.now()): string {
+  if (days === 0) return new Date(now).toISOString();
+  const joined = joinedAt ? new Date(joinedAt).getTime() : now;
+  const end = (Number.isFinite(joined) ? joined : now) + days * 86_400_000;
+  return new Date(end > now ? end : now + days * 86_400_000).toISOString();
+}
+
+/**
  * What Glufloat keeps per payment, in naira, for a practice with this many
  * patients who paid her in the last 30 days (this payment's patient counted).
  */

@@ -7,7 +7,7 @@ import { requireStaffPage } from "@/components/hospital/requireStaff";
 import { areaPath } from "@/lib/staffArea";
 import { hospitalRoster } from "@/lib/hospitalRoster";
 import { isDoctorPractice, isNursePractice, isPractice } from "@/lib/hospitalPlans";
-import { isPatientPays } from "@/lib/patientPays";
+import { isPatientPays, patientPrice, practiceFreeDays } from "@/lib/patientPays";
 import PatientTable from "./PatientTable";
 
 export const dynamic = "force-dynamic";
@@ -71,7 +71,7 @@ export default async function HospitalHome({ searchParams }: { searchParams: Pro
         ))}
       </div>
 
-      <PatientTable rows={rows} isAdmin={isAdmin} hid={ctx.all.length > 1 ? ctx.hospital.id : null} hospitalName={ctx.hospital.name} hospitalCode={ctx.hospital.code} doctor={doctor} nurse={nurse} patientPays={isPatientPays(ctx.hospital)} />
+      <PatientTable rows={rows} isAdmin={isAdmin} hid={ctx.all.length > 1 ? ctx.hospital.id : null} hospitalName={ctx.hospital.name} hospitalCode={ctx.hospital.code} doctor={doctor} nurse={nurse} patientPays={isPatientPays(ctx.hospital)} defaultPrice={patientPrice(ctx.hospital)} defaultFreeDays={practiceFreeDays(ctx.hospital)} />
     </HospitalShell>
   );
 }

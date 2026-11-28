@@ -9,6 +9,8 @@ import {
   dietitianShareKobo,
   dietitianShareNaira,
   freeDaysFor,
+  freeDaysEnd,
+  priceFor,
   parseFreeDays,
   practiceFreeDays,
   GLUFLOAT_SHARE,
@@ -46,6 +48,16 @@ check("empty is not a choice", parseFreeDays(null) === null && parseFreeDays("")
 check("an invite's own choice wins", freeDaysFor({ patient_free_days: 7 }, { free_days: 0 }) === 0);
 check("an invite set to 7 under a none practice", freeDaysFor({ patient_free_days: 0 }, { free_days: 7 }) === 7);
 check("a walk-in gets her setting", freeDaysFor({ patient_free_days: 0 }, null) === 0);
+// A price for one patient (founder, 2026-11-28).
+check("no own price: her usual price", priceFor({ patient_price: 6_000 }, { price: null }) === 6_000);
+check("own price wins", priceFor({ patient_price: 6_000 }, { price: 9_000 }) === 9_000);
+check("own price under the minimum is ignored", priceFor({ patient_price: 6_000 }, { price: 3_000 }) === 6_000);
+check("no row: her usual price", priceFor({ patient_price: null }, null) === 4_500);
+// Changing free days on a patient's page.
+const joined = new Date(now - 2 * DAY).toISOString();
+check("none: ends now", freeDaysEnd(0, joined, now) === new Date(now).toISOString());
+check("7 from joining when the week is not over", freeDaysEnd(7, joined, now) === new Date(now + 5 * DAY).toISOString());
+check("7 from now when the week from joining is over", freeDaysEnd(7, new Date(now - 10 * DAY).toISOString(), now) === new Date(now + 7 * DAY).toISOString());
 check("a bad stored value falls back to her setting", freeDaysFor({ patient_free_days: 0 }, { free_days: 14 }) === 0);
 
 // Her price.

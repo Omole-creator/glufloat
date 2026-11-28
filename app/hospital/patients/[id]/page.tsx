@@ -30,6 +30,8 @@ import SugarFlags from "./SugarFlags";
 import NurseRecord, { nurseMeals } from "./NurseRecord";
 import PatientDetail from "./PatientDetail";
 import PracticeRulesEditor from "./PracticeRulesEditor";
+import PatientTermsEditor from "./PatientTermsEditor";
+import { freeDaysFor, isPatientPays, patientPrice } from "@/lib/patientPays";
 import CareNoteEditor from "./CareNoteEditor";
 import ReviewButton from "./ReviewButton";
 import { doctorCanSeeRecord, payingNow, reviewFeeThisMonth } from "@/lib/careFeesServer";
@@ -128,6 +130,38 @@ export default async function PatientPage({
         .map((fid) => ({ id: fid, name: cleanFoodName(getFood(fid)?.name ?? fid) }))
         .sort((a, b) => a.name.localeCompare(b.name))
     : [];
+  // A dietitian's terms for this patient (founder, 2026-11-28): their own price
+  // and, until their first payment, their free days. "*" so a database without
+  // #43/#44 still answers.
+  const terms =
+    practice && isPatientPays(ctx.hospital)
+      ? await Promise.all([
+          ctx.admin.from("hospital_patients").select("*").eq("id", row.id).maybeSingle(),
+          ctx.admin
+            .from("patient_payments")
+            .select("id", { count: "exact", head: true })
+            .eq("hospital_id", ctx.hospital.id)
+            .eq("user_id", row.user_id as string),
+        ]).then(([r, pays]) => {
+          const full = (r.data ?? {}) as { price?: number | null; free_days?: number | null; paid_until?: string | null };
+          const neverPaid = (pays.count ?? 0) === 0;
+          const until = full.paid_until ? new Date(full.paid_until) : null;
+          const dateText = until?.toLocaleDateString("en-GB", { day: "numeric", month: "long", timeZone: "Africa/Lagos" });
+          const ended = !until || until.getTime() <= Date.now();
+          return {
+            ownPrice: full.price ?? null,
+            freeDays: freeDaysFor(ctx.hospital, full),
+            neverPaid,
+            paidUntilText: ended
+              ? neverPaid
+                ? "Has not paid you yet."
+                : `Their paid time ended${dateText ? ` on ${dateText}` : ""}.`
+              : neverPaid
+                ? `Free until ${dateText}.`
+                : `Paid until ${dateText}.`,
+          };
+        })
+      : null;
   // The sugar-flag fields (clinician-flags-schema.sql, #29), in their own read
   // so a database without them still shows every flag (target 150, nothing seen).
   const flagRead = await ctx.admin
@@ -219,6 +253,18 @@ export default async function PatientPage({
             avoid: (rulesRead.data?.avoid_food_ids as string[] | null) ?? [],
             prefer: (rulesRead.data?.prefer_food_ids as string[] | null) ?? [],
           }}
+        />
+      )}
+      {terms && (
+        <PatientTermsEditor
+          patientId={id}
+          hid={ctx.all.length > 1 ? ctx.hospital.id : null}
+          firstName={firstName}
+          ownPrice={terms.ownPrice}
+          usualPrice={patientPrice(ctx.hospital)}
+          freeDays={terms.freeDays}
+          canChangeFreeDays={terms.neverPaid}
+          paidUntilText={terms.paidUntilText}
         />
       )}
       {notesRead && !notesRead.error && (

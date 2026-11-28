@@ -20,7 +20,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { SITE_URL } from "@/lib/site";
 import { watDay } from "@/lib/chat";
 import type { HospitalRow, PatientRow } from "@/lib/hospitalServer";
-import { dietitianShareKobo, isPatientPays, nextPaidUntil, PATIENT_PAY_KIND, patientPrice, VOLUME_WINDOW_DAYS } from "@/lib/patientPays";
+import { dietitianShareKobo, isPatientPays, nextPaidUntil, PATIENT_PAY_KIND, priceFor, VOLUME_WINDOW_DAYS } from "@/lib/patientPays";
 
 /** Is #32 in the database? (The lock table must exist before anyone pays.) */
 export async function patientPaysReady(admin: SupabaseClient): Promise<boolean> {
@@ -75,7 +75,8 @@ export async function startPatientPayment(admin: SupabaseClient, uid: string, em
   if (!row || !row.hospitals) return { error: "You are not with a dietitian on Glufloat.", status: 404 };
   if (!email) return { error: "Your account has no email. Please contact Glufloat.", status: 400 };
 
-  const price = patientPrice(row.hospitals);
+  // Their own price if she set one, otherwise hers (founder, 2026-11-28).
+  const price = priceFor(row.hospitals, row);
   const reference = `gf-pp-${randomBytes(9).toString("hex")}`;
   const res = await fetch("https://api.paystack.co/transaction/initialize", {
     method: "POST",

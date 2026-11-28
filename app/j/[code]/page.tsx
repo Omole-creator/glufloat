@@ -3,6 +3,7 @@ import AuthShell from "@/components/auth/AuthShell";
 import { createAdminClient } from "@/lib/supabase/server";
 import { acceptsPatients, isDoctorPractice, isNursePractice, isPractice } from "@/lib/hospitalPlans";
 import JoinForm from "./JoinForm";
+import { freeDaysFor, isPatientPays, naira, priceFor } from "@/lib/patientPays";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Join your hospital", robots: { index: false, follow: false } };
@@ -26,6 +27,9 @@ export default async function JoinPage({
 
   let hospital: { name: string; live: boolean; practice: boolean; doctor: boolean; nurse: boolean } | null = null;
   let invite: { name: string; phone: string } | null = null;
+  // A dietitian's patient is told her price and their free days BEFORE they
+  // make an account, so the pay screen is never a surprise (founder, 2026-11-28).
+  let terms: { price: number; freeDays: number } | null = null;
   try {
     const admin = createAdminClient();
     // "*" so a database without the dietitian column (kind) still answers.
@@ -37,14 +41,16 @@ export default async function JoinPage({
       if (t) {
         const { data: p } = await admin
           .from("hospital_patients")
-          .select("name,phone")
+          .select("*")
           .eq("hospital_id", data.id)
           .eq("invite_token", t)
           .eq("status", "invited")
           .is("user_id", null)
           .maybeSingle();
         if (p) invite = { name: p.name as string, phone: p.phone as string };
+        if (isPatientPays(data)) terms = { price: priceFor(data, p), freeDays: freeDaysFor(data, p) };
       }
+      if (!terms && isPatientPays(data)) terms = { price: priceFor(data, null), freeDays: freeDaysFor(data, null) };
     }
   } catch {
     hospital = null;
@@ -78,6 +84,15 @@ export default async function JoinPage({
           <>
             {`${hospital.name} uses Glufloat to look after your diabetes. It tells you what to eat and how much, and keeps a report for your doctor. Start with 7 days free.`}
             <span className="mt-2 block">Your doctor is paid by Glufloat to review your meals and sugar tests every month.</span>
+          </>
+        ) : terms ? (
+          <>
+            {`${hospital.name} gives you Glufloat. It tells you what to eat for your diabetes and how much, and keeps a report for your dietitian.`}
+            <span className="mt-2 block font-semibold">
+              {`You pay ${hospital.name} ${naira(terms.price)} a month inside Glufloat. ${
+                terms.freeDays > 0 ? `Your first ${terms.freeDays} days are free.` : "You start paying from the day you join."
+              }`}
+            </span>
           </>
         ) : (
           `${hospital.name} gives you Glufloat. It tells you what to eat for your diabetes and how much, and keeps a report for your doctor and dietitian.`
