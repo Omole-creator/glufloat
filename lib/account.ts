@@ -41,7 +41,7 @@ export type Access =
   | { status: "expired"; lapsed: boolean; previousTier: Tier | null; previousYearly: boolean; practice?: PracticeDue };
 
 /** A dietitian's patient who must pay her to keep going (patient-pays-schema.sql). */
-export type PracticeDue = { name: string; price: number };
+export type PracticeDue = { name: string; price: number; first?: boolean };
 
 export type HospitalChat = { name: string; role: "admin" | "doctor" | "dietitian"; whatsapp: string };
 
@@ -84,6 +84,7 @@ type HospitalMe = {
     paidUntil?: string | null;
     notes?: CareNote[];
     due?: boolean;
+    firstPay?: boolean;
     price?: number | null;
   };
   staff: { id: string; name: string; role: string; kind?: "hospital" | "dietitian" | "doctor"; nurse?: boolean }[];
@@ -258,7 +259,7 @@ export async function getAccess(): Promise<{
         lapsed: false,
         previousTier: null,
         previousYearly: false,
-        practice: { name: hosp.patient.hospitalName, price: hosp.patient.price },
+        practice: { name: hosp.patient.hospitalName, price: hosp.patient.price, first: !!hosp.patient.firstPay },
       },
     };
 

@@ -374,6 +374,12 @@ export async function hospitalStatusFor(admin: SupabaseClient, uid: string): Pro
      * button. False for everyone else.
      */
     due: boolean;
+    /**
+     * Due before ever having any time: she gave them no free days and they
+     * have not paid yet (founder, 2026-11-28). Their screen says "start",
+     * not "your time has ended".
+     */
+    firstPay?: boolean;
     /** Her monthly price in naira, for a patient-pays dietitian's patient; else null. */
     price: number | null;
   };
@@ -429,6 +435,13 @@ export async function hospitalStatusFor(admin: SupabaseClient, uid: string): Pro
     const doctor = pick.hospitals.kind === "doctor";
     const payer = isPatientPays(pick.hospitals);
     const due = payer && (pick.status === "paused" || !paidUp(pick));
+    // No free days and never paid: paid_until was set at the moment they joined.
+    const firstPay =
+      due &&
+      pick.status !== "paused" &&
+      !!pick.paid_until &&
+      !!pick.joined_at &&
+      Math.abs(new Date(pick.paid_until).getTime() - new Date(pick.joined_at).getTime()) < 3_600_000;
     out.patient = {
       hospitalName: pick.hospitals.name,
       // A patient-pays patient is covered until their own paid time ends.
@@ -436,6 +449,7 @@ export async function hospitalStatusFor(admin: SupabaseClient, uid: string): Pro
       // Paused shows as active-but-due: the app shows her Pay button.
       status: (pick.status === "paused" ? "active" : pick.status) as "active" | "waiting",
       due,
+      firstPay,
       price: payer ? patientPrice(pick.hospitals) : null,
       // A doctor's patients chat in the app only (lib/chatServer.ts); no WhatsApp contact.
       chats: pick.status === "active" && !doctor ? await chatContacts(admin, pick.hospitals) : [],

@@ -395,11 +395,22 @@ export default function AppPage() {
             <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-brand/10 text-brand">
               <Stethoscope className="h-6 w-6" strokeWidth={2.2} />
             </span>
-            <h1 className="mt-4 font-display text-2xl font-bold text-ink">Your time with {pr.name} has ended.</h1>
-            <p className="mt-2 text-sm leading-relaxed text-ink-soft">
-              Pay {naira(pr.price)} for one more month to keep using Glufloat with {pr.name}. Your meals and sugar tests are
-              kept safe.
-            </p>
+            {pr.first ? (
+              <>
+                <h1 className="mt-4 font-display text-2xl font-bold text-ink">Welcome. You are with {pr.name}.</h1>
+                <p className="mt-2 text-sm leading-relaxed text-ink-soft">
+                  Pay {naira(pr.price)} for your first month to start using Glufloat with {pr.name}.
+                </p>
+              </>
+            ) : (
+              <>
+                <h1 className="mt-4 font-display text-2xl font-bold text-ink">Your time with {pr.name} has ended.</h1>
+                <p className="mt-2 text-sm leading-relaxed text-ink-soft">
+                  Pay {naira(pr.price)} for one more month to keep using Glufloat with {pr.name}. Your meals and sugar tests are
+                  kept safe.
+                </p>
+              </>
+            )}
             <PayDietitian price={pr.price} className="mt-6" />
             <p className="mt-3 text-xs text-ink-soft">Pay by card, bank transfer or USSD.</p>
           </div>
