@@ -134,7 +134,7 @@ export default function DietitiansPage() {
   const steps = [
     { icon: BadgeCheck, title: "Start free", text: "Give your name and your WhatsApp number. It takes 2 minutes." },
     { icon: UserPlus, title: "Invite your patients", text: "Send each patient their own link on WhatsApp, or share your QR code. They join with their phone number." },
-    { icon: ClipboardList, title: "Review before each visit", text: `Each patient gets ${PATIENT_FREE_DAYS} free days, then pays you inside Glufloat. Open any patient to see every meal and sugar test.` },
+    { icon: ClipboardList, title: "Review before each visit", text: "Patients pay you inside Glufloat. You choose if they start with a free week or pay from day one. Open any patient to see every meal and sugar test." },
   ];
   const patientGets = [
     { icon: Utensils, text: "A meal picked for them for breakfast, lunch and dinner" },
@@ -163,7 +163,11 @@ export default function DietitiansPage() {
       a: `Any price from ${naira(PATIENT_PRICE_MIN)} a month. You can change it any time. A new price starts at each patient's next payment.`,
     },
     {
-      q: `What happens after a patient's ${PATIENT_FREE_DAYS} free days?`,
+      q: "Do my patients get free days?",
+      a: `You choose. Give new patients ${PATIENT_FREE_DAYS} free days, or none, so clients who already pay you keep paying from the day they join. You can choose for each patient you invite.`,
+    },
+    {
+      q: "How do my patients pay?",
       a: "They pay you one month at a time, by card, bank transfer or USSD, inside Glufloat. If they do not pay, Glufloat asks them to pay you before they can keep going. It never offers them another plan.",
     },
     {
@@ -229,7 +233,7 @@ export default function DietitiansPage() {
                 </a>
               </div>
               <p className="mt-5 text-sm text-white/70">
-                No payment to start · You set your price · Each patient gets {PATIENT_FREE_DAYS} free days
+                No payment to start · You set your price · You choose the free days
               </p>
             </div>
             <DashboardPreview />

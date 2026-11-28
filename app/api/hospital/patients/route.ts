@@ -6,7 +6,7 @@ import { normalizePhone } from "@/lib/phone";
 import { isPhoneLoginEmail } from "@/lib/phoneLogin";
 import { extendAccess, isDoctorPractice, isNursePractice, isPractice } from "@/lib/hospitalPlans";
 import { practiceRuleFoodIds } from "@/lib/nextMeal";
-import { isPatientPays } from "@/lib/patientPays";
+import { isPatientPays, parseFreeDays } from "@/lib/patientPays";
 import { creditReview, payingNow } from "@/lib/careFeesServer";
 
 const RULE_FOODS = new Set(practiceRuleFoodIds());
@@ -44,6 +44,11 @@ export async function POST(request: Request) {
   }[];
   if (list.length === 0) return NextResponse.json({ error: "Add at least one patient." }, { status: 400 });
 
+  // A dietitian may give these invites their own free days, none or 7
+  // (founder, 2026-11-28). Null = her setting, decided when they join.
+  const freeDays = isPatientPays(ctx.hospital) ? parseFreeDays(body.freeDays) : null;
+  let freeDaysSaved = true;
+
   const added: string[] = [];
   const skipped: { name: string; reason: string }[] = [];
   const seen = new Set<string>();
@@ -65,7 +70,7 @@ export async function POST(request: Request) {
       continue;
     }
     seen.add(phone);
-    const { error } = await ctx.admin.from("hospital_patients").insert({
+    const rowData: Record<string, unknown> = {
       hospital_id: ctx.hospital.id,
       name,
       phone,
@@ -74,7 +79,15 @@ export async function POST(request: Request) {
       invite_token: newToken(),
       confirmed: !nurse,
       added_by: ctx.user.id,
-    });
+    };
+    let { error } = await ctx.admin
+      .from("hospital_patients")
+      .insert(freeDays !== null && freeDaysSaved ? { ...rowData, free_days: freeDays } : rowData);
+    // Before #43 has run there is no free_days column: add them anyway, on her setting.
+    if (error && freeDays !== null && freeDaysSaved && /free_days/i.test(error.message)) {
+      freeDaysSaved = false;
+      ({ error } = await ctx.admin.from("hospital_patients").insert(rowData));
+    }
     if (error) {
       skipped.push({
         name,
@@ -82,7 +95,7 @@ export async function POST(request: Request) {
       });
     } else added.push(name);
   }
-  return NextResponse.json({ ok: true, added: added.length, skipped });
+  return NextResponse.json({ ok: true, added: added.length, skipped, freeDaysSaved });
 }
 
 /**

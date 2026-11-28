@@ -112,8 +112,8 @@ export default function PriceForm({
         </div>
       </dl>
       <p className="mt-3 text-xs text-ink-soft">
-        For each patient, every month they pay. Paystack&apos;s fee comes out of Glufloat&apos;s share, never yours. Each new
-        patient gets 14 free days first.
+        For each patient, every month they pay. Paystack&apos;s fee comes out of Glufloat&apos;s share, never yours. You choose
+        the free days below.
       </p>
       <p
         className={`mt-3 rounded-xl px-3.5 py-2.5 text-sm ${

@@ -295,3 +295,5 @@ month; Send 500 emails a day; Mail up to 5 mailboxes.
 **#41 `creator-partners-schema.sql`**: creator partners (codes, the people they bring, their earnings and payouts). Run 2026-11-07. Until it runs, creator links are page not found, no code box shows, and payments behave exactly as before.
 
 **#42 `pharmacy-partners-schema.sql`**: pharmacy partners (a creator partner with `kind = 'pharmacy'`, plus branch, address and contact person) and `creator_link_visits` (one row per device the first time it opens a partner's link). Run AFTER #41. Until it runs, admin cannot add a pharmacy (it says so) and no visits are counted; creators work exactly as before.
+
+**#43 `patient-free-days-schema.sql`**: a dietitian chooses her patients' free days, none or 7 (`hospitals.patient_free_days`, her setting; `hospital_patients.free_days`, one invite's own choice). Run AFTER #32. Until it runs, every new patient gets 7 free days and her choice does not save (the screen says so).

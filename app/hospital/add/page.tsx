@@ -5,7 +5,7 @@ import { requireStaffPage } from "@/components/hospital/requireStaff";
 import { areaPath } from "@/lib/staffArea";
 import { acceptsPatients, isDoctorPractice, isNursePractice } from "@/lib/hospitalPlans";
 import { seatsUsed } from "@/lib/hospitalServer";
-import { isPatientPays } from "@/lib/patientPays";
+import { freeDaysLabel, isPatientPays, practiceFreeDays } from "@/lib/patientPays";
 import AddPatients from "./AddPatients";
 
 export const dynamic = "force-dynamic";
@@ -34,7 +34,7 @@ export default async function AddPage({ searchParams }: { searchParams: Promise<
           : isDoctorPractice(ctx.hospital)
           ? `${used} ${used === 1 ? "patient has" : "patients have"} joined. Each patient you add gets an invite to join you on Glufloat.`
           : isPatientPays(ctx.hospital)
-            ? `${used} ${used === 1 ? "patient has" : "patients have"} joined. Each new patient gets 14 free days, then pays you inside Glufloat.`
+            ? `${used} ${used === 1 ? "patient has" : "patients have"} joined. Patients who join by your QR code get ${freeDaysLabel(practiceFreeDays(ctx.hospital))}, then pay you inside Glufloat.`
             : `${used} of ${ctx.hospital.seats} places used. Added patients get a place when they join.`
       }
     >
@@ -43,6 +43,7 @@ export default async function AddPage({ searchParams }: { searchParams: Promise<
         open={acceptsPatients(ctx.hospital)}
         backHref={areaPath(ctx.all.length > 1 ? `/hospital?h=${ctx.hospital.id}` : "/hospital", isNursePractice(ctx.hospital))}
         patientPays={isPatientPays(ctx.hospital)}
+        defaultFreeDays={practiceFreeDays(ctx.hospital)}
         nurse={isNursePractice(ctx.hospital)}
       />
     </HospitalShell>

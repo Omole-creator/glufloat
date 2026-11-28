@@ -49,6 +49,8 @@ export default function JoinForm({
   const [err, setErr] = useState(tokenWasBad ? "This invite has already been used, or it is not right. You can still join below." : "");
   const [needLogin, setNeedLogin] = useState(false);
   const [done, setDone] = useState<"active" | "waiting" | null>(null);
+  // A dietitian's free days for this patient (none or 7), from the join answer.
+  const [freeDays, setFreeDays] = useState<number | null>(null);
   const [agreed, setAgreed] = useState(false);
 
   useEffect(() => {
@@ -88,6 +90,7 @@ export default function JoinForm({
     }
     clearAccessCache();
     setBusy(false);
+    setFreeDays(typeof j.freeDays === "number" ? j.freeDays : null);
     setDone(j.status === "waiting" ? "waiting" : "active");
   };
 
@@ -109,7 +112,9 @@ export default function JoinForm({
                   : doctor
                   ? `${hospitalName} can now see your meals and sugar tests on Glufloat. Start your 7 free days to begin.`
                   : practice
-                  ? `${hospitalName} now looks after your diabetes on Glufloat. Your dietitian can see your meals and sugar tests. Your first 14 days are free.`
+                  ? `${hospitalName} now looks after your diabetes on Glufloat. Your dietitian can see your meals and sugar tests. ${
+                      freeDays ? `Your first ${freeDays} days are free.` : "Pay your dietitian's monthly price to begin."
+                    }`
                   : `${hospitalName} now looks after your Glufloat. Your doctors and dietitians can see your meals and sugar tests.`
                 : practice
                   ? `Every place with ${hospitalName} is in use right now. Your dietitian will give you a place. Until then, you can use Glufloat free for 7 days.`

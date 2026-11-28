@@ -14,9 +14,10 @@ import BankDetailsForm from "@/components/BankDetailsForm";
 import { maskAccount, nairaFromKobo } from "@/lib/careFees";
 import { earningTotals, type EarningRow, type PayoutRow } from "@/lib/careFeesServer";
 import { listBanks } from "@/lib/paystackBanks";
-import { isPatientPays, patientPrice } from "@/lib/patientPays";
+import { isPatientPays, patientPrice, practiceFreeDays } from "@/lib/patientPays";
 import { payingPatients } from "@/lib/patientPaysServer";
 import PriceForm from "./PriceForm";
+import FreeDaysForm from "./FreeDaysForm";
 import PlanPanel from "./PlanPanel";
 import PracticePlanPanel, { type PracticePayment } from "./PracticePlanPanel";
 
@@ -130,6 +131,7 @@ export default async function PlanPage({ searchParams }: { searchParams: Promise
             extra={{ hid: ctx.all.length > 1 ? h.id : null }}
             saved={{ bankName: h.bank_name ?? null, accountShown: h.account_number ? maskAccount(h.account_number) : null, accountName: h.account_name ?? null }}
           />
+          <FreeDaysForm days={practiceFreeDays(h)} hid={ctx.all.length > 1 ? h.id : null} />
         </div>
         <div className="mt-6">
           <QrCodeCard name={h.name} code={h.code} open={hospitalLive(h)} practice />

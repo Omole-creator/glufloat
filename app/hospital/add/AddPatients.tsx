@@ -30,6 +30,7 @@ export default function AddPatients({
   open,
   backHref,
   patientPays = false,
+  defaultFreeDays = 7,
   nurse = false,
 }: {
   hid: string | null;
@@ -37,6 +38,8 @@ export default function AddPatients({
   backHref: string;
   /** A dietitian whose patients pay her in the app (patient-pays-schema.sql). */
   patientPays?: boolean;
+  /** Her free-days setting (0 or 7): where the choice below starts. */
+  defaultFreeDays?: number;
   /**
    * A nurse partner (founder, 2026-11-24): no tick here. Her adding a patient
    * is not their agreement; each patient ticks their own on their invite page.
@@ -47,9 +50,12 @@ export default function AddPatients({
   const [one, setOne] = useState<Patient>({ name: "", phone: "", email: "" });
   const [text, setText] = useState("");
   const [agreed, setAgreed] = useState(false);
+  // The free days these invites get (founder, 2026-11-28): none for a client
+  // who already pays her, 7 for a new one. Starts on her own setting.
+  const [freeDays, setFreeDays] = useState(defaultFreeDays);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
-  const [result, setResult] = useState<{ added: number; skipped: { name: string; reason: string }[] } | null>(null);
+  const [result, setResult] = useState<{ added: number; skipped: { name: string; reason: string }[]; freeDaysSaved?: boolean } | null>(null);
 
   const list = mode === "one" ? [one] : parseList(text);
 
@@ -61,12 +67,12 @@ export default function AddPatients({
     const res = await fetch("/api/hospital/patients", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ hid, patients: list, confirmed: !nurse }),
+      body: JSON.stringify({ hid, patients: list, confirmed: !nurse, ...(patientPays ? { freeDays } : {}) }),
     });
     const j = await res.json().catch(() => ({}));
     setBusy(false);
     if (!res.ok) return setErr(j.error ?? "Something went wrong.");
-    setResult({ added: j.added ?? 0, skipped: j.skipped ?? [] });
+    setResult({ added: j.added ?? 0, skipped: j.skipped ?? [], freeDaysSaved: j.freeDaysSaved !== false });
     setOne({ name: "", phone: "", email: "" });
     setText("");
     setAgreed(false);
@@ -145,6 +151,39 @@ export default function AddPatients({
           </div>
         )}
 
+        {patientPays && (
+          <fieldset className="mt-5">
+            <legend className="text-sm font-semibold text-ink">
+              Free days for {mode === "one" ? "this patient" : "these patients"}
+            </legend>
+            <div className="mt-2 grid gap-2 sm:grid-cols-2">
+              {[
+                { d: 0, title: "No free days", sub: "Already my client. They pay from the day they join." },
+                { d: 7, title: "7 free days", sub: "New to me. They pay after a free week." },
+              ].map((o) => (
+                <label
+                  key={o.d}
+                  className={`flex cursor-pointer items-start gap-3 rounded-xl border-2 p-3.5 text-sm ${
+                    freeDays === o.d ? "border-brand bg-brand/5" : "border-line bg-white"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="freeDays"
+                    checked={freeDays === o.d}
+                    onChange={() => setFreeDays(o.d)}
+                    className="mt-0.5 h-5 w-5 shrink-0"
+                  />
+                  <span>
+                    <span className="block font-bold text-ink">{o.title}</span>
+                    <span className="block text-ink-soft">{o.sub}</span>
+                  </span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        )}
+
         {nurse ? (
           <p className="mt-5 rounded-xl bg-mist/70 p-3.5 text-sm text-ink">
             When {mode === "one" ? "this patient opens their invite, they" : "each patient opens their invite, they"} tick a box to agree
@@ -173,6 +212,9 @@ export default function AddPatients({
             <p className="flex items-center gap-2 font-bold text-leaf-deep">
               <CheckCircle2 className="h-4 w-4" /> {result.added} added
             </p>
+            {result.freeDaysSaved === false && (
+              <p className="mt-1 text-ink">Your free-days choice is not ready yet, so they get 7 free days.</p>
+            )}
             {result.skipped.length > 0 && (
               <ul className="mt-2 space-y-0.5 text-ink">
                 {result.skipped.map((s, i) => (
@@ -199,7 +241,9 @@ export default function AddPatients({
             nurse
               ? "They tick a box to agree that you can see their name, their meals and their sugar tests before and after meals. Then their 7 free days start."
               : patientPays
-              ? "Their first 14 days are free. Then they pay you inside Glufloat, every month, at your price."
+              ? freeDays > 0
+                ? `Their first ${freeDays} days are free. Then they pay you inside Glufloat, every month, at your price.`
+                : "They pay you inside Glufloat from the day they join, every month, at your price."
               : "They get everything in Glufloat Premium, and your doctors and dietitians see their record.",
           ].map((s, i) => (
             <li key={i} className="flex gap-3">

@@ -10,8 +10,11 @@
  *  - Glufloat keeps N2,000 of each payment, and Paystack's fee comes out of
  *    Glufloat's N2,000, never out of hers. So her share is exactly
  *    "her price minus N2,000", a number she can trust.
- *  - Each patient gets 14 free days from the day they join, then pays one
- *    month at a time.
+ *  - Free days are hers to choose (founder, 2026-11-28, after a dietitian
+ *    asked why her existing paying clients should get two weeks free): none,
+ *    or 7. Her setting is used for anyone who joins by her QR code; a personal
+ *    invite can be set differently. 7 until she changes it (it was a fixed
+ *    14). Then the patient pays one month at a time.
  */
 
 /** The least a dietitian may charge a patient a month, in naira. */
@@ -30,8 +33,39 @@ export const VOLUME_PATIENTS = 25;
 export const GLUFLOAT_SHARE_VOLUME = 1_750;
 /** The days the paying-patient count looks back over. */
 export const VOLUME_WINDOW_DAYS = 30;
-/** Free days for each new patient of a dietitian. */
-export const PATIENT_FREE_DAYS = 14;
+/** The free days a dietitian may give a new patient: none, or a week. */
+export const FREE_DAY_CHOICES = [0, 7] as const;
+export type FreeDays = (typeof FREE_DAY_CHOICES)[number];
+/** Her free days until she chooses (patient-free-days-schema.sql, #43). */
+export const PATIENT_FREE_DAYS: FreeDays = 7;
+
+/** One of the allowed choices, or null for anything else. */
+export function parseFreeDays(v: unknown): FreeDays | null {
+  if (v === null || v === undefined || v === "") return null;
+  const n = Number(v);
+  return (FREE_DAY_CHOICES as readonly number[]).includes(n) ? (n as FreeDays) : null;
+}
+
+/** Her own setting for new patients: what she chose, or the default. */
+export function practiceFreeDays(h: { patient_free_days?: number | null } | null | undefined): FreeDays {
+  return parseFreeDays(h?.patient_free_days) ?? PATIENT_FREE_DAYS;
+}
+
+/**
+ * The free days one patient gets: their invite's own choice if she set one,
+ * otherwise her setting (also what a QR-code walk-in gets).
+ */
+export function freeDaysFor(
+  h: { patient_free_days?: number | null } | null | undefined,
+  row: { free_days?: number | null } | null | undefined,
+): FreeDays {
+  return parseFreeDays(row?.free_days) ?? practiceFreeDays(h);
+}
+
+/** "7 free days" or "no free days", for her screens. */
+export function freeDaysLabel(d: number): string {
+  return d > 0 ? `${d} free days` : "no free days";
+}
 /** One payment buys this many days. */
 export const PATIENT_PAID_DAYS = 30;
 /** The plan name stored on a patient-pays practice. */

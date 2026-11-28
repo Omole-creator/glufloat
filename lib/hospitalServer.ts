@@ -48,6 +48,8 @@ export type HospitalRow = {
   account_name?: string | null;
   /** patient-pays-schema.sql (#32): a dietitian's monthly price per patient, naira (null = N4,500). */
   patient_price?: number | null;
+  /** patient-free-days-schema.sql (#43): free days for her new patients, 0 or 7 (null = 7). */
+  patient_free_days?: number | null;
   created_at: string;
   approved_at: string | null;
 };
@@ -80,6 +82,8 @@ export type PatientRow = {
   paid_until?: string | null;
   /** patient-pause-schema.sql (#28): time left on the countdown when paused, frozen until unpaused. */
   paused_left_ms?: number | null;
+  /** patient-free-days-schema.sql (#43): this invite's own free days, 0 or 7 (null = the dietitian's setting). */
+  free_days?: number | null;
   /** clinician-flags-schema.sql (#29): the before-meal target its clinician set (null = 150). */
   before_target_mgdl?: number | null;
   /** clinician-flags-schema.sql (#29): "Mark as seen" on the red sugar flag. */
@@ -401,7 +405,7 @@ export async function hospitalStatusFor(admin: SupabaseClient, uid: string): Pro
   const rows = (pats ?? []) as unknown as Joined[];
   const now = Date.now();
   // A patient-pays dietitian covers a patient only while THEIR OWN paid time
-  // runs (their 14 free days, then each month they pay her).
+  // runs (their free days (none or 7, her choice), then each month they pay her).
   const paidUp = (r: Joined) => !!r.paid_until && new Date(r.paid_until).getTime() > now;
   for (const r of rows) {
     const h = r.hospitals;

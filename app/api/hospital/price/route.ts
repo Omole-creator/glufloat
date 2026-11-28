@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { staffContext } from "@/lib/hospitalServer";
-import { isPatientPays, parsePatientPrice } from "@/lib/patientPays";
+import { isPatientPays, parseFreeDays, parsePatientPrice } from "@/lib/patientPays";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +15,20 @@ export async function POST(request: Request) {
   if (!ctx) return NextResponse.json({ error: "Please log in again." }, { status: 401 });
   if (!isPatientPays(ctx.hospital) || ctx.staff.role !== "admin")
     return NextResponse.json({ error: "Only the dietitian can change this." }, { status: 403 });
+
+  // Her free days for new patients, none or 7 (founder, 2026-11-28,
+  // patient-free-days-schema.sql #43). Patients already joined keep theirs.
+  if ("freeDays" in body) {
+    const d = parseFreeDays(body.freeDays);
+    if (d === null) return NextResponse.json({ error: "Choose no free days or 7 free days." }, { status: 400 });
+    const { error } = await ctx.admin
+      .from("hospitals")
+      .update({ patient_free_days: d, updated_at: new Date().toISOString() })
+      .eq("id", ctx.hospital.id);
+    if (error) return NextResponse.json({ error: "This is not ready yet. Please try again later." }, { status: 503 });
+    return NextResponse.json({ ok: true, freeDays: d });
+  }
+
   const r = parsePatientPrice(body.price);
   if ("error" in r) return NextResponse.json({ error: r.error }, { status: 400 });
   const { error } = await ctx.admin

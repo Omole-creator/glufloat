@@ -8,6 +8,9 @@ import {
   dietitianPercent,
   dietitianShareKobo,
   dietitianShareNaira,
+  freeDaysFor,
+  parseFreeDays,
+  practiceFreeDays,
   GLUFLOAT_SHARE,
   GLUFLOAT_SHARE_VOLUME,
   glufloatShareFor,
@@ -32,7 +35,18 @@ const now = Date.UTC(2026, 9, 17, 10);
 // The founder's numbers.
 check("minimum price is N4,500", PATIENT_PRICE_MIN === 4_500);
 check("Glufloat keeps N2,000", GLUFLOAT_SHARE === 2_000);
-check("14 free days per patient", PATIENT_FREE_DAYS === 14);
+check("7 free days until she chooses", PATIENT_FREE_DAYS === 7);
+
+// Free days are hers to choose (founder, 2026-11-28): none, or 7.
+check("practice with no setting gives 7", practiceFreeDays({ patient_free_days: null }) === 7);
+check("practice set to none gives 0", practiceFreeDays({ patient_free_days: 0 }) === 0);
+check("an old database without the column gives 7", practiceFreeDays({}) === 7);
+check("only 0 and 7 are allowed", parseFreeDays(14) === null && parseFreeDays(3) === null && parseFreeDays("7") === 7 && parseFreeDays(0) === 0);
+check("empty is not a choice", parseFreeDays(null) === null && parseFreeDays("") === null);
+check("an invite's own choice wins", freeDaysFor({ patient_free_days: 7 }, { free_days: 0 }) === 0);
+check("an invite set to 7 under a none practice", freeDaysFor({ patient_free_days: 0 }, { free_days: 7 }) === 7);
+check("a walk-in gets her setting", freeDaysFor({ patient_free_days: 0 }, null) === 0);
+check("a bad stored value falls back to her setting", freeDaysFor({ patient_free_days: 0 }, { free_days: 14 }) === 0);
 
 // Her price.
 check("no price set reads as N4,500", patientPrice({ patient_price: null }) === 4_500);
