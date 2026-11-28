@@ -139,12 +139,13 @@ export default async function PatientPage({
           ctx.admin.from("hospital_patients").select("*").eq("id", row.id).maybeSingle(),
           ctx.admin
             .from("patient_payments")
-            .select("id", { count: "exact", head: true })
+            .select("reference", { count: "exact", head: true })
             .eq("hospital_id", ctx.hospital.id)
             .eq("user_id", row.user_id as string),
         ]).then(([r, pays]) => {
           const full = (r.data ?? {}) as { price?: number | null; free_days?: number | null; paid_until?: string | null };
-          const neverPaid = (pays.count ?? 0) === 0;
+          // A failed read counts as paid, so the free-days choice never shows wrongly.
+          const neverPaid = !pays.error && (pays.count ?? 0) === 0;
           const until = full.paid_until ? new Date(full.paid_until) : null;
           const dateText = until?.toLocaleDateString("en-GB", { day: "numeric", month: "long", timeZone: "Africa/Lagos" });
           const ended = !until || until.getTime() <= Date.now();

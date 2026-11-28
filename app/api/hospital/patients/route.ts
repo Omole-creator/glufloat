@@ -245,12 +245,14 @@ export async function PATCH(request: Request) {
     const d = parseFreeDays(body.freeDays);
     if (d === null) return NextResponse.json({ error: "Choose no free days or 7 free days." }, { status: 400 });
     if (p.status !== "active" || !p.user_id) return NextResponse.json({ error: "This patient has not joined yet, or is paused." }, { status: 409 });
-    const { count } = await ctx.admin
+    // patient_payments has no id column: count by its key, and treat a failed
+    // read as "has paid", so free days can never be changed after a payment.
+    const { count, error: payErr } = await ctx.admin
       .from("patient_payments")
-      .select("id", { count: "exact", head: true })
+      .select("reference", { count: "exact", head: true })
       .eq("hospital_id", ctx.hospital.id)
       .eq("user_id", p.user_id);
-    if ((count ?? 0) > 0) return NextResponse.json({ error: "This patient has already paid you, so free days no longer apply." }, { status: 409 });
+    if (payErr || (count ?? 0) > 0) return NextResponse.json({ error: "This patient has already paid you, so free days no longer apply." }, { status: 409 });
     const until = freeDaysEnd(d, p.joined_at);
     const { error } = await ctx.admin.from("hospital_patients").update({ paid_until: until }).eq("id", p.id);
     if (error) return NextResponse.json({ error: "That did not save. Please try again." }, { status: 503 });
